@@ -86,18 +86,20 @@ options_export name version revision epoch categories maintainers \
 
 default subport {[portmain::get_default_subport]}
 proc portmain::get_default_subport {} {
-    global name portpath
+    global name
     if {[info exists name]} {
         return $name
     }
+    global portpath
     return [file tail $portpath]
 }
 default subbuildpath {[portmain::get_subbuildpath]}
 proc portmain::get_subbuildpath {} {
-    global portpath portbuildpath subport
+    global portbuildpath subport
     if {$subport ne ""} {
         set subdir $subport
     } else {
+        global portpath
         set subdir [file tail $portpath]
     }
     return [file normalize [file join $portbuildpath $subdir]]
@@ -138,21 +140,19 @@ default os.minor {$os_minor}
 default os.arch {$os_arch}
 default os.endian {$os_endian}
 
-set macos_version_text {}
-if {[option os.platform] eq "darwin"} {
-    set macos_version_text "(macOS ${macos_version}) "
+proc portmain::report_platform_info {} {
+    global os.platform os.version os.arch macos_version
+    set macos_version_text {}
+    if {${os.platform} eq "darwin"} {
+        set macos_version_text "(macOS ${macos_version}) "
+    }
+    ui_debug "OS ${os.platform}/${os.version} ${macos_version_text}arch ${os.arch}"
 }
-ui_debug "OS [option os.platform]/[option os.version] ${macos_version_text}arch [option os.arch]"
 
 default universal_variant {${use_configure}}
 
-if {[option os.platform] eq "darwin" && [option os.subplatform] eq "macosx"} {
-    # we're on macOS and can therefore build universal
-    default os.universal_supported yes
-} else {
-    default os.universal_supported no
-}
-
+# if we're on macOS and can therefore build universal
+default os.universal_supported {[expr {${os.subplatform} eq "macosx"}]}
 default universal_possible {[expr {${os.universal_supported} && [llength ${configure.universal_archs}] >= 2}]}
 
 default compiler.cpath {${prefix}/include}
@@ -169,7 +169,7 @@ set egid [getegid]
 default worksymlink {[file normalize [file join $portpath work]]}
 default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
 
-default use_xcode {[expr {[option build.type] eq "xcode" || !([file exists /usr/lib/libxcselect.dylib] || [option os.major] >= 20) || ![file executable /Library/Developer/CommandLineTools/usr/bin/make]}]}
+default use_xcode {[expr {${build.type} eq "xcode" || !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20) || ![file executable /Library/Developer/CommandLineTools/usr/bin/make]}]}
 
 proc portmain::main {args} {
     return 0

@@ -225,7 +225,7 @@ proc portclean::clean_archive {args} {
     if {[info exists ports_version_glob]} {
         # Match all possible archive variants that match the version
         # glob specified by the user.
-        set fileglob "$subport-[option ports_version_glob]*.*.*.*"
+        set fileglob "$subport-${ports_version_glob}*.*.*.*"
     } else {
         # Match all possible archives for this port.
         set fileglob "$subport-*_*.*.*.*"

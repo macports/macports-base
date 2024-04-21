@@ -47,8 +47,7 @@ options package.destpath package.flat
 set_ui_prefix
 
 proc portmpkg::mpkg_main {args} {
-    global subport epoch version revision os.major package.destpath package.flat UI_PREFIX
-
+    global package.flat os.major package.destpath subport epoch version revision
     if {!${package.flat} || ${os.major} < 10} {
         # Make sure the destination path exists.
         file mkdir ${package.destpath}
@@ -58,34 +57,33 @@ proc portmpkg::mpkg_main {args} {
 }
 
 proc portmpkg::make_dependency_list {portname destination} {
-    global requested_variations prefix package.destpath package.flat
+    global prefix package.flat requested_variations
     set result [list]
     if {[catch {set res [mport_lookup $portname]} error]} {
         ui_debug $::errorInfo
         return -code error "port lookup failed: $error"
     }
-    array set portinfo [lindex $res 1]
+    lassign $res portname portinfo
 
     if {[getuid] == 0 && [geteuid] != 0} {
         seteuid 0; setegid 0
         set deprivileged 1
     }
 
-    set mport [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get requested_variations]]
+    set mport [mport_open [dict get $portinfo porturl] [dict create prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portname] [array get requested_variations]]
 
     if {[info exists deprivileged]} {
         global macportsuser
-        setegid [uname_to_gid "$macportsuser"]
-        seteuid [name_to_uid "$macportsuser"]
+        setegid [uname_to_gid $macportsuser]
+        seteuid [name_to_uid $macportsuser]
     }
 
-    unset portinfo
-    array set portinfo [mport_info $mport]
+    set portinfo [mport_info $mport]
 
     # get the union of depends_run and depends_lib
     set depends [list]
-    if {[info exists portinfo(depends_run)]} { lappend depends {*}$portinfo(depends_run) }
-    if {[info exists portinfo(depends_lib)]} { lappend depends {*}$portinfo(depends_lib) }
+    if {[dict exists $portinfo depends_run]} { lappend depends {*}[dict get $portinfo depends_run] }
+    if {[dict exists $portinfo depends_lib]} { lappend depends {*}[dict get $portinfo depends_lib] }
 
     foreach depspec $depends {
         set dep [_get_dep_port $depspec]
@@ -94,7 +92,7 @@ proc portmpkg::make_dependency_list {portname destination} {
         }
     }
 
-    lappend result [list $portinfo(name) $portinfo(version) $portinfo(revision) $mport]
+    lappend result [list $portname [dict get $portinfo version] [dict get $portinfo revision] $mport]
     return $result
 }
 
@@ -113,18 +111,19 @@ proc portmpkg::make_one_package {portname mport} {
 
     if {[info exists deprivileged]} {
         global macportsuser
-        setegid [uname_to_gid "$macportsuser"]
-        seteuid [name_to_uid "$macportsuser"]
+        setegid [uname_to_gid $macportsuser]
+        seteuid [name_to_uid $macportsuser]
     }
 }
 
 proc portmpkg::mpkg_path {portname portversion portrevision} {
     global package.destpath
-    return "${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].mpkg"
+    return ${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].mpkg
 }
 
 proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
-    global os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage
+    global os.major workpath porturl description long_description homepage \
+           package.flat package.destpath
 
     set mpkgpath [portmpkg::mpkg_path $portname $portversion $portrevision]
 
@@ -169,6 +168,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     system "cp -PR [shellescape ${pkgpath}] [shellescape ${packages_path}]"
 
     if {!${package.flat} || ${os.major} < 10} {
+        global prefix
         portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
         mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
         portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description

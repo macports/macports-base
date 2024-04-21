@@ -66,7 +66,7 @@ proc portactivate::activate_main {args} {
         }
     }
 
-    set optionlist [array get user_options]
+    set reg_options [dict create {*}[array get user_options]]
     set renames [list]
     portstartupitem::foreach_startupitem {
         if {$si_install} {
@@ -75,9 +75,9 @@ proc portactivate::activate_main {args} {
             lappend renames /Library/${si_location}/${si_plist} ${prefix}/etc/${si_location}/${si_plist}
         }
     }
-    lappend optionlist portactivate_rename_files $renames
+    dict set reg_options portactivate_rename_files $renames
 
-    registry_activate $subport $_inregistry_version $_inregistry_revision $_inregistry_variants $optionlist
+    registry_activate $subport $_inregistry_version $_inregistry_revision $_inregistry_variants $reg_options
 
     return 0
 }
@@ -89,13 +89,14 @@ proc portactivate::activate_finish {args} {
     # the files needed for this
     # The option from macports.conf can override the portfile here.
     if {[tbool startupitem_autostart]} {
-        set ::portstartupitem::autostart_only yes
+        global portstartupitem::autostart_only
+        set autostart_only yes
         if {[eval_targets "load"]} {
             ui_error [format [msgcat::mc "Failed to load %s"] $subport]
-            unset ::portstartupitem::autostart_only
+            unset autostart_only
             return 1
         }
-        unset ::portstartupitem::autostart_only
+        unset autostart_only
     }
 
     # Save notes for display by the port client

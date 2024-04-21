@@ -50,22 +50,22 @@ options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.nam
 # defaults
 default livecheck.url {$homepage}
 default livecheck.type default
-default livecheck.md5 ""
-default livecheck.regex ""
+default livecheck.md5 {}
+default livecheck.regex {}
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 default livecheck.ignore_sslcert no
 default livecheck.compression yes
-default livecheck.curloptions {"--append-http-header" "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+default livecheck.curloptions [list --append-http-header "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"]
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
            livecheck.ignore_sslcert \
            livecheck.compression \
            livecheck.curloptions \
-           homepage portpath workpath \
-           master_sites name subport distfiles
+           homepage portpath \
+           master_sites name subport
 
     set updated 0
     set updated_version "unknown"

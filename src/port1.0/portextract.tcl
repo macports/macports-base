@@ -125,7 +125,7 @@ proc portextract::extract_start {args} {
 }
 
 proc portextract::extract_main {args} {
-    global filespath extract.dir use_dmg
+    global UI_PREFIX filespath extract.dir use_dmg
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -133,7 +133,7 @@ proc portextract::extract_main {args} {
     }
 
     foreach distfile [option extract.only] {
-        ui_info "$::UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
         if {[file exists $filespath/$distfile]} {
             option extract.args "'$filespath/$distfile'"
         } else {

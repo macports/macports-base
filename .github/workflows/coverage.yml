@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-13]
+        os: [macos-14]
 
     steps:
       - name: Checkout repository
@@ -43,11 +43,11 @@ jobs:
           set -eu
           xcrun llvm-profdata merge --sparse --output=cov.profdata cov-*.profraw
           # tracelib cannot be profiled
-          OBJ_FILES="$(find src -type f "(" -name "*.dylib" -o -name "*.a" ")" | grep -Fv darwintracelib1.0 | sed 's/^/--arch=x86_64 --object=/')"
+          OBJ_FILES="$(find src -type f "(" -name "*.dylib" -o -name "*.a" ")" | grep -Fv darwintracelib1.0 | sed 's/^/--arch=arm64 --object=/')"
           xcrun llvm-cov show --format=html --output-dir=covreport --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
           xcrun llvm-cov report --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
           path: covreport/

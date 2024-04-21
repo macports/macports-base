@@ -37,6 +37,8 @@ package require tdbc::sqlite3
 
 namespace eval registry {
 
+variable UI_PREFIX {---> }
+
 ## Decodes a version specifier into its component values. Values will be
 ## returned into the variables named by `version`, `revision`, and `variants`,
 ## with `revision` and `variants` possibly being set to the empty string if none
@@ -62,7 +64,7 @@ proc decode_spec {specifier version revision variants} {
 ## @param [in] port  a registry::entry to check
 ## @param [in] force if true, continue even if there are dependents
 proc check_dependents {port force {action "uninstall/deactivate"}} {
-    global UI_PREFIX
+    variable UI_PREFIX
     set imaged [registry::entry imaged [$port name]]
     set imaged_len [llength $imaged]
     #foreach i $imaged {
@@ -172,7 +174,7 @@ proc run_target {port target options} {
 
 ## Create and configure a tdbc connection to the registry
 proc tdbc_connect {} {
-    global registry::tdbc_connection
+    variable tdbc_connection
     set reg_path [::file join ${macports::registry.path} registry registry.db]
     set tdbc_connection [tdbc::sqlite3::connection new $reg_path]
     
@@ -181,7 +183,7 @@ proc tdbc_connect {} {
 ## Delete the given dependencies for the given entry
 ## @return   true if successful, false otherwise
 proc delete_dependencies {entry deplist} {
-    global registry::tdbc_connection
+    variable tdbc_connection
     if {![info exists tdbc_connection]} {
         tdbc_connect
     }

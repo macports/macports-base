@@ -41,8 +41,6 @@ package require Pextlib 1.0
 
 package require Tclx
 
-set UI_PREFIX "--> "
-
 # Port Images are installations of the destroot of a port into a compressed
 # tarball in ${macports::registry.path}/software/${name}.
 # They allow the user to install multiple versions of the same port, treating
@@ -64,6 +62,7 @@ namespace eval portimage {
 
 variable force 0
 variable noexec 0
+variable UI_PREFIX {---> }
 
 # takes a composite version spec rather than separate version,revision,variants
 proc activate_composite {name {v ""} {optionslist ""}} {
@@ -76,25 +75,20 @@ proc activate_composite {name {v ""} {optionslist ""}} {
 }
 
 # Activate a "Port Image"
-proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global macports::registry.path registry_open UI_PREFIX
-    array set options $optionslist
+proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     variable force
     variable noexec
+    variable UI_PREFIX
 
-    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
+    if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         set force 1
     }
-    if {[info exists options(ports_activate_no-exec)]} {
-        set noexec $options(ports_activate_no-exec)
+    if {[dict exists $options ports_activate_no-exec]} {
+        set noexec [dict get $options ports_activate_no-exec]
     }
     set rename_list [list]
-    if {[info exists options(portactivate_rename_files)]} {
-        set rename_list $options(portactivate_rename_files)
-    }
-    if {![info exists registry_open]} {
-        registry::open [::file join ${macports::registry.path} registry registry.db]
-        set registry_open yes
+    if {[dict exists $options portactivate_rename_files]} {
+        set rename_list [dict get $options portactivate_rename_files]
     }
     set todeactivate [list]
 
@@ -165,21 +159,16 @@ proc deactivate_composite {name {v ""} {optionslist ""}} {
     throw registry::invalid "Registry error: Invalid version '$v' specified for ${name}. Please specify a version as recorded in the port registry."
 }
 
-proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global UI_PREFIX macports::registry.path registry_open
-    array set options $optionslist
+proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
+    variable UI_PREFIX
 
-    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
+    if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         # this not using the namespace variable is correct, since activate
         # needs to be able to force deactivate independently of whether
         # the activation is being forced
         set force 1
     } else {
         set force 0
-    }
-    if {![info exists registry_open]} {
-        registry::open [::file join ${macports::registry.path} registry registry.db]
-        set registry_open yes
     }
 
     if {$name eq ""} {
@@ -250,7 +239,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         return -code error "Image error: ${name} @${specifier} is not active."
     }
 
-    if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
+    if {![dict exists $options ports_nodepcheck] || ![string is true -strict [dict get $options ports_nodepcheck]]} {
         set retvalue [registry::check_dependents $requested $force "deactivate"]
         if {$retvalue eq "quit"} {
             #registry::entry close $requested
@@ -268,9 +257,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
 }
 
 proc _check_registry {name version revision variants {return_all 0}} {
-    global UI_PREFIX
-
-    set searchkeys $name
+    set searchkeys [list $name]
     set composite_spec ""
     if {$version ne ""} {
         lappend searchkeys $version
@@ -288,6 +275,7 @@ proc _check_registry {name version revision variants {return_all 0}} {
     }
 
     if { [llength $ilist] > 1 } {
+        variable UI_PREFIX
         set portilist [list]
         set msg "The following versions of $name are currently installed:"
         if {[macports::ui_isset ports_noninteractive]} {
@@ -433,13 +421,13 @@ proc extract_archive_to_tmpdir {location} {
                 }
             }
             t(ar|bz|lz|xz|gz) {
-                global macports::hfscompression
                 # Opportunistic HFS compression. bsdtar will automatically
                 # disable this if filesystem does not support compression.
                 # Don't use if not running as root, due to bugs:
                 # The system bsdtar on 10.15 suffers from https://github.com/libarchive/libarchive/issues/497
                 # Later versions fixed that problem but another remains: https://github.com/libarchive/libarchive/issues/1415 
-                if {${macports::hfscompression} && [getuid] == 0 &&
+                global macports::hfscompression
+                if {${hfscompression} && [getuid] == 0 &&
                         ![catch {macports::binaryInPath bsdtar}] &&
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
@@ -528,7 +516,7 @@ proc extract_archive_to_tmpdir {location} {
         } else {
             set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
         }
-        system $cmdstring
+        system -callback portimage::_extract_progress $cmdstring
     } on error {_ eOptions} {
         ::file delete -force $extractdir
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
@@ -539,15 +527,56 @@ proc extract_archive_to_tmpdir {location} {
     return $extractdir
 }
 
+proc _extract_progress {event} {
+    variable progress_step
+    variable progress_total_steps
+
+    switch -- [dict get $event type] {
+        exec {
+            set progress_step 0
+            _progress start
+        }
+        stdin {
+            set line [string trimright [dict get $event line]]
+
+            # We only want to count files, not directories. Additionally,
+            # filter MacPorts metadata files that start with "+".
+
+            #   directories                        bsdtar output for metadata             gnutar output for metadata
+            if {[string index $line end] == "/" || [string range $line 0 4] eq "x ./+" || [string range $line 0 2] eq "./+"} {
+                return
+            }
+
+            incr progress_step
+            _progress update $progress_step $progress_total_steps
+        }
+        exit {
+            # no cleanup, we pick up the progress where this one ended
+        }
+    }
+}
+
+proc _progress {args} {
+    if {[macports::ui_isset ports_verbose]} {
+        return
+    }
+
+    ui_progress_generic {*}${args}
+}
+
 ## Activates the contents of a port
 proc _activate_contents {port {rename_list {}}} {
     variable force
     variable noexec
+    variable progress_step
+    variable progress_total_steps
 
     set files [list]
     set baksuffix .mp_[clock seconds]
     set location [$port location]
     set imagefiles [$port imagefiles]
+    set num_imagefiles [llength $imagefiles]
+    set progress_total_steps [expr {$num_imagefiles * 3}]
     set extracted_dir [extract_archive_to_tmpdir $location]
     set replaced_by_re "(?i)^[$port name]\$"
 
@@ -559,10 +588,14 @@ proc _activate_contents {port {rename_list {}}} {
     # Last, if the file exists, and belongs to another port, and force is set
     #  we remove the file from the file_map, take ownership of it, and
     #  clobber it
-    array set todeactivate {}
+    set todeactivate [list]
     try {
         registry::write {
+            # extract phase complete, assume 1/3 is done
+            set progress_step $num_imagefiles
             foreach file $imagefiles {
+                incr progress_step
+                _progress update $progress_step $progress_total_steps
                 set srcfile "${extracted_dir}${file}"
 
                 # To be able to install links, we test if we can lstat the file to
@@ -577,11 +610,10 @@ proc _activate_contents {port {rename_list {}}} {
                 if {$owner ne {} && $owner ne $port} {
                     # deactivate conflicting port if it is replaced_by this one
                     set result [mportlookup [$owner name]]
-                    array unset portinfo
-                    array set portinfo [lindex $result 1]
-                    if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) $replaced_by_re] != -1} {
+                    set portinfo [lindex $result 1]
+                    if {[dict exists $portinfo replaced_by] && [lsearch -regexp [dict get $portinfo replaced_by] $replaced_by_re] != -1} {
                         # we'll deactivate the owner later, but before activating our files
-                        set todeactivate($owner) yes
+                        lappend todeactivate $owner
                         set owner "replaced"
                     }
                 }
@@ -593,6 +625,7 @@ proc _activate_contents {port {rename_list {}}} {
                         # registry
                         if { ![catch {::file type $file}] } {
                             set bakfile "${file}${baksuffix}"
+                            _progress intermission
                             ui_warn "File $file already exists.  Moving to: $bakfile."
                             ::file rename -force -- $file $bakfile
                             lappend backups $file
@@ -630,6 +663,13 @@ proc _activate_contents {port {rename_list {}}} {
                 set directory [::file dirname $file]
                 while {$directory ni $files} {
                     lappend files $directory
+                    # Any add here will mean an additional step in the second
+                    # phase of activation. We could just update this once after
+                    # this foreach loop is complete, but that could make the
+                    # progress bar jump from 66 % down to 65. Doing it
+                    # incrementally here will hopefully hide the increase in
+                    # noise.
+                    incr progress_total_steps
                     set directory [::file dirname $directory]
                 }
 
@@ -639,7 +679,8 @@ proc _activate_contents {port {rename_list {}}} {
         }
 
         # deactivate ports replaced_by this one
-        foreach owner [array names todeactivate] {
+        foreach owner $todeactivate {
+            _progress intermission
             if {$noexec || ![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
                 deactivate [$owner name] "" "" 0 [list ports_nodepcheck 1]
             }
@@ -664,12 +705,16 @@ proc _activate_contents {port {rename_list {}}} {
 
         registry::write {
             # Activate it, and catch errors so we can roll-back
+
             try {
                 $port activate $imagefiles
                 foreach file $files {
                     if {[_activate_file "${extracted_dir}${file}" $file] == 1} {
                         lappend rollback_filelist $file
                     }
+
+                    _progress update $progress_step $progress_total_steps
+                    incr progress_step
                 }
                 foreach {src dest} $confirmed_rename_list {
                     $port deactivate [list $src]
@@ -683,15 +728,19 @@ proc _activate_contents {port {rename_list {}}} {
                 # here so that this information cannot be inconsistent with the
                 # state of the files on disk.
                 $port state installed
+
+                _progress finish
             } trap {POSIX SIG SIGINT} {_ eOptions} {
                 # Pressing ^C will (often?) print "^C" to the terminal; send
                 # a linebreak so our message appears after that.
+                _progress intermission
                 ui_msg ""
                 ui_msg "Control-C pressed, rolling back, please wait."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
                 throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                _progress intermission
                 ui_msg "SIGTERM received, rolling back, please wait."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
@@ -728,7 +777,7 @@ proc _activate_contents {port {rename_list {}}} {
                 ::file rename -force -- "${file}${baksuffix}" $file
             }
             # reactivate deactivated ports
-            foreach entry [array names todeactivate] {
+            foreach entry $todeactivate {
                 if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
                     activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
                 }
@@ -741,7 +790,7 @@ proc _activate_contents {port {rename_list {}}} {
 
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
     } finally {
-        #foreach entry [array names todeactivate] {
+        #foreach entry $todeactivate {
         #    registry::entry close $entry
         #}
         # remove temp image dir
@@ -751,8 +800,7 @@ proc _activate_contents {port {rename_list {}}} {
 
 # These directories should not be removed during deactivation even if they are empty.
 # TODO: look into what other dirs should go here
-variable precious_dirs
-array set precious_dirs { /Library/LaunchDaemons 1 /Library/LaunchAgents 1 }
+variable precious_dirs [dict create /Library/LaunchDaemons 1 /Library/LaunchAgents 1]
 
 proc _deactivate_file {dstfile} {
     if {[catch {::file type $dstfile} filetype]} {
@@ -766,7 +814,7 @@ proc _deactivate_file {dstfile} {
         # 0 item means empty.
         if { [llength [readdir $dstfile]] == 0 } {
             variable precious_dirs
-            if {![info exists precious_dirs($dstfile)]} {
+            if {![dict exists $precious_dirs $dstfile]} {
                 ui_debug "deactivating directory: $dstfile"
                 ::file delete -- $dstfile
             } else {
@@ -784,7 +832,16 @@ proc _deactivate_file {dstfile} {
 proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [list]
 
+    # these are only used locally, so it is *not* a mistake that there is no
+    # 'variable' declaration here
+    set progress_step 0
+    set progress_total_steps [expr {[llength $imagefiles] * 2}]
+
+    _progress start
+
     foreach file $imagefiles {
+        incr progress_step
+        _progress update $progress_step $progress_total_steps
         if { [::file exists $file] || (![catch {::file type $file} ft] && $ft eq "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
@@ -803,6 +860,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # as well.
             while {$directory ni $files} {
                 lappend files $directory
+                incr progress_total_steps
                 set directory [::file dirname $directory]
             }
         } else {
@@ -814,6 +872,8 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     # Since the list is sorted in reverse order, we're sure that directories
     # are after their elements.
     set files [lsort -decreasing -unique $files]
+
+    set progress_total_steps [expr {[llength $imagefiles] + [llength $files]}]
 
     # Avoid interruptions while removing the files and updating the database to
     # prevent inconsistencies from forming between filesystem and database.
@@ -833,6 +893,9 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
                 $port deactivate $imagefiles
                 foreach file $files {
                     _deactivate_file $file
+
+                    incr progress_step
+                    _progress update $progress_step $progress_total_steps
                 }
 
                 # Update the port's state in the same transaction as the file
@@ -842,34 +905,39 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
         } else {
             foreach file $files {
                 _deactivate_file $file
+
+                incr progress_step
+                _progress update $progress_step $progress_total_steps
             }
+
         }
     } finally {
         # restore the signal block state
         signal set $osignals
+        _progress finish
     }
 }
 
-# Create a new registry entry using the given metadata array
+# Create a new registry entry using the given metadata dictionary
 proc install {metadata} {
     global macports::registry.path
-    array set m $metadata
     registry::write {
         # store portfile
-        set portfile_sha256 [sha256 file $m(portfile_path)]
-        set portfile_size [file size $m(portfile_path)]
-        set portfile_reg_dir [file join ${registry.path} registry portfiles $m(name)-$m(version)_$m(revision) ${portfile_sha256}-${portfile_size}]
+        set portfile_path [dict get $metadata portfile_path]
+        set portfile_sha256 [sha256 file $portfile_path]
+        set portfile_size [file size $portfile_path]
+        set portfile_reg_dir [file join ${registry.path} registry portfiles [dict get $metadata name]-[dict get $metadata version]_[dict get $metadata revision] ${portfile_sha256}-${portfile_size}]
         set portfile_reg_path ${portfile_reg_dir}/Portfile
         file mkdir $portfile_reg_dir
         if {![file isfile $portfile_reg_path] || [file size $portfile_reg_path] != $portfile_size
                 || [sha256 file $portfile_reg_path] ne $portfile_sha256} {
-            file copy -force $m(portfile_path) $portfile_reg_dir
+            file copy -force $portfile_path $portfile_reg_dir
             file attributes $portfile_reg_path -permissions 0644
         }
 
         # store portgroups
-        if {[info exists m(portgroups)]} {
-            foreach {pgname pgversion groupFile} $m(portgroups) {
+        if {[dict exists $metadata portgroups]} {
+            foreach {pgname pgversion groupFile} [dict get $metadata portgroups] {
                 set pgsha256 [sha256 file $groupFile]
                 set pgsize [file size $groupFile]
                 set pg_reg_dir [file join ${registry.path} registry portgroups ${pgsha256}-${pgsize}]
@@ -881,10 +949,10 @@ proc install {metadata} {
                 }
                 file attributes $pg_reg_path -permissions 0644
             }
-            unset m(portgroups)
+            dict unset metadata portgroups
         }
 
-        set regref [registry::entry create $m(name) $m(version) $m(revision) $m(variants) $m(epoch)]
+        set regref [registry::entry create [dict get $metadata name] [dict get $metadata version] [dict get $metadata revision] [dict get $metadata variants] [dict get $metadata epoch]]
         $regref installtype image
         $regref state imaged
         $regref portfile ${portfile_sha256}-${portfile_size}
@@ -893,28 +961,29 @@ proc install {metadata} {
                 $regref addgroup {*}$p
             }
         }
-        foreach dep_portname $m(depends) {
+        foreach dep_portname [dict get $metadata depends] {
             $regref depends $dep_portname
         }
-        if {[info exists m(files)]} {
+        if {[dict exists $metadata files]} {
             # register files
-            $regref map $m(files)
-            unset m(files)
+            $regref map [dict get $metadata files]
+            dict unset metadata files
         }
-        if {[info exists m(binary)]} {
-            foreach {f isbinary} $m(binary) {
+        if {[dict exists $metadata binary]} {
+            dict for {f isbinary} [dict get $metadata binary] {
                 set fileref [registry::file open [$regref id] $f]
                 $fileref binary $isbinary
                 registry::file close $fileref
             }
-            unset m(binary)
+            dict unset metadata binary
         }
-        unset m(name) m(version) m(revision) m(variants) m(epoch) m(depends) \
-              m(portfile_path)
+        foreach key {name version revision variants epoch depends portfile_path} {
+            dict unset metadata $key
+        }
 
         # remaining metadata maps directly to reg entry fields
-        foreach key [array names m] {
-            $regref $key $m($key)
+        dict for {key val} $metadata {
+            $regref $key $val
         }
     }
 }

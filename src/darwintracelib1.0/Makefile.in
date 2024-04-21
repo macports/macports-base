@@ -88,3 +88,5 @@ endif
 
 codesign:: $(SHLIB_NAME)
 	../codesign.sh $?
+
+include ../../Mk/macports.subdir.mk

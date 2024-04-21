@@ -56,13 +56,21 @@ package provide macports_dlist 1.0
 # Returns all dependency entries for which the entry's value for 'key' exactly matches the given 'value'.
 #   dlist - the dependency list to search
 #   criteria - the key/value pairs to compare
+#   cmp - dict mapping keys to a procedure name to compare them
+#         should return 0 if equal, nonzero otherwise
+#         (simple string comparison is used for keys not in the dict)
 
-proc dlist_match_multi {dlist criteria} {
+proc dlist_match_multi {dlist criteria {cmp {}}} {
 	set result [list]
 	foreach ditem $dlist {
 		set match 1
 		foreach {key value} $criteria {
-			if {[ditem_key $ditem $key] ne $value} {
+			if {[dict exists $cmp $key]} {
+				if {[[dict get $cmp $key] [ditem_key $ditem $key] $value] != 0} {
+					set match 0
+					break
+				}
+			} elseif {[ditem_key $ditem $key] ne $value} {
 				set match 0
 				break
 			}
@@ -98,7 +106,7 @@ proc dlist_delete {dlist ditem} {
 	upvar $dlist uplist
 	set ix [lsearch -exact $uplist $ditem]
 	if {$ix >= 0} {
-		set uplist [lreplace $uplist $ix $ix]
+		set uplist [lreplace ${uplist}[set uplist {}] $ix $ix]
 	}
 }
 
@@ -121,7 +129,7 @@ proc dlist_has_pending {dlist tokens} {
 # dlist_count_unmet
 # Returns the total number of unmet dependencies in
 # the list of tokens.  If the tokens are in the status
-# dictionary with a successful result code, they are 
+# dictionary with a successful result code, they are
 # considered met.
 proc dlist_count_unmet {dlist statusdict tokens} {
 	upvar $statusdict upstatus
@@ -240,24 +248,24 @@ proc dlist_append_dependents {dlist ditem result} {
 proc dlist_get_next {dlist statusdict} {
 	upvar $statusdict upstatus
 	set nextitem {}
-	
+
 	# arbitrary large number ~ INT_MAX
 	set minfailed 2000000000
-	
+
 	foreach ditem $dlist {
 		# Skip if the ditem has unsatisfied hard dependencies
 		if {[dlist_count_unmet $dlist upstatus [ditem_key $ditem requires]]} {
 			continue
 		}
-		
+
 		# We will favor the ditem with the fewest unmet soft dependencies
 		set unmet [dlist_count_unmet $dlist upstatus [ditem_key $ditem uses]]
-		
+
 		# Delay items with unment soft dependencies that can eventually be met
 		if {$unmet > 0 && [dlist_has_pending $dlist [ditem_key $ditem uses]]} {
 			continue
 		}
-		
+
 		if {$unmet >= $minfailed} {
 			# not better than the last pick
 			continue
@@ -272,7 +280,7 @@ proc dlist_get_next {dlist statusdict} {
 
 # dlist_eval
 # Evaluate the dlist, select each eligible ditem according to
-# the optional selector argument (the default selector is 
+# the optional selector argument (the default selector is
 # dlist_get_next).  The specified handler is then invoked on
 # each ditem in the order they are selected.  When no more
 # ditems are eligible to run (the selector returns {}) then
@@ -307,7 +315,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			}
 		}
 	}
-	
+
 	# Loop for as long as there are ditems in the dlist.
 	while {1} {
 		set ditem [$selector $dlist statusdict]
@@ -328,22 +336,22 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			}
 			# No news is good news at this point.
 			if {$result eq {}} { set result 0 }
-			
+
 			foreach token [ditem_key $ditem provides] {
 				set statusdict($token) [expr {$result == 0}]
 			}
-			
+
 			# Abort if we're not allowed to fail
 			if {$canfail == 0 && $result != 0} {
 			    set reason handler
 				return $dlist
 			}
-			
+
 			# Delete the ditem from the waiting list.
 			dlist_delete dlist $ditem
 		}
 	}
-	
+
 	# Return the list of lusers
 	return $dlist
 }
@@ -353,9 +361,9 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 # Anything below this point is subject to change without notice.
 #####
 
-# Each ditem is actually an array in the macports_dlist
+# Each ditem is actually a dict in the macports_dlist
 # namespace.  ditem keys correspond to the equivalent array
-# key.  A dlist is simply a list of names of ditem arrays.
+# key.  A dlist is simply a list of names of ditem dicts.
 # All private API functions exist in the macports_dlist
 # namespace.
 
@@ -368,7 +376,7 @@ proc ditem_create {} {
 	incr ditem_uniqid
 	set ditem "ditem_${ditem_uniqid}"
 	variable $ditem
-	array set $ditem [list]
+	set $ditem [dict create]
 	return $ditem
 }
 
@@ -381,60 +389,53 @@ proc ditem_key {ditem args} {
 	variable $ditem
 	set nbargs [llength $args]
 	if {$nbargs > 1} {
-		set key [lindex $args 0]
-		return [set [set ditem]($key) [lindex $args 1]]
+		lassign $args key val
+		dict set $ditem $key $val
+		return $val
 	} elseif {$nbargs == 1} {
 		set key [lindex $args 0]
-		if {[info exists [set ditem]($key)]} {
-		    return [set [set ditem]($key)]
+		if {[dict exists [set $ditem] $key]} {
+		    return [dict get [set $ditem] $key]
 		} else {
 		    return {}
 		}
+	} elseif {[info exists $ditem]} {
+		return [set $ditem]
 	} else {
-		return [array get $ditem]
+	    return {}
 	}
 }
 
 proc ditem_append {ditem key args} {
 	variable $ditem
-	if {[info exists [set ditem]($key)]} {
-	    set x [set [set ditem]($key)]
-	} else {
-	    set x {}
-	}
-	if {$x ne {}} {
-		lappend x {*}$args
-	} else {
-		set x $args
-	}
-	set [set ditem]($key) $x
-	return $x
+	dict lappend $ditem $key {*}$args
+	return [dict get [set $ditem] $key]
 }
 
 proc ditem_append_unique {ditem key args} {
 	variable $ditem
-	if {[info exists [set ditem]($key)]} {
-	    set x [set [set ditem]($key)]
-	} else {
-	    set x {}
+	set unique [dict create]
+	if {[dict exists [set $ditem] $key]} {
+	    foreach val [dict get [set $ditem] $key] {
+	        dict set unique $val {}
+	    }
 	}
-	if {$x ne {}} {
-		lappend x {*}$args
-		set x [lsort -unique $x]
-	} else {
-		set x $args
-	}
-	set [set ditem]($key) $x
+	foreach val $args {
+        dict set unique $val {}
+    }
+    set x [dict keys $unique]
+
+	dict set $ditem $key $x
 	return $x
 }
 
 proc ditem_contains {ditem key args} {
 	variable $ditem
 	if {[llength $args] == 0} {
-		return [info exists [set ditem]($key)]
+		return [dict exists [set $ditem] $key]
 	} else {
-		if {[info exists [set ditem]($key)]} {
-			set x [set [set ditem]($key)]
+		if {[dict exists [set $ditem] $key]} {
+			set x [dict get [set $ditem] $key]
 		} else {
 			return 0
 		}
@@ -448,7 +449,7 @@ proc ditem_contains {ditem key args} {
 
 proc ditem_as_string {ditem} {
 	variable $ditem
-	return [array get $ditem]
+	return [dict get [set $ditem]]
 }
 
 # End of macports_dlist namespace

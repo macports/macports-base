@@ -60,17 +60,17 @@ OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.1{2,3}.tm \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/platform-1.0.1{2,3,4,8}.tm \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/msgcat-1.5.2.tm \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/tcltest-2.3.{5,8}.tm \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/tcltest-2.5.3.tm \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.6/tdbc/sqlite3-1.1.3.tm \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/tcltest-2.5.{3,5}.tm \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.6/tdbc/sqlite3-1.1.{3,5}.tm \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8.5 \
 				$(DESTDIR)$(TCL_PREFIX)/bin/tclsh8.5 \
 				$(DESTDIR)$(TCL_PREFIX)/lib/libtcl8.5@SHLIB_SUFFIX@ \
 				$(DESTDIR)$(TCL_PREFIX)/lib/libtclstub8.5.a \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/thread2.7.{0,2,3} \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/thread2.8.7 \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/itcl4.2.2 \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/sqlite3.36.0 \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/tdbc{,mysql,odbc,postgres}1.1.3
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/thread2.8.{7,8} \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/itcl4.2.{2,3} \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/sqlite3.{36,40}.0 \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tdbc{,mysql,odbc,postgres}1.1.{3,5}
 
 install-tcl:
 	rm -rf $(OLD_TCL_FILES)

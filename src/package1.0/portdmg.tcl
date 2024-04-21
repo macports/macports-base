@@ -44,7 +44,7 @@ namespace eval portdmg {
 set_ui_prefix
 
 proc portdmg::dmg_main {args} {
-    global subport version revision package.destpath UI_PREFIX
+    global subport version revision UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}_${revision}]"
 
@@ -57,7 +57,7 @@ proc portdmg::dmg_main {args} {
 
 proc portdmg::package_dmg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portpath \
-           os.platform os.arch os.version os.major
+           os.arch os.major
 
     set imagename [portpkg::image_name ${portname} ${portversion} ${portrevision}]
 

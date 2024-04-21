@@ -35,13 +35,15 @@ proc init {} {
 
 proc init_eval_targets {} {
     global os_platform os_version os_arch macos_version pwd \
-           version mport portpath portbuildpath macports::portdbpath
+           version mport portpath portbuildpath macports::portdbpath \
+           filesdir
 
     set os_platform darwin
     set macos_version 10.8.0
     set os_version 11
     set os_arch i386
     set portpath .
+    set filesdir files
 
     # vars for target_run
     set portdbpath $pwd/
@@ -257,6 +259,7 @@ test reinplace {
 } -setup {
     global macportsuser
     set macportsuser macports
+    set_ui_prefix
 
     set root "/tmp/macports-portutil-reinplace"
     file delete -force $root
@@ -520,9 +523,6 @@ test eval_targets {
         error "Error evaluating variants"
     }
 
-    set epoch $PortInfo(epoch)
-    set revision $PortInfo(revision)
-
     # messy work just to get $version
     set workername [ditem_key $mport workername]
 
@@ -538,7 +538,7 @@ test eval_targets {
 
 } -cleanup {
     mportclose $mport
-    file delete -force $filespath ${pwd}/build ${pwd}/distfiles
+    file delete -force $filespath ${pwd}/build ${pwd}/distfiles ${pwd}/cache
 
 } -result "Eval_targets successful."
 
@@ -589,27 +589,25 @@ test write_statefile {
 test check_statefile_variants {
     Check statefile unit test.
 } -setup {
-    array set variations {
-    target org.macports.fetch
-    target org.macports.checksum
-    }
-    array set oldvariations {
-    target org.macports.fetch
-    target org.macports.checksum
-    }
-    array set oldvariations_fail {
-    target org.macports.patch
-    }
-    set fd [open $pwd/statefile r]
+    set variations [dict create \
+        foo + \
+        bar + \
+    ]
+    set fd [open $pwd/test.statefile w+]
 
 } -body {
+    write_statefile variant +foo $fd
+    write_statefile variant +bar $fd
     set res [check_statefile_variants variations oldvariations $fd]
-    if {$res != 0} {return "FAIL: invalid variant"}
-    set res [check_statefile_variants variations oldvariations_fail $fd]
-    if {$res != 1} {return "FAIL: invalid variant"}
+    if {$res != 0} {return "FAIL: non-matching variants: $oldvariations"}
+    write_statefile variant +extra $fd
+    set res [check_statefile_variants variations oldvariations $fd]
+    if {$res != 1} {return "FAIL: unexpectedly matching variants: $oldvariations"}
     close $fd
     return "Check statefile successful."
 
+} -cleanup {
+    file delete -force $pwd/test.statefile
 } -result "Check statefile successful."
 
 
@@ -617,6 +615,7 @@ test choose_variants {
     Choose variants unit test.
 } -setup {
     init_eval_targets
+    unset -nocomplain variations
     array set variations { fondu + }
     array set variations_neg { fondu - }
     array set variations_not { fondu a }
@@ -677,11 +676,11 @@ test canonicalize_variants {
 test universal_setup {
     Universal setup unit test.
 } -body {
-    set use_configure 0
+    set universal_variant 0
     set ditem [variant_new new-variant]
 
-    if {[catch {universal_setup}] != 0} {
-        return "FAIL: universal variant not set"
+    if {[catch {universal_setup} result]} {
+        return "FAIL: universal variant not set: $result"
     }
     return "Universal_setup successful."
 } -result "Universal_setup successful."
@@ -714,8 +713,7 @@ test variant_new {
 test handle_default_variants {
     Handle default variants unit test.
 } -body {
-    global PortInfo
-    global variations
+    global PortInfo variations
 
     array set variations {}
 
@@ -778,11 +776,11 @@ test set_ui_prefix {
 } -body {
     set env(UI_PREFIX) MacPorts
     set_ui_prefix
-    if {$UI_PREFIX != "MacPorts"} {return "FAIL: incorrect prefix"}
+    if {$UI_PREFIX ne "MacPorts"} {return "FAIL: incorrect prefix"}
 
     unset env(UI_PREFIX)
     set_ui_prefix
-    if {$UI_PREFIX != "---> "} {return "FAIL; default prefix not set"}
+    if {$UI_PREFIX ne "---> "} {return "FAIL; default prefix not set"}
     return "Set_ui_prefix successful."
 } -result "Set_ui_prefix successful."
 
@@ -793,7 +791,9 @@ test set_ui_prefix {
 test get_portimage_name {
     Get portimage name unit test.
 } -body {
+    set platforms darwin
     set os.platform darwin
+    set os.subplatform macosx
     set version 1.0
     set os.major 10
     set revision 2

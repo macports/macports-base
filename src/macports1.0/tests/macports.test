@@ -35,7 +35,7 @@ test mportclose {
     if {[catch {mportclose $mport}] != 0} {
         return "FAIL: cannot run mportclose"
     }
-    if {[ditem_key $mport workername] ne ""} {
+    if {![catch {ditem_key $mport workername} result] && $result ne ""} {
         return "FAIL: port not closed"
     }
     return "Mport close successful."
@@ -50,8 +50,7 @@ test mportinfo {
     set mport [mportopen file://${pwd}]
 } -body {
     set res [mportinfo $mport]
-    catch {array set PortInfo $res}
-    if {![info exists PortInfo(canonical_active_variants)]} {
+    if {![dict exists $res canonical_active_variants]} {
         return "FAIL: cannot get ::PortInfo"
     }
     return "Mport info successful."
@@ -170,12 +169,14 @@ test push_log {
     root
 } -setup {
     set mport [mportopen file://${pwd}]
-    set ::logenabled 1
+    global macports:logenabled
+    set logenabled 1
 } -body {
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
-    if {[lindex $::logstack 0] != [list $::debuglog $::debuglogname]} {
+    global macports:logstack macports:debuglog macports:debuglogname
+    if {[lindex $logstack 0] ne [list $debuglog $debuglogname]} {
         return "FAIL: incorrect logstack"
     }
     return "Push log successful."
@@ -187,23 +188,28 @@ test push_log {
 test pop_log {
     Pop log unit test.
 } -setup {
-    set ::logenabled 1
-    set ::logstack [open $pwd/logstack w+]
-    set ::debuglog [open $pwd/log w+]
+    global macports:logenabled macports:logstack macports:debuglog
+    set logenabled 1
+    set stacklog [open $pwd/logstack w+]
+    set logstack [list [list $stacklog $pwd/logstack]]
+    set debuglog [open $pwd/log w+]
+    set orig_debuglog $debuglog
     set mport [mportopen file://${pwd}]
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
 } -body {
     macports::pop_log
-    if {$::debuglog ne $::logstack} {
+    if {$debuglog ne $orig_debuglog} {
         return "FAIL: cannot pop log"
     }
     return "Pop log successful."
 } -cleanup {
-    unset ::logenabled
-    unset ::logstack
-    unset ::debuglog
+    close $debuglog
+    close $stacklog
+    unset logenabled
+    unset logstack
+    unset debuglog
     mportclose $mport
     file delete -force $pwd/log
     file delete -force $pwd/logstack
@@ -228,7 +234,7 @@ test ui_message {
     set fd2 [open $pwd/log w]
     set macports::channels(0) $fd
     set macports::current_phase test
-    set ::debuglog $fd2
+    set macports::debuglog $fd2
 } -body {
     set res [ui_message 0 prefix args]
     close $fd
@@ -486,16 +492,17 @@ test mportopen_installed {
 test mportshutdown {
     Mport shutdown unit test.
 } -setup {
-    unset macports::ping_cache
+    set macports::ping_cache [dict create]
 
     set time [expr [clock seconds] - 86100]
     set time_exp [expr [clock seconds] - 87000]
     set macports::portdbpath $pwd/portdbpath
-    set macports::ping_cache(host1) [list test $time]
-    set macports::ping_cache(host2) [list test $time_exp]
+    dict set macports::ping_cache host1 [list test $time]
+    dict set macports::ping_cache host2 [list test $time_exp]
+    dict set macports::cache_dirty pingtimes 1
 
-    file mkdir $macports::portdbpath
-    close [open $macports::portdbpath/pingtimes w+]
+    file mkdir ${macports::portdbpath}/cache
+    close [open ${macports::portdbpath}/cache/pingtimes w+]
 
 } -body {
     if {[mportshutdown] ne ""} {
@@ -504,7 +511,7 @@ test mportshutdown {
 
     set res ""
     append res "host1 \{test " $time "\}"
-    set fd [open $macports::portdbpath/pingtimes r]
+    set fd [open ${macports::portdbpath}/cache/pingtimes r]
 
     if {[gets $fd] ne $res} {
         return "FAIL: wrong value saved"
@@ -961,7 +968,7 @@ test get_pingtime {
     Get ping time unit test.
 } -setup {
     set time [expr [clock seconds] - 86300]
-    set macports::ping_cache(macports.org) [list MacPorts $time]
+    dict set macports::ping_cache macports.org [list MacPorts $time]
     set macports::host_blacklist macports_blacklist
     set macports::preferred_hosts macports_pref
 } -body {
@@ -981,8 +988,9 @@ test get_pingtime {
 test set_pingtime {
     Set ping time unit test.
 } -body {
-    set macports::ping_cache(macports) {}
-    if {[lindex [macports::set_pingtime macports 007] 0] != 007} {
+    dict set macports::ping_cache macports {}
+    macports::set_pingtime macports 007
+    if {[macports::get_pingtime macports] != 007} {
         return "FAIL: ping time not set"
     }
     return "Set ping time successful."

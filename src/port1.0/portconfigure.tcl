@@ -33,7 +33,6 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 package require portprogress 1.0
-package require struct::set
 
 set org.macports.configure [target_new org.macports.configure portconfigure::configure_main]
 target_provides ${org.macports.configure} configure
@@ -42,6 +41,9 @@ target_prerun ${org.macports.configure} portconfigure::configure_start
 target_postrun ${org.macports.configure} portconfigure::configure_finish
 
 namespace eval portconfigure {
+    # configure_get_default_compiler is fairly expensive, so cache the result
+    variable recompute_default_compiler 1
+    variable cached_default_compiler {}
 }
 
 
@@ -75,27 +77,31 @@ option_proc configure.cxxflags portconfigure::stdlib_trace
 option_proc configure.objcxxflags portconfigure::stdlib_trace
 
 proc portconfigure::should_add_stdlib {} {
-    set has_stdlib [expr {[option configure.cxx_stdlib] ne ""}]
-    set is_clang [string match *clang* [option configure.cxx]]
-    # GCC also supports -stdlib starting with GCC 10 (and devel)
-    set is_gcc_with_stdlib no
-    if { [string match *g*-mp-* [option configure.cxx]] } {
-        # -stdlib is not available with PPC builds
-        if { [option configure.build_arch] ni [list ppc ppc64] } {
-            # Do not pass stdlib to gcc if it is MacPorts custom macports-libstdc++ setting
-            # as gcc does not uderstand this. Instead do nothing, which means gcc will
-            # default to using its own libstdc++, which is in fact what we mean by
-            # configure.cxx_stdlib=macports-libstdc++
-            if { [option configure.cxx_stdlib] ne "macports-libstdc++" } {
-                # Extract gcc version from value after last -
-                set gcc_ver [lindex [split [option configure.cxx] "-"] end]
-                if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
-                    set is_gcc_with_stdlib yes
-                }
+    global configure.cxx configure.cxx_stdlib
+    if {${configure.cxx_stdlib} eq ""} {
+        return 0
+    }
+    if {[string match *clang* ${configure.cxx}]} {
+        return 1
+    }
+    # GCC also supports -stdlib starting with GCC 10 (and devel), but
+    # not with PPC builds
+    global configure.build_arch
+    if {[string match *g*-mp-* ${configure.cxx}]
+            && ${configure.build_arch} ni {ppc ppc64}} {
+        # Do not pass stdlib to gcc if it is MacPorts custom macports-libstdc++ setting
+        # as gcc does not uderstand this. Instead do nothing, which means gcc will
+        # default to using its own libstdc++, which is in fact what we mean by
+        # configure.cxx_stdlib=macports-libstdc++
+        if {${configure.cxx_stdlib} ne "macports-libstdc++"} {
+            # Extract gcc version from value after last -
+            set gcc_ver [lindex [split ${configure.cxx} "-"] end]
+            if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
+                return 1
             }
         }
     }
-    return [expr {$has_stdlib && ($is_clang || $is_gcc_with_stdlib)}]
+    return 0
 }
 proc portconfigure::should_add_cxx_abi {} {
     # prior to OS X Mavericks, libstdc++ was the default C++ runtime, so
@@ -103,15 +109,15 @@ proc portconfigure::should_add_cxx_abi {} {
     # for OS X Mavericks and above, users must select libstdc++, so
     #    assume they want default ABI compatibility
     # see https://gcc.gnu.org/onlinedocs/gcc-5.2.0/libstdc++/manual/manual/using_dual_abi.html
-    return [expr {
-                  [option configure.cxx_stdlib] eq "macports-libstdc++" &&
-                  [option os.platform] eq "darwin"                      &&
-                  [option os.major] < 13
-              }]
+    global os.platform os.major configure.cxx_stdlib
+    return [expr {${os.major} < 13 &&
+                  ${os.platform} eq "darwin" &&
+                  ${configure.cxx_stdlib} eq "macports-libstdc++"}]
 }
 proc portconfigure::construct_cxxflags {flags} {
     if {[portconfigure::should_add_stdlib]} {
-        lappend flags -stdlib=[option configure.cxx_stdlib]
+        global configure.cxx_stdlib
+        lappend flags -stdlib=${configure.cxx_stdlib}
     }
     if {[portconfigure::should_add_cxx_abi]} {
         lappend flags -D_GLIBCXX_USE_CXX11_ABI=0
@@ -119,15 +125,17 @@ proc portconfigure::construct_cxxflags {flags} {
     return $flags
 }
 proc portconfigure::stdlib_trace {opt action args} {
-    foreach flag [lsearch -all -inline [option $opt] -stdlib=*] {
+    global $opt
+    foreach flag [lsearch -all -inline [set $opt] -stdlib=*] {
         $opt-delete $flag
     }
-    foreach flag [lsearch -all -inline [option $opt] -D_GLIBCXX_USE_CXX11_ABI=0] {
+    foreach flag [lsearch -all -exact -inline [set $opt] -D_GLIBCXX_USE_CXX11_ABI=0] {
         $opt-delete $flag
     }
     if {$action eq "read"} {
         if {[portconfigure::should_add_stdlib]} {
-            $opt-append -stdlib=[option configure.cxx_stdlib]
+            global configure.cxx_stdlib
+            $opt-append -stdlib=${configure.cxx_stdlib}
         }
         if {[portconfigure::should_add_cxx_abi]} {
             $opt-append -D_GLIBCXX_USE_CXX11_ABI=0
@@ -159,13 +167,13 @@ default compiler.fortran_fallback    {[portconfigure::get_fortran_fallback]}
 # define options
 commands configure autoreconf automake autoconf xmkmf
 # defaults
-default configure.env       ""
+default configure.env       {}
 default configure.pre_args  {--prefix=${prefix}}
 default configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
-default autoreconf.args     "--install --verbose"
+default autoreconf.args     {--install --verbose}
 default autoconf.dir        {${worksrcpath}}
 default autoconf.args       --verbose
 default automake.dir        {${worksrcpath}}
@@ -187,11 +195,11 @@ option_proc xmkmf.cmd       portconfigure::set_configure_type
 ##
 # Local helper proc
 proc portconfigure::add_build_dep { type dep } {
-    global ${type}.cmd option_defaults
+    global ${type}.cmd options::option_defaults
 
     if {![info exists ${type}.cmd] || (
-        ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq $option_defaults(${type}.cmd)) ||
-        (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq ${type})
+        ([dict exists $option_defaults ${type}.cmd] && [set ${type}.cmd] eq [dict get $option_defaults ${type}.cmd]) ||
+        (![dict exists $option_defaults ${type}.cmd] && [set ${type}.cmd] eq ${type})
         )} {
             # Add dependencies if they are not already in the list
             depends_build-delete {*}$dep
@@ -203,33 +211,30 @@ proc portconfigure::add_build_dep { type dep } {
 # Adds dependencies for the binaries which will be called, but only if it is
 # the default. If .cmd was overwritten the port has to care for deps itself.
 proc portconfigure::set_configure_type {option action args} {
-    global autoreconf.cmd automake.cmd autoconf.cmd xmkmf.cmd
-
-    array set configure_map {
-        autoconf    {port:autoconf port:automake port:libtool}
-        xmkmf       port:imake
-    }
-
     if {$action eq "set"} {
+        set configure_map [dict create \
+            autoconf    [list port:autoconf port:automake port:libtool] \
+            xmkmf       port:imake \
+        ]
         switch $option {
             autoreconf.cmd  -
             automake.cmd    -
             autoconf.cmd {
-                depends_build-delete {*}$configure_map(autoconf)
+                depends_build-delete {*}[dict get $configure_map autoconf]
             }
             xmkmf.cmd {
-                depends_build-delete {*}$configure_map(xmkmf)
+                depends_build-delete {*}[dict get $configure_map xmkmf]
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    depends_build-append {*}$configure_map(xmkmf)
+                    depends_build-append {*}[dict get $configure_map xmkmf]
                 }
             }
             default {
                 # strip "use_"
                 set type [string range $option 4 end]
                 if {[tbool args]} {
-                    add_build_dep $type $configure_map(autoconf)
+                    add_build_dep $type [dict get $configure_map autoconf]
                 }
             }
         }
@@ -257,17 +262,17 @@ default configure.cflags        {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
 default configure.cppflags      {[portconfigure::configure_get_cppflags]}
 proc portconfigure::configure_get_cppflags {} {
-    global prefix
-    if {[option compiler.limit_flags]} {
-        return ""
+    global prefix compiler.limit_flags
+    if {${compiler.limit_flags}} {
+        return {}
     } else {
         return -I${prefix}/include
     }
 }
 default configure.ldflags       {[portconfigure::configure_get_ldflags]}
 proc portconfigure::configure_get_ldflags {} {
-    global prefix
-    if {[option compiler.limit_flags]} {
+    global prefix compiler.limit_flags
+    if {${compiler.limit_flags}} {
         return -Wl,-headerpad_max_install_names
     } else {
         return "-L${prefix}/lib -Wl,-headerpad_max_install_names"
@@ -301,9 +306,9 @@ default configure.sdk_version   {$macosx_sdk_version}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
 default configure.sysroot       {[expr {${configure.sdkroot} ne "" ? ${configure.sdkroot} : "/"}]}
 default configure.developer_dir {[portconfigure::configure_get_developer_dir]}
-foreach tool {cc objc f77 f90 fc} {
-    options configure.${tool}_archflags
-    default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
+foreach _portconfigure_tool {cc objc f77 f90 fc} {
+    options configure.${_portconfigure_tool}_archflags
+    default configure.${_portconfigure_tool}_archflags  "\[portconfigure::configure_get_archflags $_portconfigure_tool\]"
 }
 
 options configure.universal_archs configure.universal_args \
@@ -325,9 +330,10 @@ options configure.ccache configure.distcc configure.pipe configure.cc \
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-foreach tool {cc objc cpp f77 f90 fc javac} {
-    default configure.$tool     "\[portconfigure::configure_get_compiler $tool\]"
+foreach _portconfigure_tool {cc objc cpp f77 f90 fc javac} {
+    default configure.$_portconfigure_tool     "\[portconfigure::configure_get_compiler $_portconfigure_tool\]"
 }
+unset _portconfigure_tool
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 default compiler.fallback       {[portconfigure::get_compiler_fallback]}
 default compiler.blacklist      {}
@@ -355,11 +361,11 @@ default compiler.thread_local_storage  no
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX subport configure.compiler compiler.fallback configure.ccache
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option subport]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Configuring %s"] $subport]"
 
-    set compiler [option configure.compiler]
+    set compiler ${configure.compiler}
     set valid_compilers {
         {^apple-gcc-(4\.[02])$}                    {MacPorts Apple GCC %s}
         {^cc$}                                     {System cc}
@@ -392,12 +398,12 @@ proc portconfigure::configure_start {args} {
     if {![info exists compiler_name]} {
         return -code error "Invalid value for configure.compiler: $compiler"
     }
-    ui_debug "Preferred compilers: [option compiler.fallback]"
+    ui_debug "Preferred compilers: ${compiler.fallback}"
     ui_debug "Using compiler '$compiler_name'"
 
     # Additional ccache directory setup
-    global configure.ccache ccache_dir ccache_size macportsuser
     if {${configure.ccache}} {
+        global ccache_dir ccache_size macportsuser
         # Create ccache directory with correct permissions with root privileges
         elevateToRoot "configure ccache"
         if {[catch {
@@ -473,7 +479,7 @@ proc portconfigure::choose_supported_archs {archs} {
     # supported by the SDK if needed, e.g. 64-bit to 32-bit. That means
     # e.g. if build_arch is x86_64 it's still possible to build a port
     # that sets supported_archs to "i386 ppc" if the SDK allows it.
-    array set arch_demotions [list \
+    set arch_demotions [dict create \
                                 arm64 x86_64 \
                                 x86_64 i386 \
                                 ppc64 ppc \
@@ -481,8 +487,8 @@ proc portconfigure::choose_supported_archs {archs} {
     foreach arch $archs {
         if {$arch in $intersection_archs} {
             set add_arch $arch
-        } elseif {[info exists arch_demotions($arch)] && $arch_demotions($arch) in $intersection_archs} {
-            set add_arch $arch_demotions($arch)
+        } elseif {[dict exists $arch_demotions $arch] && [dict get $arch_demotions $arch] in $intersection_archs} {
+            set add_arch [dict get $arch_demotions $arch]
         } else {
             continue
         }
@@ -543,7 +549,8 @@ proc portconfigure::find_close_sdk {sdk_version sdk_path} {
 }
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
-    global developer_dir macos_version_major xcodeversion os.arch os.major os.platform use_xcode
+    global developer_dir macos_version macos_version_major xcodeversion \
+           os.arch os.major os.platform use_xcode
 
     # This is only relevant for macOS
     if {${os.platform} ne "darwin"} {
@@ -560,6 +567,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return {}
     }
 
+    variable sdkroot_cache
     set sdk_major [lindex [split $sdk_version .] 0]
     set cltpath /Library/Developer/CommandLineTools
     # Check CLT first if Xcode shouldn't be used
@@ -576,21 +584,21 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         }
 
         if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
-            set try_versions [list ${sdk_major}.0 [option macos_version]]
+            set try_versions [list ${sdk_major}.0 ${macos_version}]
         } else {
             set try_versions [list $sdk_version]
         }
         foreach try_version $try_versions {
-            if {[info exists ::portconfigure::sdkroot_cache(macosx${try_version})]} {
-                if {$::portconfigure::sdkroot_cache(macosx${try_version}) ne ""} {
-                    return $::portconfigure::sdkroot_cache(macosx${try_version})
+            if {[info exists sdkroot_cache(macosx${try_version})]} {
+                if {$sdkroot_cache(macosx${try_version}) ne ""} {
+                    return $sdkroot_cache(macosx${try_version})
                 }
                 # negative result cached, do nothing here
             } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
-                set ::portconfigure::sdkroot_cache(macosx${try_version}) $sdk
+                set sdkroot_cache(macosx${try_version}) $sdk
                 return $sdk
             } else {
-                set ::portconfigure::sdkroot_cache(macosx${try_version}) ""
+                set sdkroot_cache(macosx${try_version}) ""
             }
         }
 
@@ -600,16 +608,16 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
             return $sdk
         }
 
-        if {[info exists ::portconfigure::sdkroot_cache(macosx)]} {
-            if {$::portconfigure::sdkroot_cache(macosx) ne ""} {
-                return $::portconfigure::sdkroot_cache(macosx)
+        if {[info exists sdkroot_cache(macosx)]} {
+            if {$sdkroot_cache(macosx) ne ""} {
+                return $sdkroot_cache(macosx)
             }
             # negative result cached, do nothing here
         } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
-            set ::portconfigure::sdkroot_cache(macosx) $sdk
+            set sdkroot_cache(macosx) $sdk
             return $sdk
         } else {
-            set ::portconfigure::sdkroot_cache(macosx) ""
+            set sdkroot_cache(macosx) ""
         }
     }
 
@@ -636,21 +644,21 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     }
 
     if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
-        set try_versions [list ${sdk_major}.0 [option macos_version]]
+        set try_versions [list ${sdk_major}.0 ${macos_version}]
     } else {
         set try_versions [list $sdk_version]
     }
     foreach try_version $try_versions {
-        if {[info exists ::portconfigure::sdkroot_cache(macosx${try_version},noclt)]} {
-            if {$::portconfigure::sdkroot_cache(macosx${try_version},noclt) ne ""} {
-                return $::portconfigure::sdkroot_cache(macosx${try_version},noclt)
+        if {[info exists sdkroot_cache(macosx${try_version},noclt)]} {
+            if {$sdkroot_cache(macosx${try_version},noclt) ne ""} {
+                return $sdkroot_cache(macosx${try_version},noclt)
             }
             # negative result cached, do nothing here
         } elseif {![catch {exec xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
-            set ::portconfigure::sdkroot_cache(macosx${try_version},noclt) $sdk
+            set sdkroot_cache(macosx${try_version},noclt) $sdk
             return $sdk
         } else {
-            set ::portconfigure::sdkroot_cache(macosx${try_version},noclt) ""
+            set sdkroot_cache(macosx${try_version},noclt) ""
         }
     }
 
@@ -678,11 +686,11 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     # to run on 10.x but only include an SDK for 10.x+1. Combined with the disappearance of
     # /usr/include, that means not having this fallback would cause great breakage.
     # See <https://trac.macports.org/ticket/57143>
-    if {[info exists ::portconfigure::sdkroot_cache(macosx,noclt)]} {
+    if {[info exists sdkroot_cache(macosx,noclt)]} {
         # no negative-cached case here because that would mean overall failure
-        return $::portconfigure::sdkroot_cache(macosx,noclt)
+        return $sdkroot_cache(macosx,noclt)
     } elseif {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
-        set ::portconfigure::sdkroot_cache(macosx,noclt) $sdk
+        set sdkroot_cache(macosx,noclt) $sdk
         return $sdk
     }
 
@@ -723,9 +731,10 @@ proc portconfigure::arch_flag_supported {compiler {multiple_arch_flags no}} {
     if {${multiple_arch_flags}} {
         return [regexp {^gcc-4|llvm|apple|clang} ${compiler}]
     } else {
+        global os.subplatform
         # GCC prior to 4.7 does not accept -arch flag
         if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]
-                || ([option os.subplatform] ne "macosx" && ${compiler} in {cc gcc})} {
+                || (${os.subplatform} ne "macosx" && ${compiler} in {cc gcc})} {
             return no
         } else {
             return yes
@@ -758,10 +767,6 @@ proc portconfigure::compiler_is_port {compiler} {
     return [expr {[portconfigure::compiler_port_name ${compiler}] ne ""}]
 }
 
-# configure_get_default_compiler is fairly expensive, so cache the result
-set ::portconfigure::recompute_default_compiler 1
-set ::portconfigure::cached_default_compiler {}
-
 # changing these options will invalidate the cache
 foreach varname {compiler.whitelist compiler.fallback compiler.blacklist
     compiler.c_standard compiler.cxx_standard compiler.openmp_version
@@ -770,24 +775,27 @@ foreach varname {compiler.whitelist compiler.fallback compiler.blacklist
 }
 
 proc portconfigure::recompute_default_compiler_proc {varname unused op} {
-    set ::portconfigure::recompute_default_compiler 1
+    variable recompute_default_compiler 1
 }
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {} {
-    if {!$::portconfigure::recompute_default_compiler} {
-        return $::portconfigure::cached_default_compiler
+    variable recompute_default_compiler
+    variable cached_default_compiler
+    if {!$recompute_default_compiler} {
+        return $cached_default_compiler
     }
-    set ::portconfigure::recompute_default_compiler 0
+    set recompute_default_compiler 0
 
-    if {[option compiler.whitelist] ne ""} {
-        set search_list [option compiler.whitelist]
+    global compiler.blacklist compiler.fallback compiler.whitelist
+    if {${compiler.whitelist} ne ""} {
+        set search_list ${compiler.whitelist}
     } else {
-        set search_list [option compiler.fallback]
+        set search_list ${compiler.fallback}
     }
     foreach compiler $search_list {
         set allowed yes
-        foreach pattern [option compiler.blacklist] {
+        foreach pattern ${compiler.blacklist} {
             if {[string match $pattern $compiler]} {
                 set allowed no
                 break
@@ -797,13 +805,13 @@ proc portconfigure::configure_get_default_compiler {} {
             ([file executable [configure_get_compiler cc $compiler]] ||
              [compiler_is_port $compiler])
         } then {
-            set ::portconfigure::cached_default_compiler $compiler
+            set cached_default_compiler $compiler
             return $compiler
         }
     }
     ui_warn "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
-    set ::portconfigure::cached_default_compiler [lindex [option compiler.fallback] 0]
-    return $::portconfigure::cached_default_compiler
+    set cached_default_compiler [lindex ${compiler.fallback} 0]
+    return $cached_default_compiler
 }
 
 # internal function to determine the Fortran compiler
@@ -813,9 +821,10 @@ proc portconfigure::configure_get_fortran_compiler {} {
         return ${configure.compiler}
     }
 
-    foreach compiler [option compiler.fortran_fallback] {
+    global compiler.fortran_fallback compiler.blacklist
+    foreach compiler ${compiler.fortran_fallback} {
         set allowed yes
-        foreach pattern [option compiler.blacklist] {
+        foreach pattern ${compiler.blacklist} {
             if {[string match $pattern $compiler]} {
                 set allowed no
                 break
@@ -829,7 +838,7 @@ proc portconfigure::configure_get_fortran_compiler {} {
         }
     }
     ui_warn "All Fortran compilers are either blacklisted or unavailable; defaulting to first fallback option"
-    return [lindex [option compiler.fortran_fallback] 0]
+    return [lindex ${compiler.fortran_fallback} 0]
 }
 
 #
@@ -902,7 +911,10 @@ proc portconfigure::max_version {verA verB} {
 #
 # utility procedure: get minimum command line compilers version based on restrictions
 proc portconfigure::get_min_command_line {compiler} {
-    global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage os.major
+    global compiler.c_standard compiler.cxx_standard compiler.openmp_version \
+           compiler.thread_local_storage os.major configure.cxx_stdlib \
+           compiler.limit_flags compiler.support_environment_paths \
+           compiler.support_environment_sdkroot configure.sdkroot
     set min_value 1.0
 
     if {${compiler.openmp_version} ne ""} {
@@ -913,14 +925,20 @@ proc portconfigure::get_min_command_line {compiler} {
         # GCC & MacPorts Clang emulate thread-local storage
         return none
     }
-    if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
+    if {${configure.cxx_stdlib} eq "macports-libstdc++"} {
         return none
     }
 
     switch ${compiler} {
         clang {
-            if {[option configure.cxx_stdlib] eq "libc++" && ${os.major} < 11} {
+            if {${configure.cxx_stdlib} eq "libc++" && ${os.major} < 11} {
                 # no Xcode clang can build against libc++ on < 10.7
+                return none
+            }
+            if {(${compiler.limit_flags} || ${compiler.support_environment_sdkroot}) &&
+                ${configure.sdkroot} ne "" &&
+                !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20)
+            } {
                 return none
             }
             if {${compiler.c_standard} >= 2017} {
@@ -945,25 +963,18 @@ proc portconfigure::get_min_command_line {compiler} {
                 #    (https://developer.apple.com/videos/play/wwdc2016-405/?time=354).
                 set min_value [max_version $min_value 800.0.38]
             }
-            if {[option compiler.limit_flags] || [option compiler.support_environment_paths]} {
+            if {${compiler.limit_flags} || ${compiler.support_environment_paths}} {
                 set min_value [max_version $min_value 421.0.57]
-            }
-            if {
-                ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
-                [option configure.sdkroot] ne "" &&
-                !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20)
-            } {
-                return none
             }
         }
         llvm-gcc-4.2 -
         gcc-4.2 -
         gcc-4.0 -
         apple-gcc-4.2 {
-            if {${compiler.c_standard} > 1999 || ${compiler.cxx_standard} >= 2011 || [option configure.cxx_stdlib] eq "libc++" || ${compiler.thread_local_storage}} {
+            if {${compiler.c_standard} > 1999 || ${compiler.cxx_standard} >= 2011 || ${configure.cxx_stdlib} eq "libc++" || ${compiler.thread_local_storage}} {
                 return none
             }
-            if {([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) && [option configure.sdkroot] ne ""} {
+            if {(${compiler.limit_flags} || ${compiler.support_environment_sdkroot}) && ${configure.sdkroot} ne ""} {
                 return none
             }
         }
@@ -976,7 +987,8 @@ proc portconfigure::get_min_command_line {compiler} {
 }
 # utility procedure: get minimum Clang version based on restrictions
 proc portconfigure::get_min_clang {} {
-    global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
+    global compiler.c_standard compiler.cxx_standard compiler.openmp_version \
+           compiler.thread_local_storage configure.cxx_stdlib
     set min_value 1.0
     if {${compiler.c_standard} >= 2017} {
         set min_value [max_version $min_value 6.0]
@@ -988,14 +1000,14 @@ proc portconfigure::get_min_clang {} {
     } elseif {${compiler.cxx_standard} >= 2017} {
         set min_value [max_version $min_value 5.0]
     } elseif {${compiler.cxx_standard} >= 2014} {
-        if {[option configure.cxx_stdlib] eq "libc++"} {
+        if {${configure.cxx_stdlib} eq "libc++"} {
             set min_value [max_version $min_value 3.4]
         } else {
             # macports-libstdc++ only macports-clang compilers >= 5.0 support this
             set min_value [max_version $min_value 5.0]
         }
     } elseif {${compiler.cxx_standard} >= 2011} {
-        if {[option configure.cxx_stdlib] eq "libc++"} {
+        if {${configure.cxx_stdlib} eq "libc++"} {
             set min_value [max_version $min_value 3.3]
         } else {
             # macports-libstdc++ only macports-clang compilers >= 5.0 support this
@@ -1015,15 +1027,19 @@ proc portconfigure::get_min_clang {} {
 }
 # utility procedure: get minimum GCC version based on restrictions
 proc portconfigure::get_min_gcc {} {
-    global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
+    global configure.cxx_stdlib
 
     # Technically these only support macports-libstdc++, but if all the
     # options that use the system libstdc++ have been blacklisted, we
     # still need to use something. So only skip them entirely when
     # using libc++.
-    if {[option configure.cxx_stdlib] eq "libc++"} {
+    if {${configure.cxx_stdlib} eq "libc++"} {
         return none
     }
+
+    global compiler.c_standard compiler.cxx_standard compiler.openmp_version \
+           compiler.thread_local_storage compiler.limit_flags \
+           compiler.support_environment_sdkroot configure.sdkroot
 
     set min_value 1.0
     if {${compiler.c_standard} >= 2017} {
@@ -1057,9 +1073,8 @@ proc portconfigure::get_min_gcc {} {
         # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
         set min_value [max_version $min_value 4.5]
     }
-    if {
-        ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
-        [option configure.sdkroot] ne ""
+    if {(${compiler.limit_flags} || ${compiler.support_environment_sdkroot})
+        && ${configure.sdkroot} ne {}
     } {
         set min_value [max_version $min_value 7]
     }
@@ -1067,7 +1082,9 @@ proc portconfigure::get_min_gcc {} {
 }
 # utility procedure: get minimum Gfortran version based on restrictions
 proc portconfigure::get_min_gfortran {} {
-    global compiler.openmp_version compiler.thread_local_storage
+    global compiler.openmp_version compiler.thread_local_storage \
+           compiler.limit_flags compiler.support_environment_sdkroot \
+           configure.sdkroot
     set min_value 1.0
     if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
         set min_value [max_version $min_value 8]
@@ -1082,9 +1099,8 @@ proc portconfigure::get_min_gfortran {} {
         # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
         set min_value [max_version $min_value 4.5]
     }
-    if {
-        ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
-        [option configure.sdkroot] ne ""
+    if {(${compiler.limit_flags} || ${compiler.support_environment_sdkroot})
+        && ${configure.sdkroot} ne {}
     } {
         set min_value [max_version $min_value 7]
     }
@@ -1092,18 +1108,19 @@ proc portconfigure::get_min_gfortran {} {
 }
 #
 proc portconfigure::g95_ok {} {
-    global compiler.openmp_version os.platform xcodeversion
+    global os.platform xcodeversion
     if {${os.platform} eq "darwin" && ([vercmp $xcodeversion 9.0] > 0)} {
         # see https://github.com/macports/macports-ports/commit/6b905efc9d5586366ac498ed78d6ac51c120d33f
         return no
     }
+    global compiler.openmp_version compiler.limit_flags \
+           compiler.support_environment_sdkroot configure.sdkroot
     if {${compiler.openmp_version} ne ""} {
         # G95 does not support OpenMP
         return no
     }
-    if {
-        ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
-        [option configure.sdkroot] ne ""
+    if {(${compiler.limit_flags} || ${compiler.support_environment_sdkroot})
+        && ${configure.sdkroot} ne {}
     } {
         return no
     }
@@ -1138,7 +1155,8 @@ proc portconfigure::get_apple_compilers_xcode_version {} {
         set compilers [list llvm-gcc-4.2 clang gcc-4.2]
     } else {
         # Legacy Cases
-        if {[string match *10.4u* [option configure.sdkroot]]} {
+        global configure.sdkroot
+        if {[string match *10.4u* ${configure.sdkroot}]} {
             # from Xcode 3.2 release notes:
             #    GCC 4.2 cannot be used with the Mac OS X 10.4u SDK.
             #    If you want to build targets using the 10.4u SDK on Xcode 3.2, you must set the Compiler Version to GCC 4.0
@@ -1302,20 +1320,25 @@ proc portconfigure::get_mpi_wrapper {mpi compiler} {
 # utility procedure: get system compiler version by running it
 proc compiler.command_line_tools_version {compiler} {
     set cc [portconfigure::configure_get_compiler cc ${compiler}]
-    return [get_compiler_version ${cc}]
+    if {$cc eq ""} {
+        return ""
+    }
+    global configure.developer_dir
+    return [get_compiler_version ${cc} ${configure.developer_dir}]
 }
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global default_compilers xcodeversion
+    global default_compilers xcodeversion os.subplatform \
+           configure.build_arch compiler.mpi
 
     # Check our override
     if {[info exists default_compilers]} {
         return $default_compilers
     }
 
-    if {[option os.subplatform] eq "macosx"} {
+    if {${os.subplatform} eq "macosx"} {
         # Check for macOS without Xcode (i.e. CLTs only)
-        if {$xcodeversion eq "none" || $xcodeversion eq ""} {
+        if {$xcodeversion in {none {}}} {
             set available_apple_compilers [portconfigure::get_apple_compilers_os_version]
         } else {
             set available_apple_compilers [portconfigure::get_apple_compilers_xcode_version]
@@ -1360,11 +1383,12 @@ proc portconfigure::get_compiler_fallback {} {
     set compilers [list]
     lappend compilers {*}${system_compilers}
     # when building for PowerPC architectures, prefer GCC to Clang
-    set cur_arch [option configure.build_arch]
+    set cur_arch ${configure.build_arch}
     if {$cur_arch eq ""} {
-        set cur_arch [option build_arch]
+        global build_arch
+        set cur_arch ${build_arch}
     }
-    if {$cur_arch in [list ppc ppc64]} {
+    if {$cur_arch in {ppc ppc64}} {
         lappend compilers {*}${gcc_compilers}
         lappend compilers {*}${clang_compilers}
     } else {
@@ -1372,11 +1396,11 @@ proc portconfigure::get_compiler_fallback {} {
         lappend compilers {*}${gcc_compilers}
     }
     # generate list of MPI wrappers of current compilers
-    if {[option compiler.mpi] eq ""} {
+    if {${compiler.mpi} eq ""} {
         return $compilers
     } else {
         set mpi_compilers [list]
-        foreach mpi [option compiler.mpi] {
+        foreach mpi ${compiler.mpi} {
             foreach c ${compilers} {
                 lappend mpi_compilers [portconfigure::get_mpi_wrapper $mpi $c]
             }
@@ -1397,12 +1421,13 @@ proc portconfigure::get_fortran_fallback {} {
     if {[portconfigure::g95_ok]} {
         lappend compilers macports-g95
     }
+    global compiler.mpi
     # generate list of MPI wrappers of current compilers
-    if {[option compiler.mpi] eq ""} {
+    if {${compiler.mpi} eq ""} {
         return $compilers
     } else {
         set mpi_compilers [list]
-        foreach mpi [option compiler.mpi] {
+        foreach mpi ${compiler.mpi} {
             foreach c ${compilers} {
                 lappend mpi_compilers [portconfigure::get_mpi_wrapper $mpi $c]
             }
@@ -1431,9 +1456,9 @@ proc portconfigure::find_developer_tool {name} {
 
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
-    global configure.compiler prefix_frozen
+    global configure.compiler prefix_frozen compiler.require_fortran os.major
     if {$compiler eq ""} {
-        if {[option compiler.require_fortran]} {
+        if {${compiler.require_fortran}} {
             switch $type {
                 fc   -
                 f77  -
@@ -1470,11 +1495,17 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 set clangpp [find_developer_tool clang++]
                 if {[file executable $clangpp]} {
                     return $clangpp
+                } elseif {${os.major} <= 12} {
+                    return [find_developer_tool llvm-g++-4.2]
                 }
-                return [find_developer_tool llvm-g++-4.2]
+                return ""
             }
         }
     } elseif {[regexp {^gcc(-3\.3|-4\.[02])?$} $compiler -> suffix]} {
+        # Only exists in Xcode < 4.2, so 10.7 and older.
+        if {${os.major} >= 12} {
+            return ""
+        }
         switch $type {
             cc      -
             objc    { return [find_developer_tool "gcc${suffix}"] }
@@ -1483,6 +1514,10 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cpp     { return [find_developer_tool "cpp${suffix}"] }
         }
     } elseif {$compiler eq "llvm-gcc-4.2"} {
+        # Only exists in Xcode < 5, so 10.8 and older.
+        if {${os.major} >= 13} {
+            return ""
+        }
         switch $type {
             cc      -
             objc    { return [find_developer_tool llvm-gcc-4.2] }
@@ -1610,7 +1645,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
 # Some of the compilers we use are provided by MacPorts itself; ensure we
 # automatically add a dependency when needed
 proc portconfigure::add_automatic_compiler_dependencies {} {
-    global configure.compiler configure.compiler.add_deps
+    global configure.compiler configure.compiler.add_deps compiler.require_fortran
 
     if {!${configure.compiler.add_deps}} {
         return
@@ -1621,7 +1656,7 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
         portconfigure::add_compiler_port_dependencies ${configure.compiler}
     }
 
-    if {[option compiler.require_fortran] && [portconfigure::configure_get_compiler fc ${configure.compiler}] eq ""} {
+    if {${compiler.require_fortran} && [portconfigure::configure_get_compiler fc ${configure.compiler}] eq ""} {
         # Fortran is required, but compiler does not provide it
         ui_debug "Adding Fortran compiler dependency"
         portconfigure::add_compiler_port_dependencies [portconfigure::configure_get_fortran_compiler]
@@ -1695,18 +1730,19 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 depends_lib-append $libgcc_dep
             }
         } elseif {[regexp {^macports-clang(?:-(\d+(?:\.\d+)?))$} $compiler -> clang_version]} {
-            if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
+            global configure.cxx_stdlib compiler.openmp_version
+            if {${configure.cxx_stdlib} eq "macports-libstdc++"} {
                 # see https://trac.macports.org/ticket/54766
                 ui_debug "Adding depends_lib path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 depends_lib-delete "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 depends_lib-append "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
-            } elseif {[option configure.cxx_stdlib] eq "libc++" && ${os.major} < 11} {
+            } elseif {${configure.cxx_stdlib} eq "libc++" && ${os.major} < 11} {
                 # libc++ does not exist on these systems
                 ui_debug "Adding depends_lib libcxx"
                 depends_lib-delete "port:libcxx"
                 depends_lib-append "port:libcxx"
             }
-            if {[option compiler.openmp_version] ne ""} {
+            if {${compiler.openmp_version} ne ""} {
                 ui_debug "Adding depends_lib port:libomp"
                 depends_lib-delete "port:libomp"
                 depends_lib-append "port:libomp"
@@ -1723,11 +1759,12 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 
 proc portconfigure::configure_main {args} {
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf \
-           configure.env configure.pipe configure.libs configure.classpath configure.universal_args \
+           configure.pipe configure.libs configure.classpath configure.universal_args \
            configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \
            configure.pkg_config configure.pkg_config_path \
-           configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot \
-           configure.march configure.mtune os.platform os.major
+           configure.ccache configure.distcc configure.javac configure.sdkroot \
+           configure.march configure.mtune os.platform os.major \
+           compiler.limit_flags
     foreach tool {cc cxx objc objcxx f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
@@ -1819,7 +1856,7 @@ proc portconfigure::configure_main {args} {
         }
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
-        if {${configure.sdkroot} ne "" && ![option compiler.limit_flags]} {
+        if {${configure.sdkroot} ne "" && !${compiler.limit_flags}} {
             foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
                 append_to_environment_value configure $env_var -isysroot${configure.sdkroot}
             }
@@ -1876,7 +1913,7 @@ proc portconfigure::check_implicit_function_declarations {} {
         configure.checks.implicit_function_declaration.whitelist
 
     # Map from function name to config.log that used it without declaration
-    array set undeclared_functions {}
+    set undeclared_functions [dict create]
 
     fs-traverse -tails file [list ${workpath}] {
         if {[file tail $file] in [list config.log CMakeError.log meson-log.txt] && [file isfile [file join ${workpath} $file]]} {
@@ -1899,7 +1936,7 @@ proc portconfigure::check_implicit_function_declarations {} {
                             }
                         }
                         if {!$is_whitelisted} {
-                            ::struct::set include undeclared_functions($function) $file
+                            dict set undeclared_functions $function $file 1
                         } else {
                             ui_debug [format "Ignoring implicit declaration of function '%s' because it is whitelisted" $function]
                         }
@@ -1909,10 +1946,10 @@ proc portconfigure::check_implicit_function_declarations {} {
         }
     }
 
-    if {[array size undeclared_functions] > 0} {
+    if {[dict size $undeclared_functions] > 0} {
         ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration; check that features were not accidentally disabled:"
-        foreach {function files} [array get undeclared_functions] {
-            ui_msg [format "  %s: found in %s" $function [join $files ", "]]
+        dict for {function files} $undeclared_functions {
+            ui_msg [format "  %s: found in %s" $function [join [dict keys $files] ", "]]
         }
     }
 }

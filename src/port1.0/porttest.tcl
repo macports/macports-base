@@ -15,10 +15,11 @@ namespace eval porttest {
 }
 
 # define options
-options test.run test.target test.ignore_archs
+options test.asroot test.ignore_archs test.run test.target
 commands test
 
 # Set defaults
+default test.asroot no
 default test.dir {${build.dir}}
 default test.cmd {${build.cmd}}
 default test.pre_args {${test.target}}
@@ -55,40 +56,56 @@ proc porttest::test_archs {} {
     if {$handle eq "NULL"} {
         error "Error creating libmachista handle"
     }
-    array set file_archs {}
+    set file_archs [dict create]
     set destrootlen [string length [option destroot]]
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+        # file readable doesn't take euid into account
+        elevateToRoot test
+        set elevated 1
+    }
+
     fs-traverse -depth fullpath [list [option destpath]] {
         if {[file type $fullpath] ne "file"} {
+            continue
+        }
+        if {![file readable $fullpath]} {
+            ui_debug "Skipping unreadable file: $fullpath"
             continue
         }
         if {[fileIsBinary $fullpath]} {
             set archs [get_file_archs $handle $fullpath]
             if {$archs ne ""} {
                 # not guaranteed to be listed in canonical order
-                lappend file_archs([lsort -ascii $archs]) [string range $fullpath $destrootlen end]
+                dict lappend file_archs [lsort -ascii $archs] [string range $fullpath $destrootlen end]
             }
         }
     }
+
+    if {[info exists elevated]} {
+        dropPrivileges
+    }
+
     set wanted_archs [get_canonical_archs]
-    set has_wanted_archs [info exists file_archs($wanted_archs)]
-    unset -nocomplain file_archs($wanted_archs)
-    if {[array names file_archs] ne ""} {
-        set msg "[option name] is configured to build "
+    set has_wanted_archs [dict exists $file_archs $wanted_archs]
+    dict unset file_archs $wanted_archs
+    if {[dict size $file_archs] > 0} {
+        set msg "[option subport] is configured to build "
         if {$wanted_archs eq "noarch"} {
             append msg "no architecture-specific files,"
         } else {
             append msg "for the architecture(s) '$wanted_archs',"
         }
         append msg " but installed Mach-O files built for the following archs:\n"
-        foreach a [array names file_archs] {
-            append msg [join $a ,]:\n
-            foreach f $file_archs($a) {
+        dict for {archs files} $file_archs {
+            append msg [join $archs ,]:\n
+            foreach f $files {
                 append msg "  $f\n"
             }
         }
         ui_warn $msg
     } elseif {$wanted_archs ne "noarch" && !${has_wanted_archs}} {
-        ui_warn "[option name] is configured to build for the architecture(s) '$wanted_archs',\
+        ui_warn "[option subport] is configured to build for the architecture(s) '$wanted_archs',\
                     but did not install any Mach-O files."
     }
     machista::destroy_handle $handle
@@ -100,7 +117,7 @@ proc porttest::test_start {args} {
 }
 
 proc porttest::test_main {args} {
-    global subport test.run
+    global test.run
 
     # built-in tests
     porttest::test_archs

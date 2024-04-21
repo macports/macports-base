@@ -1054,6 +1054,37 @@ to
 .br
 .Sy Example:
 .Dl use_7z yes
+.It Ic use_dmg
+Use a disk image (dmg).
+Note that the arguments passed to 'hdiutil' are extensive, and can vary based
+on the Darwin release, other options, etc.
+As such, ports should not attempt to manipulate 'extract.post_args'.
+.br
+Sets
+.Ic extract.suffix
+to
+.Dq .dmg .
+.br
+Sets
+.Ic extract.cmd
+to
+.Dq hdiutil .
+.br
+Sets
+.Ic extract.pre_args
+to
+.Dq attach .
+.br
+Sets
+.Ic extract.post_args
+to
+.Dq -private -readonly -nobrowse -mountpoint ...etc... .
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_dmg yes
 .It Ic dist_subdir
 Create a sub-directory in
 .Ic distpath

@@ -124,10 +124,23 @@ test dlist_append_dependents {
     Dlist append dependents unit test.
 } -setup {
     set mport [mportopen file://.]
-    set result {fondu2}
+    ditem_key $mport requires [list a e]
+
+    set result [list]
+    set dlist [list]
+    foreach dname {a b c d e f} {
+        set $dname [ditem_create]
+        ditem_key [set $dname] provides $dname
+        lappend dlist [set $dname]
+    }
+    ditem_key $a requires [list b c]
+    ditem_key $b requires [list e]
+    lappend dlist $mport
 } -body {
-    if {[dlist_append_dependents $mport provides $result] ne {fondu2 provides}} {
-        return "FAIL: wrong depends"
+    set expected [lsort [list $mport $a $b $c $e]]
+    set newlist [lsort [dlist_append_dependents $dlist $mport $result]]
+    if {$newlist ne $expected} {
+        return "FAIL: wrong depends: $newlist (expected $expected)"
     }
     return "Append depends successful."
 } -cleanup {
@@ -204,7 +217,7 @@ test ditem_key {
     set res [macports_dlist::ditem_create]
     macports_dlist::ditem_key $res macports test
 } -body {
-    if {[array get macports_dlist::$res macports] ne "macports test"} {
+    if {[dict get [set macports_dlist::$res]] ne "macports test"} {
         return "FAIL ditem key not set"
     }
     return "Ditem key successful."
@@ -220,7 +233,7 @@ test ditem_append {
     macports_dlist::ditem_key $res macports test
     macports_dlist::ditem_append $res macports test2
 } -body {
-    if {[array get macports_dlist::$res macports] ne "macports {test test2}"} {
+    if {[dict get [set macports_dlist::$res]] ne "macports {test test2}"} {
         return "FAIL: ditem key not appended"
     }
     return "Ditem key append successful."
@@ -236,7 +249,7 @@ test ditem_append_unique {
     macports_dlist::ditem_key $res macports test
     macports_dlist::ditem_append_unique $res macports test
 } -body {
-    if {[array get macports_dlist::$res macports] ne "macports test"} {
+    if {[dict get [set macports_dlist::$res]] ne "macports test"} {
         return "FAIL: ditem key not unique"
     }
     return "Ditem append unique successful."

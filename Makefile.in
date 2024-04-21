@@ -16,7 +16,7 @@ include Mk/macports.autoconf.mk
 
 all:: Mk/macports.autoconf.mk
 
-Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in doc/Makefile.in src/Makefile.in src/cregistry/Makefile.in src/darwintracelib1.0/Makefile.in src/machista1.0/Makefile.in src/macports1.0/Makefile.in src/mpcommon1.0/Makefile.in src/package1.0/Makefile.in src/pextlib1.0/Makefile.in src/port/Makefile.in src/port1.0/Makefile.in src/programs/Makefile.in src/programs/daemondo/Makefile.in src/registry2.0/Makefile.in tests/Makefile.in vendor/Makefile.in config.status
+Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in doc/Makefile.in src/Makefile.in src/cregistry/Makefile.in src/darwintracelib1.0/Makefile.in src/machista1.0/Makefile.in src/macports1.0/Makefile.in src/mpcommon1.0/Makefile.in src/package1.0/Makefile.in src/pextlib1.0/Makefile.in src/portlist1.0/Makefile.in src/port/Makefile.in src/port1.0/Makefile.in src/programs/Makefile.in src/programs/daemondo/Makefile.in src/registry2.0/Makefile.in tests/Makefile.in vendor/Makefile.in config.status
 	./config.status
 	${MAKE} clean
 
@@ -33,6 +33,7 @@ include $(srcdir)/Mk/macports.subdir.mk
 
 install::
 	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${localstatedir}/macports/cache"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
@@ -92,6 +93,10 @@ ifeq ($(DESTDIR),)
         fi ; \
     else \
         echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+    fi
+# Move ping cache to new location
+	@if [ -f "${localstatedir}/macports/pingtimes" ]; then \
+        mv "${localstatedir}/macports/pingtimes" "${localstatedir}/macports/cache/pingtimes"; \
     fi
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) $(srcdir)/src/upgrade_sources_conf_default.tcl "${prefix}"

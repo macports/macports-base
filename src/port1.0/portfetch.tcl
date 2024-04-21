@@ -68,30 +68,30 @@ default fetch.type standard
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
 default bzr.revision -1
-default bzr.pre_args "--builtin --no-aliases checkout --lightweight --verbose"
-default bzr.args ""
+default bzr.pre_args {--builtin --no-aliases checkout --lightweight --verbose}
+default bzr.args {}
 default bzr.post_args {-r ${bzr.revision} ${bzr.url} ${worksrcdir}}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
-default cvs.password ""
+default cvs.password {}
 default cvs.dir {${workpath}}
-default cvs.method {export}
+default cvs.method export
 default cvs.module {$distname}
-default cvs.tag ""
-default cvs.date ""
+default cvs.tag {}
+default cvs.date {}
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {-z9 -f -d ${cvs.root}}
-default cvs.args ""
+default cvs.args {}
 default cvs.post_args {${cvs.module}}
 
 default svn.cmd {${prefix_frozen}/bin/svn}
 default svn.dir {${workpath}}
-default svn.method {export}
-default svn.revision ""
+default svn.method export
+default svn.revision {}
 default svn.env {}
 default svn.pre_args --non-interactive
-default svn.args ""
-default svn.post_args ""
+default svn.args {}
+default svn.post_args {}
 
 default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
@@ -106,15 +106,15 @@ default distfiles {[list [portfetch::suffix [join $distname]]]}
 default dist_subdir {${name}}
 
 # user name & password
-default fetch.user ""
-default fetch.password ""
+default fetch.user {}
+default fetch.password {}
 # Use EPSV for FTP transfers
 default fetch.use_epsv yes
 # Ignore SSL certificate
 default fetch.ignore_sslcert no
 # Use remote timestamps
 default fetch.remote_time no
-default fetch.user_agent ""
+default fetch.user_agent {}
 
 default global_mirror_site macports_distfiles
 default mirror_sites.listfile mirror_sites.tcl
@@ -337,7 +337,7 @@ proc portfetch::bzrfetch {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc portfetch::cvsfetch {args} {
-    global workpath cvs.env cvs.cmd cvs.args cvs.post_args \
+    global cvs.cmd cvs.args cvs.post_args \
            cvs.root cvs.date cvs.tag cvs.method cvs.password
            patch_sites patchfiles filespath
 
@@ -439,7 +439,7 @@ proc portfetch::svnfetch {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global worksrcpath patchfiles \
-           git.url git.branch git.sha1 git.cmd
+           git.url git.branch git.cmd
 
     set options "--progress"
     if {${git.branch} eq ""} {
@@ -494,7 +494,7 @@ proc portfetch::hgfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated distfile
 proc portfetch::fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX \
+    global distpath UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
            fetch.user_agent portverbose
     variable fetch_urls

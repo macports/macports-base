@@ -43,8 +43,8 @@ namespace eval portpkg {
 }
 
 # define options
-options package.type package.destpath package.flat package.resources package.scripts
-options pkg.asroot
+options package.type package.destpath package.flat package.resources \
+        package.scripts pkg.asroot
 
 # Set defaults
 default package.destpath {${workpath}}
@@ -57,11 +57,13 @@ default pkg.asroot no
 set_ui_prefix
 
 proc portpkg::pkg_start {args} {
-    global packagemaker_path portpkg::packagemaker portpkg::pkgbuild \
-           portpkg::language xcodeversion portpath porturl \
+    global packagemaker_path xcodeversion porturl \
            package.resources package.scripts package.flat \
            subport version revision description long_description \
            homepage workpath os.major
+    variable packagemaker
+    variable pkgbuild
+    variable language
 
     if {[catch {findBinary pkgbuild /usr/bin/pkgbuild} pkgbuild]} {
         set pkgbuild ""
@@ -75,7 +77,8 @@ proc portpkg::pkg_start {args} {
                     ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
                 }
             } else {
-                set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
+                global developer_dir
+                set packagemaker_path ${developer_dir}/Applications/Utilities/PackageMaker.app
             }
         }
         set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
@@ -104,7 +107,7 @@ proc portpkg::pkg_start {args} {
 }
 
 proc portpkg::pkg_main {args} {
-    global subport epoch version revision UI_PREFIX
+    global subport epoch version revision
 
     if {[getuid] == 0 && [geteuid] != 0} {
         elevateToRoot "pkg"
@@ -114,10 +117,13 @@ proc portpkg::pkg_main {args} {
 }
 
 proc portpkg::package_pkg {portname portepoch portversion portrevision} {
-    global UI_PREFIX portdbpath destpath workpath prefix description \
-    package.flat package.destpath portpath os.version os.major \
-    package.resources package.scripts portpkg::packagemaker \
-    pkg_post_unarchive_deletions portpkg::language portpkg::pkgbuild
+    global UI_PREFIX destpath workpath prefix description \
+        package.flat package.destpath portpath os.major \
+        package.resources package.scripts \
+        pkg_post_unarchive_deletions
+    variable packagemaker
+    variable language
+    variable pkgbuild
 
     set pkgpath "${package.destpath}/[image_name $portname $portversion $portrevision].pkg"
 

@@ -129,7 +129,7 @@ namespace eval porttrace {
     # @param workpath The $workpath of the current installation
     proc trace_start {workpath} {
         global \
-            developer_dir distpath env macportsuser os.platform configure.sdkroot \
+            developer_dir distpath env macportsuser configure.sdkroot \
             portpath prefix use_xcode
 
         variable fifo
@@ -229,6 +229,7 @@ namespace eval porttrace {
         set xcode_paths [list]
         lappend xcode_paths "/var/db/xcode_select_link"
         lappend xcode_paths "/var/db/mds"
+        # XXX Tcl9 unsafe
         lappend xcode_paths [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
         lappend xcode_paths "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
 

@@ -99,27 +99,27 @@ options startupitems startupitem.autostart startupitem.debug \
         startupitem.user startupitem.daemondo.verbosity
 
 default startupitem.autostart   no
-default startupitem.custom_file ""
+default startupitem.custom_file {}
 default startupitem.debug       no
-default startupitem.executable  ""
-default startupitem.group       ""
-default startupitem.init        ""
+default startupitem.executable  {}
+default startupitem.group       {}
+default startupitem.init        {}
 default startupitem.install     {$system_options(startupitem_install)}
 default startupitem.location    LaunchDaemons
 default startupitem.logevents   no
-default startupitem.logfile     ""
+default startupitem.logfile     {}
 default startupitem.logfile.stderr {${startupitem.logfile}}
 default startupitem.name        {${subport}}
 default startupitem.netchange   no
-default startupitem.pidfile     ""
+default startupitem.pidfile     {}
 default startupitem.plist       {${startupitem.uniquename}.plist}
-default startupitem.requires    ""
-default startupitem.restart     ""
-default startupitem.start       ""
-default startupitem.stop        ""
+default startupitem.requires    {}
+default startupitem.restart     {}
+default startupitem.start       {}
+default startupitem.stop        {}
 default startupitem.type        {[portstartupitem::get_startupitem_type]}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
-default startupitem.user        ""
+default startupitem.user        {}
 
 default startupitem.daemondo.verbosity  1
 
@@ -156,40 +156,40 @@ proc portstartupitem::foreach_startupitem {body} {
               name netchange pidfile plist requires restart start stop type \
               uniquename user daemondo.verbosity]
 
-    array set startupitems_dict {}
+    set startupitems_dict [dict create]
     if {[info exists startupitems] && $startupitems ne ""} {
         foreach {key val} $startupitems {
             if {$key eq "name"} {
                 set curname $val
                 # these have defaults based on the name
                 set uniquename org.macports.${val}
-                lappend startupitems_dict($curname) uniquename $uniquename
-                lappend startupitems_dict($curname) plist ${uniquename}.plist
+                dict set startupitems_dict $curname uniquename $uniquename
+                dict set startupitems_dict $curname plist ${uniquename}.plist
             }
-            lappend startupitems_dict($curname) $key $val
+            dict set startupitems_dict $curname $key $val
         }
     } else {
         global startupitem.name
         foreach var $vars {
             global startupitem.${var}
             if {[info exists startupitem.${var}]} {
-                lappend startupitems_dict(${startupitem.name}) $var [set startupitem.${var}]
+                dict set startupitems_dict ${startupitem.name} $var [set startupitem.${var}]
             }
         }
     }
 
-    uplevel 1 "set si_vars [list $vars]"
-    foreach item [array names startupitems_dict] {
-        uplevel 1 "array unset si_dict; array set si_dict [list $startupitems_dict($item)]"
+    uplevel 1 [list set si_vars $vars]
+    dict for {item subdict} $startupitems_dict {
+        uplevel 1 [list set si_dict $subdict]
         uplevel 1 {
             foreach si_var $si_vars {
-                if {[info exists si_dict($si_var)]} {
-                    set si_${si_var} $si_dict($si_var)
+                if {[dict exists $si_dict $si_var]} {
+                    set si_${si_var} [dict get $si_dict $si_var]
                 } else {
                     global startupitem.${si_var}
                     if {[info exists startupitem.${si_var}]} {
                         set si_${si_var} [set startupitem.${si_var}]
-                        set si_dict($si_var) [set startupitem.${si_var}]
+                        dict set si_dict $si_var [set startupitem.${si_var}]
                     }
                 }
             }
@@ -283,11 +283,9 @@ proc portstartupitem::install_darwin_launchd {srcpath dstdir install} {
 proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target
 
-    array set si $attrs
-
-    set uniquename      $si(uniquename)
-    set plistname       $si(plist)
-    set daemondest      $si(location)
+    set uniquename      [dict get $attrs uniquename]
+    set plistname       [dict get $attrs plist]
+    set daemondest      [dict get $attrs location]
     set itemdir         ${prefix}/etc/${daemondest}/${uniquename}
 
     file mkdir ${destroot}${itemdir}
@@ -295,32 +293,32 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         file attributes ${destroot}${itemdir} -owner root -group wheel
     }
 
-    if {$si(custom_file) ne ""} {
+    if {[dict get $attrs custom_file] ne ""} {
         # The port is supplying its own plist
-        file copy $si(custom_file) ${destroot}${itemdir}/${plistname}
-        install_darwin_launchd ${itemdir}/${plistname} $daemondest $si(install)
+        file copy [dict get $attrs custom_file] ${destroot}${itemdir}/${plistname}
+        install_darwin_launchd ${itemdir}/${plistname} $daemondest [dict get $attrs install]
         return
     }
 
     set scriptdir ${prefix}/etc/startup
 
-    set itemname        $si(name)
-    set username        $si(user)
-    set groupname       $si(group)
+    set itemname        [dict get $attrs name]
+    set username        [dict get $attrs user]
+    set groupname       [dict get $attrs group]
     set args            [list \
                           "${prefix}/bin/daemondo" \
                           "--label=${itemname}" \
                         ]
 
-    if {$si(executable) ne "" &&
-        $si(init) eq "" &&
-        $si(start) eq "" &&
-        $si(stop) eq "" &&
-        $si(restart) eq ""} {
+    if {[dict get $attrs executable] ne "" &&
+        [dict get $attrs init] eq "" &&
+        [dict get $attrs start] eq "" &&
+        [dict get $attrs stop] eq "" &&
+        [dict get $attrs restart] eq ""} {
 
         # An executable is specified, and there is no init, start, stop, or restart
         # code; so we don't need a wrapper script
-        set args [concat $args "--start-cmd" $si(executable) ";"]
+        set args [concat $args "--start-cmd" [dict get $attrs executable] ";"]
 
     } else {
 
@@ -330,14 +328,14 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         set wrappername     ${itemname}.wrapper
         set wrapper         "${itemdir}/${wrappername}"
 
-        if {$si(start) eq ""} {
-            set si(start) [list "sh ${scriptdir}/${subport}.sh start"]
+        if {[dict get $attrs start] eq ""} {
+            dict set attrs start [list "sh ${scriptdir}/${subport}.sh start"]
         }
-        if {$si(stop) eq ""} {
-            set si(stop) [list "sh ${scriptdir}/${subport}.sh stop"]
+        if {[dict get $attrs stop] eq ""} {
+            dict set attrs stop [list "sh ${scriptdir}/${subport}.sh stop"]
         }
-        if {$si(restart) eq ""} {
-            set si(restart) [list Stop Start]
+        if {[dict get $attrs restart] eq ""} {
+            dict set attrs restart [list Stop Start]
         }
 
         lappend args \
@@ -361,7 +359,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         puts ${item} "# Init"
         puts ${item} "#"
         puts ${item} "prefix=$prefix"
-        foreach line $si(init)    { puts ${item} ${line} }
+        foreach line [dict get $attrs init]    { puts ${item} ${line} }
         puts ${item} ""
 
         puts ${item} "#"
@@ -369,7 +367,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         puts ${item} "#"
         puts ${item} "Start()"
         puts ${item} "\{"
-        foreach line $si(start)   { puts ${item} "\t${line}" }
+        foreach line [dict get $attrs start]   { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
 
@@ -378,7 +376,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         puts ${item} "#"
         puts ${item} "Stop()"
         puts ${item} "\{"
-        foreach line $si(stop)    { puts ${item} "\t${line}" }
+        foreach line [dict get $attrs stop]    { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
 
@@ -387,7 +385,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         puts ${item} "#"
         puts ${item} "Restart()"
         puts ${item} "\{"
-        foreach line $si(restart) { puts ${item} "\t${line}" }
+        foreach line [dict get $attrs restart] { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
 
@@ -414,12 +412,12 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         close ${item}
     }
 
-    if {$si(netchange)} {
+    if {[dict get $attrs netchange]} {
         lappend args "--restart-netchange"
     }
 
     # To log events then tell daemondo to log at verbosity=n
-    if {$si(logevents)} {
+    if {[dict get $attrs logevents]} {
         lappend args "--verbosity=[option startupitem.daemondo.verbosity]"
     }
 
@@ -431,7 +429,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
     #   (3) clean [pidfilename]
     #   (4) manual [pidfilename]
     #
-    set pidfileArgCnt [llength $si(pidfile)]
+    set pidfileArgCnt [llength [dict get $attrs pidfile]]
     if {${pidfileArgCnt} > 0} {
         if { $pidfileArgCnt == 1 } {
             set pidFile "${prefix}/var/run/${itemname}.pid"
@@ -439,7 +437,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
                 lappend destroot.keepdirs "${destroot}${prefix}/var/run"
             }
         } else {
-            set pidFile [lindex $si(pidfile) 1]
+            set pidFile [lindex [dict get $attrs pidfile] 1]
         }
 
         if {${pidfileArgCnt} > 2} {
@@ -447,7 +445,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         }
 
         # Translate into appropriate arguments to daemondo
-        set pidStyle [lindex $si(pidfile) 0]
+        set pidStyle [lindex [dict get $attrs pidfile] 0]
         switch -- ${pidStyle} {
             none    { lappend args "--pid=none" }
             auto    { lappend args "--pid=fileauto" "--pidfile" ${pidFile} }
@@ -458,7 +456,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
             }
         }
     } else {
-        if {$si(executable) ne ""} {
+        if {[dict get $attrs executable] ne ""} {
             lappend args "--pid=exec"
         } else {
             lappend args "--pid=none"
@@ -496,15 +494,15 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         puts ${plist} "<key>GroupName</key><string>$groupname</string>"
     }
 
-    if {$si(logfile) ne ""} {
-        puts ${plist} "<key>StandardOutPath</key><string>$si(logfile)</string>"
+    if {[dict get $attrs logfile] ne ""} {
+        puts ${plist} "<key>StandardOutPath</key><string>[dict get $attrs logfile]</string>"
     }
 
-    if {$si(logfile.stderr) ne ""} {
-        puts ${plist} "<key>StandardErrorPath</key><string>$si(logfile.stderr)</string>"
+    if {[dict get $attrs logfile.stderr] ne ""} {
+        puts ${plist} "<key>StandardErrorPath</key><string>[dict get $attrs logfile.stderr]</string>"
     }
 
-    if {$si(debug)} {
+    if {[dict get $attrs debug]} {
         puts ${plist} "<key>Debug</key><true/>"
     }
 
@@ -513,7 +511,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
 
     close ${plist}
 
-    install_darwin_launchd ${itemdir}/${plistname} $daemondest $si(install)
+    install_darwin_launchd ${itemdir}/${plistname} $daemondest [dict get $attrs install]
 }
 
 proc portstartupitem::startupitem_create {} {
@@ -528,7 +526,7 @@ proc portstartupitem::startupitem_create {} {
             }
 
             switch -- ${si_type} {
-                launchd         { startupitem_create_darwin_launchd [array get si_dict] }
+                launchd         { startupitem_create_darwin_launchd $si_dict }
                 default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${si_type}]" }
             }
         }

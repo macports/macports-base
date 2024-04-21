@@ -55,7 +55,7 @@ namespace eval portchecksum {
 options checksums checksum.skip
 
 # Defaults
-default checksums ""
+default checksums {}
 default checksum.skip false
 
 set_ui_prefix
@@ -111,14 +111,15 @@ proc portchecksum::verify_checksum_format {type value} {
 # return yes if the syntax was correct, no if there was a problem.
 proc portchecksum::parse_checksums {checksums_str} {
     global checksums_array all_dist_files
+    variable checksum_types
 
     # Parse the string of checksums.
     set nb_checksum [llength $checksums_str]
 
     if {[llength $all_dist_files] == 1
         && [expr {$nb_checksum % 2}] == 0
-        && [expr {$nb_checksum / 2}] <= [llength $portchecksum::checksum_types]
-        && [lindex $checksums_str 0] in $portchecksum::checksum_types} {
+        && [expr {$nb_checksum / 2}] <= [llength $checksum_types]
+        && [lindex $checksums_str 0] in $checksum_types} {
         # Convert to format #2
         set checksums_str [linsert $checksums_str 0 [lindex $all_dist_files 0]]
         # We increased the size.
@@ -147,7 +148,7 @@ proc portchecksum::parse_checksums {checksums_str} {
             incr ix_checksum
             while {1} {
                 set checksum_type [lindex $checksums_str $ix_checksum]
-                if {$checksum_type in $portchecksum::checksum_types} {
+                if {$checksum_type in $checksum_types} {
                     # append the type and the value.
                     incr ix_checksum
                     set checksum_value [lindex $checksums_str $ix_checksum]
@@ -242,7 +243,7 @@ proc portchecksum::checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc portchecksum::checksum_main {args} {
-    global UI_PREFIX all_dist_files checksums_array checksum.skip
+    global UI_PREFIX all_dist_files checksums_array checksum.skip distpath
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {
@@ -268,7 +269,6 @@ proc portchecksum::checksum_main {args} {
     # if everything is fine with the syntax, keep on and check the checksum of
     # the distfiles.
     if {[parse_checksums $checksums_str] eq "yes"} {
-        set distpath [option distpath]
 
         foreach distfile $all_dist_files {
             ui_info "$UI_PREFIX [format [msgcat::mc "Checksumming %s"] $distfile]"
@@ -345,13 +345,14 @@ proc portchecksum::checksum_main {args} {
             # Show the desired checksum line for easy cut-paste
             # based on the previously calculated values, plus our default types
             set sums [list]
+            variable default_checksum_types
 
             foreach distfile $all_dist_files {
                 if {[llength $all_dist_files] > 1} {
                     lappend sums $distfile
                 }
 
-                set missing_types $portchecksum::default_checksum_types
+                set missing_types $default_checksum_types
 
                 # Append the string for the calculated types and note any of
                 # our default types that were already calculated

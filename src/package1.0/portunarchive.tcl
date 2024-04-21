@@ -125,7 +125,7 @@ proc portunarchive::unarchive_start {args} {
 proc portunarchive::unarchive_command_setup {args} {
     global unarchive.env unarchive.cmd unarchive.pre_args unarchive.args \
            unarchive.post_args unarchive.type unarchive.path \
-           unarchive.pipe_cmd os.platform os.version env
+           unarchive.pipe_cmd
 
     # Define appropriate unarchive command and options
     set unarchive.env {}
@@ -281,7 +281,7 @@ proc portunarchive::unarchive_main {args} {
 }
 
 proc portunarchive::unarchive_finish {args} {
-    global UI_PREFIX target_state_fd unarchive.file subport workpath destpath unarchive.skip
+    global UI_PREFIX target_state_fd unarchive.file subport workpath portpath destpath unarchive.skip
 
     if {${unarchive.skip}} {
         return 0
@@ -295,7 +295,7 @@ proc portunarchive::unarchive_finish {args} {
         file copy -force $plus_state $statefile
         file mtime $statefile [clock seconds]
         chownAsRoot $statefile
-        update_statefile checksum [sha256 file [option portpath]/Portfile] $statefile
+        update_statefile checksum [sha256 file ${portpath}/Portfile] $statefile
         set newstate 1
     } else {
         # fake it

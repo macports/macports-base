@@ -35,13 +35,13 @@ distclean: clean
 	rm -f Makefile
 
 install: all mkdirs
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/bin"
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/var/macports"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${DESTDIR}${INSTALLDIR}/bin/"
-	$(LN_S) -f port "${DESTDIR}${INSTALLDIR}/bin/portf"
-	$(LN_S) -f "${TCLSH}" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${bindir}"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${localstatedir}/macports"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${DESTDIR}${bindir}/"
+	$(LN_S) -f port "${DESTDIR}${bindir}/portf"
+	$(LN_S) -f "${TCLSH}" "${DESTDIR}${bindir}/port-tclsh"
 ifeq (darwin,@OS_PLATFORM@)
 ifneq (8,@OS_MAJOR@)
-	chmod -h 555 "${DESTDIR}${INSTALLDIR}/bin/portf" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
+	chmod -h 555 "${DESTDIR}${bindir}/portf" "${DESTDIR}${bindir}/port-tclsh"
 endif
 endif

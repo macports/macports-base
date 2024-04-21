@@ -88,7 +88,6 @@ proc setup {rules} {
 
 proc tracelib_setup {} {
     global \
-        cwd \
         darwintrace_lib \
         env \
         fifo \
@@ -107,8 +106,8 @@ proc tracelib_setup {} {
 
     thread::send -async $thread [list run] tracelib_result
 
-    set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
-    set ::env(DARWINTRACE_LOG) $fifo
+    set env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
+    set env(DARWINTRACE_LOG) $fifo
 }
 
 proc expect {{violations {}} {unknowns {}}} {

@@ -53,7 +53,7 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 	# port version_revision+variants
 	if {![entry_exists $name $version $revision $variants] } {
 
-		set ref [${macports::registry.format}::new_entry]
+		set ref [${registry.format}::new_entry]
 
 		property_store $ref name $name
 		property_store $ref version $version
@@ -62,7 +62,7 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 		property_store $ref epoch $epoch
 		property_store $ref date [clock seconds]
 		property_store $ref installtype image
-		property_store $ref receipt_f ${macports::registry.format}
+		property_store $ref receipt_f ${registry.format}
         property_store $ref active 0
 
 		return $ref
@@ -75,13 +75,13 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 # through to the receipts system
 proc entry_exists {name version {revision 0} {variants ""}} {
 	global macports::registry.format
-	return [${macports::registry.format}::entry_exists $name $version $revision $variants] 
+	return [${registry.format}::entry_exists $name $version $revision $variants] 
 }
 
 # Check to see if any entry exists in the registry for the given port name.
 proc entry_exists_for_name {name} {
 	global macports::registry.format
-	return [${macports::registry.format}::entry_exists_for_name $name]
+	return [${registry.format}::entry_exists_for_name $name]
 }
 
 # Close the registry... basically wrap the receipts systems's write process
@@ -95,7 +95,7 @@ proc write_entry {ref} {
 	set epoch [property_retrieve $ref epoch]
 	set contents [property_retrieve $ref contents]
 
-	${macports::registry.format}::write_entry $ref $name $version $revision $variants
+	${registry.format}::write_entry $ref $name $version $revision $variants
 
 }
 
@@ -108,7 +108,7 @@ proc delete_entry {ref} {
 	set revision [property_retrieve $ref revision]
 	set variants [property_retrieve $ref variants]
 	
-	${macports::registry.format}::delete_entry $name $version $revision $variants
+	${registry.format}::delete_entry $name $version $revision $variants
 	
 }
 
@@ -116,20 +116,20 @@ proc delete_entry {ref} {
 proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 	global macports::registry.format
 
-	return [${macports::registry.format}::open_entry $name $version $revision $variants $epoch]
+	return [${registry.format}::open_entry $name $version $revision $variants $epoch]
 
 }
 
 # Store a property with the open registry entry.
 proc property_store {ref property value} {
 	global macports::registry.format
-	${macports::registry.format}::property_store $ref $property $value
+	${registry.format}::property_store $ref $property $value
 }
 
 # Retrieve a property from the open registry entry.
 proc property_retrieve {ref property} {
 	global macports::registry.format
-	return [${macports::registry.format}::property_retrieve $ref $property]
+	return [${registry.format}::property_retrieve $ref $property]
 }
 
 # If only one version of the port is installed, this process returns that
@@ -137,8 +137,8 @@ proc property_retrieve {ref property} {
 proc installed {{name ""} {version ""}} {
 	global macports::registry.format
 
-    if {${macports::registry.format} eq "receipt_flat"} {
-        set ilist [${macports::registry.format}::installed $name $version]
+    if {${registry.format} eq "receipt_flat"} {
+        set ilist [${registry.format}::installed $name $version]
         set rlist [list]
     
         foreach installed $ilist {
@@ -152,7 +152,7 @@ proc installed {{name ""} {version ""}} {
             lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
         }
     } else {
-        set rlist [${macports::registry.format}::installed $name $version]
+        set rlist [${registry.format}::installed $name $version]
     }
     
     if { [llength $rlist] < 1 } {
@@ -175,9 +175,9 @@ proc installed {{name ""} {version ""}} {
 proc active {{name ""}} {
 	global macports::registry.format
     
-    if {${macports::registry.format} eq "receipt_flat"} {
+    if {${registry.format} eq "receipt_flat"} {
         set rlist [list]
-        set ilist [${macports::registry.format}::installed $name]
+        set ilist [${registry.format}::installed $name]
     
         foreach installed $ilist {
             set iname [lindex $installed 0]
@@ -192,7 +192,7 @@ proc active {{name ""}} {
             }
         }
     } else {
-        set rlist [${macports::registry.format}::active $name]
+        set rlist [${registry.format}::active $name]
     }
 	
 	if { [llength $rlist] < 1 } {
@@ -232,7 +232,7 @@ proc location {portname portversion} {
 # File Map Code
 proc open_file_map {args} {
 	global macports::registry.format
-	return [${macports::registry.format}::open_file_map $args]
+	return [${registry.format}::open_file_map $args]
 }
 
 proc file_registered {file} {
@@ -244,23 +244,23 @@ proc file_registered {file} {
 		set cs false
 	}
 
-	return [${macports::registry.format}::file_registered $file $cs]
+	return [${registry.format}::file_registered $file $cs]
 }
 
 proc port_registered {name} {
 	global macports::registry.format
-	return [${macports::registry.format}::port_registered $name]
+	return [${registry.format}::port_registered $name]
 }
 
 proc register_file {file port} {
 	global macports::registry.format
-	return [${macports::registry.format}::register_file $file $port]
+	return [${registry.format}::register_file $file $port]
 }
 
 proc register_bulk_files {files port} {
 	global macports::registry.format
 	open_file_map
-        set r [${macports::registry.format}::register_bulk_files $files $port]
+        set r [${registry.format}::register_bulk_files $files $port]
 	write_file_map
 	close_file_map
 	return $r
@@ -268,17 +268,17 @@ proc register_bulk_files {files port} {
 
 proc unregister_file {file} {
 	global macports::registry.format
-	return [${macports::registry.format}::unregister_file $file]
+	return [${registry.format}::unregister_file $file]
 }
 
 proc write_file_map {args} {
 	global macports::registry.format
-	return [${macports::registry.format}::write_file_map $args]
+	return [${registry.format}::write_file_map $args]
 }
 
 proc close_file_map {args} {
 	global macports::registry.format
-	return [${macports::registry.format}::close_file_map $args]
+	return [${registry.format}::close_file_map $args]
 }
 
 # Dependency Map Code
@@ -306,7 +306,7 @@ proc unregister_dependencies {name} {
 
 proc open_dep_map {args} {
 	global macports::registry.format
-	return [${macports::registry.format}::open_dep_map $args]
+	return [${registry.format}::open_dep_map $args]
 }
 
 ##
@@ -355,33 +355,33 @@ proc fileinfo_for_index {flist} {
 # List all ports this one depends on
 proc list_depends {name {version ""} {revision ""} {variants 0}} {
 	global macports::registry.format
-	return [${macports::registry.format}::list_depends $name $version $revision $variants]
+	return [${registry.format}::list_depends $name $version $revision $variants]
 }
 
 # List all the ports that depend on this port
 proc list_dependents {name {version ""} {revision ""} {variants 0}} {
 	global macports::registry.format
-	return [${macports::registry.format}::list_dependents $name $version $revision $variants]
+	return [${registry.format}::list_dependents $name $version $revision $variants]
 }
 
 proc register_dep {dep type port} {
 	global macports::registry.format
-	return [${macports::registry.format}::register_dep $dep $type $port]
+	return [${registry.format}::register_dep $dep $type $port]
 }
 
 proc unregister_dep {dep type port} {
 	global macports::registry.format
-	return [${macports::registry.format}::unregister_dep $dep $type $port]
+	return [${registry.format}::unregister_dep $dep $type $port]
 }
 
 proc clean_dep_map {args} {
     global macports::registry.format
-    return [${macports::registry.format}::clean_dep_map $args]
+    return [${registry.format}::clean_dep_map $args]
 }
 
 proc write_dep_map {args} {
 	global macports::registry.format
-	return [${macports::registry.format}::write_dep_map $args]
+	return [${registry.format}::write_dep_map $args]
 }
 
 # acquire exclusive lock on registry, do this before modifying it or reading

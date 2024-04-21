@@ -36,22 +36,22 @@ package require registry 1.0
 package require registry2 2.0
 package require registry_util 2.0
 
-set UI_PREFIX "---> "
-
 namespace eval registry_uninstall {
+
+variable UI_PREFIX {---> }
 
 # generate list of all dependencies of the port
 proc generate_deplist {port {optslist ""}} {
 
-    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
+    set deptypes [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]
     set all_dependencies [list]
     # look up deps from the saved portfile if possible
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optslist]}]} {
-        array set depportinfo [mportinfo $mport]
+        set depportinfo [mportinfo $mport]
         mportclose $mport
         foreach type $deptypes {
-            if {[info exists depportinfo($type)]} {
-                foreach dep $depportinfo($type) {
+            if {[dict exists $depportinfo $type]} {
+                foreach dep [dict get $depportinfo $type] {
                     lappend all_dependencies [lindex [split $dep :] end]
                 }
             }
@@ -70,70 +70,81 @@ proc generate_deplist {port {optslist ""}} {
         set portname [$port name]
         # and the ones from the current portfile
         if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
-            array set depportinfo [lindex $result 1]
-            set porturl $depportinfo(porturl)
-            set variations [list]
+            set depportinfo [lindex $result 1]
+            set porturl [dict get $depportinfo porturl]
+            set variations [dict create]
             # Relies on all negated variants being at the end of requested_variants
-            set minusvariant [lrange [split [registry::property_retrieve $port requested_variants] -] 1 end]
+            set minusvariant [lrange [split [$port requested_variants] -] 1 end]
             set plusvariant [lrange [split [$port variants] +] 1 end]
             foreach v $plusvariant {
-                lappend variations $v "+"
+                dict set variations $v "+"
             }
             foreach v $minusvariant {
                 if {[string first "+" $v] == -1} {
-                    lappend variations $v "-"
+                    dict set variations $v "-"
                 } else {
                     ui_warn "Invalid negated variant for $portname @[$port version]_[$port revision][$port variants]: $v"
                 }
                 
             }
-            if {![catch {set mport [mportopen $porturl [concat $optslist subport $portname] [array get variations]]} result]} {
-                array unset depportinfo
-                array set depportinfo [mportinfo $mport]
+            dict set optslist subport $portname
+            if {![catch {set mport [mportopen $porturl $optslist $variations]} result]} {
+                set depportinfo [mportinfo $mport]
                 mportclose $mport
             }
             foreach type $deptypes {
-                if {[info exists depportinfo($type)]} {
-                    foreach dep $depportinfo($type) {
+                if {[dict exists $depportinfo $type]} {
+                    foreach dep [dict get $depportinfo $type] {
                         lappend all_dependencies [lindex [split $dep :] end]
                     }
                 }
             }
         }
     }
-    set all_dependencies [lsort -unique $all_dependencies]
-    return $all_dependencies
+    return [lsort -unique $all_dependencies]
+}
+
+proc cmp_regrefs {a b} {
+    set byname [string compare -nocase [$a name] [$b name]]
+    if {$byname != 0} {
+        return $byname
+    }
+    set byvers [vercmp [$a version] [$b version]]
+    if {$byvers != 0} {
+        return $byvers
+    }
+    set byrevision [expr {[$a revision] - [$b revision]}]
+    if {$byrevision != 0} {
+        return $byrevision
+    }
+    return [string compare -nocase [$a variants] [$b variants]]
 }
 
 # takes a composite version spec rather than separate version,revision,variants
-proc uninstall_composite {portname {v ""} {optionslist ""}} {
+proc uninstall_composite {portname {v ""} {options ""}} {
     if {$v eq ""} {
-        return [uninstall $portname "" "" 0 $optionslist]
+        return [uninstall $portname "" "" 0 $options]
     } elseif {[registry::decode_spec $v version revision variants]} {
-        return [uninstall $portname $version $revision $variants $optionslist]
+        return [uninstall $portname $version $revision $variants $options]
     }
     throw registry::invalid "Registry error: Invalid version '$v' specified for ${portname}. Please specify a version as recorded in the port registry."
 }
 
-proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global uninstall.force UI_PREFIX macports::registry.path
-    array set options $optionslist
-    if {[info exists options(subport)]} {
-        # don't want this set when calling registry::run_target
-        unset options(subport)
-        set optionslist [array get options]
-    }
+proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
+    variable UI_PREFIX
 
-    if {![info exists uninstall.force]} {
-        set uninstall.force no
+    if {[dict exists $options subport]} {
+        # don't want this set when calling registry::run_target
+        dict unset options subport
     }
-    # If global forcing is on, make it the same as a local force flag.
-    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)]} {
-        set uninstall.force yes
+    if {[dict exists $options ports_force]} {
+         set force [dict get $options ports_force]
+    } else {
+        set force no
     }
     # if no-exec is set for uninstall, set for deactivate too
-    if {[info exists options(ports_uninstall_no-exec)]} {
-        set options(ports_deactivate_no-exec) $options(ports_uninstall_no-exec)
+    if {[dict exists $options ports_uninstall_no-exec]} {
+        dict set options ports_deactivate_no-exec [dict get $options ports_uninstall_no-exec]
     }
 
     set searchkeys $portname
@@ -156,7 +167,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         if {[macports::ui_isset ports_noninteractive]} {
             ui_msg "$UI_PREFIX [msgcat::mc $msg]"
         }
-        set sortedlist [portlist_sortint $ilist]
+        set sortedlist [lsort -command cmp_regrefs $ilist]
         foreach i $sortedlist {
             set portstr [format "%s @%s_%s%s" [$i name] [$i version] [$i revision] [$i variants]]
             if {[$i state] eq "installed"} {
@@ -173,7 +184,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             set retstring [$macports::ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
             foreach index $retstring {
                 set uport [lindex $sortedlist $index]
-                uninstall [$uport name] [$uport version] [$uport revision] [$uport variants]
+                uninstall [$uport name] [$uport version] [$uport revision] [$uport variants] $options
             }
             #foreach i $ilist {
             #    registry::entry close $i
@@ -199,29 +210,27 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
 
     set userinput {}
     # uninstall dependents if requested
-    if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
+    if {[dict exists $options ports_uninstall_follow-dependents] && [dict get $options ports_uninstall_follow-dependents] eq "yes"} {
         # don't uninstall dependents' dependencies
-        if {[info exists options(ports_uninstall_follow-dependencies)]} {
-            set orig_follow_dependencies $options(ports_uninstall_follow-dependencies)
-            unset options(ports_uninstall_follow-dependencies)
-            set optionslist [array get options]
+        if {[dict exists $options ports_uninstall_follow-dependencies]} {
+            set orig_follow_dependencies [dict get $options ports_uninstall_follow-dependencies]
+            dict unset options ports_uninstall_follow-dependencies
         }
         foreach depport [$port dependents] {
             # make sure it's still installed, since a previous dep uninstall may have removed it
             if {[registry::entry exists $depport] && ([$depport state] eq "imaged" || [$depport state] eq "installed")} {
-                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $depport uninstall $optionslist]} {
-                    registry_uninstall::uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $optionslist
+                if {[dict exists $options ports_uninstall_no-exec] || ![registry::run_target $depport uninstall $options]} {
+                    uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $options
                 }
             }
             #catch {registry::entry close $depport}
         }
         if {[info exists orig_follow_dependencies]} {
-            set options(ports_uninstall_follow-dependencies) $orig_follow_dependencies
-            set optionslist [array get options]
+            dict set options ports_uninstall_follow-dependencies $orig_follow_dependencies
         }
     } else {
         # check its dependents
-        set userinput [registry::check_dependents $port ${uninstall.force} "uninstall"]
+        set userinput [registry::check_dependents $port ${force} "uninstall"]
         if {$userinput eq "quit"} {
             #registry::entry close $port
             return 0
@@ -229,32 +238,30 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     }
     # if it's active, deactivate it
     if {[$port state] eq "installed"} {
-        if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
+        if {[dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]]} {
             ui_msg "For $portname @${composite_spec}: skipping deactivate (dry run)"
         } else {
             if {$userinput eq "forcedbyuser"} {
-                set options(ports_nodepcheck) "yes"
+                dict set options ports_nodepcheck yes
             }
-            if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate [array get options]]} {
-                if {$userinput eq "forcedbyuser"} {
-                    portimage::deactivate $portname $version $revision $variants [array get options]
-                    unset options(ports_nodepcheck) 
-                } else {
-                    portimage::deactivate $portname $version $revision $variants [array get options]
-                }
+            if {[dict exists $options ports_uninstall_no-exec] || ![registry::run_target $port deactivate $options]} {
+                portimage::deactivate $portname $version $revision $variants $options
+            }
+            if {$userinput eq "forcedbyuser"} {
+                dict unset options ports_nodepcheck
             }
         }
     }
 
     # note deps before we uninstall if we're going to uninstall them too (i.e. --follow-dependencies)
-    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
-        set all_dependencies [registry_uninstall::generate_deplist $port $optionslist]
+    if {[dict exists $options ports_uninstall_follow-dependencies] && [string is true -strict [dict get $options ports_uninstall_follow-dependencies]]} {
+        set all_dependencies [generate_deplist $port $options]
     }
 
-    if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
+    if {[dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]]} {
         ui_msg "For $portname @${composite_spec}: skipping uninstall (dry run)"
         # allow deps to not be excluded from the list below just because this port is still a dependent
-        if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
+        if {[dict exists $options ports_uninstall_follow-dependencies] && [string is true -strict [dict get $options ports_uninstall_follow-dependencies]]} {
             set uports [list [list $portname $version $revision $variants]]
         }
     } else {
@@ -281,6 +288,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             registry::entry delete $port
         }
 
+        global macports::registry.path
         set portfile_path [file join ${registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
         set other_entries [registry::entry search portfile $portfile name $portname version $version revision $revision]
         if {$other_entries eq {}} {
@@ -313,7 +321,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         set uports [list]
     }
     # create list of all dependencies that will be uninstalled, if requested
-    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
+    if {[dict exists $options ports_uninstall_follow-dependencies] && [string is true -strict [dict get $options ports_uninstall_follow-dependencies]]} {
         set alldeps $all_dependencies
         set portilist [list]
         for {set j 0} {$j < [llength $alldeps]} {incr j} {
@@ -349,7 +357,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             if {$uninstalling_this_dep} {
                 set deprefs [registry::entry imaged $dep]
                 foreach depref $deprefs {
-                    set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
+                    set depdeps [generate_deplist $depref $options]
                     foreach d $depdeps {
                         if {$d ni [lrange $alldeps $j+1 end]} {
                             lappend alldeps $d 
@@ -361,23 +369,23 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
         ## User Interaction Question
         # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
-        if {[info exists macports::ui_options(questions_yesno)] && [llength $uports] > 0 && !([info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)])} {
+        if {[info exists macports::ui_options(questions_yesno)] && [llength $uports] > 0 && !([dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]])} {
             $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
         }
-        unset options(ports_uninstall_follow-dependencies)
+        dict unset options ports_uninstall_follow-dependencies
     }
 
     # uninstall all dependencies in order from uports
     foreach dp $uports {
         lassign $dp iname iversion irevision ivariants
         if {![catch {registry::entry open $iname $iversion $irevision $ivariants ""} regref]} {
-            if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
+            if {[dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]]} {
                 if {$iname ne $portname} {
                     ui_msg "For $iname @${iversion}_${irevision}${ivariants}: skipping uninstall (dry run)"
                 }
             } else {
-                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall [array get options]]} {
-                    registry_uninstall::uninstall $iname $iversion $irevision $ivariants [array get options]
+                if {[dict exists $options ports_uninstall_no-exec] || ![registry::run_target $regref uninstall $options]} {
+                    uninstall $iname $iversion $irevision $ivariants $options
                 }
             }
             #registry::entry close $regref

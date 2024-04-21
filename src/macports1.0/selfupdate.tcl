@@ -36,12 +36,10 @@ namespace eval selfupdate {
     namespace export main
 }
 
-proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
-    global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir \
+proc selfupdate::main {{options {}} {updatestatusvar {}}} {
+    global macports::portdbpath macports::rsync_server macports::rsync_dir \
            macports::rsync_options macports::autoconf::macports_version \
-           macports::autoconf::rsync_path tcl_platform macports::autoconf::openssl_path \
-           macports::autoconf::tar_path
-    array set options $optionslist
+           macports::autoconf::rsync_path macports::ui_prefix
 
     # variable that indicates whether we actually updated base
     if {$updatestatusvar ne ""} {
@@ -74,7 +72,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     ui_debug "MacPorts sources location: $mp_source_path"
 
     # sync the MacPorts sources
-    ui_msg "$macports::ui_prefix Updating MacPorts base sources using rsync"
+    ui_msg "$ui_prefix Updating MacPorts base sources using rsync"
     macports_try -pass_signal {
         system "$rsync_path ${rsync_options}${include_options} [macports::shellescape $rsync_url] [macports::shellescape $mp_source_path]"
     } on error {eMessage} {
@@ -83,12 +81,13 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
 
     if {$is_tarball} {
         # verify signature for tarball
-        global macports::archivefetch_pubkeys macports::hfscompression
-        set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
+        global macports::archivefetch_pubkeys macports::hfscompression \
+               macports::autoconf::openssl_path
+        set openssl [macports::findBinary openssl $openssl_path]
         set tarball ${mp_source_path}/${tarfile}
         set signature ${tarball}.rmd160
         set verified 0
-        foreach pubkey $macports::archivefetch_pubkeys {
+        foreach pubkey $archivefetch_pubkeys {
             macports_try -pass_signal {
                 exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball
                 set verified 1
@@ -103,13 +102,14 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             return -code error "Failed to verify signature for MacPorts source!"
         }
 
-        if {${macports::hfscompression} && [getuid] == 0 &&
+        if {${hfscompression} && [getuid] == 0 &&
                 ![catch {macports::binaryInPath bsdtar}] &&
                 ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
             ui_debug "Using bsdtar with HFS+ compression (if valid)"
             set tar "bsdtar --hfsCompression"
         } else {
-            set tar [macports::findBinary tar $macports::autoconf::tar_path]
+            global macports::autoconf::tar_path
+            set tar [macports::findBinary tar $tar_path]
         }
         # extract tarball and move into place
         file mkdir ${mp_source_path}/tmp
@@ -127,9 +127,9 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     }
 
     # echo current MacPorts version
-    ui_msg "MacPorts base version $macports::autoconf::macports_version installed,"
+    ui_msg "MacPorts base version $macports_version installed,"
 
-    if {[info exists options(ports_force)] && $options(ports_force)} {
+    if {[dict exists $options ports_force] && [dict get $options ports_force]} {
         set use_the_force_luke yes
         ui_debug "Forcing a rebuild and reinstallation of MacPorts"
     } else {
@@ -151,28 +151,33 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     }
 
     # check if we we need to rebuild base
-    set comp [vercmp $macports_version_new $macports::autoconf::macports_version]
+    set comp [vercmp $macports_version_new $macports_version]
 
     # syncing ports tree.
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
+    if {![dict exists $options ports_selfupdate_no-sync] || ![dict get $options ports_selfupdate_no-sync]} {
+        set syncoptions $options
         if {$comp > 0} {
             # updated portfiles potentially need new base to parse - tell sync to try to
             # use prefabricated PortIndex files and signal if it couldn't
-            lappend optionslist no_reindex 1 needed_portindex_var needed_portindex
+            dict set syncoptions no_reindex 1
+            dict set syncoptions needed_portindex_var needed_portindex
         }
         try {
-            mportsync $optionslist
+            mportsync $syncoptions
         } on error {eMessage} {
             error "Couldn't sync the ports tree: $eMessage"
         }
     }
 
     if {$use_the_force_luke || $comp > 0} {
-        if {[info exists options(ports_dryrun)] && $options(ports_dryrun)} {
-            ui_msg "$macports::ui_prefix MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
+        if {[dict exists $options ports_dryrun] && [dict get $options ports_dryrun]} {
+            ui_msg "$ui_prefix MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
         } else {
-            ui_msg "$macports::ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
+            ui_msg "$ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
 
+            global macports::developer_dir macports::macos_version_major \
+                   macports::os_major macports::os_platform macports::prefix \
+                   tcl_platform
             # get installation user/group and permissions
             set owner [file attributes $prefix -owner]
             set group [file attributes $prefix -group]
@@ -184,7 +189,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
 
             set configure_args "--prefix=[macports::shellescape $prefix] --with-install-user=[macports::shellescape $owner] --with-install-group=[macports::shellescape $group] --with-directory-mode=[macports::shellescape $perms]"
             # too many users have an incompatible readline in /usr/local, see ticket #10651
-            if {$tcl_platform(os) ne "Darwin" || $prefix eq "/usr/local"
+            if {$os_platform ne "darwin" || $prefix eq "/usr/local"
                 || ([glob -nocomplain /usr/local/lib/lib{readline,history}*] eq "" && [glob -nocomplain /usr/local/include/readline/*.h] eq "")} {
                 append configure_args " --enable-readline"
             } else {
@@ -198,8 +203,8 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             # Choose a sane compiler and SDK
             set cc_arg {}
             set sdk_arg {}
-            set jobs [macports:get_parallel_jobs yes]
-            if {$::macports::os_platform eq "darwin"} {
+            set jobs [macports::get_parallel_jobs yes]
+            if {$os_platform eq "darwin"} {
                 catch {exec /usr/bin/cc 2>@1} output
                 set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
                 if {[string match -nocase *license* $output]} {
@@ -209,18 +214,18 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                 }
 
                 set cc_arg "CC=/usr/bin/cc "
-                if {$::macports::os_major >= 18 || ![file exists /usr/include/sys/cdefs.h]} {
+                if {$os_major >= 18 || ![file exists /usr/include/sys/cdefs.h]} {
                     set cltpath /Library/Developer/CommandLineTools
-                    set sdk_version $::macports::macos_version_major
+                    set sdk_version $macos_version_major
                     set check_dirs [list ${cltpath}/SDKs \
-                        ${::macports::developer_dir}/Platforms/MacOSX.platform/Developer/SDKs \
-                        ${::macports::developer_dir}/SDKs]
+                        ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs \
+                        ${developer_dir}/SDKs]
                     foreach check_dir $check_dirs {
                         set sdk ${check_dir}/MacOSX${sdk_version}.sdk
                         if {[file exists $sdk]} {
                             set sdk_arg "SDKROOT=[macports::shellescape ${sdk}] "
                             break
-                        } elseif {$::macports::os_major >= 20} {
+                        } elseif {$os_major >= 20} {
                             set matches [glob -nocomplain -directory ${check_dir} MacOSX${sdk_version}*.sdk]
                             if {[llength $matches] > 1} {
                                 set matches [lsort -decreasing -command vercmp $matches]
@@ -246,9 +251,9 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             }
         }
     } elseif {$comp < 0} {
-        ui_msg "$macports::ui_prefix MacPorts base is probably master or a release candidate"
+        ui_msg "$ui_prefix MacPorts base is probably master or a release candidate"
     } else {
-        ui_msg "$macports::ui_prefix MacPorts base is already the latest version"
+        ui_msg "$ui_prefix MacPorts base is already the latest version"
     }
 
     # set the MacPorts sources to the right owner
@@ -260,7 +265,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
+    if {![dict exists $options ports_selfupdate_no-sync] || ![dict get $options ports_selfupdate_no-sync]} {
         if {[info exists needed_portindex]} {
             ui_msg "Not all sources could be fully synced using the old version of MacPorts."
             ui_msg "Please run selfupdate again now that MacPorts base has been updated."

@@ -156,7 +156,7 @@ The port command recognizes several global flags and options.
     binary archives.
 
 -b::
-    Binary-only mode, build and install from binary archives, ignore source,
+    Binary-only mode, install from binary archives, ignore source,
     abort if no archive available.
 
 .Cleaning
@@ -366,7 +366,7 @@ copy with the user set to the owner of the working copy.
 +
 
 outdated::
-    Lists the installed ports which need a 'upgrade'.
+    Lists the installed ports which need an 'upgrade'.
 
 upgrade::
     The upgrade action works on a port and its dependencies. If you want to

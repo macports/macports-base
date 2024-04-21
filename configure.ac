@@ -103,6 +103,7 @@ esac
 
 # Checks for programs.
 AC_PROG_CC([clang cc gcc])
+AC_PROG_GREP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -432,6 +433,7 @@ AC_CONFIG_FILES([
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
+	src/portlist1.0/Makefile
 	src/port/Makefile
 	src/port1.0/Makefile
 	src/port1.0/port_autoconf.tcl

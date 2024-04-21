@@ -52,14 +52,14 @@ namespace eval macports_util {
     proc unobscure_maintainers {list} {
         set result [list]
         foreach sublist $list {
-            array set maintainer {}
+            set maintainer [dict create]
             foreach token $sublist {
                 if {[string index $token 0] eq "@"} {
                     # Strings starting with @ are GitHub usernames
-                    set maintainer(github) [string range $token 1 end]
+                    dict set maintainer github [string range $token 1 end]
                 } elseif {[string first "@" $token] >= 0} {
                     # Other strings that contain @ are plain email addresses
-                    set maintainer(email) $token
+                    dict set maintainer email $token
                     continue
                 } elseif {[string first ":" $token] >= 0} {
                     # Strings that contain a colon are obfuscated email
@@ -68,20 +68,18 @@ namespace eval macports_util {
                     # Split at :, assign the first part to $domain, re-assemble
                     # the rest and assign it to $localpart
                     set localpart [join [lassign [split $token ":"] domain] ":"]
-                    set maintainer(email) "${localpart}@${domain}"
+                    dict set maintainer email "${localpart}@${domain}"
                 } elseif {$token in {"openmaintainer" "nomaintainer"}} {
                     # Filter openmaintainer and nomaintainer
-                    set maintainer(keyword) $token
+                    dict set maintainer keyword $token
                 } else {
                     # All other entries must be MacPorts handles
-                    set maintainer(email) "${token}@macports.org"
+                    dict set maintainer email "${token}@macports.org"
                 }
             }
-            set serialized [array get maintainer]
-            array unset maintainer
-            if {[llength $serialized]} {
+            if {[dict size $maintainer] > 0} {
                 # Filter empty maintainers
-                lappend result $serialized
+                lappend result $maintainer
             }
         }
 
@@ -134,7 +132,7 @@ proc ldindex {varName args} {
             lset var $idx $list
         } else {
             set item [lindex $var $idx]
-            set var [lreplace $var $idx $idx]
+            set var [lreplace ${var}[set var {}] $idx $idx]
         }
     } else {
         set item $var
@@ -169,7 +167,7 @@ proc lshift {varName} {
     upvar 1 $varName var
     set element [lindex $var 0]
     # the [set] in the index argument ensures the list is not shared
-    set var [lreplace $var [set var 0] 0]
+    set var [lreplace ${var}[set var {}] 0 0]
     return $element
 }
 
@@ -182,9 +180,24 @@ proc lunshift {varName args} {
         set var [list]
     }
     # the [set] in the index argument ensures the list is not shared
-    set var [lreplace $var [set var -1] -1 {*}$args]
+    set var [lreplace ${var}[set var {}] -1 -1 {*}$args]
 }
 
+
+# dictequal dictA dictB
+# Returns 0 if the two given dicts have exactly the same keys and map
+# them to exactly the same values. Returns 1 otherwise.
+proc dictequal {a b} {
+    if {[dict size $a] != [dict size $b]} {
+        return 1
+    }
+    dict for {key val} $a {
+        if {![dict exists $b $key] || $val ne [dict get $b $key]} {
+            return 1
+        }
+    }
+    return 0
+}
 
 # bytesize filesize ?unit? ?format?
 # Format an integer representing bytes using given units
@@ -293,7 +306,7 @@ namespace eval macports_util::tcl::control {
         set pass_signal no
         if {[lindex $args 0] eq "-pass_signal"} {
             set pass_signal yes
-            set args [lreplace $args 0 0]
+            set args [lreplace ${args}[set args {}] 0 0]
         }
         set trybody [lindex $args 0]
         set finallybody {}

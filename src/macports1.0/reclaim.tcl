@@ -61,13 +61,12 @@ namespace eval reclaim {
         # Returns:
         #           None
 
-        array set options $opts
-        if {[info exists options(ports_reclaim_enable-reminders)]} {
+        if {[dict exists $opts ports_reclaim_enable-reminders]} {
             ui_info "Enabling port reclaim reminders."
             update_last_run
             return
         }
-        if {[info exists options(ports_reclaim_disable-reminders)]} {
+        if {[dict exists $opts ports_reclaim_disable-reminders]} {
             ui_info "Disabling port reclaim reminders."
             write_last_run_file disabled
             return
@@ -83,9 +82,9 @@ namespace eval reclaim {
             set last_run_contents [read_last_run_file]
             if {$last_run_contents eq ""} {
                 set msg "This appears to be the first time you have run 'port reclaim'."
-
-                if {[info exists macports::ui_options(questions_yesno)]} {
-                    set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to be reminded to run it every two weeks?"]
+                global macports::ui_options
+                if {[info exists ui_options(questions_yesno)]} {
+                    set retval [$ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to be reminded to run it every two weeks?"]
                     if {$retval != 0} {
                         # User said no, store disabled flag
                         set last_run_contents disabled
@@ -108,12 +107,12 @@ namespace eval reclaim {
 
     proc remove_builds {} {
         # Delete portdbpath/build directories
-        global macports::portdbpath
+        global macports::portdbpath macports::ui_prefix macports::ui_options
 
         # The root build directory location
-        set root_build      [file join ${macports::portdbpath} build]
+        set root_build      [file join ${portdbpath} build]
 
-        ui_msg "$macports::ui_prefix Build location: ${root_build}"
+        ui_msg "$ui_prefix Build location: ${root_build}"
 
         if {[macports::global_option_isset ports_dryrun]} {
             ui_msg "Deleting... (dry run)"
@@ -128,8 +127,8 @@ namespace eval reclaim {
         }
 
         set retval 0
-        if {[info exists macports::ui_options(questions_yesno)]} {
-            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the build directories?"]
+        if {[info exists ui_options(questions_yesno)]} {
+            set retval [$ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the build directories?"]
         }
 
         if {${retval} == 0} {
@@ -145,34 +144,34 @@ namespace eval reclaim {
 
     proc remove_ccache {} {
         # Delete everything under ccache directory - default is build/.ccache
-        global macports::ccache_dir
+        global macports::ccache_dir macports::ui_prefix macports::ui_options
 
-        if {![file exists ${macports::ccache_dir}]} {
-            ui_info [msgcat::mc "Skipping deletion of ccache directory: %s does not exist." $macports::ccache_dir]
+        if {![file exists ${ccache_dir}]} {
+            ui_info [msgcat::mc "Skipping deletion of ccache directory: %s does not exist." $ccache_dir]
             return
         }
 
-        ui_msg "$macports::ui_prefix ccache location: ${macports::ccache_dir}"
+        ui_msg "$ui_prefix ccache location: ${ccache_dir}"
 
         if {[macports::global_option_isset ports_dryrun]} {
             ui_msg "Deleting... (dry run)"
-            ui_info [msgcat::mc "Skipping deletion of everything under %s (dry run)" $macports::ccache_dir]
+            ui_info [msgcat::mc "Skipping deletion of everything under %s (dry run)" $ccache_dir]
             return
         }
 
-        set ccachedirs [glob -nocomplain -directory $macports::ccache_dir *]
+        set ccachedirs [glob -nocomplain -directory $ccache_dir *]
         if {[llength $ccachedirs] == 0} {
             ui_info [msgcat::mc "No ccache directories to delete"]
             return
         }
 
         set retval 0
-        if {[info exists macports::ui_options(questions_yesno)]} {
-            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the ccache directory?"]
+        if {[info exists ui_options(questions_yesno)]} {
+            set retval [$ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the ccache directory?"]
         }
 
         if {${retval} == 0} {
-            ui_info [msgcat::mc "Deleting everything under %s" $macports::ccache_dir]
+            ui_info [msgcat::mc "Deleting everything under %s" $ccache_dir]
             macports_try -pass_signal {
                 file delete -force -- {*}$ccachedirs
             } on error {eMessage} {
@@ -221,50 +220,54 @@ namespace eval reclaim {
     # return the variations that would be used when upgrading a port
     # installed with the given requested variants
     proc get_variations {installed_variants} {
-        array set vararray {}
-        foreach v [array names macports::global_variations] {
-            set vararray($v) $macports::global_variations($v)
-        }
+        global macports::global_variations
+        set vararray [dict create {*}[array get global_variations]]
         set splitvariant [split $installed_variants -]
         set minusvariant [lrange $splitvariant 1 end]
         set splitvariant [split [lindex $splitvariant 0] +]
         set plusvariant [lrange $splitvariant 1 end]
         foreach v $plusvariant {
-            set vararray($v) +
+            dict set vararray $v +
         }
         foreach v $minusvariant {
-            set vararray($v) -
+            dict set vararray $v -
         }
-        return [array get varray]
+        return $vararray
     }
 
     proc load_distfile_cache {varname} {
         upvar $varname var
+        global macports::portdbpath macports::global_variations
         macports_try -pass_signal {
-            set fd [open |[list $macports::autoconf::gzip_path -d < [file join $macports::portdbpath reclaim distfiles.gz]] r]
+            set fd [open |[list $macports::autoconf::gzip_path -d < [file join $portdbpath reclaim distfiles.gz]] r]
             set data [gets $fd]
             close $fd
-            array set var $data
-            if {$var(:global_variations) ne [array get macports::global_variations]} {
-                array unset var
-                array set var [list]
-            } else {
-                unset var(:global_variations)
+            set var [dict create {*}$data]
+            set cached_gv [dict get $var :global_variations]
+            set allkeys [lsort -unique [concat [dict keys $cached_gv] [array names global_variations]]]
+            foreach key $allkeys {
+                if {![dict exists $cached_gv $key] || ![info exists global_variations($key)]
+                        || [dict get $cached_gv $key] ne $global_variations($key)} {
+                    # global variations changed, so cache is invalidated
+                    set var [dict create]
+                    break
+                }
             }
+            dict unset var :global_variations
         } on error {eMessage} {
             ui_debug "Failed to load distfiles cache: $eMessage"
-            array set var [list]
+            set var [dict create]
             catch {close $fd}
         }
     }
 
-    proc save_distfile_cache {varname} {
-        upvar $varname var
+    proc save_distfile_cache {cache} {
+        global macports::portdbpath macports::global_variations
         macports_try -pass_signal {
-            file mkdir [file join $macports::portdbpath reclaim]
-            set fd [open |[list $macports::autoconf::gzip_path > [file join $macports::portdbpath reclaim distfiles.gz]] w]
-            set var(:global_variations) [array get macports::global_variations]
-            puts $fd [array get var]
+            file mkdir [file join $portdbpath reclaim]
+            set fd [open |[list $macports::autoconf::gzip_path > [file join $portdbpath reclaim distfiles.gz]] w]
+            dict set cache :global_variations [array get global_variations]
+            puts $fd [dict get $cache]
             close $fd
         } on error {eMessage} {
             ui_debug "Failed to save distfiles cache: $eMessage"
@@ -279,28 +282,28 @@ namespace eval reclaim {
         # Returns:
         #               0 on successful execution
 
-        global macports::portdbpath
-        global macports::user_home
-
+        global macports::portdbpath macports::user_home macports::ui_options \
+               macports::ui_prefix
         # The root and home distfile folder locations, respectively. 
-        set root_dist       [file join ${macports::portdbpath} distfiles]
-        set home_dist       ${macports::user_home}/.macports$root_dist
+        set root_dist       [file join ${portdbpath} distfiles]
+        set home_dist       ${user_home}/.macports$root_dist
 
         set files_in_use [list]
 
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
                                && ![macports::ui_isset ports_verbose] \
-                               && [info exists macports::ui_options(progress_generic)]}]
+                               && [info exists ui_options(progress_generic)]}]
         if {$fancyOutput} {
-            set progress $macports::ui_options(progress_generic)
+            set progress $ui_options(progress_generic)
         } else {
             # provide a no-op if there is no progress function
             proc noop {args} {}
             set progress noop
         }
 
-        ui_msg "$macports::ui_prefix Building list of distfiles still in use"
+        ui_msg "$ui_prefix Building list of distfiles still in use"
         load_distfile_cache distfile_cache_prev
+        set distfile_cache_new [dict create]
         set installed_ports [registry::entry imaged]
         set port_count [llength $installed_ports]
         set i 1
@@ -309,34 +312,34 @@ namespace eval reclaim {
         foreach port $installed_ports {
             # skip additional versions installed with the same variants
             set cache_key [$port name],[$port requested_variants]
-            if {[info exists distfile_cache_new($cache_key)]} {
+            if {[dict exists $distfile_cache_new $cache_key]} {
                 continue
             }
 
-            array unset cacheinfo
-            array unset portinfo
+            set cacheinfo [dict create]
             if {[catch {mportlookup [$port name]} lookup_result] || [llength $lookup_result] < 2} {
                 ui_warn [msgcat::mc "Port %s not found: %s" [$port name] $lookup_result]
                 continue
             }
-            array set portinfo [lindex $lookup_result 1]
+            lassign $lookup_result portname portinfo
+            set porturl [dict get $portinfo porturl]
 
             set parse_needed yes
-            set portfile_hash [sha256 file [file join [macports::getportdir $portinfo(porturl)] Portfile]]
-            set fingerprint $portinfo(version)_$portinfo(revision)_${portfile_hash}
-            if {[info exists distfile_cache_prev($cache_key)]} {
-                array set cacheinfo $distfile_cache_prev($cache_key)
-                if {$cacheinfo(fingerprint) eq $fingerprint} {
+            set portfile_hash [sha256 file [file join [macports::getportdir $porturl] Portfile]]
+            set fingerprint [dict get $portinfo version]_[dict get $portinfo revision]_${portfile_hash}
+            if {[dict exists $distfile_cache_prev $cache_key]} {
+                set cacheinfo [dict get $distfile_cache_prev $cache_key]
+                if {[dict get $cacheinfo fingerprint] eq $fingerprint} {
                     set parse_needed no
-                    set distfile_cache_new($cache_key) $distfile_cache_prev($cache_key)
+                    dict set distfile_cache_new $cache_key [dict get $distfile_cache_prev $cache_key]
                 }
             }
 
             if {$parse_needed} {
-                set cacheinfo(fingerprint) $fingerprint
+                dict set cacheinfo fingerprint $fingerprint
                 # Get mport reference
                 macports_try -pass_signal {
-                    set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] [get_variations [$port requested_variants]]]
+                    set mport [mportopen $porturl [dict create subport $portname] [get_variations [$port requested_variants]]]
                 } on error {eMessage} {
                     $progress intermission
                     ui_warn [msgcat::mc "Failed to open port %s %s: %s" [$port name] [$port requested_variants] $eMessage]
@@ -348,28 +351,28 @@ namespace eval reclaim {
                 set workername [ditem_key $mport workername]
 
                 # Append that port's distfiles to the list
-                set cacheinfo(dist_subdir) [$workername eval [list set dist_subdir]]
+                dict set cacheinfo dist_subdir [$workername eval [list set dist_subdir]]
                 set distfiles [$workername eval [list set distfiles]]
                 if {[catch {$workername eval [list set patchfiles]} patchfiles]} {
                     set patchfiles [list]
                 }
                 set filespath [$workername eval [list set filespath]]
 
-                set cacheinfo(distfiles) [list]
+                dict set cacheinfo distfiles [list]
                 foreach file [concat $distfiles $patchfiles] {
                     # get filename without any tag
                     set distfile [$workername eval [list getdistname $file]]
                     if {![file exists [file join $filespath $distfile]]} {
-                        lappend cacheinfo(distfiles) $distfile
+                        dict lappend cacheinfo distfiles $distfile
                     }
                 }
-                set distfile_cache_new($cache_key) [array get cacheinfo]
+                dict set distfile_cache_new $cache_key $cacheinfo
                 mportclose $mport
             }
 
-            foreach distfile $cacheinfo(distfiles) {
-                set root_path [file join $root_dist $cacheinfo(dist_subdir) $distfile]
-                set home_path [file join $home_dist $cacheinfo(dist_subdir) $distfile]
+            foreach distfile [dict get $cacheinfo distfiles] {
+                set root_path [file join $root_dist [dict get $cacheinfo dist_subdir] $distfile]
+                set home_path [file join $home_dist [dict get $cacheinfo dist_subdir] $distfile]
 
                 # Add the full file path to the list, depending where it's located.
                 if {[file isfile $root_path]} {
@@ -386,13 +389,11 @@ namespace eval reclaim {
             #registry::entry close $port
             incr i
         }
-        array unset distfile_cache_prev
-        save_distfile_cache distfile_cache_new
-        array unset distfile_cache_new
+        save_distfile_cache $distfile_cache_new
 
         $progress finish
 
-        ui_msg "$macports::ui_prefix Searching for unused distfiles"
+        ui_msg "$ui_prefix Searching for unused distfiles"
 
         # sort so we can use binary search in walk_files
         set files_in_use [lsort -unique $files_in_use]
@@ -416,8 +417,8 @@ namespace eval reclaim {
             array set alternatives {d delete k keep l list}
             while 1 {
                 set retstring "d"
-                if {[info exists macports::ui_options(questions_alternative)]} {
-                    set retstring [$macports::ui_options(questions_alternative) [msgcat::mc \
+                if {[info exists ui_options(questions_alternative)]} {
+                    set retstring [$ui_options(questions_alternative) [msgcat::mc \
                         "Found %d files (total %s) that are no longer needed and can be deleted." \
                         $num_superfluous_files [bytesize $size_superfluous_files]] "deleteFilesQ" "alternatives" {k}]
                 }
@@ -491,7 +492,8 @@ namespace eval reclaim {
     }
 
     proc read_last_run_file {} {
-        set path [file join ${macports::portdbpath} last_reclaim]
+        global macports::portdbpath
+        set path [file join ${portdbpath} last_reclaim]
 
         set fd -1
         set contents ""
@@ -509,7 +511,8 @@ namespace eval reclaim {
     }
 
     proc write_last_run_file {contents} {
-        set path [file join ${macports::portdbpath} last_reclaim]
+        global macports::portdbpath
+        set path [file join ${portdbpath} last_reclaim]
         set fd -1
         macports_try -pass_signal {
             set fd [open $path w]
@@ -555,9 +558,9 @@ namespace eval reclaim {
         ui_debug "Checking time since last reclaim run"
         if {[clock seconds] - $time > 1209600} {
             set msg "You haven't run 'sudo port reclaim' in two weeks. It's recommended you run this regularly to reclaim disk space."
-
-            if {[file writable $macports::portdbpath] && [info exists macports::ui_options(questions_yesno)]} {
-                set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
+            global macports::portdbpath macports::ui_options
+            if {[file writable $portdbpath] && [info exists ui_options(questions_yesno)]} {
+                set retval [$ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
                 if {$retval == 0} {
                     # User said yes, run port reclaim
                     return [macports::reclaim_main {}]
@@ -629,7 +632,8 @@ namespace eval reclaim {
         set inactive_names  [list]
         set inactive_count  0
 
-        ui_msg "$macports::ui_prefix Checking for inactive ports"
+        global macports::ui_prefix macports::ui_options
+        ui_msg "$ui_prefix Checking for inactive ports"
 
         foreach port [registry::entry imaged] {
             if {[$port state] eq "imaged"} {
@@ -650,17 +654,20 @@ namespace eval reclaim {
 
         } else {
             set retval 0
-            if {[info exists macports::ui_options(questions_yesno)]} {
-                set retval [$macports::ui_options(questions_yesno) "Inactive ports found:" "" $inactive_names "y" 0 "Would you like to uninstall them?"]
+            if {[info exists ui_options(questions_yesno)]} {
+                set retval [$ui_options(questions_yesno) "Inactive ports found:" "" $inactive_names "y" 0 "Would you like to uninstall them?"]
             }
 
             if {${retval} == 0 && [macports::global_option_isset ports_dryrun]} {
                 ui_msg "Skipping uninstall of inactive ports (dry run)"
             } elseif {${retval} == 0} {
+                set options [dict create ports_force true]
                 foreach port $inactive_ports {
                     # Note: 'uninstall' takes a name, version, revision, variants and an options list.
                     macports_try -pass_signal {
-                        registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {ports_force true}
+                        if {[macports::global_option_isset ports_uninstall_no-exec] || ![registry::run_target $port uninstall $options]} {
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options
+                        }
                     } on error {eMessage} {
                         ui_error "Error uninstalling $name: $eMessage"
                     }
@@ -690,26 +697,27 @@ namespace eval reclaim {
         set unnecessary_names  [list]
         set unnecessary_count  0
 
-        array set isrequested {}
+        set isrequested [dict create]
 
-        ui_msg "$macports::ui_prefix Checking for unnecessary unrequested ports"
+        global macports::ui_prefix macports::ui_options
+        ui_msg "$ui_prefix Checking for unnecessary unrequested ports"
 
         foreach port [sort_portlist_by_dependendents [registry::entry imaged]] {
             set portname [$port name]
-            if {![info exists isrequested($portname)] || $isrequested($portname) == 0} {
-                set isrequested($portname) [$port requested]
+            if {![dict exists $isrequested $portname] || [dict get $isrequested $portname] == 0} {
+                dict set isrequested $portname [$port requested]
             }
-            if {$isrequested($portname) == 0} {
+            if {[dict get $isrequested $portname] == 0} {
                 set dependents [$port dependents]
                 foreach dependent $dependents {
                     set dname [$dependent name]
-                    if {![info exists isrequested($dname)]} {
+                    if {![dict exists $isrequested $dname]} {
                         ui_debug "$portname appears to have a circular dependency involving $dname"
-                        set isrequested($portname) 1
+                        dict set isrequested $portname 1
                         break
-                    } elseif {$isrequested($dname) != 0} {
+                    } elseif {[dict get $isrequested $dname] != 0} {
                         ui_debug "$portname is requested by $dname"
-                        set isrequested($portname) 1
+                        dict set isrequested $portname 1
                         break
                     }
                 }
@@ -717,7 +725,7 @@ namespace eval reclaim {
                 #    registry::entry close $dependent
                 #}
 
-                if {$isrequested($portname) == 0} {
+                if {[dict get $isrequested $portname] == 0} {
                     lappend unnecessary_ports $port
                     lappend unnecessary_names "$portname @[$port version]_[$port revision][$port variants]"
                     incr unnecessary_count
@@ -732,8 +740,8 @@ namespace eval reclaim {
 
         } else {
             set retval 0
-            if {[info exists macports::ui_options(questions_yesno)]} {
-                set retval [$macports::ui_options(questions_yesno) "Unrequested ports without requested dependents found:" "" $unnecessary_names "y" 0 "Would you like to uninstall them?"]
+            if {[info exists ui_options(questions_yesno)]} {
+                set retval [$ui_options(questions_yesno) "Unrequested ports without requested dependents found:" "" $unnecessary_names "y" 0 "Would you like to uninstall them?"]
             }
 
             if {${retval} == 0 && [macports::global_option_isset ports_dryrun]} {

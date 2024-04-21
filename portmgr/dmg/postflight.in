@@ -60,12 +60,14 @@ tcl8/8.4/platform-1.0.12.tm tcl8/8.4/platform-1.0.13.tm \
 tcl8/8.4/platform-1.0.14.tm tcl8/8.4/platform-1.0.18.tm \
 tcl8/8.5/msgcat-1.5.2.tm \
 tcl8/8.5/tcltest-2.3.5.tm tcl8/8.5/tcltest-2.3.8.tm \
-tcl8/8.5/tcltest-2.5.3.tm \
-tcl8/8.6/tdbc/sqlite3-1.1.3.tm \
+tcl8/8.5/tcltest-2.5.3.tm tcl8/8.5/tcltest-2.5.5.tm \
+tcl8/8.6/tdbc/sqlite3-1.1.3.tm tcl8/8.6/tdbc/sqlite3-1.1.5.tm \
 libtcl8.5.dylib libtclstub8.5.a"
 OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 thread2.7.3 thread2.8.7 \
-tcllib1.15 tcllib1.17 tcllib1.18 tclx8.4 tcl8.5 itcl4.2.2 \
-sqlite3.36.0 tdbc1.1.3 tdbcmysql1.1.3 tdbcodbc1.1.3 tdbcpostgres1.1.3"
+thread2.8.8 \
+tcllib1.15 tcllib1.17 tcllib1.18 tclx8.4 tcl8.5 itcl4.2.2 itcl4.2.3 \
+sqlite3.36.0 sqlite3.40.0 tdbc1.1.3 tdbcmysql1.1.3 tdbcodbc1.1.3 \
+tdbcpostgres1.1.3 tdbc1.1.5 tdbcmysql1.1.5 tdbcodbc1.1.5 tdbcpostgres1.1.5"
 
 # Create config files from defaults if not present
 function setup_configs {
@@ -222,6 +224,11 @@ setup_configs
 cleanup_man
 delete_old_tcl_package_link
 delete_old_tcl_packages
+
+# Move ping cache to new location
+if [[ -f "${PREFIX}/var/macports/pingtimes" ]]; then
+    mv "${PREFIX}/var/macports/pingtimes" "${PREFIX}/var/macports/cache/pingtimes"
+fi
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.

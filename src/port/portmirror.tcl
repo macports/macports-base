@@ -41,7 +41,7 @@ proc iterate_distfiles_r {func root} {
 #           the path as its parameter)
 proc iterate_distfiles {func} {
     global macports::portdbpath
-    iterate_distfiles_r $func [file join ${macports::portdbpath} distfiles]
+    iterate_distfiles_r $func [file join ${portdbpath} distfiles]
 }
 
 # Check if the file is in the map and delete it otherwise.
@@ -54,9 +54,9 @@ proc iterate_walker {path} {
 }
 
 # Open the database
-proc open_database args {
+proc open_database {args} {
     global macports::portdbpath distfiles_filemap
-    set path [file join ${macports::portdbpath} distfiles_mirror.db]
+    set path [file join ${portdbpath} distfiles_mirror.db]
     if {[file exists $path]} {
         filemap open distfiles_filemap $path readonly
     } else {
@@ -65,13 +65,13 @@ proc open_database args {
 }
 
 # Close the database
-proc close_database args {
+proc close_database {args} {
     global distfiles_filemap
     filemap close distfiles_filemap
 }
 
 # Standard procedures
-proc print_usage args {
+proc print_usage {args} {
     global argv0
     puts "Usage: $argv0"
 }

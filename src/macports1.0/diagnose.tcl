@@ -361,18 +361,16 @@ namespace eval diagnose {
         #           None
 
 
-        set apps [registry::entry imaged]
+        set activePorts [registry::entry installed]
 
-        array set activeApps {}
+        set filesForPorts [dict create]
         set totalFiles 0
 
-        foreach app $apps {
-            set files [$app files]
-            if {[$app state] eq "installed"} {
-                set activeApps([$app name]) $files
-                incr totalFiles [llength $files]
-            }
-            #registry::entry close $app
+        foreach port $activePorts {
+            set files [$port files]
+            dict set filesForPorts [$port name] $files
+            incr totalFiles [llength $files]
+            #registry::entry close $port
         }
 
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
@@ -395,8 +393,8 @@ namespace eval diagnose {
             }
 
             set currentFile 1
-            foreach name [lsort [array names activeApps]] {
-                foreach file $activeApps($name) {
+            foreach name [lsort [dict keys $filesForPorts]] {
+                foreach file [dict get $filesForPorts $name] {
                     if {$fancyOutput} {
                         $progress update $currentFile $totalFiles
                     } else {

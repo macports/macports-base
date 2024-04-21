@@ -2,7 +2,37 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.9.1 (unreleased)
+Release 2.10.0 (unreleased)
+    - Updated the bundled Tcl to 8.6.14. (jmr in bc46d68)
+
+    - Added test.asroot option. (jmr in 6f0de6c)
+
+    - Prevented 'port rdeps --full' from looping infinitely when there
+      are circular dependencies. (#62711, jmr in 49df406)
+
+    - Performance improvements for many operations, particularly
+      boolean expressions and Portfile parsing. (jmr in a28e81c,
+      169b1ed, 2f3d072, c97e75d, 341d9a0, 46bc1af, etc.)
+
+    - Add progress bars to slow activation and deactivation operations.
+      (cal in b78e320b1, 5e669e4a0, 31c285116, cb3305837, effd43526)
+
+Release 2.9.3 (2024-04-04 by jmr)
+    - Fixed error due to insufficient privileges to create the work
+      symlink in some circumstances. (jmr in 51511c8)
+
+Release 2.9.2 (2024-04-02 by jmr)
+    - Fixed built-in architecture test failing on unreadable files.
+      (#69478, jmr in e3468c5)
+
+    - Fixed some issues that could occur if settings like 'prefix'
+      contained symlinks, by fully resolving and normalizing paths read
+      from the config file. (#69327, jmr in b69f0cf)
+
+    - Fixed privileges sometimes not being dropped for test target.
+      (jmr in d304c0a)
+
+Release 2.9.1 (2024-01-31 by jmr)
     - Fixed installation of unneeded build-time dependencies when using
       source-only mode. (cal in 5988c00)
 
