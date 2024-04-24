@@ -645,4 +645,72 @@ test test_lint_checksum_invalid_ending_w_filename {
     return "lint_checksum_invalid_ending_w_filename passed"
 } -result "lint_checksum_invalid_ending_w_filename passed"
 
+test test_lint_platforms_succeeds_with_darwin_freebsd {
+    Verify that platforms is accepted with darwin freebsd
+} -body {
+    set platforms "darwin freebsd"
+    set results [portlint::lint_platforms $platforms]
+    set err_results [lindex $results 0]
+    set warn_results [lindex $results 1]
+
+    if {[llength $warn_results] > 0} {
+        return "FAIL: unexpected error results"
+    }
+    if {[llength $err_results] > 0} {
+        return "FAIL: unexpected error results"
+    }
+    return "lint_platforms_darwin_freebsd passed"
+} -result "lint_platforms_darwin_freebsd passed"
+
+test test_lint_platforms_succeeds_with_freebsd {
+    Verify that platforms is accepted with freebsd
+} -body {
+    set platforms "freebsd"
+    set results [portlint::lint_platforms $platforms]
+    set err_results [lindex $results 0]
+    set warn_results [lindex $results 1]
+
+    if {[llength $warn_results] > 0} {
+        return "FAIL: unexpected error results"
+    }
+    if {[llength $err_results] > 0} {
+        return "FAIL: unexpected error results"
+    }
+    return "lint_platforms_freebsd passed"
+} -result "lint_platforms_freebsd passed"
+
+test test_lint_platforms_fails_with_msdos {
+    Verify that platforms fails with msdos as this is unknown
+} -body {
+    set platforms "msdos"
+    set results [portlint::lint_platforms $platforms]
+    set err_results [lindex $results 0]
+    set warn_results [lindex $results 1]
+
+    if {[llength $err_results] == 0} {
+        return "FAIL: unexpected empty error list"
+    }
+    if {"Unknown" ni [lindex $err_results 0]} {
+        return "FAIL: unexpected results: $results"
+    }
+    return "lint_platforms_msdos_fails passed"
+} -result "lint_platforms_msdos_fails passed"
+
+test test_lint_platforms_fails_with_darwin {
+    Verify that platforms fails with darwin as this is the default
+} -body {
+    set platforms "darwin"
+    set results [portlint::lint_platforms $platforms]
+    set err_results [lindex $results 0]
+    set warn_results [lindex $results 1]
+
+    if {[llength $warn_results] == 0} {
+        return "FAIL: unexpected empty warning list"
+    }
+    if {"default" ni [lindex $warn_results 0]} {
+        return "FAIL: unexpected results: $results"
+    }
+    return "lint_platforms_darwin_fails passed"
+} -result "lint_platforms_darwin_fails passed"
+
 cleanupTests
