@@ -520,9 +520,9 @@ proc portstartupitem::startupitem_create {} {
     foreach_startupitem {
         if {${si_type} ne "none" && ([tbool si_create] || $si_custom_file ne "")} {
             if {[tbool si_create]} {
-                ui_notice "$UI_PREFIX [msgcat::mc "Creating ${si_type} control script '$si_name'"]"
+                ui_debug "Creating ${si_type} control script '$si_name'"
             } else {
-                ui_notice "$UI_PREFIX [msgcat::mc "Installing ${si_type} control script '$si_name'"]"
+                ui_debug "Installing ${si_type} control script '$si_name'"
             }
 
             switch -- ${si_type} {
