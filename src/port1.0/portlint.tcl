@@ -249,6 +249,33 @@ proc portlint::lint_checksum {checksum_string} {
     return [list $errors $warnings]
 }
 
+# lint_platforms
+#
+# Checks a given Portfile platforms string.  Returns a list of lists.
+# The first member list is a list of error strings.
+# The second member list is a list of warning strings.
+#
+# Returns a list containing two empty lists if no issues are found.
+proc portlint::lint_platforms {platforms} {
+    set errors [list]
+    set warnings [list]
+
+    global lint_platforms
+
+    foreach platform $platforms {
+        set platname [lindex $platform 0]
+        if {$platname ni $lint_platforms} {
+            lappend errors "Unknown platform: $platname"
+        }
+    }
+
+    if {$platforms eq "darwin"} {
+        lappend warnings "Unnecessary platforms line as darwin is the default"
+    }
+
+    return [list $errors $warnings]
+}
+
 proc portlint::lint_start {args} {
     global UI_PREFIX subport
     ui_notice "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${subport}]"
@@ -282,6 +309,7 @@ proc portlint::lint_main {args} {
     set require_after ""
     set seen_portsystem false
     set seen_portgroup false
+    set seen_platforms false
     set in_description false
     set prohibit_tabs false
 
@@ -386,6 +414,9 @@ proc portlint::lint_main {args} {
             set seen_portgroup true
             set require_blank true
             set require_after "PortGroup"
+        }
+        if {[regexp {^\s*platforms\s} $line]} {
+            set seen_platforms true
         }
 
         # TODO: check for repeated variable definitions
@@ -496,7 +527,7 @@ proc portlint::lint_main {args} {
     global porturl all_variants patchfiles \
            depends_fetch depends_extract depends_patch \
            depends_lib depends_build depends_run \
-           depends_test distfiles fetch.type lint_portsystem lint_platforms \
+           depends_test distfiles fetch.type lint_portsystem \
            replaced_by conflicts
     set portarch [get_canonical_archs]
 
@@ -523,7 +554,6 @@ proc portlint::lint_main {args} {
     }
 
     foreach req_var $lint_required {
-
         if {$req_var eq "master_sites"} {
             if {${fetch.type} ne "standard"} {
                 ui_info "OK: $req_var not required for fetch.type ${fetch.type}"
@@ -562,15 +592,17 @@ proc portlint::lint_main {args} {
         incr warnings
     }
 
-    if {[info exists platforms]} {
-        foreach platform $platforms {
-            set platname [lindex $platform 0]
-            if {$platname ni $lint_platforms} {
-                ui_error "Unknown platform: $platname"
-                incr errors
-            } else {
-                ui_info "OK: Found platform: $platname"
-            }
+    if {$seen_platforms && [info exists platforms]} {
+        set platforms_lint [portlint::lint_platforms $platforms]
+
+        foreach err [lindex $platforms_lint 0] {
+            ui_error $err
+            incr errors
+        }
+
+        foreach warning [lindex $platforms_lint 1] {
+            ui_warn $warning
+            incr warnings
         }
     }
 
