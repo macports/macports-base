@@ -38,10 +38,10 @@ package require macports_util 1.0
 package require msgcat
 package require porttrace 1.0
 
-set targets [list]
-set target_uniqid 0
-
-set all_variants [list]
+namespace eval portutil {
+    variable targets [list]
+    variable all_variants [list]
+}
 
 ########### External High Level Procedures ###########
 
@@ -664,7 +664,7 @@ proc variant {args} {
     }
 
     # Finally append the ditem to the dlist.
-    global all_variants
+    global portutil::all_variants
     lappend all_variants $ditem
 }
 
@@ -688,7 +688,7 @@ proc variant_set {name} {
 # variant_remove_ditem name
 # Remove variant name's ditem from the all_variants dlist
 proc variant_remove_ditem {name} {
-    global all_variants
+    global portutil::all_variants
     set item_index 0
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
@@ -1656,7 +1656,7 @@ proc recursive_collect_deps {portname {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets subport version revision portvariants
+    global portutil::targets subport version revision portvariants
     set dlist $targets
 
     # the statefile will likely be autocleaned away after install,
@@ -2034,7 +2034,7 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global PortInfo all_variants subport
+    global PortInfo portutil::all_variants subport
     set dlist $all_variants
     upvar $variations upvariations
     lassign [choose_variants $dlist upvariations] chosen negated
@@ -2121,7 +2121,7 @@ proc eval_variants {variations} {
 }
 
 proc check_variants {target} {
-    global targets ports_force ports_dryrun PortInfo
+    global portutil::targets ports_force ports_dryrun PortInfo
     set result 0
     set variations $PortInfo(active_variants)
 
@@ -2197,7 +2197,7 @@ proc universal_setup {args} {
 
 # constructor for target object
 proc target_new {name procedure} {
-    global targets
+    global portutil::targets
     set ditem [ditem_create]
 
     ditem_key $ditem name $name

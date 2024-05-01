@@ -524,7 +524,7 @@ proc portlint::lint_main {args} {
 
     ###################################################################
 
-    global porturl all_variants patchfiles \
+    global porturl portutil::all_variants patchfiles \
            depends_fetch depends_extract depends_patch \
            depends_lib depends_build depends_run \
            depends_test distfiles fetch.type lint_portsystem \
