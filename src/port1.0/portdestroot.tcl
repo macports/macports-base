@@ -201,13 +201,21 @@ proc portdestroot::destroot_finish {args} {
         return -code error "Staging $subport into destroot failed"
     }
 
-    # Compress all manpages with gzip (instead)
-    set manpath "${destroot}${prefix}/share/man"
-    set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
-    set gunzip "$gzip -d"
-    set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
-    if {[file isdirectory ${manpath}] && [file type ${manpath}] eq "directory"} {
+    # Compress all manpages with gzip (instead) if not building for a
+    # platform where the system tar supports --hfsCompression,
+    # i.e. macOS 10.15 (darwin 19) or later.
+    lassign [_get_compatible_platform] compat_os_platform compat_os_major
+    set manpath ${destroot}${prefix}/share/man
+    if {($compat_os_platform ne "darwin" || ![string is integer -strict $compat_os_major]
+        || $compat_os_major < 19 || [getuid] != 0)
+        && [file isdirectory ${manpath}] && [file type ${manpath}] eq "directory"
+    } then {
         ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${subport}]"
+
+        set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
+        set gunzip "$gzip -d"
+        set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
+
         set found 0
         set manlinks [list]
         set mandir_re {^(cat|man)(.)$}
