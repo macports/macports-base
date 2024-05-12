@@ -50,7 +50,7 @@ options patch.asroot
 default patch.asroot no
 default patch.dir {${worksrcpath}}
 default patch.cmd {[portpatch::build_getpatchtype]}
-default patch.pre_args -p0
+default patch.pre_args {-t -N -p0}
 
 proc portpatch::build_getpatchtype {args} {
     if {![exists patch.type]} {
