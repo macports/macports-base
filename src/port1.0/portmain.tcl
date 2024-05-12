@@ -171,7 +171,81 @@ default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir
 
 default use_xcode {[expr {${build.type} eq "xcode" || !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20) || ![file executable /Library/Developer/CommandLineTools/usr/bin/make]}]}
 
-default source_date_epoch 1715555555
+default source_date_epoch {[portmain::get_source_date_epoch]}
+
+# Figure out when this port was last modified, intended to be used as a
+# timestamp for reproducible builds.
+proc portmain::get_source_date_epoch {} {
+    variable source_date_epoch_cached
+    if {[info exists source_date_epoch_cached]} {
+        return $source_date_epoch_cached
+    }
+    global portpath
+    set newest 0
+    if {[catch {findBinary git} git]} {
+        set git {}
+    } elseif {[getuid] == 0} {
+        if {[catch {
+            set prev_euid [geteuid]
+            set prev_egid [getegid]
+            if {[geteuid] != 0} {
+                seteuid 0
+            }
+            # Must change egid before dropping root euid.
+            setegid [name_to_gid [file attributes $portpath -group]]
+            seteuid [name_to_uid [file attributes $portpath -owner]]
+        } result]} {
+            ui_debug "get_source_date_epoch: dropping privileges failed: $result"
+        }
+    }
+    if {$git ne {} && ![catch {exec -ignorestderr $git -C $portpath rev-parse --is-inside-work-tree}]} {
+        # Use time of last commit only if there are no uncommitted changes
+        if {![catch {exec -ignorestderr $git -C $portpath status --porcelain $portpath} result]} {
+            if {$result eq ""} {
+                if {![catch {exec -ignorestderr $git -C $portpath log -1 --pretty=%ct $portpath} result]} {
+                    set source_date_epoch_cached $result
+                    if {[info exists prev_euid]} {
+                        seteuid 0
+                        if {[info exists prev_egid]} {
+                            setegid $prev_egid
+                        }
+                        seteuid $prev_euid
+                    }
+                    return $result
+                } else {
+                    ui_debug "get_source_date_epoch: git log failed: $result"
+                }
+            } else {
+                ui_debug "get_source_date_epoch: uncommitted changes in portpath"
+            }
+        } else {
+            ui_debug "get_source_date_epoch: git status failed: $result"
+        }
+    }
+    if {[info exists prev_euid]} {
+        seteuid 0
+        if {[info exists prev_egid]} {
+            setegid $prev_egid
+        }
+        seteuid $prev_euid
+    }
+    # TODO: Ensure commit timestamps as extracted above are set in
+    # ports tree distributed as tarball.
+    fs-traverse fullpath [list $portpath] {
+        if {[catch {
+            if {[file type $fullpath] eq "file"} {
+                set mtime [file mtime $fullpath]
+                if {$mtime > $newest} {
+                    set newest $mtime
+                }
+            }
+        } result]} {
+            ui_debug "get_source_date_epoch: $result"
+        }
+    }
+    set source_date_epoch_cached $newest
+    return $newest
+}
 
 proc portmain::main {args} {
     return 0
