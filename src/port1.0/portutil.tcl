@@ -440,6 +440,9 @@ proc command_exec {args} {
     if {[option configure.sdkroot] ne ""} {
         set ${varprefix}.env_array(SDKROOT) [option configure.sdkroot]
     }
+    if {[option source_date_epoch] ne ""} {
+        set ${varprefix}.env_array(SOURCE_DATE_EPOCH) [option source_date_epoch]
+    }
 
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${varprefix}.env_array]"
