@@ -198,11 +198,11 @@ proc portmain::get_source_date_epoch {} {
             ui_debug "get_source_date_epoch: dropping privileges failed: $result"
         }
     }
-    if {$git ne {} && ![catch {exec -ignorestderr $git -C $portpath rev-parse --is-inside-work-tree}]} {
+    if {$git ne {} && ![catch {exec -ignorestderr $git -C $portpath rev-parse --is-inside-work-tree 2> /dev/null}]} {
         # Use time of last commit only if there are no uncommitted changes
-        if {![catch {exec -ignorestderr $git -C $portpath status --porcelain $portpath} result]} {
+        if {![catch {exec -ignorestderr $git -C $portpath status --porcelain $portpath 2> /dev/null} result]} {
             if {$result eq ""} {
-                if {![catch {exec -ignorestderr $git -C $portpath log -1 --pretty=%ct $portpath} result]} {
+                if {![catch {exec -ignorestderr $git -C $portpath log -1 --pretty=%ct $portpath 2> /dev/null} result]} {
                     set source_date_epoch_cached $result
                     if {[info exists prev_euid]} {
                         seteuid 0
