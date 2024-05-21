@@ -1902,6 +1902,50 @@ proc portconfigure::configure_main {args} {
     return 0
 }
 
+proc portconfigure::check_warnings {warning_flag} {
+    global \
+        workpath
+
+    set files [list]
+
+    fs-traverse -tails file [list ${workpath}] {
+        if {[file tail $file] in [list config.log CMakeError.log meson-log.txt] && [file isfile [file join ${workpath} $file]]} {
+            # We could do the searching ourselves, but using a tool optimized for this purpose is likely much faster
+            # than using Tcl.
+            #
+            # Using /usr/bin/grep here so we don't accidentally pick up a MacPorts-installed grep which might
+            # currently not be runnable due to a missing library.
+            set args [list "/usr/bin/grep" "-El" "--" "-W[quotemeta $warning_flag]\\\]\$"]
+            lappend args [file join ${workpath} $file]
+
+            if {![catch {exec -- {*}$args}]} {
+                lappend files $file
+            }
+        }
+    }
+
+    if {[llength $files] > 0} {
+        ui_warn [format [msgcat::mc "Configuration logfiles contain indications of %s; check that features were not accidentally disabled:"] "-W$warning_flag"]
+        foreach file $files {
+            ui_msg [format "  found in %s" $file]
+        }
+    }
+}
+
+options configure.checks.implicit_int
+default configure.checks.implicit_int yes
+
+proc portconfigure::check_implicit_int {} {
+    portconfigure::check_warnings {implicit-int}
+}
+
+options configure.checks.incompatible_function_pointer_types
+default configure.checks.incompatible_function_pointer_types yes
+
+proc portconfigure::check_incompatible_function_pointer_types {} {
+    portconfigure::check_warnings {incompatible-function-pointer-types}
+}
+
 options configure.checks.implicit_function_declaration \
         configure.checks.implicit_function_declaration.whitelist
 default configure.checks.implicit_function_declaration yes
@@ -1920,9 +1964,9 @@ proc portconfigure::check_implicit_function_declarations {} {
             # We could do the searching ourselves, but using a tool optimized for this purpose is likely much faster
             # than using Tcl.
             #
-            # Using /usr/bin/fgrep here, so we don't accidentally pick up a macports-installed grep which might
+            # Using /usr/bin/grep here so we don't accidentally pick up a MacPorts-installed grep which might
             # currently not be runnable due to a missing library.
-            set args [list "/usr/bin/fgrep" "--" "-Wimplicit-function-declaration"]
+            set args [list "/usr/bin/grep" "-E" "--" "-Wimplicit-function-declaration\\\]\$"]
             lappend args [file join ${workpath} $file]
 
             if {![catch {set result [exec -- {*}$args]}]} {
@@ -1947,7 +1991,7 @@ proc portconfigure::check_implicit_function_declarations {} {
     }
 
     if {[dict size $undeclared_functions] > 0} {
-        ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration; check that features were not accidentally disabled:"
+        ui_warn [format [msgcat::mc "Configuration logfiles contain indications of %s; check that features were not accidentally disabled:"] "-Wimplicit-function-declaration"]
         dict for {function files} $undeclared_functions {
             ui_msg [format "  %s: found in %s" $function [join [dict keys $files] ", "]]
         }
@@ -1972,9 +2016,19 @@ proc portconfigure::load_implicit_function_declaration_whitelist {sdk_version} {
 proc portconfigure::configure_finish {args} {
     global \
         configure.dir \
-        configure.checks.implicit_function_declaration
+        configure.checks.implicit_function_declaration \
+        configure.checks.implicit_int \
+        configure.checks.incompatible_function_pointer_types
 
-    if {[file isdirectory ${configure.dir}] && ${configure.checks.implicit_function_declaration}} {
-        portconfigure::check_implicit_function_declarations
+    if {[file isdirectory ${configure.dir}]} {
+        if {${configure.checks.implicit_function_declaration}} {
+            portconfigure::check_implicit_function_declarations
+        }
+        if {${configure.checks.implicit_int}} {
+            portconfigure::check_implicit_int
+        }
+        if {${configure.checks.incompatible_function_pointer_types}} {
+            portconfigure::check_incompatible_function_pointer_types
+        }
     }
 }
