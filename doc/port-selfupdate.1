@@ -24,7 +24,7 @@ port-selfupdate \- Upgrade MacPorts itself and update the port definition files\
 .SH "SYNOPSIS"
 .sp
 .nf
-\fBport\fR [\fB\-qvdf\fR] \fBselfupdate\fR [\-\-no\-sync]
+\fBport\fR [\fB\-qvdf\fR] \fBselfupdate\fR [\-\-no\-sync] [\-\-migrate]
 .fi
 .SH "DESCRIPTION"
 .sp
@@ -36,6 +36,12 @@ You should regularly run \fBselfupdate\fR to update your local port definitions\
 \fB\-\-no\-sync\fR
 .RS 4
 Only check for updates \- and install if available \- for MacPorts itself\&. Do not update the ports tree\&.
+.RE
+.PP
+\fB\-\-migrate\fR
+.RS 4
+Rebuild even if no new version is available, upgrade if a new version is available\&. Contrary to
+\fB\-f\fR, this flag will prevent downgrades\&. This flag is useful when upgrading to a newer macOS major version\&.
 .RE
 .SH "GLOBAL OPTIONS"
 .sp
@@ -50,7 +56,7 @@ Suppress status output, be as silent as possible\&.
 .RS 4
 Do not check whether the downloaded MacPorts version is newer than the currently installed one, but always rebuild and reinstall MacPorts\&.
 
-You can use this to downgrade from a beta or development version to the latest release\&. Note that there is no guarantee that there have not been made incompatible and irreversible changes to MacPorts\*(Aq internal data structures, making a downgrade impossible\&.
+You can use this to downgrade from a beta or development version to the latest release\&. Note that there is no guarantee that no incompatible and irreversible changes have been made to MacPorts\*(Aq internal data structures, which can make downgrading impossible\&.
 .RE
 .SH "EXAMPLES"
 .sp
