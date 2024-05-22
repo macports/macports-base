@@ -98,8 +98,10 @@ namespace eval migrate {
         set datetime [$snapshot created_at]
         ui_msg "Done: Snapshot '$id' : '$note' created at $datetime"
 
-        ui_msg "Uninstalling all ports..."
-        uninstall_installed
+        ui_msg "Deactivating all ports..."
+        deactivate_installed
+        ui_msg "Uninstalling ports that need to be reinstalled..."
+        uninstall_incompatible
 
         ui_msg "Restoring ports..."
         return [restore_snapshot]
@@ -121,16 +123,42 @@ namespace eval migrate {
     }
 
     ##
-    # Uninstall all installed ports for migration
+    # Deactivate all installed ports for migration
     #
     # @return void on success, raises an error on failure
-    proc uninstall_installed {} {
+    proc deactivate_installed {} {
         set options {}
+        set portlist [restore::portlist_sort_dependencies_later [registry::entry installed]]
+        foreach port $portlist {
+            ui_msg "Deactivating: [$port name]"
+            if {![registry::run_target $port deactivate $options]
+                    && [catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
+                ui_error "Error deactivating [$port name]: $result"
+            }
+        }
+    }
+
+    ##
+    # Uninstall installed ports that are not compatible with
+    # the current platform
+    #
+    # @return void on success, raises an error on failure
+    proc uninstall_incompatible {} {
+        global macports::os_major macports::os_platform
+        set options [dict create ports_nodepcheck 1]
         set portlist [restore::portlist_sort_dependencies_later [registry::entry imaged]]
         foreach port $portlist {
+            # TODO: check archs match (needs open mport)
+            if {($os_major eq [$port os_major] || [$port os_major] eq "any")
+                && ($os_platform eq [$port os_platform] || [$port os_platform] eq "any")
+            } then {
+                # Compatible with current platform
+                continue
+            }
             ui_msg "Uninstalling: [$port name]"
-            if {![registry::run_target $port uninstall $options]} {
-                ui_error "Error uninstalling [$port name]"
+            if {![registry::run_target $port uninstall $options]
+                    && [catch {registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
+                ui_error "Error uninstalling [$port name]: $result"
             }
         }
     }
