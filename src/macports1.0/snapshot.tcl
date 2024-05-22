@@ -42,15 +42,13 @@ namespace eval snapshot {
         # Returns:
         #           registry::snapshot
 
-        array set options $opts
-
-        if {![info exists options(options_snapshot_order)]} {
+        if {![dict exists $opts options_snapshot_order]} {
             set operation "create"
         } else {
             set operation ""
             foreach op {list create diff delete} {
                 set opname "ports_snapshot_$op"
-                if {[info exists options($opname)]} {
+                if {[dict exists $opts $opname]} {
                     if {$operation ne ""} {
                         ui_error "Only one of the --list, --create, --diff, and --delete options can be specified."
                         error "Incorrect usage, see port snapshot --help."
@@ -61,7 +59,7 @@ namespace eval snapshot {
             }
         }
 
-        if {[info exists options(ports_snapshot_help)]} {
+        if {[dict exists $opts ports_snapshot_help]} {
             ui_msg "Usage: One of:"
             ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
             ui_msg "  port snapshot --list"
@@ -72,15 +70,15 @@ namespace eval snapshot {
 
         switch $operation {
             "create" {
-                return [create [array get options]]
+                return [create $opts]
             }
             "list" {
                 ui_error "list operation not implemented"
             }
             "diff" {
-                set snapshot [registry::snapshot get_by_id $options(ports_snapshot_diff)]
+                set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_diff]]
                 array set diff [diff $snapshot]
-                set show_all [expr {[info exists options(ports_snapshot_all)]}]
+                set show_all [dict exists $opts ports_snapshot_all]
                 set note ""
 
                 if {!$show_all} {
@@ -146,13 +144,12 @@ namespace eval snapshot {
     }
 
     proc create {opts} {
-        array set options $opts
 
         registry::write {
             # An option used by user while creating snapshot manually
             # to identify a snapshot, usually followed by `port restore`
-            if {[info exists options(ports_snapshot_note)]} {
-                set note $options(ports_snapshot_note)
+            if {[dict exists $opts ports_snapshot_note]} {
+                set note [dict get $opts ports_snapshot_note]
             } else {
                 set note "snapshot created for migration"
             }
@@ -258,14 +255,14 @@ namespace eval snapshot {
         set added {}
         set changed {}
 
-        array set snapshot_ports {}
+        set snapshot_ports [dict create]
 
         foreach port $portlist {
             lassign $port name requested active variants requested_variants
             set active [expr {$active eq "installed"}]
             set requested [expr {$requested == 1}]
 
-            set snapshot_ports($name) 1
+            dict set snapshot_ports $name 1
 
             if {[catch {set installed [registry::installed $name]}]} {
                 # registry::installed failed, the port probably isn't installed
@@ -361,7 +358,7 @@ namespace eval snapshot {
                 # port was installed on old OS, ignore
                 continue
             }
-            if {[info exists snapshot_ports($iname)]} {
+            if {[dict exists $snapshot_ports $iname]} {
                 # port was in the snapshot
                 continue
             }

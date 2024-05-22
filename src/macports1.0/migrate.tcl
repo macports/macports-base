@@ -44,7 +44,6 @@ namespace eval migrate {
     #          caller should re-run itself and invoke migration with the --continue
     #          flag set.
     proc main {opts} {
-        array set options $opts
 
         if {[needs_migration]} {
             if {[info exists macports::ui_options(questions_yesno)]} {
@@ -77,7 +76,7 @@ namespace eval migrate {
         # If port migrate was not called with --continue, the user probably did
         # that manually and we do not have confirmation to run migration yet;
         # do that now.
-        set continuation [expr {[info exists options(ports_migrate_continue)] && $options(ports_migrate_continue)}]
+        set continuation [expr {[dict exists $opts ports_migrate_continue] && [dict get $opts ports_migrate_continue]}]
         if {!$continuation && [info exists macports::ui_options(questions_yesno)]} {
             set msg "Migration will reinstall all installed ports."
             set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationContinuationPrompt" "" {y} 0 "Would you like to continue?"]
@@ -142,10 +141,9 @@ namespace eval migrate {
     #
     # @return 0 on success, an error on failure
     proc restore_snapshot {} {
-        array set options {}
-        set options(ports_restore_last) yes
+        set options [dict create ports_restore_last yes]
 
-        return [restore::main [array get options]]
+        return [restore::main $options]
     }
 
     ##
@@ -159,13 +157,13 @@ namespace eval migrate {
     # @return true on success, false if no update was performed, an error on
     #         failure.
     proc upgrade_port_command {} {
-        array set optionslist {}
+        set options [dict create]
         # Force rebuild, but do not allow downgrade
-        set optionslist(ports_selfupdate_migrate) 1
+        dict set options ports_selfupdate_migrate 1
         # Avoid portindex, which would trigger 'portindex', which does not work
-        set optionslist(ports_selfupdate_nosync) 1
+        dict set options ports_selfupdate_nosync 1
 
-        selfupdate::main [array get optionslist] base_updated
+        selfupdate::main $options base_updated
         return $base_updated
     }
 }

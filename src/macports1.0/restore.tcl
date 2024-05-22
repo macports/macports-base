@@ -59,8 +59,6 @@ namespace eval restore {
         # Returns:
         #           0 if success
 
-        array set options $opts
-
         set restore::ui_prefix [string map {--- ===} $macports::ui_prefix]
 
         if {[migrate::needs_migration]} {
@@ -68,10 +66,10 @@ namespace eval restore {
             return 1
         }
 
-        if {[info exists options(ports_restore_snapshot-id)]} {
+        if {[dict exists $opts ports_restore_snapshot-id]} {
             # use the specified snapshot
-            set snapshot [fetch_snapshot $options(ports_restore_snapshot-id)]
-        } elseif {[info exists options(ports_restore_last)]} {
+            set snapshot [fetch_snapshot [dict get $opts ports_restore_snapshot-id]]
+        } elseif {[dict exists $opts ports_restore_last]} {
             # use the last snapshot
             set snapshot [fetch_snapshot_last]
         } else {
@@ -374,12 +372,11 @@ namespace eval restore {
 
             # Open the port with the requested variants from the snapshot
             set variations [variants_to_variations_arr $variants]
-            array set portinfo [lindex $port 1]
-            if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $variations]} result]} {
+            set portinfo [lindex $port 1]
+            if {[catch {set mport [mportopen [dict get $portinfo porturl] [dict create subport [dict get $portinfo name]] $variations]} result]} {
                 $progress intermission
                 error "Unable to open port '$portname': $result"
             }
-            array unset portinfo
 
             # Compute the dependencies for the 'install' target. Do not recurse into the dependencies: we'll do that
             # here manually in order to
@@ -401,9 +398,9 @@ namespace eval restore {
                 lassign [dlist_search $macports::open_mports provides $dependency] dep_ditem
 
                 set conflict_found 0
-                array set portinfo [mportinfo $dep_ditem]
-                if {[info exists portinfo(conflicts)] && [llength $portinfo(conflicts)] > 0} {
-                    foreach conflict $portinfo(conflicts) {
+                set portinfo [mportinfo $dep_ditem]
+                if {[dict exists $portinfo conflicts] && [llength [dict get $portinfo conflicts]] > 0} {
+                    foreach conflict [dict get $portinfo conflicts] {
                         if {[info exists ports($conflict)]} {
                             # The conflicting port was installed in the snapshot. Assume that this happened because the
                             # conflicting port is an alternative provider for this dependency (e.g., curl-ca-bundle and
@@ -414,11 +411,11 @@ namespace eval restore {
                             #
                             # Warn only once for every combination, otherwise users might see the same message multiple
                             # times.
-                            if {![info exists seen_conflicts($portinfo(name),$conflict)]} {
-                                set seen_conflicts($portinfo(name),$conflict) 1
+                            if {![info exists seen_conflicts([dict get $portinfo name],$conflict)]} {
+                                set seen_conflicts([dict get $portinfo name],$conflict) 1
 
                                 $progress intermission
-                                ui_warn "Snapshot contains $conflict, which conflicts with dependency $portinfo(name); assuming $conflict provides the functionality of $portinfo(name)"
+                                ui_warn "Snapshot contains $conflict, which conflicts with dependency [dict get $portinfo name]; assuming $conflict provides the functionality of [dict get $portinfo name]"
                                 $progress update $requested_counter $requested_total
                             }
 
@@ -434,7 +431,6 @@ namespace eval restore {
                         }
                     }
                 }
-                array unset portinfo
                 if {$conflict_found} {
                     continue
                 }
@@ -556,15 +552,13 @@ namespace eval restore {
                 _handle_failure failed $dependencies $name "port $name not found in the port index"
                 continue
             }
-            array unset portinfo
-            array set portinfo [lindex $res 1]
-            set porturl $portinfo(porturl)
+            set portinfo [lindex $res 1]
+            set porturl [dict get $portinfo porturl]
 
-            set options(ports_requested) $requested
-            set options(subport) $portinfo(name)
+            set options [dict create ports_requested $requested subport [dict get $portinfo name]]
             set variations [variants_to_variations_arr $variants]
 
-            if {[catch {set workername [mportopen $porturl [array get options] $variations]} result]} {
+            if {[catch {set workername [mportopen $porturl $options $variations]} result]} {
                 ui_msg $::errorInfo
                 _handle_failure failed $dependencies $name "unable to open port $name: $result"
                 continue
