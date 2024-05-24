@@ -247,15 +247,12 @@ namespace eval restore {
     # Deactivate all installed ports in reverse dependency order so that as few
     # warnings as possible will be printed.
     proc deactivate_all {} {
-        set portlist [deactivation_order [registry::entry imaged]]
-
-        foreach port $portlist {
-            if {[$port state] eq "installed"} {
-                if {![registry::run_target $port deactivate {ports_force 1}]} {
-                    if {[catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] {ports_force 1}} result]} {
-                        ui_debug $::errorInfo
-                        ui_warn "Failed to deactivate [$port name]: $result"
-                    }
+        set options [dict create ports_nodepcheck 1 ports_force 1]
+        foreach port [registry::entry installed] {
+            if {![registry::run_target $port deactivate $options]} {
+                if {[catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
+                    ui_debug $::errorInfo
+                    ui_warn "Failed to deactivate [$port name]: $result"
                 }
             }
         }

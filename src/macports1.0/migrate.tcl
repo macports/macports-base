@@ -99,7 +99,7 @@ namespace eval migrate {
         ui_msg "Done: Snapshot '$id' : '$note' created at $datetime"
 
         ui_msg "Deactivating all ports..."
-        deactivate_installed
+        restore::deactivate_all
         ui_msg "Uninstalling ports that need to be reinstalled..."
         uninstall_incompatible
 
@@ -123,29 +123,13 @@ namespace eval migrate {
     }
 
     ##
-    # Deactivate all installed ports for migration
-    #
-    # @return void on success, raises an error on failure
-    proc deactivate_installed {} {
-        set options {}
-        set portlist [restore::portlist_sort_dependencies_later [registry::entry installed]]
-        foreach port $portlist {
-            ui_msg "Deactivating: [$port name]"
-            if {![registry::run_target $port deactivate $options]
-                    && [catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
-                ui_error "Error deactivating [$port name]: $result"
-            }
-        }
-    }
-
-    ##
     # Uninstall installed ports that are not compatible with
     # the current platform
     #
     # @return void on success, raises an error on failure
     proc uninstall_incompatible {} {
-        set options [dict create ports_nodepcheck 1]
-        set portlist [restore::portlist_sort_dependencies_later [registry::entry imaged]]
+        set options [dict create ports_nodepcheck 1 ports_force 1]
+        set portlist [restore::deactivation_order [registry::entry imaged]]
         foreach port $portlist {
             # TODO: check archs match (needs open mport)
             if {![snapshot::_os_mismatch [$port os_platform] [$port os_major]]} {
