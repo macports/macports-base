@@ -181,7 +181,10 @@ namespace eval snapshot {
     }
 
     proc _os_mismatch {iplatform iosmajor} {
-        if {($iplatform ne "" && $iosmajor != 0) && ($iplatform != $macports::os_platform || $iosmajor != $macports::os_major)} {
+        global macports::os_platform macports::os_major
+        if {$iplatform ne "any" && ($iplatform ne $os_platform
+            || ($iosmajor ne "any" && $iosmajor != $os_major))
+        } then {
             return 1
         }
         return 0
