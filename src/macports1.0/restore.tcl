@@ -94,9 +94,9 @@ namespace eval restore {
 
         ui_msg "$restore::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
         set snapshot_portlist [$snapshot ports]
-        array set failed [restore_state [$snapshot ports]]
+        set failed [restore_state [$snapshot ports]]
 
-        if {[array size failed] > 0} {
+        if {[dict size $failed] > 0} {
             set note "Migration finished with errors.\n"
         } else {
             set note "Migration finished.\n"
@@ -136,8 +136,8 @@ namespace eval restore {
                 } else {
                     append note " - $name $requested_variants\n"
                 }
-                if {[info exists failed($name)]} {
-                    lassign $failed($name) type reason
+                if {[dict exists $failed $name]} {
+                    lassign [dict get $failed $name] type reason
                     switch $type {
                         skipped {
                             append note "   Skipped becuase its $reason\n"
@@ -282,8 +282,8 @@ namespace eval restore {
     #       The list in dependency-sorted order
     #       The dependency graph, to be destroyed by calling $dependencies destroy
     proc resolve_dependencies {portlist} {
-        array set ports {}
-        array set dep_ports {}
+        set ports [dict create]
+        set dep_ports [dict create]
         set dependencies [::struct::graph]
 
         set requested_counter 0
@@ -312,7 +312,7 @@ namespace eval restore {
 
             # bool-ify active
             set active [expr {$active eq "installed"}]
-            set ports($name) [list $requested $active $variants]
+            dict set ports $name [list $requested $active $variants]
 
             if {$requested} {
                 incr requested_total
@@ -325,8 +325,8 @@ namespace eval restore {
         # Use a worklist so that we can push items to the front to do
         # depth-first dependency resolution.
         set worklist [list]
-        set seen [list]
-        array set seen_conflicts {}
+        set seen [dict create]
+        set seen_conflicts [dict create]
         foreach port $portlist {
             lassign $port name requested _ _ _
 
@@ -340,11 +340,10 @@ namespace eval restore {
             set worklist [lassign $worklist portname]
 
             # If we've already seen this port, continue
-            if {[lsearch -sorted -exact $seen $portname] != -1} {
+            if {[dict exists $seen $portname]} {
                 continue
             }
-            lappend seen $portname
-            set seen [lsort -ascii $seen]
+            dict set seen $portname 1
 
             ui_debug "Dependency calculation for port $portname"
 
@@ -357,10 +356,10 @@ namespace eval restore {
                 continue
             }
 
-            if {[info exists ports($portname)]} {
-                lassign $ports($portname) requested _ variants
-            } elseif {[info exists dep_ports($portname)]} {
-                set variants $dep_ports($portname)
+            if {[dict exists $ports $portname]} {
+                lassign [dict get $ports $portname] requested _ variants
+            } elseif {[dict exists $dep_ports $portname]} {
+                set variants [dict get $dep_ports $portname]
                 set requested 0
             } else {
                 set variants ""
@@ -398,7 +397,7 @@ namespace eval restore {
                 set portinfo [mportinfo $dep_ditem]
                 if {[dict exists $portinfo conflicts] && [llength [dict get $portinfo conflicts]] > 0} {
                     foreach conflict [dict get $portinfo conflicts] {
-                        if {[info exists ports($conflict)]} {
+                        if {[dict exists $ports $conflict]} {
                             # The conflicting port was installed in the snapshot. Assume that this happened because the
                             # conflicting port is an alternative provider for this dependency (e.g., curl-ca-bundle and
                             # certsync, or a -devel port replacing its non-devel variant).
@@ -408,8 +407,8 @@ namespace eval restore {
                             #
                             # Warn only once for every combination, otherwise users might see the same message multiple
                             # times.
-                            if {![info exists seen_conflicts([dict get $portinfo name],$conflict)]} {
-                                set seen_conflicts([dict get $portinfo name],$conflict) 1
+                            if {![dict exists $seen_conflicts [dict get $portinfo name] $conflict]} {
+                                dict set seen_conflicts [dict get $portinfo name] $conflict 1
 
                                 $progress intermission
                                 ui_warn "Snapshot contains $conflict, which conflicts with dependency [dict get $portinfo name]; assuming $conflict provides the functionality of [dict get $portinfo name]"
@@ -436,7 +435,7 @@ namespace eval restore {
                     $dependencies node insert $dependency
                 }
                 set dependency_requested_variants [[ditem_key $dep_ditem workername] eval {set requested_variants}]
-                set dep_ports($dependency) $dependency_requested_variants
+                dict set dep_ports $dependency $dependency_requested_variants
 
                 $dependencies arc insert $provides $dependency
                 set worklist [linsert $worklist 0 $dependency]
@@ -464,10 +463,10 @@ namespace eval restore {
 
         foreach scc $portlist_sccs {
             foreach name $scc {
-                if {[info exists ports($name)]} {
-                    lappend operations [list $name {*}$ports($name)]
-                } elseif {[info exists dep_ports($name)]} {
-                    lappend operations [list $name 0 1 $dep_ports($name)]
+                if {[dict exists $ports $name]} {
+                    lappend operations [list $name {*}[dict get $ports $name]]
+                } elseif {[dict exists $dep_ports $name]} {
+                    lappend operations [list $name 0 1 [dict get $dep_ports $name]]
                 } else {
                     lappend operations [list $name 0 1 {}]
                 }
@@ -480,7 +479,7 @@ namespace eval restore {
     proc _handle_failure {failedName dependencies portname reason} {
         upvar $failedName failed
 
-        set failed($portname) [list "failed" $reason]
+        dict set failed $portname [list "failed" $reason]
 
         set level "#[info level]"
 
@@ -491,7 +490,7 @@ namespace eval restore {
             -command [lambda {level mode dependencies node} {
                 if {$mode eq "enter"} {
                     uplevel $level [subst -nocommands {
-                        set failed($node) [list "skipped" "dependency \$portname failed"]
+                        dict set failed $node [list "skipped" "dependency \$portname failed"]
                     }]
                 }
             } $level]
@@ -502,7 +501,7 @@ namespace eval restore {
 
         # map from port name to an entry describing why the port failed or was
         # skipped
-        array set failed {}
+        set failed [dict create]
 
         set index 0
         set length [llength $sorted_snapshot_portlist]
@@ -516,8 +515,8 @@ namespace eval restore {
                 ui_msg "$restore::ui_prefix Restoring port $index of $length: $name"
             }
 
-            if {[info exists failed($name)]} {
-                lassign $failed($name) type reason
+            if {[dict exists $failed $name]} {
+                lassign [dict get $failed $name] type reason
                 switch $type {
                     skipped {
                         ui_msg "$macports::ui_prefix Skipping $name because its $reason"
@@ -572,6 +571,6 @@ namespace eval restore {
 
         $dependencies destroy
 
-        return [array get failed]
+        return $failed
     }
 }
