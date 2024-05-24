@@ -144,14 +144,11 @@ namespace eval migrate {
     #
     # @return void on success, raises an error on failure
     proc uninstall_incompatible {} {
-        global macports::os_major macports::os_platform
         set options [dict create ports_nodepcheck 1]
         set portlist [restore::portlist_sort_dependencies_later [registry::entry imaged]]
         foreach port $portlist {
             # TODO: check archs match (needs open mport)
-            if {($os_major eq [$port os_major] || [$port os_major] eq "any")
-                && ($os_platform eq [$port os_platform] || [$port os_platform] eq "any")
-            } then {
+            if {![snapshot::_os_mismatch [$port os_platform] [$port os_major]]} {
                 # Compatible with current platform
                 continue
             }
