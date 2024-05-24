@@ -100,11 +100,73 @@ namespace eval migrate {
 
         ui_msg "Deactivating all ports..."
         restore::deactivate_all
+
+        lassign [get_intree_archs $snapshot] ports_in_tree_archs mport_list
+        # get_intree_archs opens Portfiles. Leaving them open for now because
+        # restore_snapshot will want to use the same ones.
+
         ui_msg "Uninstalling ports that need to be reinstalled..."
-        uninstall_incompatible
+        uninstall_incompatible $ports_in_tree_archs
 
         ui_msg "Restoring ports..."
-        return [restore_snapshot]
+        set ret [restore_snapshot]
+
+        # Close mports that get_intree_archs opened
+        foreach mport $mport_list {
+            mportclose $mport
+        }
+
+        return $ret
+    }
+
+    ##
+    # Open the current in-tree Portfile for each port in the snapshot,
+    # using the recorded requested variants, and figure out its archs.
+    #
+    # @return a list of two elements:
+    #   1. A dict mapping portname -> requested_variants -> archs
+    #   2. A list of the mport handles for the opened Portfiles.
+    proc get_intree_archs {snapshot} {
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancy_output} {
+            set progress $macports::ui_options(progress_generic)
+        } else {
+            proc noop {args} {}
+            set progress noop
+        }
+
+        set intree_archs [dict create]
+        set mports [list]
+
+        ui_msg "$macports::ui_prefix Loading Portfiles"
+        $progress start
+        set portfile_counter 0
+        set snapshot_ports [$snapshot ports]
+        set portfile_total [llength $snapshot_ports]
+        $progress update $portfile_counter $portfile_total
+
+        foreach port $snapshot_ports {
+            lassign $port portname _ _ _ requested_variants
+            set variations [restore::variants_to_variations_arr $requested_variants]
+            lassign [mportlookup $portname] portname portinfo
+            if {$portname eq "" ||
+                [catch {mportopen [dict get $portinfo porturl] [dict create subport $portname] $variations} mport]
+            } then {
+                incr portfile_counter
+                $progress update $portfile_counter $portfile_total
+                continue
+            }
+            set workername [ditem_key $mport workername]
+            set mport_archs [$workername eval [list get_canonical_archs]]
+            dict set intree_archs $portname $requested_variants $mport_archs
+            lappend mports $mport
+
+            incr portfile_counter
+            $progress update $portfile_counter $portfile_total
+        }
+        $progress finish
+
+        return [list $intree_archs $mports]
     }
 
     ##
@@ -123,23 +185,29 @@ namespace eval migrate {
     }
 
     ##
-    # Uninstall installed ports that are not compatible with
-    # the current platform
+    # Uninstall installed ports that are not compatible with the
+    # current platform, or that would build for a different arch with
+    # the current configuration.
     #
     # @return void on success, raises an error on failure
-    proc uninstall_incompatible {} {
+    proc uninstall_incompatible {ports_in_tree_archs} {
         set options [dict create ports_nodepcheck 1 ports_force 1]
         set portlist [restore::deactivation_order [registry::entry imaged]]
         foreach port $portlist {
-            # TODO: check archs match (needs open mport)
+            set portname [$port name]
             if {![snapshot::_os_mismatch [$port os_platform] [$port os_major]]} {
-                # Compatible with current platform
-                continue
+                # Compatible with current platform, check that archs match
+                set snapshot_reqvar [$port requested_variants]
+                if {[dict exists $ports_in_tree_archs $portname $snapshot_reqvar]
+                    && [dict get $ports_in_tree_archs $portname $snapshot_reqvar]
+                        eq [$port archs]} {
+                    continue
+                }
             }
-            ui_msg "Uninstalling: [$port name]"
+            ui_msg "Uninstalling: $portname"
             if {![registry::run_target $port uninstall $options]
-                    && [catch {registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
-                ui_error "Error uninstalling [$port name]: $result"
+                    && [catch {registry_uninstall::uninstall $portname [$port version] [$port revision] [$port variants] $options} result]} {
+                ui_error "Error uninstalling ${portname}: $result"
             }
         }
     }

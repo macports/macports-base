@@ -93,7 +93,6 @@ namespace eval restore {
         deactivate_all
 
         ui_msg "$restore::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
-        set snapshot_portlist [$snapshot ports]
         set failed [restore_state [$snapshot ports]]
 
         if {[dict size $failed] > 0} {
