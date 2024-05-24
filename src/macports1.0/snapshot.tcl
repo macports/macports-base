@@ -197,15 +197,13 @@ namespace eval snapshot {
 
         set best_match {}
         set best_match_score -1
-        foreach iport $installed {
-            lassign $iport iname iversion irevision ivariants iactive iepoch
-            set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
-            set iplatform [registry::property_retrieve $regref os_platform]
-            set iosmajor [registry::property_retrieve $regref os_major]
-            set irequested [expr {[registry::property_retrieve $regref requested] == 1}]
-            set irequested_variants [registry::property_retrieve $regref requested_variants]
+        foreach regref $installed {
+            set ivariants [$regref variants]
+            set iactive [expr {[$regref state] eq "installed"}]
+            set irequested [expr {[$regref requested] == 1}]
+            set irequested_variants [$regref requested_variants]
 
-            if {[_os_mismatch $iplatform $iosmajor]} {
+            if {[_os_mismatch [$regref os_platform] [$regref os_major]]} {
                 # ignore ports that were not built on the current macOS version
                 continue
             }
@@ -227,7 +225,9 @@ namespace eval snapshot {
 
             if {$score > $best_match_score} {
                 set best_match_score $score
-                set best_match [list {*}$iport $irequested $irequested_variants]
+                set best_match [list [$regref name] [$regref version] \
+                    [$regref revision] $ivariants $iactive [$regref epoch] \
+                    $irequested $irequested_variants]
             }
         }
 
@@ -267,7 +267,7 @@ namespace eval snapshot {
 
             dict set snapshot_ports $name 1
 
-            if {[catch {set installed [registry::installed $name]}]} {
+            if {[catch {set installed [registry::entry imaged $name]}] || $installed eq ""} {
                 # registry::installed failed, the port probably isn't installed
                 lappend removed $port
                 continue
@@ -277,20 +277,16 @@ namespace eval snapshot {
                 # for ports that were active in the snapshot, always compare
                 # with the installed active port, if any
                 set found 0
-                foreach installed_port $installed {
-                    lassign $installed_port iname iversion irevision ivariants iactive iepoch
-                    set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
-                    set iplatform [registry::property_retrieve $regref os_platform]
-                    set iosmajor [registry::property_retrieve $regref os_major]
-                    set irequested [expr {[registry::property_retrieve $regref requested] == 1}]
-                    set irequested_variants [registry::property_retrieve $regref requested_variants]
-
-                    if {[_os_mismatch $iplatform $iosmajor]} {
+                foreach regref $installed {
+                    if {[_os_mismatch [$regref os_platform] [$regref os_major]]} {
                         # ignore ports that were not built on the current macOS version
                         continue
                     }
 
-                    if {$iactive} {
+                    if {[$regref state] eq "installed"} {
+                        set irequested [expr {[$regref requested] == 1}]
+                        set ivariants [$regref variants]
+                        set irequested_variants [$regref requested_variants]
                         set found 1
                         break
                     }
@@ -349,25 +345,20 @@ namespace eval snapshot {
             }
         }
 
-        foreach port [registry::entry imaged] {
-            lassign $installed_port iname iversion irevision ivariants iactive iepoch
-            set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
-            set iplatform [registry::property_retrieve $regref os_platform]
-            set iosmajor [registry::property_retrieve $regref os_major]
-            set irequested [registry::property_retrieve $regref requested]
-            set irequested_variants [registry::property_retrieve $regref requested_variants]
-
-            if {[_os_mismatch $iplatform $iosmajor]} {
+        foreach regref [registry::entry imaged] {
+            if {[_os_mismatch [$regref os_platform] [$regref os_major]]} {
                 # port was installed on old OS, ignore
                 continue
             }
+            set iname [$regref name]
             if {[dict exists $snapshot_ports $iname]} {
                 # port was in the snapshot
                 continue
             }
 
             # port was not in the snapshot, it is new
-            lappend added [list $iname $irequested $iactive $ivariants $irequested_variants]
+            set iactive [expr {[$regref state] eq "installed"}]
+            lappend added [list $iname [$regref requested] $iactive [$regref variants] [$regref requested_variants]]
         }
 
         return [list removed $removed added $added changed $changed]
