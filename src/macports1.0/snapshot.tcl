@@ -180,6 +180,27 @@ namespace eval snapshot {
         return $snapshot
     }
 
+    # Get the port name that owns the given file path in the given snapshot.
+    proc file_owner {path snapshot_id} {
+        global registry::tdbc_connection
+        if {![info exists tdbc_connection]} {
+            registry::tdbc_connect
+        }
+        variable file_owner_stmt
+        if {![info exists file_owner_stmt]} {
+            set query {SELECT snapshot_ports.port_name FROM snapshot_ports
+                    INNER JOIN snapshot_files ON snapshot_files.id = snapshot_ports.id
+                    WHERE snapshot_files.path = :path AND snapshot_ports.snapshots_id = :snapshot_id}
+            set file_owner_stmt [$tdbc_connection prepare $query]
+        }
+        $tdbc_connection transaction {
+            set results [$file_owner_stmt execute]
+        }
+        set ret [lmap l [$results allrows] {lindex $l 1}]
+        $results close
+        return $ret
+    }
+
     proc _os_mismatch {iplatform iosmajor} {
         global macports::os_platform macports::os_major
         if {$iplatform ne "any" && ($iplatform ne $os_platform
