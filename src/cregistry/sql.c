@@ -141,7 +141,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.212')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.213')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -223,6 +223,16 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
             " ON DELETE CASCADE"
             ")",
+
+        /* Files registered to ports in snapshots.
+           Needed to resolve file-based dependencies. */
+        "CREATE TABLE registry.snapshot_files ("
+              "id INTEGER"
+            ", path TEXT"
+            ", FOREIGN KEY(id) REFERENCES snapshot_ports(id)"
+            " ON DELETE CASCADE"
+            ")",
+        "CREATE INDEX registry.snapshot_file_path ON snapshot_files(path)",
 
         "COMMIT",
         NULL
@@ -922,6 +932,39 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.213") < 0) {
+            /* Add files to snapshots */
+
+            static char* version_1_213_queries[] = {
+
+                /* Files registered to ports in snapshots.
+                   Needed to resolve file-based dependencies. */
+                "CREATE TABLE registry.snapshot_files ("
+                      "id INTEGER"
+                    ", path TEXT"
+                    ", FOREIGN KEY(id) REFERENCES snapshot_ports(id)"
+                    " ON DELETE CASCADE"
+                    ")",
+                "CREATE INDEX registry.snapshot_file_path ON snapshot_files(path)",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.213' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_213_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -931,7 +974,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.212") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.213") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

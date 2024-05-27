@@ -67,6 +67,9 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note,
 // helper method for storing ports for this snapshot
 int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot,
         reg_error* errPtr);
+// helper method for storing files for this snapshot
+int snapshot_store_files(reg_registry* reg, reg_snapshot* snapshot,
+        reg_error* errPtr);
 
 // snapshot properties retrieval methods
 int reg_snapshot_propget(reg_snapshot* snapshot, char* key, char** value,
