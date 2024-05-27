@@ -79,7 +79,7 @@ int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
 int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_entry** entries, int entry_count, reg_error* errPtr);
 int snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_snapshot* snapshot,
-        int* lower_bound, reg_error* errPtr);
+        void* param UNUSED, reg_error* errPtr);
 int list_snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_snapshot** snapshots, int snapshot_count, reg_error* errPtr);
 int file_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_file* file,

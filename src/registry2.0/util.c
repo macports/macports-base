@@ -335,9 +335,10 @@ int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
 }
 
 int snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_snapshot* snapshot,
-        int* lower_bound, reg_error* errPtr) {
+        void* param UNUSED, reg_error* errPtr) {
+    static unsigned int lower_bound = 0;
     if (snapshot->proc == NULL) {
-        char* name = unique_name(interp, "::registry::snapshot", lower_bound);
+        char* name = unique_name(interp, "::registry::snapshot", &lower_bound);
         if (!name) {
             return 0;
         }
@@ -419,8 +420,7 @@ int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
 
 int list_snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_snapshot** snapshots, int snapshot_count, reg_error* errPtr) {
-    int lower_bound = 0;
-    return recast(interp, (cast_function*)snapshot_to_obj, &lower_bound, NULL,
+    return recast(interp, (cast_function*)snapshot_to_obj, NULL, NULL,
             (void***)objs, (void**)snapshots, snapshot_count, errPtr);
 }
 
