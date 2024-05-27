@@ -93,7 +93,7 @@ namespace eval restore {
         deactivate_all
 
         ui_msg "$restore::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
-        set failed [restore_state [$snapshot ports]]
+        set failed [restore_state $snapshot]
 
         if {[dict size $failed] > 0} {
             set note "Migration finished with errors.\n"
@@ -270,17 +270,78 @@ namespace eval restore {
         return $result
     }
 
+    # Get the port that satisfies a depspec, with respect to the files
+    # in the snapshot for path-pased deps.
+    proc resolve_depspec {depspec ports snapshot_id} {
+        set remaining [lassign [split $depspec :] type next]
+        if {$type eq "port"} {
+            return $next
+        }
+        set portname [lindex $remaining end]
+        if {[dict exists $ports $portname] && [lindex [dict get $ports $portname] 1]} {
+            # Port is active in the snapshot.
+            return $portname
+        }
+        switch $type {
+            bin {
+                variable binpaths
+                if {![info exists binpaths]} {
+                    set binpaths [list]
+                    foreach p [split $::env(PATH) :] {
+                        lappend binpaths $p
+                    }
+                }
+                foreach path $binpaths {
+                    set owners [snapshot::file_owner [file join $path $next] $snapshot_id]
+                    if {$owners ne ""} {
+                        break
+                    }
+                }
+            }
+            lib {
+                global macports::prefix macports::frameworks_dir macports::os_platform
+                set i [string first . $next]
+                if {$i < 0} {set i [string length $next]}
+                set depname [string range $next 0 $i-1]
+                set depversion [string range $next $i end]
+                if {${os_platform} eq "darwin"} {
+                    set depfile ${depname}${depversion}.dylib
+                } else {
+                    set depfile ${depname}.so${depversion}
+                }
+                foreach path [list ${frameworks_dir} ${prefix}/lib] {
+                    set owners [snapshot::file_owner [file join $path $depfile] $snapshot_id]
+                    if {$owners ne ""} {
+                        break
+                    }
+                }
+            }
+            path {
+                global macports::prefix
+                set owners [snapshot::file_owner [file join $prefix $next] $snapshot_id]
+            }
+        }
+        if {[info exists owners]} {
+            if {[llength $owners] > 1} {
+                ui_warn "File for $depspec owned by multiple ports in snapshot, using first match"
+            }
+            return [lindex $owners 0]
+        }
+        return {}
+    }
+
     ##
     # Sorts a list of port references such that ports appear after their
     # dependencies. Ideal for installing a port.
     #
     # Args:
-    #       portlist - the list of port references
+    #       snapshot - the snapshot from which to get the list of port references
     #
     # Returns:
     #       The list in dependency-sorted order
     #       The dependency graph, to be destroyed by calling $dependencies destroy
-    proc resolve_dependencies {portlist} {
+    proc resolve_dependencies {snapshot} {
+        set portlist [$snapshot ports]
         set ports [dict create]
         set dep_ports [dict create]
         set dependencies [::struct::graph]
@@ -325,7 +386,7 @@ namespace eval restore {
         # depth-first dependency resolution.
         set worklist [list]
         set seen [dict create]
-        set seen_conflicts [dict create]
+        set snapshot_id [$snapshot id]
         foreach port $portlist {
             lassign $port name requested _ _ _
 
@@ -372,6 +433,7 @@ namespace eval restore {
                 $progress intermission
                 error "Unable to open port '$portname': $result"
             }
+            set portinfo [mportinfo $mport]
 
             # Compute the dependencies for the 'install' target. Do not recurse into the dependencies: we'll do that
             # here manually in order to
@@ -380,66 +442,37 @@ namespace eval restore {
             #  (3) identify if an alternative provider was used based on the snapshot and the conflicts information
             #  (such as for example when a port depends on curl-ca-bundle, but the snapshot contains certsync, which
             #  conflicts with curl-ca-bundle).
-            if {[mportdepends $mport install 0] != 0} {
-                $progress intermission
-                error "Unable to determine dependencies for port '$portname'"
-            }
+            set workername [ditem_key $mport workername]
+            set deptypes [macports::_deptypes_for_target install $workername]
 
             set provides [ditem_key $mport provides]
             if {![$dependencies node exists $provides]} {
                 $dependencies node insert $provides
             }
-            foreach dependency [ditem_key $mport requires] {
-                lassign [dlist_search $macports::open_mports provides $dependency] dep_ditem
-
-                set conflict_found 0
-                set portinfo [mportinfo $dep_ditem]
-                if {[dict exists $portinfo conflicts] && [llength [dict get $portinfo conflicts]] > 0} {
-                    foreach conflict [dict get $portinfo conflicts] {
-                        if {[dict exists $ports $conflict]} {
-                            # The conflicting port was installed in the snapshot. Assume that this happened because the
-                            # conflicting port is an alternative provider for this dependency (e.g., curl-ca-bundle and
-                            # certsync, or a -devel port replacing its non-devel variant).
-                            #
-                            # Do not add the dependency that mportdepends computed, but instead replace this dependency
-                            # with the conflicting port.
-                            #
-                            # Warn only once for every combination, otherwise users might see the same message multiple
-                            # times.
-                            if {![dict exists $seen_conflicts [dict get $portinfo name] $conflict]} {
-                                dict set seen_conflicts [dict get $portinfo name] $conflict 1
-
-                                $progress intermission
-                                ui_warn "Snapshot contains $conflict, which conflicts with dependency [dict get $portinfo name]; assuming $conflict provides the functionality of [dict get $portinfo name]"
-                                $progress update $requested_counter $requested_total
-                            }
-
-                            if {![$dependencies node exists $conflict]} {
-                                $dependencies node insert $conflict
-                            }
-
-                            $dependencies arc insert $provides $conflict
-
-                            set worklist [linsert $worklist 0 $conflict]
-                            set conflict_found 1
-                            break
-                        }
-                    }
-                }
-                if {$conflict_found} {
+            foreach deptype $deptypes {
+                if {![dict exists $portinfo $deptype]} {
                     continue
                 }
+                foreach depspec [dict get $portinfo $deptype] {
+                    set dependency [resolve_depspec $depspec $ports $snapshot_id]
+                    if {$dependency eq ""} {
+                        # Not fulfilled by a port in the snapshot
+                        continue
+                    }
+                    if {![$dependencies node exists $dependency]} {
+                        $dependencies node insert $dependency
+                    }
+                    if {[dict exists $ports $dependency]} {
+                        set dependency_requested_variants [lindex [dict get $ports $dependency] 2]
+                    } else {
+                        set dependency_requested_variants {}
+                    }
+                    dict set dep_ports $dependency $dependency_requested_variants
 
-                if {![$dependencies node exists $dependency]} {
-                    $dependencies node insert $dependency
+                    $dependencies arc insert $provides $dependency
+                    set worklist [linsert $worklist 0 $dependency]
                 }
-                set dependency_requested_variants [[ditem_key $dep_ditem workername] eval {set requested_variants}]
-                dict set dep_ports $dependency $dependency_requested_variants
-
-                $dependencies arc insert $provides $dependency
-                set worklist [linsert $worklist 0 $dependency]
             }
-            mportclose $mport
 
             if {$requested} {
                 # Print a progress indicator if this is a requested port (or for every port if in verbose mode).
@@ -495,8 +528,8 @@ namespace eval restore {
             } $level]
     }
 
-    proc restore_state {snapshot_portlist} {
-        lassign [resolve_dependencies $snapshot_portlist] sorted_snapshot_portlist dependencies
+    proc restore_state {snapshot} {
+        lassign [resolve_dependencies $snapshot] sorted_snapshot_portlist dependencies
 
         # map from port name to an entry describing why the port failed or was
         # skipped
