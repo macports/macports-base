@@ -250,6 +250,51 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* e
         sqlite3_finalize(stmt);
     }
 
+    return result ? snapshot_store_files(reg, snapshot, errPtr) : result;
+}
+
+/**
+ * helper method for storing files for this snapshot
+ *
+ * @param [in] reg          associated registry
+ * @param [in] snapshot     reg_snapshot, its id to use for foreignkey'ing the files
+ * @param [out] errPtr      on error, a description of the error that occurred
+ * @return                  true if success; 0 if failure
+ */
+int snapshot_store_files(reg_registry* reg, reg_snapshot* snapshot, reg_error* errPtr) {
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+
+    char* query = "INSERT INTO registry.snapshot_files (id, path) "
+        "SELECT snapshot_ports.id, files.path "
+        "FROM registry.ports INNER JOIN registry.files ON ports.id = files.id "
+        "INNER JOIN registry.snapshot_ports ON ports.name = snapshot_ports.port_name "
+        "WHERE snapshot_ports.snapshots_id = ? AND ports.state = 'installed'";
+
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, snapshot->id) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    result = 0;
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+
     return result;
 }
 
