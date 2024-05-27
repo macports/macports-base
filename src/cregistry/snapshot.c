@@ -218,67 +218,38 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
  * @return                  true if success; 0 if failure
  */
 int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* errPtr) {
-    reg_entry** entries;
-    reg_error error;
-    int i, entry_count;
     int result = 1;
-    entry_count = reg_entry_installed(reg, NULL, &entries, &error);
-    char* key1 = "name";
-    char* key2 = "requested";
-    char* key3 = "state";
-    char* key4 = "variants";
-    char* key5 = "requested_variants";
-    if (entry_count >= 0) {
-        for ( i = 0; i < entry_count; i++) {
-            char* port_name;
-            char* requested;
-            char* state;
-            char* variants_str;
-            char* requested_variants_str;
-            sqlite3_stmt* stmt = NULL;
-            reg_entry* entry = NULL;
-            if (reg_entry_propget(entries[i], key1, &port_name, &error)
-                && reg_entry_propget(entries[i], key2, &requested, &error)
-                && reg_entry_propget(entries[i], key3, &state, &error)
-                && reg_entry_propget(entries[i], key4, &variants_str, &error)
-                && reg_entry_propget(entries[i], key5, &requested_variants_str, &error)) {
+    sqlite3_stmt* stmt = NULL;
 
-                char* query = "INSERT INTO registry.snapshot_ports "
-                    "(snapshots_id, port_name, requested, state, variants, requested_variants) "
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+    char* query = "INSERT INTO registry.snapshot_ports "
+        "(snapshots_id, port_name, requested, state, variants, requested_variants) "
+        "SELECT ?, name, requested, state, variants, requested_variants "
+        "FROM registry.ports WHERE state='installed'";
 
-                if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-                        && (sqlite3_bind_int64(stmt, 1, snapshot->id) == SQLITE_OK)
-                        && (sqlite3_bind_text(stmt, 2, port_name, -1, SQLITE_STATIC) == SQLITE_OK)
-                        && (sqlite3_bind_int64(stmt, 3, atoi(requested)) == SQLITE_OK)
-                        && (sqlite3_bind_text(stmt, 4, state, -1, SQLITE_STATIC) == SQLITE_OK)
-                        && (sqlite3_bind_text(stmt, 5, variants_str, -1, SQLITE_STATIC) == SQLITE_OK)
-                        && (sqlite3_bind_text(stmt, 6, requested_variants_str, -1, SQLITE_STATIC) == SQLITE_OK)) {
-                    int r;
-                    do {
-                        r = sqlite3_step(stmt);
-                        switch (r) {
-                            case SQLITE_DONE:
-                                break;
-                            case SQLITE_BUSY:
-                                break;
-                            default:
-                                reg_sqlite_error(reg->db, errPtr, query);
-                                result = 0;
-                                break;
-                        }
-                    } while (r == SQLITE_BUSY);
-                } else {
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, snapshot->id) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
                     reg_sqlite_error(reg->db, errPtr, query);
                     result = 0;
-                }
-                if (stmt) {
-                    sqlite3_finalize(stmt);
-                }
+                    break;
             }
-            free(entry);
-        }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        result = 0;
     }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+
     return result;
 }
 
