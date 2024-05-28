@@ -101,7 +101,7 @@ namespace eval migrate {
         ui_msg "Deactivating all ports..."
         restore::deactivate_all
 
-        lassign [get_intree_archs $snapshot] ports_in_tree_archs mport_list
+        lassign [get_intree_archs] ports_in_tree_archs mport_list
         # get_intree_archs opens Portfiles. Leaving them open for now because
         # restore_snapshot will want to use the same ones.
 
@@ -120,13 +120,13 @@ namespace eval migrate {
     }
 
     ##
-    # Open the current in-tree Portfile for each port in the snapshot,
+    # Open the current in-tree Portfile for each installed port,
     # using the recorded requested variants, and figure out its archs.
     #
     # @return a list of two elements:
     #   1. A dict mapping portname -> requested_variants -> archs
     #   2. A list of the mport handles for the opened Portfiles.
-    proc get_intree_archs {snapshot} {
+    proc get_intree_archs {} {
         set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
         if {$fancy_output} {
             set progress $macports::ui_options(progress_generic)
@@ -141,12 +141,18 @@ namespace eval migrate {
         ui_msg "$macports::ui_prefix Loading Portfiles"
         $progress start
         set portfile_counter 0
-        set snapshot_ports [$snapshot ports]
-        set portfile_total [llength $snapshot_ports]
+        set installed_ports [registry::entry imaged]
+        set portfile_total [llength $installed_ports]
         $progress update $portfile_counter $portfile_total
 
-        foreach port $snapshot_ports {
-            lassign $port portname _ _ _ requested_variants
+        foreach port $installed_ports {
+            set portname [$port name]
+            set requested_variants [$port requested_variants]
+            if {[dict exists $intree_archs $portname $requested_variants]} {
+                incr portfile_counter
+                $progress update $portfile_counter $portfile_total
+                continue
+            }
             set variations [restore::variants_to_variations_arr $requested_variants]
             lassign [mportlookup $portname] portname portinfo
             if {$portname eq "" ||
@@ -197,9 +203,9 @@ namespace eval migrate {
             set portname [$port name]
             if {![snapshot::_os_mismatch [$port os_platform] [$port os_major]]} {
                 # Compatible with current platform, check that archs match
-                set snapshot_reqvar [$port requested_variants]
-                if {[dict exists $ports_in_tree_archs $portname $snapshot_reqvar]
-                    && [dict get $ports_in_tree_archs $portname $snapshot_reqvar]
+                set installed_reqvar [$port requested_variants]
+                if {[dict exists $ports_in_tree_archs $portname $installed_reqvar]
+                    && [dict get $ports_in_tree_archs $portname $installed_reqvar]
                         eq [$port archs]} {
                     continue
                 }
