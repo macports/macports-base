@@ -309,7 +309,6 @@ proc portlint::lint_main {args} {
     set require_after ""
     set seen_portsystem false
     set seen_portgroup false
-    set seen_platforms false
     set in_description false
     set prohibit_tabs false
 
@@ -414,9 +413,6 @@ proc portlint::lint_main {args} {
             set seen_portgroup true
             set require_blank true
             set require_after "PortGroup"
-        }
-        if {[regexp {^\s*platforms\s} $line]} {
-            set seen_platforms true
         }
 
         # TODO: check for repeated variable definitions
@@ -592,7 +588,7 @@ proc portlint::lint_main {args} {
         incr warnings
     }
 
-    if {$seen_platforms && [info exists platforms]} {
+    if {[info exists platforms]} {
         set platforms_lint [portlint::lint_platforms $platforms]
 
         foreach err [lindex $platforms_lint 0] {
