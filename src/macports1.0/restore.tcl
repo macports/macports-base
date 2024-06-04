@@ -456,8 +456,13 @@ namespace eval restore {
                 foreach depspec [dict get $portinfo $deptype] {
                     set dependency [resolve_depspec $depspec $ports $snapshot_id]
                     if {$dependency eq ""} {
-                        # Not fulfilled by a port in the snapshot
-                        continue
+                        # Not fulfilled by a port in the snapshot. Check if
+                        # it needs to be fulfilled by any port. (This is safe
+                        # because all ports are inactive at this point.)
+                        set dependency [$workername eval [list _get_dep_port $depspec]]
+                        if {$dependency eq ""} {
+                            continue
+                        }
                     }
                     if {![$dependencies node exists $dependency]} {
                         $dependencies node insert $dependency
