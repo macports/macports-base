@@ -42,4 +42,5 @@ if {[registry::metadata get portfiles_update_needed] == 1} {
     }
 }
 
+mportshutdown
 exit 0

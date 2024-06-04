@@ -56,4 +56,5 @@ if {[info exists macports::ui_options(progress_generic)]} {
     macports::revupgrade_update_cxx_stdlib no
 }
 
+mportshutdown
 exit 0
