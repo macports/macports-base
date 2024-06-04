@@ -169,13 +169,13 @@ test push_log {
     root
 } -setup {
     set mport [mportopen file://${pwd}]
-    global macports:logenabled
+    global macports::logenabled
     set logenabled 1
 } -body {
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
-    global macports:logstack macports:debuglog macports:debuglogname
+    global macports::logstack macports::debuglog macports::debuglogname
     if {[lindex $logstack 0] ne [list $debuglog $debuglogname]} {
         return "FAIL: incorrect logstack"
     }
@@ -188,7 +188,7 @@ test push_log {
 test pop_log {
     Pop log unit test.
 } -setup {
-    global macports:logenabled macports:logstack macports:debuglog
+    global macports::logenabled macports::logstack macports::debuglog
     set logenabled 1
     set stacklog [open $pwd/logstack w+]
     set logstack [list [list $stacklog $pwd/logstack]]
