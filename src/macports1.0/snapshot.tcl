@@ -73,7 +73,33 @@ namespace eval snapshot {
                 return [create $opts]
             }
             "list" {
-                ui_error "list operation not implemented"
+                set snapshots [registry::snapshot get_all]
+
+                if {[llength $snapshots] == 0} {
+                    ui_msg "There are no snapshots. Use 'sudo port snapshot \[--create\] \[--note '<message>'\]' to create one."
+                    return 0
+                }
+
+                set lens [dict create id [string length "ID"] created_at [string length "Created"] note [string length "Note"]]
+                foreach snapshot $snapshots {
+                    foreach fieldname {id created_at note} {
+                        set len [string length [$snapshot $fieldname]]
+                        if {[dict get $lens $fieldname] < $len} {
+                            dict set lens $fieldname $len
+                        }
+                    }
+                }
+
+                set formatStr "%*s  %-*s  %-*s"
+                set heading [format $formatStr [dict get $lens id] "ID" [dict get $lens created_at] "Created" [dict get $lens note] "Note"]
+
+                ui_msg $heading
+                ui_msg [string repeat "=" [string length $heading]]
+                foreach snapshot $snapshots {
+                    ui_msg [format $formatStr [dict get $lens id] [$snapshot id] [dict get $lens created_at] [$snapshot created_at] [dict get $lens note] [$snapshot note]]
+                }
+
+                return 0
             }
             "diff" {
                 set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_diff]]
