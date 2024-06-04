@@ -3186,12 +3186,13 @@ proc _libtest {depspec {return_match 0}} {
     if {$i < 0} {set i [string length $depline]}
     set depname [string range $depline 0 $i-1]
     set depversion [string range $depline $i end]
-    regsub {\.} $depversion {\.} depversion
     if {${os.platform} eq "darwin"} {
-        set depregex \^${depname}${depversion}\\.dylib\$
+        set depregex ${depname}${depversion}.dylib
     } else {
-        set depregex \^${depname}\\.so${depversion}\$
+        set depregex ${depname}.so${depversion}
     }
+
+    set depregex \^[quotemeta $depregex]\$
 
     return [_mportsearchpath $depregex $search_path 0 $return_match]
 }
@@ -3204,7 +3205,7 @@ proc _bintest {depspec {return_match 0}} {
 
     set search_path [split $env(PATH) :]
 
-    set depregex \^$depregex\$
+    set depregex \^[quotemeta $depregex]\$
 
     return [_mportsearchpath $depregex $search_path 1 $return_match]
 }
@@ -3225,7 +3226,7 @@ proc _pathtest {depspec {return_match 0}} {
         set search_path "${prefix}/${search_path}"
     }
 
-    set depregex \^$depregex\$
+    set depregex \^[quotemeta $depregex]\$
 
     return [_mportsearchpath $depregex $search_path 0 $return_match]
 }
