@@ -202,6 +202,25 @@ int reg_configure(reg_registry* reg) {
     if (stmt) {
         sqlite3_finalize(stmt);
     }
+    if (!result) {
+        return result;
+    }
+    /* Turn on foreign key support. */
+    stmt = NULL;
+    result = 0;
+    if (sqlite3_prepare_v2(reg->db, "PRAGMA foreign_keys = ON", -1, &stmt, NULL) == SQLITE_OK) {
+        int r;
+        do {
+            sqlite3_step(stmt);
+            r = sqlite3_reset(stmt);
+            if (r == SQLITE_OK) {
+                result = 1;
+            }
+        } while (r == SQLITE_BUSY);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 

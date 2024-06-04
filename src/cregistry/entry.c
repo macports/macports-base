@@ -257,26 +257,11 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     errPtr->free = NULL;
 
     sqlite3_stmt* ports = NULL;
-    sqlite3_stmt* followups[] = { NULL, NULL, NULL };
-    sqlite3_stmt** pFiles = &followups[0];
-    sqlite3_stmt** pDependencies = &followups[1];
-    sqlite3_stmt** pPortgroups = &followups[2];
+    /* Relies on cascading to delete associated files, dependencies,
+       and portgroups. */
     char* ports_query = "DELETE FROM registry.ports WHERE id=?";
-    char* files_query = "DELETE FROM registry.files WHERE id=?";
-    char* dependencies_query = "DELETE FROM registry.dependencies WHERE id=?";
-    char* portgroups_query = "DELETE FROM registry.portgroups WHERE id=?";
     if ((sqlite3_prepare_v2(reg->db, ports_query, -1, &ports, NULL) == SQLITE_OK)
-            && (sqlite3_bind_int64(ports, 1, entry->id) == SQLITE_OK)
-            /* follow-ups */
-            && (sqlite3_prepare_v2(reg->db, files_query, -1, pFiles, NULL)
-                == SQLITE_OK)
-            && (sqlite3_bind_int64(*pFiles, 1, entry->id) == SQLITE_OK)
-            && (sqlite3_prepare_v2(reg->db, dependencies_query, -1, pDependencies,
-                    NULL) == SQLITE_OK)
-            && (sqlite3_bind_int64(*pDependencies, 1, entry->id) == SQLITE_OK)
-            && (sqlite3_prepare_v2(reg->db, portgroups_query, -1, pPortgroups,
-                    NULL) == SQLITE_OK)
-            && (sqlite3_bind_int64(*pPortgroups, 1, entry->id) == SQLITE_OK)) {
+            && (sqlite3_bind_int64(ports, 1, entry->id) == SQLITE_OK)) {
         int r;
         do {
             r = sqlite3_step(ports);
@@ -284,27 +269,6 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                 case SQLITE_DONE:
                     if (sqlite3_changes(reg->db) > 0) {
                         result = 1;
-                        for (size_t i = 0; i < sizeof(followups)/sizeof(followups[0]); i++) {
-                            do {
-                                r = sqlite3_step(followups[i]);
-                                switch (r) {
-                                    case SQLITE_DONE:
-                                        break;
-                                    case SQLITE_BUSY:
-                                        break;
-                                    case SQLITE_ERROR:
-                                    default:
-                                        reg_sqlite_error(reg->db,
-                                                errPtr, NULL);
-                                        result = 0;
-                                        break;
-                                }
-                            } while (r == SQLITE_BUSY);
-                            if (result == 0) {
-                                break;
-                            }
-                        }
-                        break;
                     } else {
                         errPtr->code = REG_INVALID;
                         errPtr->description = "an invalid entry was passed";
@@ -324,11 +288,6 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     }
     if (ports) {
         sqlite3_finalize(ports);
-    }
-    for (size_t i = 0; i < sizeof(followups)/sizeof(followups[0]); i++) {
-        if (followups[i]) {
-            sqlite3_finalize(followups[i]);
-        }
     }
     return result;
 }
