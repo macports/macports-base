@@ -112,7 +112,7 @@ reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id, reg_error* e
                     break;
                 case SQLITE_DONE:
                     errPtr->code = REG_NOT_FOUND;
-                    errPtr->description = sqlite3_mprintf("no snapshot found for id=%s", id);
+                    errPtr->description = sqlite3_mprintf("no snapshot found for id=%lld", id);
                     errPtr->free = (reg_error_destructor*) sqlite3_free;
                     break;
                 case SQLITE_BUSY:
