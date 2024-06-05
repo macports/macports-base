@@ -580,13 +580,13 @@ namespace eval restore {
             }
 
             if {!$active} {
-                set target install
+                set install_target install
             } else {
-                set target activate
+                set install_target activate
             }
 
             if {[catch {set res [mportlookup $name]} result]} {
-                ui_debug "$::errorInfo"
+                ui_debug $::errorInfo
                 _handle_failure failed $dependencies $name "lookup of port $name failed: $result"
                 continue
             }
@@ -611,11 +611,13 @@ namespace eval restore {
                 set mport [dict get $mports $portname $variants]
             }
 
-            if {[catch {set result [mportexec $mport $target]} result]} {
-                ui_msg "$::errorInfo"
-                _handle_failure failed $dependencies $name "Unable to execute target $target for port $name: $result"
-            } elseif {$result != 0} {
-                _handle_failure failed $dependencies $name "Failed to $target $name"
+            foreach target [list clean $install_target] {
+                if {[catch {set result [mportexec $mport $target]} result]} {
+                    ui_msg $::errorInfo
+                    _handle_failure failed $dependencies $name "Unable to execute target $target for port $name: $result"
+                } elseif {$result != 0} {
+                    _handle_failure failed $dependencies $name "Failed to $target $name"
+                }
             }
             mportclose $mport
             dict unset mports $portname $variants
