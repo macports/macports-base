@@ -154,9 +154,12 @@ namespace eval migrate {
                 continue
             }
             set variations [restore::variants_to_variations_arr $requested_variants]
+            # Set same options as restore code so it's more likely the open mports
+            # can be reused rather than having to be opened again.
+            set options [dict create ports_requested [$port requested] subport $portname]
             lassign [mportlookup $portname] portname portinfo
             if {$portname eq "" ||
-                [catch {mportopen [dict get $portinfo porturl] [dict create subport $portname] $variations} mport]
+                [catch {mportopen [dict get $portinfo porturl] $options $variations} mport]
             } then {
                 incr portfile_counter
                 $progress update $portfile_counter $portfile_total

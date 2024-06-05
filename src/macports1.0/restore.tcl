@@ -42,6 +42,7 @@ package require lambda 1
 
 namespace eval restore {
     variable ui_prefix
+    variable mports
 
     proc main {opts} {
         # The main function. If the action is provided a snapshot id, then it deactivates
@@ -341,6 +342,7 @@ namespace eval restore {
     #       The list in dependency-sorted order
     #       The dependency graph, to be destroyed by calling $dependencies destroy
     proc resolve_dependencies {snapshot} {
+        variable mports
         set portlist [$snapshot ports]
         set ports [dict create]
         set dep_ports [dict create]
@@ -415,6 +417,7 @@ namespace eval restore {
                 $progress update $requested_counter $requested_total
                 continue
             }
+            lassign $port portname portinfo
 
             if {[dict exists $ports $portname]} {
                 lassign [dict get $ports $portname] requested _ variants
@@ -427,11 +430,17 @@ namespace eval restore {
             }
 
             # Open the port with the requested variants from the snapshot
-            set variations [variants_to_variations_arr $variants]
-            set portinfo [lindex $port 1]
-            if {[catch {set mport [mportopen [dict get $portinfo porturl] [dict create subport [dict get $portinfo name]] $variations]} result]} {
-                $progress intermission
-                error "Unable to open port '$portname': $result"
+            if {![dict exists $mports $portname $variants]} {
+                set options [dict create ports_requested $requested subport $portname]
+                set variations [variants_to_variations_arr $variants]
+                if {[catch {set mport [mportopen [dict get $portinfo porturl] $options $variations]} result]} {
+                    $progress intermission
+                    ui_error "Unable to open port '$portname' with variants '$variants': $result"
+                    continue
+                }
+                dict set mports $portname $variants $mport
+            } else {
+                set mport [dict get $mports $portname $variants]
             }
             set portinfo [mportinfo $mport]
 
@@ -534,6 +543,7 @@ namespace eval restore {
     }
 
     proc restore_state {snapshot} {
+        variable mports [dict create]
         lassign [resolve_dependencies $snapshot] sorted_snapshot_portlist dependencies
 
         # map from port name to an entry describing why the port failed or was
@@ -585,28 +595,38 @@ namespace eval restore {
                 _handle_failure failed $dependencies $name "port $name not found in the port index"
                 continue
             }
-            set portinfo [lindex $res 1]
-            set porturl [dict get $portinfo porturl]
+            lassign $res portname portinfo
+            if {![dict exists $mports $portname $variants]} {
+                set porturl [dict get $portinfo porturl]
+                set options [dict create ports_requested $requested subport $portname]
+                set variations [variants_to_variations_arr $variants]
 
-            set options [dict create ports_requested $requested subport [dict get $portinfo name]]
-            set variations [variants_to_variations_arr $variants]
-
-            if {[catch {set workername [mportopen $porturl $options $variations]} result]} {
-                ui_msg $::errorInfo
-                _handle_failure failed $dependencies $name "unable to open port $name: $result"
-                continue
+                if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
+                    ui_debug $::errorInfo
+                    _handle_failure failed $dependencies $name "unable to open port $name: $result"
+                    continue
+                }
+                dict set mports $portname $variants $mport
+            } else {
+                set mport [dict get $mports $portname $variants]
             }
 
-            if {[catch {set result [mportexec $workername $target]} result]} {
+            if {[catch {set result [mportexec $mport $target]} result]} {
                 ui_msg "$::errorInfo"
                 _handle_failure failed $dependencies $name "Unable to execute target $target for port $name: $result"
             } elseif {$result != 0} {
                 _handle_failure failed $dependencies $name "Failed to $target $name"
             }
-            mportclose $workername
+            mportclose $mport
+            dict unset mports $portname $variants
         }
 
         $dependencies destroy
+        dict for {pname sub} $mports {
+            dict for {variants mport} $sub {
+                mportclose $mport
+            }
+        }
 
         return $failed
     }
