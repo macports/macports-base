@@ -237,6 +237,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             " ON DELETE CASCADE"
             ")",
         "CREATE INDEX registry.snapshot_file_path ON snapshot_files(path)",
+        "CREATE INDEX registry.snapshot_file_id ON snapshot_files(id)",
 
         "COMMIT",
         NULL
@@ -1045,6 +1046,30 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.215") < 0) {
+
+            static char* version_1_215_queries[] = {
+                "CREATE INDEX registry.snapshot_file_id ON snapshot_files(id)",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.215' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_215_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -1054,7 +1079,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.214") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.215") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

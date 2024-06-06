@@ -390,6 +390,17 @@ int metadata_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
     return TCL_ERROR;
 }
 
+/* Allow setting the needs_vacuum flag from scripts. */
+int set_needs_vacuum_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
+        Tcl_Obj* const objv[]) {
+    if (objc != 1) {
+        Tcl_WrongNumArgs(interp, 1, objv, "cmd");
+        return TCL_ERROR;
+    }
+    Tcl_SetAssocData(interp, "registry::needs_vacuum", NULL, (ClientData)1);
+    return TCL_OK;
+}
+
 /**
  * Initializer for the registry lib.
  *
@@ -409,6 +420,7 @@ int Registry_Init(Tcl_Interp* interp) {
     Tcl_CreateObjCommand(interp, "registry::file", file_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::portgroup", portgroup_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::metadata", metadata_cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::set_needs_vacuum", set_needs_vacuum_cmd, NULL, NULL);
     if (Tcl_PkgProvide(interp, "registry2", "2.0") != TCL_OK) {
         return TCL_ERROR;
     }

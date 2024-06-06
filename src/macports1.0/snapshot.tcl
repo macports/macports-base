@@ -164,7 +164,7 @@ namespace eval snapshot {
                 ui_msg [string trimright $note "\n"]
             }
             "delete" {
-                ui_error "delete operation not implemented"
+                return [delete_snapshot $opts]
             }
         }
     }
@@ -204,6 +204,34 @@ namespace eval snapshot {
             set snapshot [registry::snapshot create $note]
         }
         return $snapshot
+    }
+
+    # Remove a snapshot from the registry. Not called 'delete' to avoid
+    # confusion with the proc in portutil.
+    proc delete_snapshot {opts} {
+        global registry::tdbc_connection
+        if {![info exists tdbc_connection]} {
+            registry::tdbc_connect
+        }
+        set snapshot_id [dict get $opts ports_snapshot_delete]
+        if {[catch {registry::snapshot get_by_id $snapshot_id}]} {
+            ui_error "No such snapshot ID: $snapshot_id"
+            return 1
+        }
+        # relies on cascading delete to also remove snapshot ports and files
+        set query {DELETE FROM snapshots WHERE id = :snapshot_id}
+        set stmt [$tdbc_connection prepare $query]
+        $tdbc_connection transaction {
+            set results [$stmt execute]
+        }
+        if {[$results rowcount] < 1} {
+            ui_warn "delete_snapshot: no rows were deleted for snapshot ID: $snapshot_id"
+        } else {
+            registry::set_needs_vacuum
+        }
+        $results close
+        $stmt close
+        return 0
     }
 
     # Get the port name that owns the given file path in the given snapshot.

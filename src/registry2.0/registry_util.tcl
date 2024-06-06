@@ -177,7 +177,9 @@ proc tdbc_connect {} {
     variable tdbc_connection
     set reg_path [::file join ${macports::registry.path} registry registry.db]
     set tdbc_connection [tdbc::sqlite3::connection new $reg_path]
-    
+    set stmt [$tdbc_connection prepare {PRAGMA foreign_keys = ON}]
+    $stmt execute
+    $stmt close
 }
 
 ## Delete the given dependencies for the given entry
