@@ -89,12 +89,13 @@ namespace eval restore {
             set retstring [$macports::ui_options(questions_singlechoice) "Select any one snapshot to restore:" "" $human_readable_snapshots]
             set snapshot [lindex $snapshots $retstring]
         }
+        set include_unrequested [expr {[dict exists $opts ports_restore_all]}]
 
         ui_msg "$restore::ui_prefix Deactivating all installed ports"
         deactivate_all
 
         ui_msg "$restore::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
-        set failed [restore_state $snapshot]
+        set failed [restore_state $snapshot $include_unrequested]
 
         if {[dict size $failed] > 0} {
             set note "Migration finished with errors.\n"
@@ -343,7 +344,7 @@ namespace eval restore {
     # Returns:
     #       The list in dependency-sorted order
     #       The dependency graph, to be destroyed by calling $dependencies destroy
-    proc resolve_dependencies {snapshot} {
+    proc resolve_dependencies {snapshot {include_unrequested 0}} {
         variable mports
         set portlist [$snapshot ports]
         set ports [dict create]
@@ -394,7 +395,7 @@ namespace eval restore {
         foreach port $portlist {
             lassign $port name requested _ _ _
 
-            if {!$requested} {
+            if {!$requested && !$include_unrequested} {
                 continue
             }
 
@@ -544,9 +545,9 @@ namespace eval restore {
             } $level]
     }
 
-    proc restore_state {snapshot} {
+    proc restore_state {snapshot {include_unrequested 0}} {
         variable mports [dict create]
-        lassign [resolve_dependencies $snapshot] sorted_snapshot_portlist dependencies
+        lassign [resolve_dependencies $snapshot $include_unrequested] sorted_snapshot_portlist dependencies
 
         # map from port name to an entry describing why the port failed or was
         # skipped
