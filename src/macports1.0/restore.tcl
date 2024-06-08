@@ -206,11 +206,11 @@ namespace eval restore {
 
         set dependents [::struct::graph]
 
-        array set entries {}
+        set entries [dict create]
 
         foreach port $portlist {
             set portname [$port name]
-            set entries($portname) $port
+            dict set entries $portname $port
 
             if {![$dependents node exists $portname]} {
                 $dependents node insert $portname
@@ -234,7 +234,7 @@ namespace eval restore {
 
         foreach scc $portlist_sccs {
             foreach portname $scc {
-                lappend operations $entries($portname)
+                lappend operations [dict get $entries $portname]
             }
         }
 
