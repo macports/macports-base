@@ -210,7 +210,7 @@ namespace eval restore {
 
         foreach port $portlist {
             set portname [$port name]
-            dict set entries $portname $port
+            dict lappend entries $portname $port
 
             if {![$dependents node exists $portname]} {
                 $dependents node insert $portname
@@ -234,7 +234,9 @@ namespace eval restore {
 
         foreach scc $portlist_sccs {
             foreach portname $scc {
-                lappend operations [dict get $entries $portname]
+                if {[dict exists $entries $portname]} {
+                    lappend operations {*}[dict get $entries $portname]
+                }
             }
         }
 
