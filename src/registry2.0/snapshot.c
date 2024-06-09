@@ -123,7 +123,7 @@ static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]
         int limit = 1;
         // 1 passed in reg_snapshot_list is to get the last '1' snapshot.
         int snapshot_count = reg_snapshot_list(reg, &snapshots, limit, &error);
-        if (snapshot_count >= 0) {
+        if (snapshot_count >= 1) {
             int retval;
             Tcl_Obj* result;
             if (snapshot_to_obj(interp, &result, snapshots[0], NULL, &error)) {
@@ -134,6 +134,9 @@ static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]
             }
             free(snapshots);
             return retval;
+        } else if (snapshot_count == 0) {
+            Tcl_ResetResult(interp);
+            return TCL_OK;
         }
         return registry_failed(interp, &error);
     }

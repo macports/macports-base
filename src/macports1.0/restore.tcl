@@ -73,6 +73,10 @@ namespace eval restore {
         } elseif {[dict exists $opts ports_restore_last]} {
             # use the last snapshot
             set snapshot [fetch_snapshot_last]
+            if {$snapshot eq ""} {
+                ui_error "There are no snapshots to restore. You must run 'sudo port snapshot' first."
+                return 1
+            }
         } else {
             # ask the user to select a snapshot
             set snapshots [list_snapshots]
