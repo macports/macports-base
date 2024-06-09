@@ -30,11 +30,6 @@
 #include <config.h>
 #endif
 
-/* required for asprintf(3) on macOS */
-#define _DARWIN_C_SOURCE
-/* required for asprintf(3) on Linux */
-#define _GNU_SOURCE
-
 #include <string.h>
 #include <stdlib.h>
 #include <tcl.h>
@@ -112,45 +107,46 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
         return TCL_ERROR;
     }
     if (objc == 2) {
-        /* ${snapshot} prop; return the current value */
         reg_registry* reg = registry_for(interp, reg_attached);
         if (reg == NULL) {
             return TCL_ERROR;
         }
         if (Tcl_GetIndexFromObj(interp, objv[1], snapshot_props, "prop", 0, &index)
                 == TCL_OK) {
+            int returncode = TCL_OK;
             port** ports;
             reg_error error;
             int port_count = reg_snapshot_ports_get(snapshot, &ports, &error);
             if (port_count >= 0) {
-                char* portstrs[port_count + 1];
-                int i;
-                for(i = 0; i < port_count; i++){
-                    port* current_port = ports[i];
-                    portstrs[i] = NULL;
-                    if (asprintf(&portstrs[i], "%s %d %s %s %s",
-                            current_port->name,
-                            current_port->requested,
-                            current_port->state,
-                            current_port->variants,
-                            current_port->requested_variants) < 0) {
-                        return TCL_ERROR;
+                /* 5 elements in each returned sublist */
+                Tcl_Obj* port_elements[5];
+                Tcl_Obj* current_port;
+                Tcl_Obj* result = Tcl_NewListObj(port_count, NULL);
+                for (int i = 0; i < port_count; i++) {
+                    port_elements[0] = Tcl_NewStringObj(ports[i]->name, -1);
+                    port_elements[1] = Tcl_NewIntObj(ports[i]->requested);
+                    port_elements[2] = Tcl_NewStringObj(ports[i]->state, -1);
+                    port_elements[3] = Tcl_NewStringObj(ports[i]->variants, -1);
+                    port_elements[4] = Tcl_NewStringObj(ports[i]->requested_variants, -1);
+                    current_port = Tcl_NewListObj((sizeof(port_elements)/sizeof(port_elements[0])), port_elements);
+                    if (current_port == NULL) {
+                        returncode = TCL_ERROR;
+                        break;
+                    }
+                    if (Tcl_ListObjAppendElement(interp, result, current_port) != TCL_OK) {
+                        returncode = TCL_ERROR;
+                        break;
                     }
                 }
 
-                Tcl_Obj** objs;
-                if (list_string_to_obj(&objs, portstrs, port_count, &error)){
-                    Tcl_Obj* result = Tcl_NewListObj(port_count, objs);
-                    Tcl_SetObjResult(interp, result);
-                    free(objs);
-                    for (i=0; i < port_count; i++) {
-                        free(ports[i]);
-                    }
-                    free(ports);
-                    return TCL_OK;
-                } else {
-                    return registry_failed(interp, &error);
+                for (int i=0; i < port_count; i++) {
+                    free(ports[i]);
                 }
+                free(ports);
+                if (returncode == TCL_OK) {
+                    Tcl_SetObjResult(interp, result);
+                }
+                return returncode;
             }
             return registry_failed(interp, &error);
         }
