@@ -448,7 +448,7 @@ namespace eval restore {
                 }
                 dict set mports $portname $mport
                 if {![dict exists $required_archs $portname]} {
-                    dict set $required_archs $portname [list]
+                    dict set required_archs $portname [list]
                 }
             } else {
                 set mport [dict get $mports $portname]
@@ -457,7 +457,7 @@ namespace eval restore {
 
             # Check archs and re-open with +universal if needed (and possible)
             if {[dict exists $portinfo installs_libs] && ![dict get $portinfo installs_libs]} {
-                dict set $required_archs $portname [list]
+                dict set required_archs $portname [list]
             }
             if {![macports::_mport_supports_archs $mport [dict get $required_archs $portname]]
                 && [dict exists $portinfo variants] && "universal" in [dict get $portinfo variants]} {
@@ -476,13 +476,13 @@ namespace eval restore {
                                 lset ports_entry 2 $requested_variants
                                 dict set ports $portname $ports_entry
                             } elseif {[dict exists $dep_ports $portname]} {
-                                dict set $dep_ports $portname $requested_variants
+                                dict set dep_ports $portname $requested_variants
                             }
                         } else {
                             mportclose $universal_mport
                             # Requirement can't be satisfied, so don't bother checking again
                             # (an error will occur regardless when we actually try to install)
-                            dict set $required_archs $portname [list]
+                            dict set required_archs $portname [list]
                         }
                     }
                 }
