@@ -4165,7 +4165,7 @@ set cmd_opts_array [dict create {*}{
     bump        {patch}
     snapshot    {create list {diff 1} all {delete 1} help {note 1}}
     restore     {{snapshot-id 1} all last}
-    migrate     {continue}
+    migrate     {continue all}
 }]
 
 ##

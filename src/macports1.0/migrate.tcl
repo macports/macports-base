@@ -109,7 +109,7 @@ namespace eval migrate {
         uninstall_incompatible $ports_in_tree_archs
 
         ui_msg "Restoring ports..."
-        set ret [restore_snapshot]
+        set ret [restore_snapshot $opts]
 
         # Close mports that get_intree_archs opened
         foreach mport $mport_list {
@@ -226,10 +226,13 @@ namespace eval migrate {
     # of 'port restore --last'
     #
     # @return 0 on success, an error on failure
-    proc restore_snapshot {} {
-        set options [dict create ports_restore_last yes]
+    proc restore_snapshot {opts} {
+        dict set opts ports_restore_last yes
+        if {[dict exists $opts ports_migrate_all]} {
+            dict set opts ports_restore_all [dict get $opts ports_migrate_all]
+        }
 
-        return [restore::main $options]
+        return [restore::main $opts]
     }
 
     ##
