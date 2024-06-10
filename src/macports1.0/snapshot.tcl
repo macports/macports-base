@@ -175,7 +175,7 @@ namespace eval snapshot {
             # An option used by user while creating snapshot manually
             # to identify a snapshot, usually followed by `port restore`
             if {[dict exists $opts ports_snapshot_note]} {
-                set note [dict get $opts ports_snapshot_note]
+                set note [join [dict get $opts ports_snapshot_note]]
             } else {
                 set note "snapshot created for migration"
             }
