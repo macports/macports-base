@@ -377,11 +377,11 @@ namespace eval restore {
         # Populate $ports so that we can look up requested variants given the
         # port name.
         foreach port $portlist {
-            lassign $port name requested active _ variants
+            lassign $port name requested active _ requested_variants
 
             # bool-ify active
             set active [expr {$active eq "installed"}]
-            dict set ports $name [list $requested $active $variants]
+            dict set ports $name [list $requested $active $requested_variants]
 
             if {$requested} {
                 incr requested_total
@@ -394,7 +394,7 @@ namespace eval restore {
         # Use a worklist so that we can push items to the front to do
         # depth-first dependency resolution.
         set worklist [list]
-        set seen [dict create]
+        set required_archs [dict create]
         set snapshot_id [$snapshot id]
         foreach port $portlist {
             lassign $port name requested _ _ _
@@ -409,10 +409,10 @@ namespace eval restore {
             set worklist [lassign $worklist portname]
 
             # If we've already seen this port, continue
-            if {[dict exists $seen $portname]} {
+            if {[dict exists $mports $portname] &&
+                [macports::_mport_supports_archs [dict get $mports $portname] [dict get $required_archs $portname]]} {
                 continue
             }
-            dict set seen $portname 1
 
             ui_debug "Dependency calculation for port $portname"
 
@@ -427,29 +427,66 @@ namespace eval restore {
             lassign $port portname portinfo
 
             if {[dict exists $ports $portname]} {
-                lassign [dict get $ports $portname] requested _ variants
+                lassign [dict get $ports $portname] requested _ requested_variants
             } elseif {[dict exists $dep_ports $portname]} {
-                set variants [dict get $dep_ports $portname]
+                set requested_variants [dict get $dep_ports $portname]
                 set requested 0
             } else {
-                set variants ""
+                set requested_variants ""
                 set requested 0
             }
+            set porturl [dict get $portinfo porturl]
 
             # Open the port with the requested variants from the snapshot
-            if {![dict exists $mports $portname $variants]} {
+            if {![dict exists $mports $portname]} {
                 set options [dict create ports_requested $requested subport $portname]
-                set variations [variants_to_variations_arr $variants]
-                if {[catch {set mport [mportopen [dict get $portinfo porturl] $options $variations]} result]} {
+                set variations [variants_to_variations_arr $requested_variants]
+                if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
                     $progress intermission
                     ui_error "Unable to open port '$portname' with variants '$variants': $result"
                     continue
                 }
-                dict set mports $portname $variants $mport
+                dict set mports $portname $mport
+                if {![dict exists $required_archs $portname]} {
+                    dict set $required_archs $portname [list]
+                }
             } else {
-                set mport [dict get $mports $portname $variants]
+                set mport [dict get $mports $portname]
             }
             set portinfo [mportinfo $mport]
+
+            # Check archs and re-open with +universal if needed (and possible)
+            if {[dict exists $portinfo installs_libs] && ![dict get $portinfo installs_libs]} {
+                dict set $required_archs $portname [list]
+            }
+            if {![macports::_mport_supports_archs $mport [dict get $required_archs $portname]]
+                && [dict exists $portinfo variants] && "universal" in [dict get $portinfo variants]} {
+                set variations [ditem_key $mport variations]
+                if {!([dict exists $variations universal] && [dict get $variations universal] eq "+")} {
+                    dict set variations universal +
+                    set options [dict create ports_requested $requested subport $portname]
+                    if {![catch {set universal_mport [mportopen $porturl $options $variations]}]} {
+                        if {[macports::_mport_supports_archs $universal_mport [dict get $required_archs $portname]]} {
+                            mportclose $mport
+                            set mport $universal_mport
+                            dict set mports $portname $mport
+                            set requested_variants [_mportkey $mport requested_variants]
+                            if {[dict exists $ports $portname]} {
+                                set ports_entry [dict get $ports $portname]
+                                lset ports_entry 2 $requested_variants
+                                dict set ports $portname $ports_entry
+                            } elseif {[dict exists $dep_ports $portname]} {
+                                dict set $dep_ports $portname $requested_variants
+                            }
+                        } else {
+                            mportclose $universal_mport
+                            # Requirement can't be satisfied, so don't bother checking again
+                            # (an error will occur regardless when we actually try to install)
+                            dict set $required_archs $portname [list]
+                        }
+                    }
+                }
+            }
 
             # Compute the dependencies for the 'install' target. Do not recurse into the dependencies: we'll do that
             # here manually in order to
@@ -460,6 +497,8 @@ namespace eval restore {
             #  conflicts with curl-ca-bundle).
             set workername [ditem_key $mport workername]
             set deptypes [macports::_deptypes_for_target install $workername]
+            set port_archs [$workername eval [list get_canonical_archs]]
+            set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
 
             set provides [ditem_key $mport provides]
             if {![$dependencies node exists $provides]} {
@@ -469,6 +508,7 @@ namespace eval restore {
                 if {![dict exists $portinfo $deptype]} {
                     continue
                 }
+                set check_archs [expr {$port_archs ne "noarch" && [macports::_deptype_needs_archcheck $deptype]}]
                 foreach depspec [dict get $portinfo $deptype] {
                     set dependency [resolve_depspec $depspec $ports $snapshot_id]
                     if {$dependency eq ""} {
@@ -478,6 +518,19 @@ namespace eval restore {
                         set dependency [$workername eval [list _get_dep_port $depspec]]
                         if {$dependency eq ""} {
                             continue
+                        }
+                    }
+                    if {$check_archs && [lsearch -exact -nocase $depends_skip_archcheck $dependency] == -1} {
+                        if {![dict exists $required_archs $dependency]} {
+                            dict set required_archs $dependency $port_archs
+                        } else {
+                            set dep_required_archs [dict get $required_archs $dependency]
+                            foreach arch $port_archs {
+                                if {$arch ni $dep_required_archs} {
+                                    lappend dep_required_archs $arch
+                                }
+                            }
+                            dict set required_archs $dependency $dep_required_archs
                         }
                     }
                     if {![$dependencies node exists $dependency]} {
@@ -561,10 +614,10 @@ namespace eval restore {
         set length [llength $sorted_snapshot_portlist]
         foreach port $sorted_snapshot_portlist {
             incr index
-            lassign $port name requested active variants
+            lassign $port name requested active requested_variants
 
-            if {$variants ne ""} {
-                ui_msg "$restore::ui_prefix Restoring port $index of $length: $name $variants"
+            if {$requested_variants ne ""} {
+                ui_msg "$restore::ui_prefix Restoring port $index of $length: $name $requested_variants"
             } else {
                 ui_msg "$restore::ui_prefix Restoring port $index of $length: $name"
             }
@@ -603,19 +656,19 @@ namespace eval restore {
                 continue
             }
             lassign $res portname portinfo
-            if {![dict exists $mports $portname $variants]} {
+            if {![dict exists $mports $portname]} {
                 set porturl [dict get $portinfo porturl]
                 set options [dict create ports_requested $requested subport $portname]
-                set variations [variants_to_variations_arr $variants]
+                set variations [variants_to_variations_arr $requested_variants]
 
                 if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
                     ui_debug $::errorInfo
                     _handle_failure failed $dependencies $name "unable to open port $name: $result"
                     continue
                 }
-                dict set mports $portname $variants $mport
+                dict set mports $portname $mport
             } else {
-                set mport [dict get $mports $portname $variants]
+                set mport [dict get $mports $portname]
             }
 
             foreach target [list clean $install_target] {
@@ -627,14 +680,12 @@ namespace eval restore {
                 }
             }
             mportclose $mport
-            dict unset mports $portname $variants
+            dict unset mports $portname
         }
 
         $dependencies destroy
-        dict for {pname sub} $mports {
-            dict for {variants mport} $sub {
-                mportclose $mport
-            }
+        foreach mport [dict values $mports] {
+            mportclose $mport
         }
 
         return $failed
