@@ -311,12 +311,8 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
     reg_registry* reg = snapshot->reg;
     sqlite3_stmt* stmt = NULL;
 
-    char* query = "SELECT * FROM registry.snapshot_ports WHERE snapshots_id=?";
-
-    const char* port_name;
-    const char* state;
-    const char* variants;
-    const char* requested_variants;;
+    char* query = "SELECT port_name, requested, state, variants, requested_variants "
+                  "FROM registry.snapshot_ports WHERE snapshots_id=?";
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
         && (sqlite3_bind_int64(stmt, 1, snapshot->id) == SQLITE_OK )) {
@@ -331,18 +327,22 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
         int result_count = 0;
         int r;
 
+        const char* port_name;
         int requested;
+        const char* state;
+        const char* variants;
+        const char* requested_variants;
 
         do {
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
 
-                    port_name = (const char*) sqlite3_column_text(stmt, 2);
-                    requested = (int) sqlite3_column_int64(stmt, 3);
-                    state = (const char*) sqlite3_column_text(stmt, 4);
-                    variants = (const char*) sqlite3_column_text(stmt, 5);
-                    requested_variants = (const char*) sqlite3_column_text(stmt, 6);
+                    port_name = (const char*) sqlite3_column_text(stmt, 0);
+                    requested = (int) sqlite3_column_int64(stmt, 1);
+                    state = (const char*) sqlite3_column_text(stmt, 2);
+                    variants = (const char*) sqlite3_column_text(stmt, 3);
+                    requested_variants = (const char*) sqlite3_column_text(stmt, 4);
 
                     port* current_port = (port*) malloc(sizeof(port));
                     if (!current_port) {
@@ -363,6 +363,7 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
                         free(current_port->state);
                         free(current_port->variants);
                         free(current_port->requested_variants);
+                        free(current_port);
                         r = SQLITE_ERROR;
                         break;
                     }
