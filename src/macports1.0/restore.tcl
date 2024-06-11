@@ -255,12 +255,11 @@ namespace eval restore {
     # warnings as possible will be printed.
     proc deactivate_all {} {
         set options [dict create ports_nodepcheck 1 ports_force 1]
-        foreach port [registry::entry installed] {
-            if {![registry::run_target $port deactivate $options]} {
-                if {[catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
-                    ui_debug $::errorInfo
-                    ui_warn "Failed to deactivate [$port name]: $result"
-                }
+        foreach port [deactivation_order [registry::entry installed]] {
+            if {![registry::run_target $port deactivate $options]
+                && [catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] $options} result]} {
+                ui_debug $::errorInfo
+                ui_warn "Failed to deactivate [$port name]: $result"
             }
         }
     }
