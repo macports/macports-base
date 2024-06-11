@@ -1,0 +1,64 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-snapshot(1)
+===============
+
+NAME
+----
+port-snapshot -  Manage snapshots of installed ports.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdN*] *snapshot*
+    [--create [--note <note>]]
+    [--list] [--diff 'snapshot-id' [--all]]
+    [--delete 'snapshot-id'] [--help]
+
+DESCRIPTION
+-----------
+*port snapshot* creates and manages snapshots of installed ports. Snapshots
+record information about the ports that are installed when the snapshot is
+created, and can be used by *port restore* to return to that previous state
+at a later time.
+
+OPTIONS
+-------
+*--create*::
+Create a new snapshot that records the currently active ports. This is
+the default if no options are given.
+
+*--note <note>*::
+When creating a snapshot, it will be labelled with the given note.
+
+*--list*::
+Display a list of all snapshots that currently exist, with their ID
+numbers, creation dates, and associated notes.
+
+*--diff ID*::
+Display the differences between the given snapshot ID and the currently
+installed ports.
+
+*--all*::
+Consider all ports when displaying diffs. By default, only
+differences in requested ports are shown.
+
+*--delete ID*::
+Delete the snapshot with the given ID number.
+
+*--help*::
+Display brief usage information.
+
+include::global-flags.txt[]
+
+*-N*::
+Non-interactive mode, create snapshots without asking for confirmation
+when there are inactive ports that will not be included.
+
+SEE ALSO
+--------
+man:port[1], man:port-restore[1], man:port-migrate[1]
+
+AUTHORS
+-------
+ (C) 2024 The MacPorts Project
+ Joshua Root <jmr@macports.org>

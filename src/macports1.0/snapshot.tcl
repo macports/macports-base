@@ -63,7 +63,7 @@ namespace eval snapshot {
             ui_msg "Usage: One of:"
             ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
             ui_msg "  port snapshot --list"
-            ui_msg "  port snapshot --diff <snapshot-id> \[--requested-only\]"
+            ui_msg "  port snapshot --diff <snapshot-id> \[--all\]"
             ui_msg "  port snapshot --delete <snapshot-id>"
             return 0
         }

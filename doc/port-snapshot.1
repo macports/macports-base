@@ -1,0 +1,93 @@
+'\" t
+.TH "PORT\-SNAPSHOT" "1" "2\&.9\&.99" "MacPorts 2\&.9\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-snapshot \- Manage snapshots of installed ports\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-vdN\fR] \fBsnapshot\fR
+    [\-\-create [\-\-note <note>]]
+    [\-\-list] [\-\-diff \fIsnapshot\-id\fR [\-\-all]]
+    [\-\-delete \fIsnapshot\-id\fR] [\-\-help]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport snapshot\fR creates and manages snapshots of installed ports\&. Snapshots record information about the ports that are installed when the snapshot is created, and can be used by \fBport restore\fR to return to that previous state at a later time\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-create\fR
+.RS 4
+Create a new snapshot that records the currently active ports\&. This is the default if no options are given\&.
+.RE
+.PP
+\fB\-\-note <note>\fR
+.RS 4
+When creating a snapshot, it will be labelled with the given note\&.
+.RE
+.PP
+\fB\-\-list\fR
+.RS 4
+Display a list of all snapshots that currently exist, with their ID numbers, creation dates, and associated notes\&.
+.RE
+.PP
+\fB\-\-diff ID\fR
+.RS 4
+Display the differences between the given snapshot ID and the currently installed ports\&.
+.RE
+.PP
+\fB\-\-all\fR
+.RS 4
+Consider all ports when displaying diffs\&. By default, only differences in requested ports are shown\&.
+.RE
+.PP
+\fB\-\-delete ID\fR
+.RS 4
+Delete the snapshot with the given ID number\&.
+.RE
+.PP
+\fB\-\-help\fR
+.RS 4
+Display brief usage information\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.PP
+\fB\-N\fR
+.RS 4
+Non\-interactive mode, create snapshots without asking for confirmation when there are inactive ports that will not be included\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBport-restore\fR(1), \fBport-migrate\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2024 The MacPorts Project
+Joshua Root <jmr@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

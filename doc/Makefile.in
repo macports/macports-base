@@ -75,6 +75,7 @@ MAN1=	\
 		port-selfupdate.1 \
 		port-setrequested.1 \
 		port-setunrequested.1 \
+		port-snapshot.1 \
 		port-space.1 \
 		port-sync.1 \
 		port-test.1 \
