@@ -1,0 +1,45 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-migrate(1)
+===============
+
+NAME
+----
+port-migrate -  Update MacPorts for a new platform.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdN*] *migrate*
+    [--all] [--continue]
+
+DESCRIPTION
+-----------
+*port migrate* will reinstall the base MacPorts system and installed ports
+if they are not compatible with the current platform. It should be run
+after updating to a new major OS version, or after transferring a MacPorts
+installation to a computer with a different CPU architecture.
+
+OPTIONS
+-------
+
+*--all*::
+Migrate all ports including unrequested ones. By default, only requested
+ports and their dependencies are migrated.
+
+*--continue*::
+Continue with migration of ports. Normally only used internally when running
+the new copy of MacPorts base after it is rebuilt.
+
+include::global-flags.txt[]
+
+*-N*::
+Non-interactive mode, don't ask for confirmation before performing migration.
+
+SEE ALSO
+--------
+man:port[1], man:port-snapshot[1], man:port-restore[1]
+
+AUTHORS
+-------
+ (C) 2024 The MacPorts Project
+ Joshua Root <jmr@macports.org>

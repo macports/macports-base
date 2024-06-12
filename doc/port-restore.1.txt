@@ -1,0 +1,47 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-restore(1)
+===============
+
+NAME
+----
+port-restore -  Restore snapshots of installed ports. 
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdN*] *restore*
+    [--snapshot-id 'id'] [--last] [--all]
+
+DESCRIPTION
+-----------
+*port restore* changes the set of active ports to match the state recorded
+in a previously created snapshot. All ports are first deactivated, and then
+each port included in the snapshot is installed or activated as needed,
+with the requested variants also as set in the snapshot.
+
+OPTIONS
+-------
+*--snapshot-id ID*::
+Restore the snapshot with the specified ID.
+
+*--last*::
+Restore the last created snapshot.
+
+*--all*::
+Restore all ports in the snapshot including unrequested ones. By default,
+only requested ports and their dependencies are restored.
+
+include::global-flags.txt[]
+
+*-N*::
+Non-interactive mode, fail if multiple snapshots exist and a particular
+snapshot was not specified.
+
+SEE ALSO
+--------
+man:port[1], man:port-snapshot[1], man:port-migrate[1]
+
+AUTHORS
+-------
+ (C) 2024 The MacPorts Project
+ Joshua Root <jmr@macports.org>
