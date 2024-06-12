@@ -90,8 +90,19 @@ namespace eval restore {
                 return 1
             }
 
-            set retstring [$macports::ui_options(questions_singlechoice) "Select any one snapshot to restore:" "" $human_readable_snapshots]
-            set snapshot [lindex $snapshots $retstring]
+            if {[info exists macports::ui_options(questions_singlechoice)]} {
+                set retstring [$macports::ui_options(questions_singlechoice) "Select any one snapshot to restore:" "" $human_readable_snapshots]
+                set snapshot [lindex $snapshots $retstring]
+            } elseif {[llength $snapshots] == 1} {
+                set snapshot [lindex $snapshots 0]
+            } else {
+                ui_error "Multiple snapshots exist, specify which one to restore using --snapshot-id or use\
+                        --last to restore the most recent one."
+                foreach s $human_readable_snapshots {
+                    ui_msg $s
+                }
+                return 1
+            }
         }
         set include_unrequested [expr {[dict exists $opts ports_restore_all]}]
 
