@@ -2499,7 +2499,8 @@ proc action_reclaim { action portlist opts } {
 }
 
 proc action_snapshot { action portlist opts } {
-    if {[prefix_unwritable]} {
+    if {![dict exists $opts ports_snapshot_diff] && ![dict exists $opts ports_snapshot_list]
+        && ![dict exists $opts ports_snapshot_help] && [prefix_unwritable]} {
         return 1
     }
     if {[catch {macports::snapshot_main $opts} result]} {
