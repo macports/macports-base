@@ -3216,7 +3216,7 @@ proc _pathtest {depspec {return_match 0}} {
     set dep_path [file join $prefix $dep_path]
 
     # separate directory from filename
-    set search_path [file dirname $dep_path]
+    set search_path [list [file dirname $dep_path]]
     set depfilename [file tail $dep_path]
 
     return [_mportsearchpath $depfilename $search_path 0 $return_match]
