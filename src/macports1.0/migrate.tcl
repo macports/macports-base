@@ -184,10 +184,12 @@ namespace eval migrate {
     #
     # @return true iff the migration procedure is needed
     proc needs_migration {} {
-        if {$macports::os_platform ne $macports::autoconf::os_platform} {
-            return 1
-        }
-        if {$macports::os_platform eq "darwin" && $macports::os_major != $macports::autoconf::os_major} {
+        global macports::os_platform macports::os_major
+        if {$os_platform ne $macports::autoconf::os_platform
+            || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)
+            || ($os_platform eq "darwin" && $os_major >= 20
+                && ![catch {sysctl sysctl.proc_translated} translated] && $translated)
+        } then {
             return 1
         }
         return 0
