@@ -3186,48 +3186,40 @@ proc _libtest {depspec {return_match 0}} {
     if {$i < 0} {set i [string length $depline]}
     set depname [string range $depline 0 $i-1]
     set depversion [string range $depline $i end]
-    regsub {\.} $depversion {\.} depversion
     if {${os.platform} eq "darwin"} {
-        set depregex \^${depname}${depversion}\\.dylib\$
+        set depfilename ${depname}${depversion}.dylib
     } else {
-        set depregex \^${depname}\\.so${depversion}\$
+        set depfilename ${depname}.so${depversion}
     }
 
-    return [_mportsearchpath $depregex $search_path 0 $return_match]
+    return [_mportsearchpath $depfilename $search_path 0 $return_match]
 }
 
 ### _bintest is private; subject to change without notice
 
 proc _bintest {depspec {return_match 0}} {
     global env
-    set depregex [lindex [split $depspec :] 1]
+    set depfilename [lindex [split $depspec :] 1]
 
     set search_path [split $env(PATH) :]
 
-    set depregex \^$depregex\$
-
-    return [_mportsearchpath $depregex $search_path 1 $return_match]
+    return [_mportsearchpath $depfilename $search_path 1 $return_match]
 }
 
 ### _pathtest is private; subject to change without notice
 
 proc _pathtest {depspec {return_match 0}} {
     global prefix
-    set depregex [lindex [split $depspec :] 1]
+    set dep_path [lindex [split $depspec :] 1]
 
-    # separate directory from regex
-    set fullname $depregex
+    # Prepend prefix if not an absolute path
+    set dep_path [file join $prefix $dep_path]
 
-    regexp {^(.*)/(.*?)$} "$fullname" match search_path depregex
+    # separate directory from filename
+    set search_path [file dirname $dep_path]
+    set depfilename [file tail $dep_path]
 
-    if {[string index $search_path 0] ne "/"} {
-        # Prepend prefix if not an absolute path
-        set search_path "${prefix}/${search_path}"
-    }
-
-    set depregex \^$depregex\$
-
-    return [_mportsearchpath $depregex $search_path 0 $return_match]
+    return [_mportsearchpath $depfilename $search_path 0 $return_match]
 }
 
 # returns the name of the port that will actually be satisfying $depspec

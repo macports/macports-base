@@ -2462,37 +2462,28 @@ proc mporttraverse {func {root .}} {
 
 ### _mportsearchpath is private; subject to change without notice
 
-# depregex -> regex on the filename to find.
+# depfilename -> the filename to find.
 # search_path -> directories to search
 # executable -> whether we want to check that the file is executable by current
 #               user or not.
-proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
+proc _mportsearchpath {depfilename search_path {executable 0} {return_match 0}} {
     set found 0
     foreach path $search_path {
         if {![file isdirectory $path]} {
             continue
         }
 
-        if {[catch {set filelist [readdir $path]} result]} {
-            return -code error "$result ($path)"
-        }
-
-        foreach filename $filelist {
-            if {[regexp $depregex $filename] &&
-              (($executable == 0) || [file executable [file join $path $filename]])} {
-                ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
-                set found 1
-                break
-            }
-        }
-
-        if {$found} {
+        set fullpath [file join $path $depfilename]
+        if {![catch {file type $fullpath}] &&
+          (($executable == 0) || [file executable $fullpath])} {
+            ui_debug "Found Dependency: path: $path filename: $depfilename"
+            set found 1
             break
         }
     }
     if {$return_match} {
         if {$found} {
-            return [file join $path $filename]
+            return $fullpath
         } else {
             return {}
         }
@@ -2553,8 +2544,8 @@ proc _mportispresent {mport depspec} {
         ui_debug "Found Dependency: receipt exists for $portname"
         return 1
     } else {
-        # The receipt test failed, use one of the depspec regex mechanisms
-        ui_debug "Didn't find receipt, going to depspec regex for: $portname"
+        # The receipt test failed, use one of the depspec file mechanisms
+        ui_debug "Didn't find receipt, going to depspec file for: $portname"
         set workername [ditem_key $mport workername]
         set type [lindex [split $depspec :] 0]
         switch -- $type {
