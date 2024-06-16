@@ -5,6 +5,7 @@ proc macports_worker_init {} {
     interp alias {} _cd {} cd
     proc PortSystem {version} {
         package require port $version
+        portmain::report_platform_info
     }
     # Clearly separate slave interpreters and the master interpreter.
     interp alias {} mport_exec      {} mportexec

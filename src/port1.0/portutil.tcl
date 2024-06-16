@@ -1736,10 +1736,16 @@ proc open_statefile {args} {
     if {![tbool ports_dryrun]} {
         set need_chown 0
         if {![file isdirectory $workpath/.home]} {
+            if {[getuid] == 0 && [geteuid] != 0} {
+                elevateToRoot create_workpath
+            }
             file mkdir $workpath/.home
             set need_chown 1
         }
         if {![file isdirectory $workpath/.tmp]} {
+            if {[getuid] == 0 && [geteuid] != 0} {
+                elevateToRoot create_workpath
+            }
             file mkdir $workpath/.tmp
             set need_chown 1
         }
