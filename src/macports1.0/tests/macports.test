@@ -169,14 +169,12 @@ test push_log {
     root
 } -setup {
     set mport [mportopen file://${pwd}]
-    global macports::logenabled
-    set logenabled 1
+    set macports::logenabled 1
 } -body {
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
-    global macports::logstack macports::debuglog macports::debuglogname
-    if {[lindex $logstack 0] ne [list $debuglog $debuglogname]} {
+    if {[lindex $macports::logstack 0] ne [list $macports::debuglog $macports::debuglogname]} {
         return "FAIL: incorrect logstack"
     }
     return "Push log successful."
@@ -188,28 +186,26 @@ test push_log {
 test pop_log {
     Pop log unit test.
 } -setup {
-    global macports::logenabled macports::logstack macports::debuglog
-    set logenabled 1
+    set macports::logenabled 1
     set stacklog [open $pwd/logstack w+]
-    set logstack [list [list $stacklog $pwd/logstack]]
-    set debuglog [open $pwd/log w+]
-    set orig_debuglog $debuglog
+    set macports::logstack [list [list $stacklog $pwd/logstack]]
+    set macports::debuglogname $pwd/logstack
+    set macports::debuglog $stacklog
     set mport [mportopen file://${pwd}]
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
 } -body {
     macports::pop_log
-    if {$debuglog ne $orig_debuglog} {
+    if {$macports::debuglog ne $stacklog} {
         return "FAIL: cannot pop log"
     }
     return "Pop log successful."
 } -cleanup {
-    close $debuglog
     close $stacklog
-    unset logenabled
-    unset logstack
-    unset debuglog
+    unset macports::logenabled
+    unset macports::logstack
+    unset macports::debuglog
     mportclose $mport
     file delete -force $pwd/log
     file delete -force $pwd/logstack
