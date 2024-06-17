@@ -88,13 +88,13 @@ test fetchfiles {
     global os.platform os.subplatform os.major os.version os.arch destpath package.destpath \
         configure.build_arch subport version revision package.flat maintainers description \
         categories supported_archs name porturl portdbpath portpath workpath distname \
-        filespath license platforms portfetch::urlmap portarchivefetch::archivefetch_urls
+        filespath license platforms
     env_init
 
-    array set urlmap {
+    array set portfetch::urlmap {
         db_select http://packages.macports.org/db_select/
     }
-    set archivefetch_urls {db_select db_select-0.1_3.darwin_14.noarch.tbz2}
+    set portarchivefetch::archivefetch_urls {db_select db_select-0.1_3.darwin_14.noarch.tbz2}
     set target_state_fd [open $pwd/target w+]
 
     set mport [mportopen file://.]
@@ -121,7 +121,7 @@ test fetchfiles {
         return "FAIL: cannot fetch archive"
     }
     if {![file exists ${archivefetch.fulldestpath}/db_select-0.1_3.darwin_14.noarch.tbz2]} {
-        return "FAIL: verified archive deleted"
+        return "FAIL: verified archive deleted from ${archivefetch.fulldestpath}"
     }
 
     return "Fetch files successful."
