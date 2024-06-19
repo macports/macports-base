@@ -839,6 +839,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
 
     _progress start
 
+    set seendirs [dict create]
     foreach file $imagefiles {
         incr progress_step
         _progress update $progress_step $progress_total_steps
@@ -858,8 +859,9 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
 
             # Split out the filename's subpaths and add them to the image list
             # as well.
-            while {$directory ni $files} {
+            while {![dict exists $seendirs $directory]} {
                 lappend files $directory
+                dict set seendirs $directory 1
                 incr progress_total_steps
                 set directory [::file dirname $directory]
             }
@@ -867,6 +869,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             ui_debug "$file does not exist."
         }
     }
+    unset seendirs
 
     # Sort the list in reverse order, removing duplicates.
     # Since the list is sorted in reverse order, we're sure that directories
