@@ -813,13 +813,8 @@ proc _deactivate_file {dstfile} {
     } elseif { $filetype eq "directory" } {
         # 0 item means empty.
         if { [llength [readdir $dstfile]] == 0 } {
-            variable precious_dirs
-            if {![dict exists $precious_dirs $dstfile]} {
-                ui_debug "deactivating directory: $dstfile"
-                ::file delete -- $dstfile
-            } else {
-                ui_debug "directory $dstfile does not belong to us"
-            }
+            ui_debug "deactivating directory: $dstfile"
+            ::file delete -- $dstfile
         } else {
             ui_debug "$dstfile is not empty"
         }
@@ -840,6 +835,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     _progress start
 
     set seendirs [dict create]
+    variable precious_dirs
     foreach file $imagefiles {
         incr progress_step
         _progress update $progress_step $progress_total_steps
@@ -860,8 +856,12 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # Split out the filename's subpaths and add them to the image list
             # as well.
             while {![dict exists $seendirs $directory]} {
-                lappend files $directory
                 dict set seendirs $directory 1
+                if {[dict exists $precious_dirs $directory]} {
+                    ui_debug "directory $directory does not belong to us"
+                    break
+                }
+                lappend files $directory
                 incr progress_total_steps
                 set directory [::file dirname $directory]
             }
