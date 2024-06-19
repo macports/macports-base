@@ -424,8 +424,7 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 		# remove port receipt parent directory (if empty)
 		set receipt_dir [::file join ${macports::registry.path} receipts ${name}]
 		if { [::file isdirectory ${receipt_dir}] } {
-			# 0 item means empty.
-			if { [llength [readdir ${receipt_dir}]] == 0 } {
+			if {[dirempty ${receipt_dir}]} {
 				ui_debug "deleting directory: ${receipt_dir}"
 				file delete -force -- ${receipt_dir}
 			} else {

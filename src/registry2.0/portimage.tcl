@@ -812,8 +812,7 @@ proc _deactivate_files {files directories progress_count progress_total} {
         _progress update $progress_count $progress_total
     }
     foreach dstdir $directories {
-        # 0 items means empty.
-        if {[llength [readdir $dstdir]] == 0} {
+        if {[dirempty $dstdir]} {
             ui_debug "deactivating directory: $dstdir"
             ::file delete -- $dstdir
         } else {

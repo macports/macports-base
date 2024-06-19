@@ -451,7 +451,7 @@ namespace eval reclaim {
                                         break
                                     }
 
-                                    if {[llength [readdir $directory]] > 0} {
+                                    if {![dirempty $directory]} {
                                         break
                                     }
 

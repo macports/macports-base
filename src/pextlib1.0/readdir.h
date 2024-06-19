@@ -30,3 +30,4 @@
  */
 
 int ReaddirCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);
+int DiremptyCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

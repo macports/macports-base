@@ -76,6 +76,47 @@ int ReaddirCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	}
 	closedir(dirp);
 	Tcl_SetObjResult(interp, tcl_result);
-	
+
+	return TCL_OK;
+}
+
+/**
+ *
+ * Return 1 if there are no entries in a directory (other than  . and ..), 0 otherwise
+ *
+ * Synopsis: dirempty directory
+ */
+int DiremptyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
+{
+	DIR *dirp;
+	struct dirent *mp;
+	Tcl_Obj *tcl_result;
+	char *path;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "directory");
+		return TCL_ERROR;
+	}
+
+	path = Tcl_GetString(objv[1]);
+	dirp = opendir(path);
+	if (!dirp) {
+		Tcl_SetResult(interp, "Cannot read directory", TCL_STATIC);
+		return TCL_ERROR;
+	}
+	tcl_result = Tcl_NewIntObj(1);
+	while ((mp = readdir(dirp))) {
+		/* Skip . and .. */
+		if ((mp->d_name[0] != '.') ||
+			((mp->d_name[1] != 0)	/* "." */
+				&&
+			((mp->d_name[1] != '.') || (mp->d_name[2] != 0)))) /* ".." */ {
+			Tcl_SetIntObj(tcl_result, 0);
+			break;
+		}
+	}
+	closedir(dirp);
+	Tcl_SetObjResult(interp, tcl_result);
+
 	return TCL_OK;
 }

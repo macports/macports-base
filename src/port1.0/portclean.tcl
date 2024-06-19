@@ -144,7 +144,7 @@ proc portclean::clean_dist {args} {
     if {$dist_subdir ne $name} {
         if {!([info exists ports_force] && $ports_force eq "yes")
             && [file isdirectory $distpath]
-            && [llength [readdir $distpath]] > 0} {
+            && ![dirempty $distpath]} {
             ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] $distpath]
         } else {
             lappend dirlist $dist_subdir
