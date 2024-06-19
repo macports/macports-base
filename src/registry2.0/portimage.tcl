@@ -802,25 +802,25 @@ proc _activate_contents {port {rename_list {}}} {
 # TODO: look into what other dirs should go here
 variable precious_dirs [dict create /Library/LaunchDaemons 1 /Library/LaunchAgents 1]
 
-proc _deactivate_file {dstfile} {
-    if {[catch {::file type $dstfile} filetype]} {
-        ui_debug "$dstfile does not exist"
-        return
-    }
-    if { $filetype eq "link" } {
-        ui_debug "deactivating link: $dstfile"
-        file delete -- $dstfile
-    } elseif { $filetype eq "directory" } {
-        # 0 item means empty.
-        if { [llength [readdir $dstfile]] == 0 } {
-            ui_debug "deactivating directory: $dstfile"
-            ::file delete -- $dstfile
-        } else {
-            ui_debug "$dstfile is not empty"
-        }
-    } else {
+# Delete the given lists of files and directories, calling _progress
+# update for each one. Nonempty directories are skipped.
+proc _deactivate_files {files directories progress_count progress_total} {
+    foreach dstfile $files {
         ui_debug "deactivating file: $dstfile"
         ::file delete -- $dstfile
+        incr progress_count
+        _progress update $progress_count $progress_total
+    }
+    foreach dstdir $directories {
+        # 0 items means empty.
+        if {[llength [readdir $dstdir]] == 0} {
+            ui_debug "deactivating directory: $dstdir"
+            ::file delete -- $dstdir
+        } else {
+            ui_debug "$dstdir is not empty"
+        }
+        incr progress_count
+        _progress update $progress_count $progress_total
     }
 }
 
@@ -856,12 +856,12 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # Split out the filename's subpaths and add them to the image list
             # as well.
             while {![dict exists $seendirs $directory]} {
-                dict set seendirs $directory 1
                 if {[dict exists $precious_dirs $directory]} {
+                    dict set seendirs $directory 0
                     ui_debug "directory $directory does not belong to us"
                     break
                 }
-                lappend files $directory
+                dict set seendirs $directory 1
                 incr progress_total_steps
                 set directory [::file dirname $directory]
             }
@@ -869,14 +869,15 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             ui_debug "$file does not exist."
         }
     }
+    set directories [dict keys [dict filter $seendirs value 1]]
     unset seendirs
 
     # Sort the list in reverse order, removing duplicates.
-    # Since the list is sorted in reverse order, we're sure that directories
-    # are after their elements.
-    set files [lsort -decreasing -unique $files]
+    # Since the list is sorted in reverse order, we're sure that
+    # parent directories are after their elements.
+    set directories [lsort -decreasing -unique $directories]
 
-    set progress_total_steps [expr {[llength $imagefiles] + [llength $files]}]
+    set progress_total_steps [expr {[llength $imagefiles] + [llength $files] + [llength $directories]}]
 
     # Avoid interruptions while removing the files and updating the database to
     # prevent inconsistencies from forming between filesystem and database.
@@ -894,25 +895,15 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
         if {!$rollback} {
             registry::write {
                 $port deactivate $imagefiles
-                foreach file $files {
-                    _deactivate_file $file
 
-                    incr progress_step
-                    _progress update $progress_step $progress_total_steps
-                }
+                _deactivate_files $files $directories $progress_step $progress_total_steps
 
                 # Update the port's state in the same transaction as the file
                 # delete operations.
                 $port state imaged
             }
         } else {
-            foreach file $files {
-                _deactivate_file $file
-
-                incr progress_step
-                _progress update $progress_step $progress_total_steps
-            }
-
+           _deactivate_files $files $directories $progress_step $progress_total_steps
         }
     } finally {
         # restore the signal block state
