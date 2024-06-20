@@ -40,7 +40,7 @@ test test_lint_checksum_type_list_missing_recommended {
         return "FAIL: unexpected results: no results returned"
     }
 
-    if {[lsearch -regexp $results {size}] ==  -1} {
+    if {"size" ni $results} {
         return "FAIL: no mention of the missing size field"
     }
 

@@ -573,12 +573,12 @@ proc _activate_contents {port {rename_list {}}} {
 
     set files [list]
     set baksuffix .mp_[clock seconds]
+    set portname [$port name]
     set location [$port location]
     set imagefiles [$port imagefiles]
     set num_imagefiles [llength $imagefiles]
     set progress_total_steps [expr {$num_imagefiles * 3}]
     set extracted_dir [extract_archive_to_tmpdir $location]
-    set replaced_by_re "(?i)^[$port name]\$"
 
     set backups [list]
     # This is big and hairy and probably could be done better.
@@ -602,7 +602,7 @@ proc _activate_contents {port {rename_list {}}} {
                 # figure out if the source file exists (file exists will return
                 # false for symlinks on files that do not exist)
                 if { [catch {::file lstat $srcfile dummystatvar}] } {
-                    throw registry::image-error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port [$port name]."
+                    throw registry::image-error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port ${portname}."
                 }
 
                 set owner [registry::entry owner $file]
@@ -611,7 +611,7 @@ proc _activate_contents {port {rename_list {}}} {
                     # deactivate conflicting port if it is replaced_by this one
                     set result [mportlookup [$owner name]]
                     set portinfo [lindex $result 1]
-                    if {[dict exists $portinfo replaced_by] && [lsearch -regexp [dict get $portinfo replaced_by] $replaced_by_re] != -1} {
+                    if {[dict exists $portinfo replaced_by] && [lsearch -exact -nocase [dict get $portinfo replaced_by] $portname] != -1} {
                         # we'll deactivate the owner later, but before activating our files
                         lappend todeactivate $owner
                         set owner "replaced"
@@ -639,11 +639,11 @@ proc _activate_contents {port {rename_list {}}} {
                         # we find any files that already exist, or have entries in
                         # the registry
                         if { $owner ne {} && $owner ne $port } {
-                            set msg "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
+                            set msg "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate $portname' to force the activation."
                             #registry::entry close $owner
                             throw registry::image-error $msg
                         } elseif { $owner eq {} && ![catch {::file type $file}] } {
-                            set msg "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
+                            set msg "Image error: $file already exists and does not belong to a registered port.  Unable to activate port ${portname}. Use 'port -f activate $portname' to force the activation."
                             throw registry::image-error $msg
                         }
                     }
