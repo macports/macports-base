@@ -316,14 +316,14 @@ proc _check_registry {name version revision variants {return_all 0}} {
     throw registry::invalid "Registry error: ${name}${composite_spec} is not installed."
 }
 
-## Activates a file from an image into the filesystem. Deals with symlinks,
-## directories and files.
+## Activates a file from an image into the filesystem. Deals with symlinks
+## and regular files.
 ##
 ## @param [in] srcfile path to file in image
 ## @param [in] dstfile path to activate file to
 ## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
-    if {[catch {set filetype [::file type $srcfile]} result]} {
+    if {[catch {::file type $srcfile} result]} {
         # this can happen if the archive was built on case-sensitive and we're case-insensitive
         # we know any existing dstfile is ours because we checked for conflicts earlier
         if {![catch {file type $dstfile}]} {
@@ -333,30 +333,30 @@ proc _activate_file {srcfile dstfile} {
             error $result
         }
     }
-    switch $filetype {
-        directory {
-            # Don't recursively copy directories
-            ui_debug "activating directory: $dstfile"
-            # Don't do anything if the directory already exists.
-            if { ![::file isdirectory $dstfile] } {
-                ::file mkdir $dstfile
-                # fix attributes on the directory.
-                if {[getuid] == 0} {
-                    ::file attributes $dstfile {*}[::file attributes $srcfile]
-                } else {
-                    # not root, so can't set owner/group
-                    ::file attributes $dstfile -permissions {*}[::file attributes $srcfile -permissions]
-                }
-                # set mtime on installed element
-                ::file mtime $dstfile [::file mtime $srcfile]
-            }
-            return 0
+    ui_debug "activating file: $dstfile"
+    ::file rename $srcfile $dstfile
+    return 1
+}
+
+## Activates a directory from an image into the filesystem.
+##
+## @param [in] srcdir path to dir in image
+## @param [in] dstdir path to activate dir to
+proc _activate_directory {srcdir dstdir} {
+    # Don't recursively copy directories
+    ui_debug "activating directory: $dstdir"
+    # Don't do anything if the directory already exists.
+    if {![::file isdirectory $dstdir]} {
+        ::file mkdir $dstdir
+        # fix attributes on the directory.
+        if {[getuid] == 0} {
+            ::file attributes $dstdir {*}[::file attributes $srcdir]
+        } else {
+            # not root, so can't set owner/group
+            ::file attributes $dstdir -permissions {*}[::file attributes $srcdir -permissions]
         }
-        default {
-            ui_debug "activating file: $dstfile"
-            ::file rename $srcfile $dstfile
-            return 1
-        }
+        # set mtime on installed element
+        ::file mtime $dstdir [::file mtime $srcdir]
     }
 }
 
@@ -571,7 +571,7 @@ proc _activate_contents {port {rename_list {}}} {
     variable progress_step
     variable progress_total_steps
 
-    set files [list]
+    set filesdict [dict create]
     set baksuffix .mp_[clock seconds]
     set portname [$port name]
     set location [$port location]
@@ -581,6 +581,7 @@ proc _activate_contents {port {rename_list {}}} {
     set extracted_dir [extract_archive_to_tmpdir $location]
 
     set backups [list]
+    set seendirs [dict create]
     # This is big and hairy and probably could be done better.
     # First, we need to check the source file, make sure it exists
     # Then we remove the $location from the path of the file in the contents
@@ -598,11 +599,11 @@ proc _activate_contents {port {rename_list {}}} {
                 _progress update $progress_step $progress_total_steps
                 set srcfile "${extracted_dir}${file}"
 
-                # To be able to install links, we test if we can lstat the file to
+                # To be able to install links, we test if 'file type' errors to
                 # figure out if the source file exists (file exists will return
                 # false for symlinks on files that do not exist)
-                if { [catch {::file lstat $srcfile dummystatvar}] } {
-                    throw registry::image-error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port ${portname}."
+                if {[catch {::file type $srcfile}]} {
+                    throw registry::image-error "Image error: Source file $srcfile does not appear to exist.  Unable to activate port ${portname}."
                 }
 
                 set owner [registry::entry owner $file]
@@ -619,7 +620,7 @@ proc _activate_contents {port {rename_list {}}} {
                 }
 
                 if {$owner ne "replaced"} {
-                    if { [string is true -strict $force] } {
+                    if {$force} {
                         # if we're forcing the activation, then we move any existing
                         # files to a backup file, both in the filesystem and in the
                         # registry
@@ -661,8 +662,8 @@ proc _activate_contents {port {rename_list {}}} {
                 # we'll set the directory attributes properly for all
                 # directories.
                 set directory [::file dirname $file]
-                while {$directory ni $files} {
-                    lappend files $directory
+                while {![dict exists $seendirs $directory]} {
+                    dict set seendirs $directory 1
                     # Any add here will mean an additional step in the second
                     # phase of activation. We could just update this once after
                     # this foreach loop is complete, but that could make the
@@ -674,33 +675,38 @@ proc _activate_contents {port {rename_list {}}} {
                 }
 
                 # Also add the filename to the imagefile list.
-                lappend files $file
+                dict set filesdict $file 1
             }
         }
+        set directories [dict keys $seendirs]
+        unset seendirs
 
         # deactivate ports replaced_by this one
+        set deactivate_options [dict create ports_nodepcheck 1]
         foreach owner $todeactivate {
             _progress intermission
-            if {$noexec || ![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
-                deactivate [$owner name] "" "" 0 [list ports_nodepcheck 1]
+            if {$noexec || ![registry::run_target $owner deactivate $deactivate_options]} {
+                deactivate [$owner name] "" "" 0 $deactivate_options
             }
         }
 
         # Sort the list in forward order, removing duplicates.
         # Since the list is sorted in forward order, we're sure that
-        # directories are before their elements.
+        # parent directories are before their elements.
         # We don't have to do this as mentioned above, but it makes the
         # debug output of activate make more sense.
-        set files [lsort -increasing -unique $files]
+        set directories [lsort -increasing -unique $directories]
         # handle files that are to be renamed
         set confirmed_rename_list [list]
         foreach {src dest} $rename_list {
-            set index [lsearch -exact -sorted $files $src]
-            if {$index != -1} {
-                set files [lreplace $files $index $index]
+            if {[dict exists $filesdict $src]} {
+                dict unset filesdict $src
                 lappend confirmed_rename_list $src $dest
             }
         }
+        set files [dict keys $filesdict]
+        unset filesdict
+
         set rollback_filelist [list]
 
         registry::write {
@@ -708,8 +714,14 @@ proc _activate_contents {port {rename_list {}}} {
 
             try {
                 $port activate $imagefiles
+                foreach dir $directories {
+                    _activate_directory ${extracted_dir}${dir} $dir
+
+                    _progress update $progress_step $progress_total_steps
+                    incr progress_step
+                }
                 foreach file $files {
-                    if {[_activate_file "${extracted_dir}${file}" $file] == 1} {
+                    if {[_activate_file ${extracted_dir}${file} $file] == 1} {
                         lappend rollback_filelist $file
                     }
 
@@ -779,7 +791,7 @@ proc _activate_contents {port {rename_list {}}} {
             # reactivate deactivated ports
             foreach entry $todeactivate {
                 if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
-                    activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
+                    activate [$entry name] [$entry version] [$entry revision] [$entry variants] [dict create ports_activate_no-exec $noexec]
                 }
             }
         } finally {
