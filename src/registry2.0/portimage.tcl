@@ -571,7 +571,7 @@ proc _activate_contents {port {rename_list {}}} {
     variable progress_step
     variable progress_total_steps
 
-    set filesdict [dict create]
+    set files [list]
     set baksuffix .mp_[clock seconds]
     set portname [$port name]
     set location [$port location]
@@ -582,6 +582,7 @@ proc _activate_contents {port {rename_list {}}} {
 
     set backups [list]
     set seendirs [dict create]
+    set confirmed_rename_list [list]
     # This is big and hairy and probably could be done better.
     # First, we need to check the source file, make sure it exists
     # Then we remove the $location from the path of the file in the contents
@@ -674,8 +675,12 @@ proc _activate_contents {port {rename_list {}}} {
                     set directory [::file dirname $directory]
                 }
 
-                # Also add the filename to the imagefile list.
-                dict set filesdict $file 1
+                # Also add the filename to the normal or renamed list.
+                if {[dict exists $rename_list $file]} {
+                    lappend confirmed_rename_list $file [dict get $rename_list $file]
+                } else {
+                    lappend files $file
+                }
             }
         }
         set directories [dict keys $seendirs]
@@ -696,16 +701,6 @@ proc _activate_contents {port {rename_list {}}} {
         # We don't have to do this as mentioned above, but it makes the
         # debug output of activate make more sense.
         set directories [lsort -increasing -unique $directories]
-        # handle files that are to be renamed
-        set confirmed_rename_list [list]
-        foreach {src dest} $rename_list {
-            if {[dict exists $filesdict $src]} {
-                dict unset filesdict $src
-                lappend confirmed_rename_list $src $dest
-            }
-        }
-        set files [dict keys $filesdict]
-        unset filesdict
 
         set rollback_filelist [list]
 

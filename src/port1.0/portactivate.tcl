@@ -67,12 +67,12 @@ proc portactivate::activate_main {args} {
     }
 
     set reg_options [dict create {*}[array get user_options]]
-    set renames [list]
+    set renames [dict create]
     portstartupitem::foreach_startupitem {
         if {$si_install} {
-            lappend renames ${prefix}/etc/${si_location}/${si_plist} /Library/${si_location}/${si_plist}
+            dict set renames ${prefix}/etc/${si_location}/${si_plist} /Library/${si_location}/${si_plist}
         } else {
-            lappend renames /Library/${si_location}/${si_plist} ${prefix}/etc/${si_location}/${si_plist}
+            dict set renames /Library/${si_location}/${si_plist} ${prefix}/etc/${si_location}/${si_plist}
         }
     }
     dict set reg_options portactivate_rename_files $renames
