@@ -40,8 +40,8 @@ test test_lint_checksum_type_list_missing_recommended {
         return "FAIL: unexpected results: no results returned"
     }
 
-    if {"size" ni $results} {
-        return "FAIL: no mention of the missing size field"
+    if {[lsearch -glob $results *size*] == -1} {
+        return "FAIL: no mention of the missing size field: $results"
     }
 
     return "lint_checksum_type_list_missing_recommended passed"
@@ -57,11 +57,11 @@ test test_lint_checksum_type_list_deprecated_md5 {
         return "FAIL: unexpectedly encountered no results"
     }
 
-    if {[lsearch -regexp $results {insecure.+md5}] == -1} {
+    if {[lsearch -glob $results *insecure*md5*] == -1} {
         return "FAIL: expecting deprecation warning for using MD5 solely"
     }
 
-    if {[lsearch -regexp $results {missing.+recommended}] == -1} {
+    if {[lsearch -glob $results *missing*recommended*] == -1} {
         return "FAIL: expecting warnings about missing recommended checksum\
                 types"
     }
@@ -79,11 +79,11 @@ test test_lint_checksum_type_list_deprecated_sha1 {
         return "FAIL: unexpected results: no results returned"
     }
 
-    if {[lsearch -regexp $results {insecure.+sha1}] == -1} {
+    if {[lsearch -glob $results *insecure*sha1*] == -1} {
         return "FAIL: no mention of the deprecated sha1 field"
     }
 
-    if {[lsearch -regexp $results {missing.+recommended}] == -1} {
+    if {[lsearch -glob $results *missing*recommended*] == -1} {
         return "FAIL: expecting warnings about missing recommended checksum\
                 types"
     }
@@ -102,7 +102,7 @@ test test_lint_checksum_type_list_mixed {
         return "FAIL: unexpected results: no results returned"
     }
 
-    if {[lsearch -regexp $results {missing.+rmd160}] == -1} {
+    if {[lsearch -glob $results *missing*rmd160*] == -1} {
         return "FAIL: no mention of missing recommended rmd160 field: $results"
     }
 
@@ -128,13 +128,13 @@ test test_lint_checksum_basic {
     }
 
     if {[llength $warnings] > 0} {
-        if {[lsearch -regexp $warnings {missing.+recommended}] == -1} {
+        if {[lsearch -glob $warnings *missing*recommended*] == -1} {
             return "FAIL: missing expected warning about recommended fields"
         }
 
         if {[llength [lsearch -inline \
-                              -regexp \
-                              -all $warnings {missing.+recommended}]] != 2} {
+                              -glob \
+                              -all $warnings *missing*recommended*]] != 2} {
             return "FAIL: less warnings than expected: $warnings"
         }
     } else {
@@ -163,15 +163,15 @@ test test_lint_checksum_basic_w_filename {
     }
 
     if {[llength $warnings] > 0} {
-        if {[lsearch -regexp $warnings \
-                                {doop\.tgz.+missing.+recommended}] == -1} {
+        if {[lsearch -glob $warnings \
+                                *doop.tgz*missing*recommended*] == -1} {
             return "FAIL: missing expected warning about recommended fields"
         }
 
         if {[llength [lsearch -inline \
-                              -regexp \
+                              -glob \
                               -all $warnings \
-                              {doop\.tgz.+missing.+recommended}]] != 2} {
+                              *doop.tgz*missing*recommended*]] != 2} {
             return "FAIL: less warnings than expected: $warnings"
         }
     } else {
@@ -261,7 +261,7 @@ test test_lint_checksum_bad_checksum_type {
         return "FAIL: unexpectedly encountered no errors"
     }
 
-    if {[lsearch -regexp $errors {invalid.+sha300}] == -1} {
+    if {[lsearch -glob $errors *invalid*sha300*] == -1} {
         return "FAIL: no error present about the invalid checksum type: $errors"
     }
 
@@ -292,7 +292,7 @@ test test_lint_checksum_bad_checksum_type_w_filename {
         return "FAIL: unexpectedly encountered no errors"
     }
 
-    if {[lsearch -regexp $errors {invalid.+field}] == -1} {
+    if {[lsearch -glob $errors *invalid*field*] == -1} {
         return "FAIL: no error present about the invalid checksum type: $errors"
     }
 
@@ -313,15 +313,15 @@ test test_lint_checksum_multi_basic {
         return "FAIL: invalid results returned: empty list"
     }
 
-    if {[lsearch -regexp $results {file1\.tar.+recommended}] == -1} {
+    if {[lsearch -glob $results *file1.tar*recommended*] == -1} {
         return "FAIL: no expected warnings for file1: $results"
     }
 
-    if {[lsearch -regexp $results {file2\.tar.+recommended}] == -1} {
+    if {[lsearch -glob $results *file2.tar*recommended*] == -1} {
         return "FAIL: no expected warnings for file2: $results"
     }
 
-    if {[lsearch -regexp $results {file3\.tar.+recommended}] == -1} {
+    if {[lsearch -glob $results *file3.tar*recommended*] == -1} {
         return "FAIL: no expected warnings for file3: $results"
     }
 
@@ -383,7 +383,7 @@ test test_lint_checksum_malformed_sha256 {
         return "FAIL: unexpectedly encountered errors: $errors"
     }
 
-    if {[lsearch -regexp $errors {checksum.+sha256.+invalid}] == -1} {
+    if {[lsearch -glob $errors *checksum*sha256*invalid*] == -1} {
         return "FAIL: missing error about invalid checksum: $errors"
     }
 
@@ -408,7 +408,7 @@ test test_lint_checksum_malformed_rmd160 {
         return "FAIL: unexpectedly encountered errors: $errors"
     }
 
-    if {[lsearch -regexp $errors {checksum.+rmd160.+invalid}] == -1} {
+    if {[lsearch -glob $errors *checksum*rmd160*invalid*] == -1} {
         return "FAIL: missing error about invalid checksum: $errors"
     }
 
@@ -433,7 +433,7 @@ test test_lint_checksum_malformed_size {
         return "FAIL: unexpectedly encountered errors: $errors"
     }
 
-    if {[lsearch -regexp $errors {checksum.+size.+invalid}] == -1} {
+    if {[lsearch -glob $errors *checksum*size*invalid*] == -1} {
         return "FAIL: missing error about invalid checksum: $errors"
     }
 
@@ -459,7 +459,7 @@ test test_lint_checksum_multi_malformed {
         return "FAIL: unexpectedly encountered errors: $errors"
     }
 
-    if {[lsearch -regexp $errors {checksum.+sha256.+invalid}] == -1} {
+    if {[lsearch -glob $errors *checksum*sha256*invalid*] == -1} {
         return "FAIL: missing error about invalid checksum: $errors"
     }
 
@@ -490,11 +490,11 @@ test test_lint_checksum_multi_malformed_w_filename_1 {
         return "FAIL: unexpectedly encountered no warnings"
     }
 
-    if {[lsearch -regexp $errors {somefile.+checksum.+sha256.+invalid}] == -1} {
+    if {[lsearch -glob $errors *somefile*checksum*sha256*invalid*] == -1} {
         return "FAIL: missing error about invalid checksum: $errors"
     }
 
-    if {[lsearch -regexp $warnings {missing.+recommended.+rmd160}] == -1} {
+    if {[lsearch -glob $warnings *missing*recommended*rmd160*] == -1} {
         return "FAIL: missing expected warning about missing recommended type"
     }
 
@@ -529,11 +529,11 @@ test test_lint_checksum_multi_malformed_w_filename_2 {
         return "FAIL: unexpectedly encountered no warnings"
     }
 
-    if {[lsearch -regexp $errors {somefile.+checksum.+sha256.+invalid}] == -1} {
+    if {[lsearch -glob $errors *somefile*checksum*sha256*invalid*] == -1} {
         return "FAIL: missing error about invalid checksum: $errors"
     }
 
-    if {[lsearch -regexp $warnings {somefile.+missing.+recommended.+rmd160}] == -1} {
+    if {[lsearch -glob $warnings *somefile*missing*recommended*rmd160*] == -1} {
         return "FAIL: missing warnings about missing recommended type"
     }
 
@@ -564,11 +564,11 @@ test test_lint_checksum_multi_adjacent_invalid_w_filename {
         return "FAIL: unexpectedly encountered errors: $errors"
     }
 
-    if {[lsearch -regexp $errors {invalid.+field.+nope}] == -1} {
+    if {[lsearch -glob $errors *invalid*field*nope*] == -1} {
         return "FAIL: missing error about invalid checksum field: $errors"
     }
 
-    if {[lsearch -regexp $warnings {somefile.+missing.+recommended.+rmd160}] == -1} {
+    if {[lsearch -glob $warnings *somefile*missing*recommended*rmd160*] == -1} {
         return "FAIL: missing warnings about missing recommended type: rmd160"
     }
 
@@ -598,11 +598,11 @@ test test_lint_checksum_invalid_ending {
         return "FAIL: unexpectedly encountered no warnings"
     }
 
-    if {[lsearch -regexp $errors {invalid.+field.+bunny}] == -1} {
+    if {[lsearch -glob $errors *invalid*field*bunny*] == -1} {
         return "FAIL: missing error about invalid checksum field: $errors"
     }
 
-    if {[lsearch -regexp $warnings {missing.+recommended}] == -1} {
+    if {[lsearch -glob $warnings *missing*recommended*] == -1} {
         return "FAIL: no warnings about missing recommended types: $warnings"
     }
 
@@ -634,11 +634,11 @@ test test_lint_checksum_invalid_ending_w_filename {
         return "FAIL: unexpectedly encountered no warnings"
     }
 
-    if {[lsearch -regexp $errors {invalid.+bunny}] == -1} {
+    if {[lsearch -glob $errors *invalid*bunny*] == -1} {
         return "FAIL: missing error about invalid field: $errors"
     }
 
-    if {[lsearch -regexp $warnings {file1.+missing.+recommended}] == -1} {
+    if {[lsearch -glob $warnings *file1*missing*recommended*] == -1} {
         return "FAIL: no warnings about missing recommended types: $warnings"
     }
 
