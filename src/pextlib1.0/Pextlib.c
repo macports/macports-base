@@ -1067,6 +1067,49 @@ int FSCaseSensitiveCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int obj
     }
 }
 
+/**
+ * Determines filesystem clone capability for a specific path.
+ * Returns 1 if the FS supports clones, 0 otherwise.
+ * Errors out if the capability could not be determined.
+ */
+int FSCloneCapableCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    Tcl_Obj *tcl_result;
+    int ret = 0;
+
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "path");
+        return TCL_ERROR;
+    }
+
+#ifdef VOL_CAP_INT_CLONE
+    char *path = Tcl_GetString(objv[1]);
+    if (!path) {
+        return TCL_ERROR;
+    }
+
+    struct attrlist attrlist;
+    volcaps_t volcaps;
+
+    memset(&attrlist, 0, sizeof(attrlist));
+    attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attrlist.volattr = ATTR_VOL_CAPABILITIES;
+
+    if (-1 == getattrlist(path, &attrlist, &volcaps, sizeof(volcaps), 0)
+        || (attrlist.volattr & ATTR_VOL_CAPABILITIES) == 0) {
+        return TCL_ERROR;
+    }
+
+    if ((volcaps.volcaps.valid[VOL_CAPABILITIES_INTERFACES] & VOL_CAP_INT_CLONE)) {
+        /* capabilities bit for clone valid */
+        ret = (volcaps.volcaps.capabilities[VOL_CAPABILITIES_INTERFACES] & VOL_CAP_INT_CLONE) != 0;
+    }
+#endif /* VOL_CAP_INT_CLONE */
+
+    tcl_result = Tcl_NewBooleanObj(ret);
+    Tcl_SetObjResult(interp, tcl_result);
+    return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -1128,6 +1171,7 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "set_max_open_files", SetMaxOpenFilesCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "fs_clone_capable", FSCloneCapableCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;
