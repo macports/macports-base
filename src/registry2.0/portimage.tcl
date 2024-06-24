@@ -114,7 +114,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
             #registry::entry close $requested
             return -code error "Image error: ${name} @${specifier} not installed as an image."
         }
-        if {![::file isfile $location]} {
+        if {![::file exists $location]} {
             #registry::entry close $requested
             return -code error "Image error: Can't find image file $location"
         }
@@ -316,54 +316,124 @@ proc _check_registry {name version revision variants {return_all 0}} {
     throw registry::invalid "Registry error: ${name}${composite_spec} is not installed."
 }
 
-## Activates a file from an image into the filesystem. Deals with symlinks
-## and regular files.
+# Mapping of directory paths to device numbers. Used to check if files
+# can be hardlinked or cloned, or must be copied.
+variable dir_devices [dict create]
+
+## Activates a list of files from an image into the filesystem. Deals
+## with symlinks and regular files.
 ##
-## @param [in] srcfile path to file in image
-## @param [in] dstfile path to activate file to
-## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
-proc _activate_file {srcfile dstfile} {
-    if {[catch {::file type $srcfile} result]} {
+## @param [in] files list of target file paths
+## @param [in] imageroot path to root of image directory
+## @param [in] imageroot path to root of image directory
+## @param [in] rollback_var list name to append activated files to
+## @return list of files that need to be explicitly deleted if we have to roll back
+proc _activate_files {srcfiles dstfiles imageroot rollback_var} {
+    variable progress_step; variable progress_total_steps
+    variable dir_devices; variable keep_imagedir
+    upvar $rollback_var rollback_list
+    set use_clone [expr {$keep_imagedir && [fs_clone_capable $imageroot]}]
+    ::file stat $imageroot statinfo
+    set imagedev $statinfo(dev)
+    set all_attrs [expr {[getuid] == 0}]
+    set hardlinks [dict create]
+
+    foreach srcfile $srcfiles dstfile $dstfiles {
         # this can happen if the archive was built on case-sensitive and we're case-insensitive
         # we know any existing dstfile is ours because we checked for conflicts earlier
-        if {![catch {file type $dstfile}]} {
+        if {![catch {::file type $dstfile}]} {
             ui_debug "skipping case-conflicting file: $srcfile"
-            return 0
-        } else {
-            error $result
+            continue
         }
+        ui_debug "activating file: $dstfile"
+        set hardlinked 0
+        ::file lstat $srcfile statinfo
+        if {$statinfo(nlink) > 1} {
+            # Hard linked file
+            if {[dict exists $hardlinks $statinfo(ino)]} {
+                # Link to the primary link
+                if {![catch {::file link -hard $dstfile [dict get $hardlinks $statinfo(ino)]}]} {
+                    set hardlinked 1
+                }
+                # Fall back to normal method if hardlinking failed. The destinations
+                # for the links could be on different devices, or a destination
+                # filesystem might not even support hard links.
+            } else {
+                # Set this as the primary link and activate as normal.
+                dict set hardlinks $statinfo(ino) $dstfile
+            }
+        }
+        if {!$hardlinked} {
+            if {$use_clone && [dict get $dir_devices [::file dirname $dstfile]] == $imagedev} {
+                clonefile $srcfile $dstfile
+                # not all permissions are preserved by clonefile
+                if {$statinfo(type) ne "link"} {
+                    ::file attributes $dstfile -permissions {*}[::file attributes $srcfile -permissions]
+                }
+            } elseif {$keep_imagedir} {
+                ::file copy $srcfile $dstfile
+                if {$statinfo(type) ne "link"} {
+                    if {$all_attrs} {
+                        ::file attributes $dstfile {*}[::file attributes ${srcfile}]
+                    } else {
+                        # not root, so can't set owner/group
+                        ::file attributes $dstfile -permissions {*}[::file attributes ${srcfile} -permissions]
+                    }
+                    ::file mtime $dstfile [::file mtime $srcfile]
+                }
+            } else {
+                ::file rename $srcfile $dstfile
+            }
+        }
+        lappend rollback_list $dstfile
+
+        _progress update $progress_step $progress_total_steps
+        incr progress_step
     }
-    ui_debug "activating file: $dstfile"
-    ::file rename $srcfile $dstfile
-    return 1
 }
 
 ## Activates a directory from an image into the filesystem.
 ##
-## @param [in] srcdir path to dir in image
-## @param [in] dstdir path to activate dir to
-proc _activate_directory {srcdir dstdir} {
-    # Don't recursively copy directories
-    ui_debug "activating directory: $dstdir"
-    # Don't do anything if the directory already exists.
-    if {![::file isdirectory $dstdir]} {
-        ::file mkdir $dstdir
-        # fix attributes on the directory.
-        if {[getuid] == 0} {
-            ::file attributes $dstdir {*}[::file attributes $srcdir]
-        } else {
-            # not root, so can't set owner/group
-            ::file attributes $dstdir -permissions {*}[::file attributes $srcdir -permissions]
+## @param [in] dirs list of destination directory paths
+## @param [in] imageroot path to root of image directory
+proc _activate_directories {dirs imageroot} {
+    variable progress_step; variable progress_total_steps
+    variable dir_devices
+    set all_attrs [expr {[getuid] == 0}]
+    foreach dir $dirs {
+        ui_debug "activating directory: $dir"
+        # Don't do anything if the directory already exists.
+        if {![::file isdirectory $dir]} {
+            ::file mkdir $dir
+            set srcdir ${imageroot}${dir}
+            # fix attributes on the directory.
+            if {$all_attrs} {
+                ::file attributes $dir {*}[::file attributes ${srcdir}]
+            } else {
+                # not root, so can't set owner/group
+                ::file attributes $dir -permissions {*}[::file attributes ${srcdir} -permissions]
+            }
+            # set mtime on installed element
+            ::file mtime $dir [::file mtime ${srcdir}]
         }
-        # set mtime on installed element
-        ::file mtime $dstdir [::file mtime $srcdir]
+        if {![dict exists $dir_devices $dir]} {
+            ::file stat $dir statinfo
+            dict set dir_devices $dir $statinfo(dev)
+        }
+        _progress update $progress_step $progress_total_steps
+        incr progress_step
     }
 }
 
-# extract an archive to a temporary location
+# extract an archive to a directory
 # returns: path to the extracted directory
-proc extract_archive_to_tmpdir {location} {
-    set extractdir [mkdtemp [::file dirname $location]/mpextractXXXXXXXX]
+proc extract_archive_to_imagedir {location} {
+    set extractdir [file rootname $location]
+    if {[file exists $extractdir]} {
+        set extractdir [mkdtemp ${extractdir}XXXXXXXX]
+    } else {
+        file mkdir $extractdir
+    }
     set startpwd [pwd]
 
     try {
@@ -568,6 +638,8 @@ proc _progress {args} {
 proc _activate_contents {port {rename_list {}}} {
     variable force
     variable noexec
+    variable keep_archive
+    variable keep_imagedir
     variable progress_step
     variable progress_total_steps
 
@@ -577,8 +649,24 @@ proc _activate_contents {port {rename_list {}}} {
     set location [$port location]
     set imagefiles [$port imagefiles]
     set num_imagefiles [llength $imagefiles]
-    set progress_total_steps [expr {$num_imagefiles * 3}]
-    set extracted_dir [extract_archive_to_tmpdir $location]
+
+    set progress_step 0
+    if {[::file isfile $location]} {
+        set progress_total_steps [expr {$num_imagefiles * 3}]
+        set extracted_dir [extract_archive_to_imagedir $location]
+        # extract phase complete, assume 1/3 is done
+        set progress_step $num_imagefiles
+        if {!$keep_archive} {
+            registry::write {
+                $port location $extracted_dir
+            }
+            file delete $location
+        }
+    } else {
+        set extracted_dir $location
+        set progress_total_steps [expr {$num_imagefiles * 2}]
+        _progress start
+    }
 
     set backups [list]
     set seendirs [dict create]
@@ -593,8 +681,6 @@ proc _activate_contents {port {rename_list {}}} {
     set todeactivate [list]
     try {
         registry::write {
-            # extract phase complete, assume 1/3 is done
-            set progress_step $num_imagefiles
             foreach file $imagefiles {
                 incr progress_step
                 _progress update $progress_step $progress_total_steps
@@ -709,27 +795,16 @@ proc _activate_contents {port {rename_list {}}} {
 
             try {
                 $port activate $imagefiles
-                foreach dir $directories {
-                    _activate_directory ${extracted_dir}${dir} $dir
-
-                    _progress update $progress_step $progress_total_steps
-                    incr progress_step
-                }
-                foreach file $files {
-                    if {[_activate_file ${extracted_dir}${file} $file] == 1} {
-                        lappend rollback_filelist $file
-                    }
-
-                    _progress update $progress_step $progress_total_steps
-                    incr progress_step
-                }
+                _activate_directories $directories $extracted_dir
+                _activate_files [lmap f $files {string cat ${extracted_dir}${f}}] \
+                                $files $extracted_dir rollback_filelist
                 foreach {src dest} $confirmed_rename_list {
                     $port deactivate [list $src]
                     $port activate [list $src] [list $dest]
-                    if {[_activate_file ${extracted_dir}${src} $dest] == 1} {
-                        lappend rollback_filelist $dest
-                    }
                 }
+                _activate_files [lmap {src _} $confirmed_rename_list {string cat ${extracted_dir}${src}}] \
+                                [lmap {_ dst} $confirmed_rename_list {set dst}] \
+                                $extracted_dir rollback_filelist
 
                 # Recording that the port has been activated should be done
                 # here so that this information cannot be inconsistent with the
@@ -800,8 +875,10 @@ proc _activate_contents {port {rename_list {}}} {
         #foreach entry $todeactivate {
         #    registry::entry close $entry
         #}
-        # remove temp image dir
-        ::file delete -force $extracted_dir
+        if {!$keep_imagedir} {
+            # remove temp image dir
+            ::file delete -force $extracted_dir
+        }
     }
 }
 

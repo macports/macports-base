@@ -7447,10 +7447,22 @@ then :
   printf "%s\n" "#define HAVE_SPAWN_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "sys/attr.h" "ac_cv_header_sys_attr_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_attr_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_SYS_ATTR_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "sys/cdefs.h" "ac_cv_header_sys_cdefs_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_cdefs_h" = xyes
 then :
   printf "%s\n" "#define HAVE_SYS_CDEFS_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "sys/clonefile.h" "ac_cv_header_sys_clonefile_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_clonefile_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_SYS_CLONEFILE_H 1" >>confdefs.h
 
 fi
 ac_fn_c_check_header_compile "$LINENO" "sys/event.h" "ac_cv_header_sys_event_h" "$ac_includes_default"
@@ -7526,6 +7538,12 @@ ac_fn_c_check_func "$LINENO" "clearenv" "ac_cv_func_clearenv"
 if test "x$ac_cv_func_clearenv" = xyes
 then :
   printf "%s\n" "#define HAVE_CLEARENV 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "clonefile" "ac_cv_func_clonefile"
+if test "x$ac_cv_func_clonefile" = xyes
+then :
+  printf "%s\n" "#define HAVE_CLONEFILE 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "copyfile" "ac_cv_func_copyfile"

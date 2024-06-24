@@ -70,6 +70,14 @@
 #include <unistd.h>
 #include <assert.h>
 
+/* For clonefile */
+#ifdef HAVE_SYS_ATTR_H
+#include <sys/attr.h>
+#endif
+#ifdef HAVE_SYS_CLONEFILE_H
+#include <sys/clonefile.h>
+#endif
+
 #ifdef __MACH__
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
@@ -1110,6 +1118,38 @@ int FSCloneCapableCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc
     return TCL_OK;
 }
 
+/**
+ * Interface to clonefile(2)
+ */
+int ClonefileCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    int ret = -1;
+
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "srcpath dstpath");
+        return TCL_ERROR;
+    }
+
+#ifdef HAVE_CLONEFILE
+    char *srcpath = Tcl_GetString(objv[1]);
+    char *dstpath = Tcl_GetString(objv[2]);
+    if (!srcpath || !dstpath) {
+        return TCL_ERROR;
+    }
+
+    ret = clonefile(srcpath, dstpath, CLONE_NOFOLLOW);
+    if (ret != 0) {
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "clonefile failed: ", (char *)Tcl_PosixError(interp), NULL);
+    }
+#endif /* HAVE_CLONEFILE */
+
+    if (ret == 0) {
+        return TCL_OK;
+    }
+    return TCL_ERROR;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -1172,6 +1212,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "fs_clone_capable", FSCloneCapableCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "clonefile", ClonefileCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

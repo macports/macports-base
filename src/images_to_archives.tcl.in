@@ -32,6 +32,7 @@ puts "This could take a while..."
 set archived_list [list]
 set installed_len [llength $ilist]
 set counter 0
+set archive_required [expr {$macports::portimage_mode eq "archive"}]
 
 foreach installed $ilist {
     incr counter
@@ -50,7 +51,7 @@ foreach installed $ilist {
         set location ""
     }
 
-    if {$location eq "" || ![file isfile $location]} {
+    if {$location eq "" || ![file exists $location] || ($archive_required && ![file isfile $location])} {
         # no image archive present, so make one
         set archs [$installed archs]
         if {$archs eq "" || $archs == 0} {

@@ -267,12 +267,30 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
     } else {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
 
-        # Get the full path to the image file
-        set imagefile [$port location]
-        file delete $imagefile
+        # Get the full path to the port image
+        set imagepath [$port location]
+        set imagedir [file dirname $imagepath]
+        if {[file isfile $imagepath]} {
+            file delete $imagepath
+            # Also delete extracted image dir if present
+            set extracted_path [file rootname $imagepath]
+            if {[file isdirectory $extracted_path]} {
+                file delete -force $extracted_path
+            }
+        } else {
+            # Image is a directory
+            file delete -force $imagepath
+            # Also delete any associated archives
+            set imagename [file tail $imagepath]
+            foreach archive [glob -nocomplain -directory $imagedir ${imagename}.*] {
+                if {[file rootname [file tail $archive]] eq $imagename} {
+                    file delete -force $archive
+                }
+            }
+        }
         # Try to delete the port's image dir; will fail if there are more image
         # files so just ignore the failure
-        catch {file delete [::file dirname $imagefile]}
+        catch {file delete $imagedir}
 
         # We want to delete the portfile if not referenced by any other ports
         set portfile [$port portfile]

@@ -74,7 +74,8 @@ proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
            epoch configure.cxx_stdlib cxx_stdlib PortInfo \
            archive.env archive.cmd archive.pre_args archive.args \
-           archive.post_args archive.dir depends_lib depends_run
+           archive.post_args archive.dir depends_lib depends_run \
+           portarchive_hfscompression
     set archive.env {}
     set archive.cmd {}
     set archive.pre_args {}
@@ -119,7 +120,7 @@ proc portinstall::create_archive {location archive.type} {
                 return -code error "No '$pax' was found on this system!"
             }
         }
-        t(ar|bz|lz|xz|gz) {
+        t(ar|bz|lz|xz|gz|mptar) {
             set tar "tar"
             if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
                 ui_debug "Using $tar"
@@ -159,7 +160,25 @@ proc portinstall::create_archive {location archive.type} {
                         return -code error "No '$gzip' was found on this system!"
                     }
                 } else {
-                    set archive.args "[shellescape ${location}] ."
+                    if {${archive.type} eq "tmptar"} {
+                        # Pass through tar for hardlink detection and HFS compression,
+                        # but extract without saving the tar file.
+                        if {${portarchive_hfscompression} && [getuid] == 0 &&
+                            ![catch {binaryInPath bsdtar}] &&
+                            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]
+                        } then {
+                            set extract_tar bsdtar
+                            set extract_tar_args {-xvp --hfsCompression -f}
+                        } else {
+                            set extract_tar $tar
+                            set extract_tar_args {-xvpf}
+                        }
+                        set archive.args {- .}
+                        set archive.post_args "| $extract_tar -C $location $extract_tar_args -"
+                        file mkdir $location
+                    } else {
+                        set archive.args "[shellescape ${location}] ."
+                    }
                 }
             } else {
                 ui_debug $errmsg
@@ -322,7 +341,7 @@ proc portinstall::create_archive {location archive.type} {
     # Now create the archive
     ui_debug "Creating [file tail $location]"
     command_exec archive
-    ui_debug "Archive [file tail $location] packaged"
+    ui_debug "Port image [file tail $location] created"
 
     # Cleanup all control files when finished
     set control_files [glob -nocomplain -types f [file join $destpath +*]]
@@ -339,7 +358,7 @@ proc portinstall::extract_contents {location type} {
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants requested_variants depends_lib PortInfo epoch \
-    portarchivetype
+    portarchivetype portimage_mode
     variable file_is_binary
     variable actual_cxx_stdlib
     variable cxx_stdlib_overridden
@@ -366,10 +385,18 @@ proc portinstall::install_main {args} {
         set cxxinfo [extract_archive_metadata $location $current_archive_type cxx_info]
         lassign $cxxinfo actual_cxx_stdlib cxx_stdlib_overridden
     } else {
-        # throws an error if an unsupported value has been configured
-        archiveTypeIsSupported $portarchivetype
+        if {$portimage_mode eq "directory"} {
+            # Special value to avoid writing archive out to disk, since
+            # only the extracted dir should be kept.
+            set archivetype tmptar
+            set location [file rootname $location]
+        } else {
+            # throws an error if an unsupported value has been configured
+            archiveTypeIsSupported $portarchivetype
+            set archivetype $portarchivetype
+        }
         # create archive from the destroot
-        create_archive $location $portarchivetype
+        create_archive $location $archivetype
     }
 
     # can't do this inside the write transaction due to deadlock issues with _get_dep_port

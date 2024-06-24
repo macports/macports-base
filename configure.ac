@@ -249,13 +249,14 @@ MP_CHECK_STARTUPITEMS
 MP_UNIVERSAL_OPTIONS
 
 # Check for standard header files.
-AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
-	readline/history.h readline/readline.h stdatomic.h spawn.h sys/cdefs.h sys/event.h \
+AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h \
+    limits.h paths.h pwd.h readline/history.h readline/readline.h \
+    stdatomic.h spawn.h sys/attr.h sys/cdefs.h sys/clonefile.h sys/event.h \
 	sys/fcntl.h sys/file.h sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile \
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv clonefile copyfile \
 	_dyld_shared_cache_contains_path flock fls kqueue posix_spawn setmode \
 	sysctlbyname])
 

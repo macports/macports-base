@@ -50,7 +50,7 @@ namespace eval macports {
     variable bootstrap_options [dict create]
     # Config file options with no special handling
     foreach opt [list binpath auto_path extra_env portdbformat \
-        portarchivetype hfscompression portautoclean \
+        portarchivetype portimage_mode hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask rsync_server rsync_options \
         rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted \
@@ -74,7 +74,8 @@ namespace eval macports {
     variable portinterp_options [list \
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format user_home user_path user_ssh_auth_sock \
-        portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
+        portarchivetype portarchive_hfscompression archivefetch_pubkeys \
+        portautoclean portimage_mode porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -954,6 +955,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::portarchivetype \
         macports::portautoclean \
         macports::portautoclean_frozen \
+        macports::portimage_mode \
         macports::porttrace \
         macports::porttrace_frozen \
         macports::portverbose \
@@ -976,6 +978,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::delete_la_files \
         macports::cxx_stdlib \
         macports::hfscompression \
+        macports::portarchive_hfscompression \
         macports::host_cache \
         macports::porturl_prefix_map \
         macports::ui_options \
@@ -1405,10 +1408,29 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set portarchivetype [lindex $portarchivetype 0]
     }
 
+    # How to store port images
+    if {[info exists portimage_mode] &&
+        $portimage_mode ni {archive directory directory_and_archive}} {
+        ui_warn "Unknown portimage_mode value '$portimage_mode', using default"
+        unset portimage_mode
+    }
+    if {![info exists portimage_mode]} {
+        # Using an extracted directory is usually only a good idea if
+        # the filesystem supports COW clones.
+        if {![catch {fs_clone_capable [file join $portdbpath software]} result] && $result} {
+            set portimage_mode directory
+        } else {
+            set portimage_mode archive
+        }
+    }
+    set portimage::keep_imagedir [expr {$portimage_mode ne "archive"}]
+    set portimage::keep_archive [expr {$portimage_mode ne "directory"}]
+
     # Enable HFS+ compression by default
     if {![info exists hfscompression]} {
         set hfscompression yes
     }
+    set portarchive_hfscompression $hfscompression
 
     # Set rync options
     if {![info exists rsync_server]} {

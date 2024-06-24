@@ -46,9 +46,24 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 #   unavailable.
 #buildfromsource     	ifneeded
 
-# Type of archive to use for port images. Supported types are cpgz,
-# cpio, tar, tbz, tbz2, tgz, tlz, txz, xar, zip.
+# Type of archive to use for port images created by local builds.
+# Supported types are cpgz, cpio, tar, tbz, tbz2, tgz, tlz, txz, xar, zip.
 #portarchivetype     	tbz2
+
+# How to store port images.
+# - archive: Image is kept in the archive as downloaded (format
+#   determined by the archive site configuration) or built locally
+#   (format determined by portarchivetype). Must be extracted to
+#   activate the port. This is the default if the filesystem does not
+#   support cloning.
+# - directory: Image is stored as a directory. Downloaded archives are
+#   extracted to create the directory and then deleted. This is the
+#   default if the filesystem supports cloning.
+# - directory_and_archive: Both archives and extracted directories are
+#   kept. This is useful if you want to distribute the ports that you
+#   build as archives, and also get the performance benefits of the
+#   directory mode on a filesystem that supports cloning.
+#portimage_mode         directory_and_archive
 
 # Apply transparent filesystem compression to files on activation.
 # Requires bsdtar with support for --hfsCompression in binpath, which can be

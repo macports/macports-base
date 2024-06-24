@@ -7,6 +7,9 @@
 /* Define to 1 if you have the 'clearenv' function. */
 #undef HAVE_CLEARENV
 
+/* Define to 1 if you have the 'clonefile' function. */
+#undef HAVE_CLONEFILE
+
 /* Define if CommonCrypto is available. */
 #undef HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
@@ -187,8 +190,14 @@
 /* Define to 1 if you have the 'sysctlbyname' function. */
 #undef HAVE_SYSCTLBYNAME
 
+/* Define to 1 if you have the <sys/attr.h> header file. */
+#undef HAVE_SYS_ATTR_H
+
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #undef HAVE_SYS_CDEFS_H
+
+/* Define to 1 if you have the <sys/clonefile.h> header file. */
+#undef HAVE_SYS_CLONEFILE_H
 
 /* Define to 1 if you have the <sys/event.h> header file. */
 #undef HAVE_SYS_EVENT_H
