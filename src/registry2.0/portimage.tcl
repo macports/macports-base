@@ -661,6 +661,7 @@ proc _activate_contents {port {rename_list {}}} {
                 $port location $extracted_dir
             }
             file delete $location
+            set location $extracted_dir
         }
     } else {
         set extracted_dir $location
@@ -875,7 +876,8 @@ proc _activate_contents {port {rename_list {}}} {
         #foreach entry $todeactivate {
         #    registry::entry close $entry
         #}
-        if {!$keep_imagedir} {
+        # Only delete extracted dir if there is an archive to re-extract from
+        if {!$keep_imagedir && [file isfile $location]} {
             # remove temp image dir
             ::file delete -force $extracted_dir
         }
