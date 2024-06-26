@@ -35,6 +35,14 @@ frameworks_dir      	@MPFRAMEWORKSDIR@
 # Location of the MacPorts sources list.
 sources_conf        	@MPCONFIGDIR_EXPANDED@/sources.conf
 
+# Location of archive_sites.conf, used to configure sources of
+# (binary) archives.
+archive_sites_conf      @MPCONFIGDIR_EXPANDED@/archive_sites.conf
+
+# Location of pubkeys.conf, used to configure public keys to use to
+# verify downloaded files.
+pubkeys_conf            @MPCONFIGDIR_EXPANDED@/pubkeys.conf
+
 # Location of the MacPorts global variants definition file. Optional.
 variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 

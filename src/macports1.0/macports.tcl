@@ -64,8 +64,9 @@ namespace eval macports {
             dict set bootstrap_options $opt {}
     }
     # Config file options that are a filesystem path and should be fully resolved
-    foreach opt [list applications_dir ccache_dir developer_dir frameworks_dir \
-                      packagemaker_path portdbpath prefix sources_conf variants_conf] {
+    foreach opt [list applications_dir archive_sites_conf ccache_dir developer_dir \
+                      frameworks_dir packagemaker_path portdbpath prefix pubkeys_conf \
+                      sources_conf variants_conf] {
         dict set bootstrap_options $opt is_path 1
     }
     unset opt
@@ -1240,10 +1241,20 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
     }
     array set global_variations [array get variations]
 
+    # archive_sites.conf
+    if {![info exists archive_sites_conf]} {
+        global macports::archive_sites_conf
+        set archive_sites_conf [file join $macports_conf_path archive_sites.conf]
+    }
+
     # pubkeys.conf
+    if {![info exists pubkeys_conf]} {
+        global macports::pubkeys_conf
+        set pubkeys_conf [file join $macports_conf_path pubkeys.conf]
+    }
     set archivefetch_pubkeys [list]
-    if {[file isfile [file join $macports_conf_path pubkeys.conf]]} {
-        set fd [open [file join $macports_conf_path pubkeys.conf] r]
+    if {[file isfile $pubkeys_conf]} {
+        set fd [open $pubkeys_conf r]
         while {[gets $fd line] >= 0} {
             set line [string trim $line]
             if {![regexp $variants_conf_comment_re $line]} {
@@ -6421,7 +6432,7 @@ proc macports::get_variant_description {variant resourcepath} {
 proc macports::get_archive_sites_conf_values {} {
     variable archive_sites_conf_values
     if {![info exists archive_sites_conf_values]} {
-        global macports::autoconf::macports_conf_path
+        variable archive_sites_conf
         variable os_platform; variable os_major
         set archive_sites_conf_values [list]
         set all_names [list]
@@ -6432,11 +6443,10 @@ proc macports::get_archive_sites_conf_values {} {
             lappend defaults_list cxx_stdlib libc++ delete_la_files yes
         }
         array set defaults $defaults_list
-        set conf_file ${macports_conf_path}/archive_sites.conf
         set conf_options [list applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix type urls]
         set line_re {^(\w+)([ \t]+(.*))?$}
-        if {[file isfile $conf_file]} {
-            set fd [open $conf_file r]
+        if {[file isfile $archive_sites_conf]} {
+            set fd [open $archive_sites_conf r]
             while {[gets $fd line] >= 0} {
                 if {[regexp $line_re $line match option ignore val] == 1} {
                     if {$option in $conf_options} {
