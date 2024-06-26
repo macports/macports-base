@@ -1003,7 +1003,7 @@ test get_archive_sites_conf_values {
     puts $fd "type tgz"
     close $fd
 
-    set macports::autoconf::macports_conf_path $pwd/archive_sites
+    set macports::archive_sites_conf $pwd/archive_sites/archive_sites.conf
     unset -nocomplain macports::archive_sites_conf_values
 } -body {
     set res [macports::get_archive_sites_conf_values]
