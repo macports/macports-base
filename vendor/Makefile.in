@@ -5,7 +5,6 @@ SIGNIFY_SUBDIR=		signify-osx
 
 PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
-CC=             @CC@
 
 .PHONY: all clean distclean install destroot test
 .PHONY: destroot-tcl destroot-tclx destroot-tcllib destroot-signify
@@ -36,7 +35,7 @@ all-tcllib: all-tcl
 
 %-signify:
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} $(@:%-signify=%) CC=${CC}
+	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} $(@:%-signify=%)
 
 destroot: destroot-tcl destroot-tclx destroot-tcllib destroot-signify
 destroot-tcl: all-tcl
@@ -54,7 +53,7 @@ destroot-tcllib: all-tcllib
 
 destroot-signify:
 	@echo ===\> staging to destroot in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install PREFIX=${DESTROOT}${PREFIX}/libexec/macports CC=${CC}
+	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install PREFIX=${DESTROOT}${PREFIX}/libexec/macports
 
 install: install-tcl install-tclx install-tcllib install-signify
 
@@ -95,7 +94,7 @@ install-tcllib:
 
 install-signify:
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install PREFIX=$(DESTDIR)${PREFIX}/libexec/macports CC=${CC}
+	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install PREFIX=$(DESTDIR)${PREFIX}/libexec/macports
 
 test:
 
