@@ -1,3 +1,5 @@
+include autoconf.mk
+
 PREFIX= /usr/local
 BINDIR= ${PREFIX}/bin
 MANDIR= ${PREFIX}/share/man
@@ -20,6 +22,35 @@ SRCS+= src/usr.bin/signify/mod_ge25519.c
 SRCS+= src/usr.bin/signify/signify.c
 SRCS+= src/usr.bin/signify/sc25519.c
 SRCS+= src/usr.bin/signify/zsig.c
+
+ifeq ($(HAVE_ARC4RANDOM_BUF),yes)
+CFLAGS+= -DHAVE_ARC4RANDOM_BUF
+else
+CFLAGS+= -Isrc/lib/libcrypto
+SRCS+= src/lib/libc/crypt/arc4random.c
+INCL+= src/lib/libcrypto/arc4random/arc4random_osx.h
+INCL+= src/lib/libc/crypt/chacha_private.h
+endif
+
+ifeq ($(HAVE_GETENTROPY),yes)
+CFLAGS+= -DHAVE_GETENTROPY
+else
+SRCS+= src/lib/libcrypto/arc4random/getentropy_osx.c
+endif
+
+ifeq ($(HAVE_DECL_RPP_STDIN),yes)
+CFLAGS+= -DHAVE_DECL_RPP_STDIN
+else
+SRCS+= src/lib/libc/gen/readpassphrase.c
+INCL+= src/include/readpassphrase.h
+CFLAGS+= -D_NSIG=NSIG
+endif
+
+ifeq ($(HAVE_TIMINGSAFE_BCMP),yes)
+CFLAGS+= -DHAVE_TIMINGSAFE_BCMP
+else
+SRCS+= src/lib/libc/string/timingsafe_bcmp.c
+endif
 
 INCL+= src/include/blf.h
 INCL+= src/include/sha2.h
@@ -134,3 +165,6 @@ ls:
 
 clean:
 	rm -rf signify signify.1 test-results explicit_bzero
+
+distclean: clean
+	-rm -f autoconf.mk

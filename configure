@@ -689,6 +689,10 @@ HAVE_STRLCPY
 HAVE_STRLCAT
 HAVE_GETLINE
 HAVE_GETDELIM
+HAVE_TIMINGSAFE_BCMP
+HAVE_GETENTROPY
+HAVE_ARC4RANDOM_BUF
+HAVE_DECL_RPP_STDIN
 UNIVERSAL_ARCHFLAGS
 UNIVERSAL_ARCHS
 startupitem_install
@@ -1757,6 +1761,60 @@ printf "%s\n" "$ac_res" >&6; }
 
 } # ac_fn_c_check_header_compile
 
+# ac_fn_check_decl LINENO SYMBOL VAR INCLUDES EXTRA-OPTIONS FLAG-VAR
+# ------------------------------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly. Pass EXTRA-OPTIONS to the compiler, using FLAG-VAR.
+ac_fn_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+printf %s "checking whether $as_decl_name is declared... " >&6; }
+if eval test \${$3+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  eval ac_save_FLAGS=\$$6
+  as_fn_append $6 " $5"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main (void)
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  eval "$3=yes"
+else case e in #(
+  e) eval "$3=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+  eval $6=\$ac_save_FLAGS
+ ;;
+esac
+fi
+eval ac_res=\$$3
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_check_decl
+
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
 # Tests whether FUNC exists, setting the cache variable VAR accordingly
@@ -1820,60 +1878,6 @@ printf "%s\n" "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_func
-
-# ac_fn_check_decl LINENO SYMBOL VAR INCLUDES EXTRA-OPTIONS FLAG-VAR
-# ------------------------------------------------------------------
-# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
-# accordingly. Pass EXTRA-OPTIONS to the compiler, using FLAG-VAR.
-ac_fn_check_decl ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  as_decl_name=`echo $2|sed 's/ *(.*//'`
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
-printf %s "checking whether $as_decl_name is declared... " >&6; }
-if eval test \${$3+y}
-then :
-  printf %s "(cached) " >&6
-else case e in #(
-  e) as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
-  eval ac_save_FLAGS=\$$6
-  as_fn_append $6 " $5"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main (void)
-{
-#ifndef $as_decl_name
-#ifdef __cplusplus
-  (void) $as_decl_use;
-#else
-  (void) $as_decl_name;
-#endif
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  eval "$3=yes"
-else case e in #(
-  e) eval "$3=no" ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  eval $6=\$ac_save_FLAGS
- ;;
-esac
-fi
-eval ac_res=\$$3
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_check_decl
 
 # ac_fn_c_try_cpp LINENO
 # ----------------------
@@ -7423,6 +7427,12 @@ then :
   printf "%s\n" "#define HAVE_PWD_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "readpassphrase.h" "ac_cv_header_readpassphrase_h" "$ac_includes_default"
+if test "x$ac_cv_header_readpassphrase_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_READPASSPHRASE_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "readline/history.h" "ac_cv_header_readline_history_h" "$ac_includes_default"
 if test "x$ac_cv_header_readline_history_h" = xyes
 then :
@@ -7509,128 +7519,6 @@ then :
 fi
 
 
-# Checks for library functions.
-ac_fn_c_check_func "$LINENO" "OSAtomicCompareAndSwap32" "ac_cv_func_OSAtomicCompareAndSwap32"
-if test "x$ac_cv_func_OSAtomicCompareAndSwap32" = xyes
-then :
-  printf "%s\n" "#define HAVE_OSATOMICCOMPAREANDSWAP32 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "OSAtomicCompareAndSwap64" "ac_cv_func_OSAtomicCompareAndSwap64"
-if test "x$ac_cv_func_OSAtomicCompareAndSwap64" = xyes
-then :
-  printf "%s\n" "#define HAVE_OSATOMICCOMPAREANDSWAP64 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "OSAtomicCompareAndSwapPtr" "ac_cv_func_OSAtomicCompareAndSwapPtr"
-if test "x$ac_cv_func_OSAtomicCompareAndSwapPtr" = xyes
-then :
-  printf "%s\n" "#define HAVE_OSATOMICCOMPAREANDSWAPPTR 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "__getdirentries64" "ac_cv_func___getdirentries64"
-if test "x$ac_cv_func___getdirentries64" = xyes
-then :
-  printf "%s\n" "#define HAVE___GETDIRENTRIES64 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "clearenv" "ac_cv_func_clearenv"
-if test "x$ac_cv_func_clearenv" = xyes
-then :
-  printf "%s\n" "#define HAVE_CLEARENV 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "clonefile" "ac_cv_func_clonefile"
-if test "x$ac_cv_func_clonefile" = xyes
-then :
-  printf "%s\n" "#define HAVE_CLONEFILE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "copyfile" "ac_cv_func_copyfile"
-if test "x$ac_cv_func_copyfile" = xyes
-then :
-  printf "%s\n" "#define HAVE_COPYFILE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "_dyld_shared_cache_contains_path" "ac_cv_func__dyld_shared_cache_contains_path"
-if test "x$ac_cv_func__dyld_shared_cache_contains_path" = xyes
-then :
-  printf "%s\n" "#define HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "flock" "ac_cv_func_flock"
-if test "x$ac_cv_func_flock" = xyes
-then :
-  printf "%s\n" "#define HAVE_FLOCK 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "fls" "ac_cv_func_fls"
-if test "x$ac_cv_func_fls" = xyes
-then :
-  printf "%s\n" "#define HAVE_FLS 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "kqueue" "ac_cv_func_kqueue"
-if test "x$ac_cv_func_kqueue" = xyes
-then :
-  printf "%s\n" "#define HAVE_KQUEUE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "posix_spawn" "ac_cv_func_posix_spawn"
-if test "x$ac_cv_func_posix_spawn" = xyes
-then :
-  printf "%s\n" "#define HAVE_POSIX_SPAWN 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "setmode" "ac_cv_func_setmode"
-if test "x$ac_cv_func_setmode" = xyes
-then :
-  printf "%s\n" "#define HAVE_SETMODE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "sysctlbyname" "ac_cv_func_sysctlbyname"
-if test "x$ac_cv_func_sysctlbyname" = xyes
-then :
-  printf "%s\n" "#define HAVE_SYSCTLBYNAME 1" >>confdefs.h
-
-fi
-
-
-# Check for library functions, replacements are in pextlib1.0/compat/
-ac_fn_c_check_func "$LINENO" "getline" "ac_cv_func_getline"
-if test "x$ac_cv_func_getline" = xyes
-then :
-  printf "%s\n" "#define HAVE_GETLINE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "getdelim" "ac_cv_func_getdelim"
-if test "x$ac_cv_func_getdelim" = xyes
-then :
-  printf "%s\n" "#define HAVE_GETDELIM 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "strlcat" "ac_cv_func_strlcat"
-if test "x$ac_cv_func_strlcat" = xyes
-then :
-  printf "%s\n" "#define HAVE_STRLCAT 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
-if test "x$ac_cv_func_strlcpy" = xyes
-then :
-  printf "%s\n" "#define HAVE_STRLCPY 1" >>confdefs.h
-
-fi
-
-HAVE_GETDELIM=$ac_cv_func_getdelim
-
-HAVE_GETLINE=$ac_cv_func_getline
-
-HAVE_STRLCAT=$ac_cv_func_strlcat
-
-HAVE_STRLCPY=$ac_cv_func_strlcpy
-
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CC options needed to detect all undeclared functions" >&5
 printf %s "checking for $CC options needed to detect all undeclared functions... " >&6; }
 if test ${ac_cv_c_undeclared_builtin_options+y}
@@ -7713,6 +7601,168 @@ See 'config.log' for more details" "$LINENO" 5; } ;; #(
   *) :
     ac_c_undeclared_builtin_options=$ac_cv_c_undeclared_builtin_options ;;
 esac
+
+ac_fn_check_decl "$LINENO" "RPP_STDIN" "ac_cv_have_decl_RPP_STDIN" "#include <readpassphrase.h>
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_RPP_STDIN" = xyes
+then :
+  ac_have_decl=1
+else case e in #(
+  e) ac_have_decl=0 ;;
+esac
+fi
+printf "%s\n" "#define HAVE_DECL_RPP_STDIN $ac_have_decl" >>confdefs.h
+
+HAVE_DECL_RPP_STDIN=$ac_cv_have_decl_RPP_STDIN
+
+
+# Checks for library functions.
+ac_fn_c_check_func "$LINENO" "OSAtomicCompareAndSwap32" "ac_cv_func_OSAtomicCompareAndSwap32"
+if test "x$ac_cv_func_OSAtomicCompareAndSwap32" = xyes
+then :
+  printf "%s\n" "#define HAVE_OSATOMICCOMPAREANDSWAP32 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "OSAtomicCompareAndSwap64" "ac_cv_func_OSAtomicCompareAndSwap64"
+if test "x$ac_cv_func_OSAtomicCompareAndSwap64" = xyes
+then :
+  printf "%s\n" "#define HAVE_OSATOMICCOMPAREANDSWAP64 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "OSAtomicCompareAndSwapPtr" "ac_cv_func_OSAtomicCompareAndSwapPtr"
+if test "x$ac_cv_func_OSAtomicCompareAndSwapPtr" = xyes
+then :
+  printf "%s\n" "#define HAVE_OSATOMICCOMPAREANDSWAPPTR 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "__getdirentries64" "ac_cv_func___getdirentries64"
+if test "x$ac_cv_func___getdirentries64" = xyes
+then :
+  printf "%s\n" "#define HAVE___GETDIRENTRIES64 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "arc4random_buf" "ac_cv_func_arc4random_buf"
+if test "x$ac_cv_func_arc4random_buf" = xyes
+then :
+  printf "%s\n" "#define HAVE_ARC4RANDOM_BUF 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "clearenv" "ac_cv_func_clearenv"
+if test "x$ac_cv_func_clearenv" = xyes
+then :
+  printf "%s\n" "#define HAVE_CLEARENV 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "clonefile" "ac_cv_func_clonefile"
+if test "x$ac_cv_func_clonefile" = xyes
+then :
+  printf "%s\n" "#define HAVE_CLONEFILE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "copyfile" "ac_cv_func_copyfile"
+if test "x$ac_cv_func_copyfile" = xyes
+then :
+  printf "%s\n" "#define HAVE_COPYFILE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "_dyld_shared_cache_contains_path" "ac_cv_func__dyld_shared_cache_contains_path"
+if test "x$ac_cv_func__dyld_shared_cache_contains_path" = xyes
+then :
+  printf "%s\n" "#define HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "flock" "ac_cv_func_flock"
+if test "x$ac_cv_func_flock" = xyes
+then :
+  printf "%s\n" "#define HAVE_FLOCK 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "fls" "ac_cv_func_fls"
+if test "x$ac_cv_func_fls" = xyes
+then :
+  printf "%s\n" "#define HAVE_FLS 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "getentropy" "ac_cv_func_getentropy"
+if test "x$ac_cv_func_getentropy" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETENTROPY 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "kqueue" "ac_cv_func_kqueue"
+if test "x$ac_cv_func_kqueue" = xyes
+then :
+  printf "%s\n" "#define HAVE_KQUEUE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "posix_spawn" "ac_cv_func_posix_spawn"
+if test "x$ac_cv_func_posix_spawn" = xyes
+then :
+  printf "%s\n" "#define HAVE_POSIX_SPAWN 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "setmode" "ac_cv_func_setmode"
+if test "x$ac_cv_func_setmode" = xyes
+then :
+  printf "%s\n" "#define HAVE_SETMODE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "sysctlbyname" "ac_cv_func_sysctlbyname"
+if test "x$ac_cv_func_sysctlbyname" = xyes
+then :
+  printf "%s\n" "#define HAVE_SYSCTLBYNAME 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "timingsafe_bcmp" "ac_cv_func_timingsafe_bcmp"
+if test "x$ac_cv_func_timingsafe_bcmp" = xyes
+then :
+  printf "%s\n" "#define HAVE_TIMINGSAFE_BCMP 1" >>confdefs.h
+
+fi
+
+
+# For vendor/signify
+HAVE_ARC4RANDOM_BUF=$ac_cv_func_arc4random_buf
+
+HAVE_GETENTROPY=$ac_cv_func_getentropy
+
+HAVE_TIMINGSAFE_BCMP=$ac_cv_func_timingsafe_bcmp
+
+
+# Check for library functions, replacements are in pextlib1.0/compat/
+ac_fn_c_check_func "$LINENO" "getline" "ac_cv_func_getline"
+if test "x$ac_cv_func_getline" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETLINE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "getdelim" "ac_cv_func_getdelim"
+if test "x$ac_cv_func_getdelim" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETDELIM 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "strlcat" "ac_cv_func_strlcat"
+if test "x$ac_cv_func_strlcat" = xyes
+then :
+  printf "%s\n" "#define HAVE_STRLCAT 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
+if test "x$ac_cv_func_strlcpy" = xyes
+then :
+  printf "%s\n" "#define HAVE_STRLCPY 1" >>confdefs.h
+
+fi
+
+HAVE_GETDELIM=$ac_cv_func_getdelim
+
+HAVE_GETLINE=$ac_cv_func_getline
+
+HAVE_STRLCAT=$ac_cv_func_strlcat
+
+HAVE_STRLCPY=$ac_cv_func_strlcpy
+
 
 ac_fn_check_decl "$LINENO" "atomic_compare_exchange_strong_explicit" "ac_cv_have_decl_atomic_compare_exchange_strong_explicit" "#include <stdatomic.h>
 " "$ac_c_undeclared_builtin_options" "CFLAGS"
@@ -9692,7 +9742,7 @@ printf "%s\n" "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/portlist1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/portlist1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile vendor/signify-osx/autoconf.mk"
 
 
 ac_config_files="$ac_config_files vendor/tclsh"
@@ -10435,6 +10485,7 @@ do
     "tests/test/library.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/library.tcl" ;;
     "tests/test/trace/test.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/trace/test.tcl" ;;
     "vendor/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/Makefile" ;;
+    "vendor/signify-osx/autoconf.mk") CONFIG_FILES="$CONFIG_FILES vendor/signify-osx/autoconf.mk" ;;
     "vendor/tclsh") CONFIG_FILES="$CONFIG_FILES vendor/tclsh" ;;
     "src/cxx_stdlib_overridden.tcl") CONFIG_FILES="$CONFIG_FILES src/cxx_stdlib_overridden.tcl" ;;
     "src/dedup_portfiles.tcl") CONFIG_FILES="$CONFIG_FILES src/dedup_portfiles.tcl" ;;

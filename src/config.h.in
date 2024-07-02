@@ -4,6 +4,9 @@
    files before executing */
 #undef DARWINTRACE_SIP_WORKAROUND_PATH
 
+/* Define to 1 if you have the 'arc4random_buf' function. */
+#undef HAVE_ARC4RANDOM_BUF
+
 /* Define to 1 if you have the 'clearenv' function. */
 #undef HAVE_CLEARENV
 
@@ -43,6 +46,10 @@
    'rl_username_completion_function', and to 0 if you don't. */
 #undef HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION
 
+/* Define to 1 if you have the declaration of 'RPP_STDIN', and to 0 if you
+   don't. */
+#undef HAVE_DECL_RPP_STDIN
+
 /* Define to 1 if you have the declaration of 'SHA1_File', and to 0 if you
    don't. */
 #undef HAVE_DECL_SHA1_FILE
@@ -78,6 +85,9 @@
 
 /* Define to 1 if you have the 'getdelim' function. */
 #undef HAVE_GETDELIM
+
+/* Define to 1 if you have the 'getentropy' function. */
+#undef HAVE_GETENTROPY
 
 /* Define to 1 if you have the 'getline' function. */
 #undef HAVE_GETLINE
@@ -144,6 +154,9 @@
 
 /* Define to 1 if you have the <readline/readline.h> header file. */
 #undef HAVE_READLINE_READLINE_H
+
+/* Define to 1 if you have the <readpassphrase.h> header file. */
+#undef HAVE_READPASSPHRASE_H
 
 /* Define to 1 if you have the <ripemd.h> header file. */
 #undef HAVE_RIPEMD_H
@@ -222,6 +235,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the 'timingsafe_bcmp' function. */
+#undef HAVE_TIMINGSAFE_BCMP
 
 /* Platform supports tracemode. */
 #undef HAVE_TRACEMODE_SUPPORT
