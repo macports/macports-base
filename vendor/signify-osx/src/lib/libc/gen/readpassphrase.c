@@ -28,6 +28,7 @@
 #include <pwd.h>
 #include <signal.h>
 #include <string.h>
+#define __USE_MISC
 #include <termios.h>
 #include <unistd.h>
 #include <readpassphrase.h>
@@ -176,6 +177,10 @@ restart:
 	return(nr == -1 ? NULL : buf);
 }
 DEF_WEAK(readpassphrase);
+
+#ifndef _PASSWORD_LEN
+#define	_PASSWORD_LEN	128
+#endif
 
 char *
 getpass(const char *prompt)
