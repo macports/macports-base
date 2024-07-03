@@ -28,7 +28,6 @@
 #include <pwd.h>
 #include <signal.h>
 #include <string.h>
-#define __USE_MISC
 #include <termios.h>
 #include <unistd.h>
 #include <readpassphrase.h>
