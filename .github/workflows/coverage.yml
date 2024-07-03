@@ -22,6 +22,9 @@ jobs:
         run: |
           sudo mkdir /opt/local.old
           sudo mv /usr/local/* /opt/local.old
+      - name: Select Xcode version
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_15.3.app/Contents/Developer
       - name: Configure MacPorts Base
         run: |
           set -eu

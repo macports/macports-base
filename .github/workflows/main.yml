@@ -23,6 +23,15 @@ jobs:
         run: |
           sudo mkdir /opt/local.old
           sudo mv /usr/local/* /opt/local.old
+      - name: Select Xcode version
+        if: startsWith(matrix.os,'macos')
+        run: |
+          case "`uname -r`" in
+            22.*) sudo xcode-select --switch /Applications/Xcode_14.3.1.app/Contents/Developer
+                ;;
+            23.*) sudo xcode-select --switch /Applications/Xcode_15.3.app/Contents/Developer
+                ;;
+          esac
       - name: Install Linux Dependencies
         if: startsWith(matrix.os,'ubuntu')
         run: >
