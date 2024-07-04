@@ -566,7 +566,9 @@ proc macports::setxcodeinfo {name1 name2 op} {
     set xcodebuildcmd_overridden [info exists xcodebuildcmd]
 
     # Potentially read by developer_dir trace proc
-    set xcodeversion {}
+    if {!${xcodeversion_overridden}} {
+        set xcodeversion {}
+    }
     # First try the cache
     set xcodeinfo_cache [load_cache xcodeinfo]
 
