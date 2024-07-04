@@ -1117,20 +1117,31 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     foreach file $conf_files {
         if {[file exists $file]} {
             set fd [open $file r]
+            set continuation 0
             while {[gets $fd line] >= 0} {
-                if {[regexp $conf_option_re $line match option ignore val] == 1} {
-                    if {[dict exists $bootstrap_options $option]} {
-                        global macports::$option
-                        set val [string trim $val]
-                        if {[dict exists $bootstrap_options $option is_path]} {
-                            if {[catch {set $option [realpath $val]}]} {
-                                set $option [file normalize $val]
-                            }
-                        } else {
-                            set $option $val
+                set next_continuation [expr {[string index $line end] eq "\\"}]
+                if {$next_continuation} {
+                    set line [string range $line 0 end-1]
+                }
+                if {$continuation} {
+                    set val $line
+                } elseif {[regexp $conf_option_re $line match option ignore val] != 1} {
+                    continue
+                }
+                if {[dict exists $bootstrap_options $option]} {
+                    global macports::$option
+                    set val [string trim $val]
+                    if {[dict exists $bootstrap_options $option is_path]} {
+                        if {[catch {set $option [realpath $val]}]} {
+                            set $option [file normalize $val]
                         }
+                    } elseif {$continuation} {
+                        lappend $option {*}$val
+                    } else {
+                        set $option $val
                     }
                 }
+                set continuation $next_continuation
             }
             close $fd
         }
