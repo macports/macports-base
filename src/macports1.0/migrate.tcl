@@ -57,13 +57,12 @@ namespace eval migrate {
             }
 
             ui_msg "Upgrading MacPorts..."
-            set success no
-            if {[catch {set success [upgrade_port_command]} result]} {
+            if {[catch {set status [upgrade_port_command]} result]} {
                 ui_debug $::errorInfo
                 ui_error "Upgrading port command failed. Try running 'sudo port -v selfupdate' and then 'sudo port migrate'."
                 return 1
             }
-            if {!$success} {
+            if {![dict get $status base_updated]} {
                 ui_error "Upgrading port command failed or was not attempted. Please re-install MacPorts manually and then run 'sudo port migrate' again."
                 return 1
             }
@@ -254,7 +253,7 @@ namespace eval migrate {
         # Avoid portindex, which would trigger 'portindex', which does not work
         dict set options ports_selfupdate_nosync 1
 
-        selfupdate::main $options base_updated
-        return $base_updated
+        selfupdate::main $options selfupdate_status
+        return $selfupdate_status
     }
 }

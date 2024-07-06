@@ -2567,6 +2567,13 @@ proc action_migrate { action portlist opts } {
     }
     set result [macports::migrate_main $opts]
     if {$result == -999} {
+        global ui_options
+        if {[info exists ui_options(ports_commandfiles)]} {
+            # Batch mode, just exit since re-executing all commands in the file
+            # may not be correct, and we can't really edit their args anyway.
+            ui_msg "Please run migrate again now that MacPorts base has been updated."
+            return -999
+        }
         # MacPorts base was upgraded, re-execute migrate with the --continue flag
         execl $::argv0 [list {*}$::argv "--continue"]
         ui_debug "Would have executed $::argv0 $::argv --continue"
