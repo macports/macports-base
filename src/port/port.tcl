@@ -2438,11 +2438,35 @@ proc action_selfupdate { action portlist opts } {
     }
 
     if {$base_updated} {
-        # exit immediately if in batch/shell mode
+        # Base was upgraded, re-execute now to trigger sync and/or exit batch mode
+        if {[info exists ui_options(ports_commandfiles)]} {
+            # Batch mode, just exit since re-executing all commands in the file
+            # may not be correct.
+            return -999
+        }
+
+        # When re-executing, strip the -f flag to prevent an endless loop
+        set new_argv {}
+        foreach arg $::argv {
+            if {[string match -nocase {-[a-z]*} $arg]} {
+                # map the -f flag to nothing
+                set arg [string map {f ""} $arg]
+                if {$arg eq "-"} {
+                    # if -f was specified alone, just remove the flag completely
+                    continue
+                }
+            }
+            lappend new_argv $arg
+        }
+        # If this returns at all, it failed. Just catch any error to avoid
+        # printing a backtrace at the top level.
+        catch {
+            execl $::argv0 $new_argv
+        }
+        ui_error "Failed to re-execute selfupdate, please run 'sudo port selfupdate' manually."
         return -999
-    } else {
-        return 0
     }
+    return 0
 }
 
 
