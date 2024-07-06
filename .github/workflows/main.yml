@@ -26,7 +26,7 @@ jobs:
       - name: Select Xcode version
         if: startsWith(matrix.os,'macos')
         run: |
-          case "`uname -r`" in
+          case "$(uname -r)" in
             22.*) sudo xcode-select --switch /Applications/Xcode_14.3.1.app/Contents/Developer
                 ;;
             23.*) sudo xcode-select --switch /Applications/Xcode_15.3.app/Contents/Developer
@@ -47,9 +47,9 @@ jobs:
           set -eu
           platform=$(uname -s)
           case ${platform} in
-            Darwin) make -j$(sysctl -n hw.activecpu)
+            Darwin) make -j"$(sysctl -n hw.activecpu)"
             ;;
-            Linux) make -j$(nproc)
+            Linux) make -j"$(nproc)"
             ;;
           esac
       - name: Install MacPorts Base
