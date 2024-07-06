@@ -578,7 +578,7 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
             if {!$rsync_fetched} {
                 macports_try -pass_signal {
                     set source_code [download_source $mp_source_path $macports_version_new]
-                } on error {} {
+                } on error {eMessage} {
                     ui_debug "download_source failed: $eMessage"
                     set source_code [download_source_rsync]
                 }
