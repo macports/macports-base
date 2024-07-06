@@ -3990,7 +3990,7 @@ proc action_mirror { action portlist opts } {
 
 proc action_exit { action portlist opts } {
     # Return a semaphore telling the main loop to quit
-    return -999
+    return -1
 }
 
 
@@ -4568,7 +4568,7 @@ proc process_cmd { argv } {
         portclient::notifications::display
 
         # semaphore to exit
-        if {$action_status == -999} break
+        if {$action_status < 0} break
     }
 
     return $action_status
@@ -4724,8 +4724,7 @@ proc process_command_file { in } {
         set exit_status [process_cmd $line]
 
         # Check for semaphore to exit
-        if {$exit_status == -999} {
-            set exit_status 0
+        if {$exit_status < 0} {
             break
         }
     }
@@ -4759,8 +4758,8 @@ proc process_command_files { filelist } {
             close $in
         }
 
-        # Exit on first failure unless -p was given
-        if {$exit_status != 0 && ![macports::ui_isset ports_processall]} {
+        # Exit on first failure unless -p was given. -999 overrides and always exits immediately.
+        if {($exit_status != 0 && ![macports::ui_isset ports_processall]) || $exit_status == -999} {
             return $exit_status
         }
     }
@@ -5669,13 +5668,17 @@ if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exist
         set exit_status 1
     }
 }
-if {$exit_status == -999} {
+if {$exit_status == -1} {
     set exit_status 0
 }
-
-# Check the last time 'reclaim' was run and run it
 if {$exit_status == 0} {
+    # Check the last time 'reclaim' was run and run it
     macports::reclaim_check_and_run
+}
+# Hard exit, usually because base was updated, so we don't want to do
+# anything on the way out. Hence do this after the reclaim check.
+if {$exit_status == -999} {
+    set exit_status 0
 }
 
 # shut down macports1.0
