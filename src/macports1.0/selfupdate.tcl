@@ -167,12 +167,6 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
         macports::ui_options \
         macports::ui_prefix
 
-    # create the path to the to be downloaded sources if it doesn't exist
-    if {![file exists $mp_source_path]} {
-        file mkdir $mp_source_path
-    }
-    ui_debug "MacPorts sources location: $mp_source_path"
-
     if {![info exists release_urls]} {
         set release_urls [list]
         if {[can_use_https github]} {
@@ -537,6 +531,11 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
     }
 
     set mp_source_path [file join $portdbpath sources selfupdate]
+    # create the path to the to be downloaded sources if it doesn't exist
+    if {![file exists $mp_source_path]} {
+        file mkdir $mp_source_path
+    }
+    ui_debug "MacPorts sources location: $mp_source_path"
 
     set rsync_fetched 0
     macports_try -pass_signal {
