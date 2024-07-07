@@ -2452,25 +2452,27 @@ proc action_selfupdate { action portlist opts } {
             return -999
         }
 
-        # When re-executing, strip the -f flag to prevent an endless loop
-        set new_argv {}
-        foreach arg $::argv {
-            if {[string match -nocase {-[a-z]*} $arg]} {
-                # map the -f flag to nothing
-                set arg [string map {f ""} $arg]
-                if {$arg eq "-"} {
-                    # if -f was specified alone, just remove the flag completely
-                    continue
+        if {![dict exists $options ports_selfupdate_no-sync] || ![dict get $options ports_selfupdate_no-sync]} {
+            # When re-executing, strip the -f flag to prevent an endless loop
+            set new_argv {}
+            foreach arg $::argv {
+                if {[string match -nocase {-[a-z]*} $arg]} {
+                    # map the -f flag to nothing
+                    set arg [string map {f ""} $arg]
+                    if {$arg eq "-"} {
+                        # if -f was specified alone, just remove the flag completely
+                        continue
+                    }
                 }
+                lappend new_argv $arg
             }
-            lappend new_argv $arg
+            # If this returns at all, it failed. Just catch any error to avoid
+            # printing a backtrace at the top level.
+            catch {
+                execl $::argv0 $new_argv
+            }
+            ui_error "Failed to re-execute selfupdate, please run 'sudo port selfupdate' manually."
         }
-        # If this returns at all, it failed. Just catch any error to avoid
-        # printing a backtrace at the top level.
-        catch {
-            execl $::argv0 $new_argv
-        }
-        ui_error "Failed to re-execute selfupdate, please run 'sudo port selfupdate' manually."
         return -999
     }
 
