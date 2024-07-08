@@ -3,6 +3,19 @@
 ###
 
 Release 2.10.0 (unreleased)
+    - The number of outdated ports is printed after running
+      'port selfupdate'. (#33820, thelastlin in 4ae6d98)
+
+    - 'port selfupdate' now checks whether MacPorts base is outdated by
+      downloading a small file, and only downloads and extracts the
+      source code (via http(s)) if a new version needs to be installed.
+      Integrity of the source is checked using OpenBSD's signify(1).
+      The old rsync method is used as a fallback if the new method fails.
+      (#38265, cal in dd3acc4)
+
+    - Line continuation is supported in macports.conf by ending lines
+      with a backslash. (jmr in b86ef1e)
+
     - Ports' files are now activated using clonefile() when on a
       filesystem that supports cloning (such as APFS). This should
       perform better and use less storage for active ports. Port images
