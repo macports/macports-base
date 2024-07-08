@@ -4208,7 +4208,7 @@ set cmd_opts_array [dict create {*}{
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
-    selfupdate  {migrate no-sync nosync}
+    selfupdate  {migrate no-sync nosync rsync}
     space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}

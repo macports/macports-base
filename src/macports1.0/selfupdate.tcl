@@ -494,7 +494,8 @@ proc selfupdate::install {source} {
 
 proc selfupdate::cleanup_sources {mp_source_path} {
     global macports::portdbpath macports::rsync_server
-    file delete -force $mp_source_path [file join $portdbpath sources $rsync_server]
+    set rsync_base_files [glob -nocomplain -directory [file join $portdbpath sources $rsync_server] base*]
+    file delete -force $mp_source_path {*}$rsync_base_files
 }
 
 proc selfupdate::do_sync {options presync} {
@@ -540,6 +541,7 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
     }
     ui_debug "MacPorts sources location: $mp_source_path"
 
+    set prefer_rsync [expr {[dict exists $options ports_selfupdate_rsync] && [dict get $options ports_selfupdate_rsync]}]
     set rsync_fetched 0
     macports_try -pass_signal {
         set macports_version_new [get_current_version $mp_source_path]
@@ -583,10 +585,14 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
             ui_msg "$ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
 
             if {!$rsync_fetched} {
-                macports_try -pass_signal {
-                    set source_code [download_source $mp_source_path $macports_version_new]
-                } on error {eMessage} {
-                    ui_debug "download_source failed: $eMessage"
+                if {!$prefer_rsync} {
+                    macports_try -pass_signal {
+                        set source_code [download_source $mp_source_path $macports_version_new]
+                    } on error {eMessage} {
+                        ui_debug "download_source failed: $eMessage"
+                        set source_code [download_source_rsync]
+                    }
+                } else {
                     set source_code [download_source_rsync]
                 }
             }
@@ -596,7 +602,10 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
                 dict set updatestatus base_updated yes
             }
 
-            cleanup_sources $mp_source_path
+            # Keep sources for future syncing if preferring rsync
+            if {!$prefer_rsync} {
+                cleanup_sources $mp_source_path
+            }
             # Return here, port.tcl will re-execute selfupdate with the updated
             # base to trigger sync and portindex with the new version
             return 0
