@@ -221,6 +221,13 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
         set signature_filename [file tail $signature_url]
         set signature_filepath [file join $mp_source_path $signature_filename]
 
+        if {[file isfile $filepath] && [file isfile $signature_filepath]
+            && ![catch {verify_signature $filepath $signature_filepath}]} {
+            ui_msg "Verified existing file for $release_url"
+            set tarball $filepath
+            break
+        }
+
         # Download source code tarball
         ui_msg "$ui_prefix Attempting to fetch MacPorts $macports_version_new source code from $release_url"
         macports_try -pass_signal {
@@ -241,7 +248,7 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
         }
 
         macports_try -pass_signal {
-            selfupdate::verify_signature $filepath $signature_filepath
+            verify_signature $filepath $signature_filepath
         } on error {eMessage} {
             set selfupdate_errors($release_url) "Error verifying signature for $release_url: $eMessage"
             ui_info [set selfupdate_errors($release_url)]
@@ -318,7 +325,7 @@ proc selfupdate::download_source_rsync {} {
     # verify signature for tarball
     set tarball ${mp_source_path}/${tarfile}
     set signature ${tarball}.rmd160
-    selfupdate::verify_signature_legacy $tarball $signature
+    verify_signature_legacy $tarball $signature
 
     if {${hfscompression} && [getuid] == 0 &&
             ![catch {macports::binaryInPath bsdtar}] &&
