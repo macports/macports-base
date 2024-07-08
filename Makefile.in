@@ -149,6 +149,9 @@ dist:
 		if [ -n "${DISTGPGID}" ]; then \
 			gpg --sign --detach-sig --armor --local-user ${DISTGPGID} $$tarball; \
 		fi; \
+		if [ -n "${DISTKEY}" ]; then \
+			../vendor/signify-osx/signify -S -s "${DISTKEY}" -m $$tarball; \
+		fi; \
 	done
 
 

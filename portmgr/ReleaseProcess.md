@@ -149,6 +149,11 @@ details, see [HOW TO SPECIFY A USER ID in gpg(1)][gpg-user-id] for details.
 
     make dist DISTVER=2.0.0 DISTGPGID=<handle>@macports.org
 
+A signify(1) signature should also be generated for the use of selfupdate
+over http. Specify the path to the secret key in `DISTKEY`.
+
+    make dist DISTVER=2.0.0 DISTKEY=/path/to/macports/macports-base-2024.sec
+
 These tarballs and the checksums are uploaded to the
 https://distfiles.macports.org/MacPorts/ directory. At present, this must be
 done with the help of the infrastructure team.
