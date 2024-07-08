@@ -1191,7 +1191,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                 }
                 if {[string match rsync://*rsync.macports.org/release/ports/ $url]} {
                     ui_warn "MacPorts is configured to use an unsigned source for the ports tree.\
-Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarballs/ports.tar'."
+Please edit sources.conf and change '$url' to '[string range $url 0 end-14]macports/release/tarballs/ports.tar'."
+                } elseif {[string match rsync://rsync.macports.org/release/* $url]} {
+                    ui_warn "MacPorts is configured to use an older rsync URL for the ports tree.\
+Please edit sources.conf and change '$url' to '[string range $url 0 26]macports/release/tarballs/ports.tar'."
                 }
                 switch -- [macports::getprotocol $url] {
                     rsync -
