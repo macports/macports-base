@@ -3332,9 +3332,16 @@ proc action_space {action portlist opts} {
         }
         set files [$regref files]
         if {$files != 0 && [llength $files] > 0} {
+            set seen_ino [dict create]
             foreach file $files {
                 catch {
-                    set space [expr {$space + [file size $file]}]
+                    file lstat $file statinfo
+                    if {$statinfo(nlink) == 1 || ![dict exists $seen_ino $statinfo(ino)]} {
+                        set space [expr {$space + $statinfo(size)}]
+                    }
+                    if {$statinfo(nlink) != 1} {
+                        dict set seen_ino $statinfo(ino) 1
+                    }
                 }
             }
             if {![dict exists $options ports_space_total] || [dict get $options ports_space_total] ne "yes"} {
