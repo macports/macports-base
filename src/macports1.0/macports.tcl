@@ -3243,6 +3243,9 @@ proc mportsync {{options {}}} {
 
                 if {$is_tarball} {
                     set exclude_option "--exclude=*"
+                    if {$extension eq "tar"} {
+                        set filename ${filename}.gz
+                    }
                     set include_option "--include=/${filename} --include=/${filename}.rmd160"
                     # need to do a few things before replacing the ports tree in this case
                     set destdir [file dirname $destdir]
@@ -3268,9 +3271,28 @@ proc mportsync {{options {}}} {
                 }
 
                 if {$is_tarball} {
-                    # verify signature for tarball
                     global macports::archivefetch_pubkeys macports::hfscompression macports::autoconf::openssl_path
-                    set tarball ${destdir}/[file tail $source]
+                    set tarball [file join $destdir $filename]
+                    # Fetch plain .tar if .tar.gz is missing
+                    if {![file isfile $tarball]} {
+                        set filename [file rootname $filename]
+                        set include_option "--include=/${filename} --include=/${filename}.rmd160"
+                        set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
+                        macports_try -pass_signal {
+                            system $rsync_commandline
+                        } on error {} {
+                            ui_error "Synchronization of the local ports tree failed doing rsync"
+                            incr numfailed
+                            continue
+                        }
+                        set tarball [file join $destdir $filename]
+                        if {![file isfile $tarball]} {
+                            ui_error "Synchronization with rsync did not create $filename"
+                            incr numfailed
+                            continue
+                        }
+                    }
+                    # verify signature for tarball
                     set signature ${tarball}.rmd160
                     set openssl [macports::findBinary openssl $openssl_path]
                     set verified 0
@@ -3301,7 +3323,8 @@ proc mportsync {{options {}}} {
                     }
                     # extract tarball and move into place
                     file mkdir ${destdir}/tmp
-                    set tar_cmd "$tar -C ${destdir}/tmp -xf $tarball"
+                    set zflag [expr {[file extension $tarball] eq ".gz" ? "z" : ""}]
+                    set tar_cmd "$tar -C ${destdir}/tmp -x${zflag}f $tarball"
                     macports_try -pass_signal {
                         system $tar_cmd
                     } on error {eMessage} {
@@ -3320,6 +3343,10 @@ proc mportsync {{options {}}} {
                     file delete -force ${destdir}/ports
                     file rename ${destdir}/tmp/ports ${destdir}/ports
                     file delete -force ${destdir}/tmp
+                    # delete any old uncompressed tarball
+                    if {[file extension $tarball] eq ".gz"} {
+                        file delete -force [file rootname $tarball]
+                    }
                 }
 
                 set needs_portindex true
