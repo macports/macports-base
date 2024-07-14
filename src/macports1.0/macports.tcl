@@ -5417,44 +5417,6 @@ proc macports::migrate_main {opts} {
     return [migrate::main $opts]
 }
 
-# create a snapshot. A snapshot is basically an inventory of what is installed
-# along with meta data like requested and variants, and stored in the sqlite
-# database.
-proc macports::snapshot_main {opts} {
-
-    # Calls the main function for the 'port snapshot' command.
-    #
-    # Args:
-    #           $opts having a 'note'
-    # Returns:
-    #           0 on successful execution.
-
-    return [snapshot::main $opts]
-}
-
-# restores a snapshot.
-proc macports::restore_main {opts} {
-
-    # Calls the main function for the 'port restore' command.
-    #
-    # Args:
-    #           $opts having a 'snapshot-id' but not compulsorily
-    # Returns:
-    #           0 on successful execution.
-
-    return [restore::main $opts]
-}
-
-##
-# Calls the main function for the 'port migrate' command.
-#
-# @returns 0 on success, -999 when MacPorts base has been upgraded and the
-#          caller should re-run itself and invoke migration with the --continue
-#          flag set.
-proc macports::migrate_main {opts} {
-    return [migrate::main $opts]
-}
-
 proc macports::reclaim_main {opts} {
     # Calls the main function for the 'port reclaim' command.
     #
