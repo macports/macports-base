@@ -45,6 +45,10 @@ namespace eval migrate {
     #          flag set.
     proc main {opts} {
 
+        if {[check_toolchain]} {
+            return 1
+        }
+
         if {[needs_migration]} {
             if {[info exists macports::ui_options(questions_yesno)]} {
                 set msg "Migration will first upgrade MacPorts and then reinstall all installed ports."
@@ -116,6 +120,46 @@ namespace eval migrate {
         }
 
         return $ret
+    }
+
+    # Check that Xcode and/or CLTs are usable
+    proc check_toolchain {} {
+        global macports::macos_version_major macports::xcodeversion \
+               macports::xcodecltversion macports::os_platform
+
+        if {$os_platform ne "darwin"} {
+            return 0
+        }
+        
+        lassign [macports::get_compatible_xcode_versions] min ok rec
+        if {[vercmp $macos_version_major >= "10.9"]} {
+            if {$xcodecltversion ne "none"} {
+                if {[vercmp $xcodecltversion < $min]} {
+                    ui_error "The installed Xcode Command Line Tools are too old."
+                    ui_error "Version $xcodecltversion installed; at least $min required."
+                    ui_error "Run Software Update or follow <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
+                    return 1
+                }
+                return 0
+            } elseif {[file exists "/Library/Developer/CommandLineTools/"]} {
+                ui_error "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
+                ui_error "The Command Line Tools may be outdated, which can cause problems."
+                ui_error "Please see: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
+                return 1
+            }
+        }
+        if {$xcodeversion ne "none"} {
+            if {[vercmp $xcodeversion < $min]} {
+                ui_error "The installed version of Xcode is too old."
+                ui_error "Version $xcodeversion installed; at least $min required."
+                ui_error "(If you have multiple versions installed, you may need to select a newer one using xcode-select.)"
+                return 1
+            }
+            return 0
+        }
+        ui_error "Neither Xcode nor the Command Line Tools appear to be installed."
+        ui_error "See <https://guide.macports.org/#installing.xcode>"
+        return 1
     }
 
     ##

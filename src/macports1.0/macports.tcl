@@ -2017,6 +2017,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # tool path cache
     $workername alias get_tool_path macports::get_tool_path
 
+    $workername alias get_compatible_xcode_versions macports::get_compatible_xcode_versions
+
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
             variable $opt
@@ -6549,4 +6551,106 @@ proc macports::get_parallel_jobs {{mem_restrict yes}} {
         set jobs 2
     }
     return $jobs
+}
+
+# Returns list of Xcode versions for the current macOS version:
+# [min, ok, rec]
+# min = lowest version that will work at all
+# ok = lowest version without any serious known issues
+# rec = recommended version, usually the latest known
+proc macports::get_compatible_xcode_versions {} {
+    variable macos_version_major
+    switch $macos_version_major {
+        10.4 {
+            set min 2.0
+            set ok 2.4.1
+            set rec 2.5
+        }
+        10.5 {
+            set min 3.0
+            set ok 3.1
+            set rec 3.1.4
+        }
+        10.6 {
+            set min 3.2
+            set ok 3.2
+            set rec 3.2.6
+        }
+        10.7 {
+            set min 4.1
+            set ok 4.1
+            set rec 4.6.3
+        }
+        10.8 {
+            set min 4.4
+            set ok 4.4
+            set rec 5.1.1
+        }
+        10.9 {
+            set min 5.0.1
+            set ok 5.0.1
+            set rec 6.2
+        }
+        10.10 {
+            set min 6.1
+            set ok 6.1
+            set rec 7.2.1
+        }
+        10.11 {
+            set min 7.0
+            set ok 7.0
+            set rec 8.2.1
+        }
+        10.12 {
+            set min 8.0
+            set ok 8.0
+            set rec 9.2
+        }
+        10.13 {
+            set min 9.0
+            set ok 9.0
+            set rec 9.4.1
+        }
+        10.14 {
+            set min 10.0
+            set ok 10.0
+            set rec 10.3
+        }
+        10.15 {
+            set min 11.0
+            set ok 11.3
+            set rec 11.7
+        }
+        11 {
+            set min 12.2
+            set ok 12.2
+            set rec 12.5
+        }
+        12 {
+            set min 13.1
+            set ok 13.1
+            set rec 13.4.1
+        }
+        13 {
+            set min 14.1
+            set ok 14.1
+            set rec 14.3.1
+        }
+        14 {
+            set min 15.0
+            set ok 15.1
+            set rec 15.4
+        }
+        15 {
+            set min 16
+            set ok 16
+            set rec 16
+        }
+        default {
+            set min 16
+            set ok 16
+            set rec 16
+        }
+    }
+    return [list $min $ok $rec]
 }
