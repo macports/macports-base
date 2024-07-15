@@ -591,31 +591,36 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
         } else {
             ui_msg "$ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
 
-            if {!$rsync_fetched} {
-                if {!$prefer_rsync} {
-                    macports_try -pass_signal {
-                        set source_code [download_source $mp_source_path $macports_version_new]
-                    } on error {eMessage} {
-                        ui_debug "download_source failed: $eMessage"
-                        set source_code [download_source_rsync]
-                    }
-                } else {
-                    set source_code [download_source_rsync]
+            if {!$rsync_fetched && !$prefer_rsync} {
+                macports_try -pass_signal {
+                    set source_code [download_source $mp_source_path $macports_version_new]
+                } on error {eMessage} {
+                    ui_debug "download_source failed: $eMessage"
+                    set prefer_rsync 1
                 }
             }
-            install $source_code
-
-            if {[info exists updatestatus]} {
-                dict set updatestatus base_updated yes
+            if {$prefer_rsync} {
+                set source_code [download_source_rsync]
+                set macports_version_downloaded [get_current_version_from_sources $source_code]
+                set comp [vercmp $macports_version_downloaded $macports_version]
             }
+            if {$use_the_force_luke || $comp > 0 || ($comp == 0 && $migrating)} {
+                install $source_code
 
-            # Keep sources for future syncing if preferring rsync
-            if {!$prefer_rsync} {
-                cleanup_sources $mp_source_path
+                if {[info exists updatestatus]} {
+                    dict set updatestatus base_updated yes
+                }
+
+                # Keep sources for future syncing if preferring rsync
+                if {!$prefer_rsync} {
+                    cleanup_sources $mp_source_path
+                }
+                # Return here, port.tcl will re-execute selfupdate with the updated
+                # base to trigger sync and portindex with the new version
+                return 0
+            } else {
+                ui_msg "$ui_prefix HTTP download failed and rsync does not yet have version $macports_version_new"
             }
-            # Return here, port.tcl will re-execute selfupdate with the updated
-            # base to trigger sync and portindex with the new version
-            return 0
         }
     } elseif {$comp < 0} {
         ui_msg "$ui_prefix MacPorts base is probably master or a release candidate"
