@@ -24,7 +24,7 @@ port-selfupdate \- Upgrade MacPorts itself and update the port definition files\
 .SH "SYNOPSIS"
 .sp
 .nf
-\fBport\fR [\fB\-qvdf\fR] \fBselfupdate\fR [\-\-no\-sync] [\-\-migrate]
+\fBport\fR [\fB\-qvdf\fR] \fBselfupdate\fR [\-\-no\-sync] [\-\-migrate] [\-\-rsync]
 .fi
 .SH "DESCRIPTION"
 .sp
@@ -42,6 +42,11 @@ Only check for updates \- and install if available \- for MacPorts itself\&. Do 
 .RS 4
 Rebuild even if no new version is available, upgrade if a new version is available\&. Contrary to
 \fB\-f\fR, this flag will prevent downgrades\&. This flag is useful when upgrading to a newer macOS major version\&.
+.RE
+.PP
+\fB\-\-rsync\fR
+.RS 4
+Use the older rsync method for downloading the new version of MacPorts\&. The default is to try HTTP(S) first, and use rsync only if that fails\&.
 .RE
 .SH "GLOBAL OPTIONS"
 .sp
@@ -104,7 +109,7 @@ Network Problems
 .RS 4
 MacPorts uses the
 \fIrsync\fR
-protocol to update its port tree to the latest version\&. This will fail if you are on a network that blocks TCP connections to the rsync port 873\&. Talk to your network administrators and ask them to allow connections to port 873 if this happens to you\&. Alternatively, you can just download a new installer \&.pkg from macports\&.org and run that to upgrade your installation\&.
+protocol to update its ports tree to the latest version\&. This will fail if you are on a network that blocks TCP connections to the rsync port 873\&. Talk to your network administrators and ask them to allow connections to port 873 if this happens to you\&. Alternatively, you can just download a new installer \&.pkg from macports\&.org and run that to upgrade your installation\&.
 .sp
 Network connection problems might also affect you if you are in a country with US export restrictions\&. We suggest using one of our other
 \m[blue]\fBmirrors\fR\m[]\&\s-2\u[1]\d\s+2
