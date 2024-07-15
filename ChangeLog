@@ -3,6 +3,9 @@
 ###
 
 Release 2.10.0 (unreleased)
+    - 'port space' no longer overcounts the space used by ports that
+      install links. (#66526, jmr in 11662bd)
+
     - The number of outdated ports is printed after running
       'port selfupdate'. (#33820, thelastlin in 4ae6d98)
 
