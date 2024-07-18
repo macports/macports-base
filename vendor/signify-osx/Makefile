@@ -132,7 +132,7 @@ fetch:
 
 install: signify
 	install -d ${BINDIR} ${MANDIR}/man1
-	install -Ss -m 755 signify ${BINDIR}
+	install -S -m 755 signify ${BINDIR}
 	install -S -m 644 signify.1 ${MANDIR}/man1
 
 
