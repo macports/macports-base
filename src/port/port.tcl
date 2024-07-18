@@ -2442,9 +2442,11 @@ proc action_selfupdate { action portlist opts } {
 
     if {[dict get $selfupdate_status base_updated]} {
         # Base was upgraded, re-execute now to trigger sync if possible
-        if {[info exists ui_options(ports_commandfiles)]} {
-            # Batch mode, just exit since re-executing all commands in the file
-            # may not be correct.
+        global argv
+        if {[info exists ui_options(ports_commandfiles)]
+            || {;} in $argv} {
+            # Batch mode or multiple actions on the command line, just exit
+            # since re-executing all actions may not be correct.
             if {[dict get $selfupdate_status needed_portindex]} {
                 ui_msg "Not all sources could be fully synced using the old version of MacPorts."
                 ui_msg "Please run selfupdate again now that MacPorts base has been updated."
@@ -2455,7 +2457,7 @@ proc action_selfupdate { action portlist opts } {
         if {![dict exists $options ports_selfupdate_no-sync] || ![dict get $options ports_selfupdate_no-sync]} {
             # When re-executing, strip the -f flag to prevent an endless loop
             set new_argv {}
-            foreach arg $::argv {
+            foreach arg $argv {
                 if {[string match -nocase {-[a-z]*} $arg]} {
                     # map the -f flag to nothing
                     set arg [string map {f ""} $arg]
@@ -2569,10 +2571,12 @@ proc action_migrate { action portlist opts } {
     }
     set result [macports::migrate_main $opts]
     if {$result == -999} {
-        global ui_options
-        if {[info exists ui_options(ports_commandfiles)]} {
-            # Batch mode, just exit since re-executing all commands in the file
-            # may not be correct, and we can't really edit their args anyway.
+        global ui_options argv
+        if {[info exists ui_options(ports_commandfiles)]
+            || {;} in $argv} {
+            # Batch mode or multiple actions given, just exit since re-
+            # executing all actions may not be correct (and we can't
+            # really edit the args in a batch file anyway).
             ui_msg "Please run migrate again now that MacPorts base has been updated."
             return -999
         }
