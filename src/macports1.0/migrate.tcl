@@ -90,6 +90,14 @@ namespace eval migrate {
             }
         }
 
+        # Sync ports tree
+        try {
+            mportsync
+        } on error {eMessage} {
+            ui_error "Couldn't sync the ports tree: $eMessage"
+            return 1
+        }
+
         # create a snapshot
         ui_msg "Taking a snapshot of the current state..."
         set snapshot [snapshot::main $opts]
