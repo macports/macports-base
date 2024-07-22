@@ -606,7 +606,9 @@ namespace eval restore {
             -command [lambda {level mode dependencies node} {
                 if {$mode eq "enter"} {
                     uplevel $level [subst -nocommands {
-                        dict set failed $node [list "skipped" "dependency \$portname failed"]
+                        if {![dict exists \$failed $node]} {
+                            dict set failed $node [list "skipped" "dependency \$portname failed"]
+                        }
                     }]
                 }
             } $level]
