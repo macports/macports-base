@@ -159,7 +159,7 @@ namespace eval restore {
                             append note "   Skipped because its $reason\n"
                         }
                         failed {
-                            append note "   Failed to build: $reason\n"
+                            append note "   Failed: $reason\n"
                         }
                     }
                 }
@@ -686,9 +686,9 @@ namespace eval restore {
             foreach target [list clean $install_target] {
                 if {[catch {set result [mportexec $mport $target]} result]} {
                     ui_msg $::errorInfo
-                    _handle_failure failed $dependencies $name "Unable to execute target $target for port $name: $result"
+                    _handle_failure failed $dependencies $name "Unable to execute target '$target' for port $name: $result"
                 } elseif {$result != 0} {
-                    _handle_failure failed $dependencies $name "Failed to $target $name"
+                    _handle_failure failed $dependencies $name "Unable to execute target '$target' for port $name - see its log for details"
                 }
             }
             mportclose $mport
