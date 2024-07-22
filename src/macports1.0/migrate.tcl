@@ -100,8 +100,7 @@ namespace eval migrate {
 
         # create a snapshot
         ui_msg "Taking a snapshot of the current state..."
-        set snapshot [snapshot::main $opts]
-        if {$snapshot == 0} {
+        if {[catch {snapshot::create $opts} snapshot] || $snapshot == 0} {
             return -1
         }
         set id [$snapshot id]
