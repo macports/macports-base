@@ -156,7 +156,7 @@ namespace eval restore {
                     lassign [dict get $failed $name] type reason
                     switch $type {
                         skipped {
-                            append note "   Skipped becuase its $reason\n"
+                            append note "   Skipped because its $reason\n"
                         }
                         failed {
                             append note "   Failed to build: $reason\n"
