@@ -34,6 +34,14 @@ package require macports 1.0
 package require registry 1.0
 
 namespace eval snapshot {
+    proc print_usage {} {
+        ui_msg "Usage: One of:"
+        ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
+        ui_msg "  port snapshot --list"
+        ui_msg "  port snapshot --diff <snapshot-id> \[--all\]"
+        ui_msg "  port snapshot --delete <snapshot-id>"
+    }
+
 	proc main {opts} {
 		# Function to create a snapshot of the current state of ports.
         #
@@ -60,11 +68,7 @@ namespace eval snapshot {
         }
 
         if {[dict exists $opts ports_snapshot_help]} {
-            ui_msg "Usage: One of:"
-            ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
-            ui_msg "  port snapshot --list"
-            ui_msg "  port snapshot --diff <snapshot-id> \[--all\]"
-            ui_msg "  port snapshot --delete <snapshot-id>"
+            print_usage
             return 0
         }
 
@@ -170,6 +174,10 @@ namespace eval snapshot {
             }
             "delete" {
                 return [delete_snapshot $opts]
+            }
+            default {
+                print_usage
+                return 1
             }
         }
     }
