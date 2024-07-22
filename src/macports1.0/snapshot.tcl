@@ -70,7 +70,11 @@ namespace eval snapshot {
 
         switch $operation {
             "create" {
-                return [create $opts]
+                if {[catch {create $opts} result]} {
+                    ui_error "Failed to create snapshot: $result"
+                    return 1
+                }
+                return 0
             }
             "list" {
                 set snapshots [registry::snapshot get_all]
@@ -162,6 +166,7 @@ namespace eval snapshot {
                 }
 
                 ui_msg [string trimright $note "\n"]
+                return 0
             }
             "delete" {
                 return [delete_snapshot $opts]
