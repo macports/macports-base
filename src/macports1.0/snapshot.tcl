@@ -141,6 +141,7 @@ namespace eval snapshot {
                         }
                     }
                 }
+
                 if {[llength $diff(removed)] > 0} {
                     append note "The following ports are in the snapshot but not installed:\n"
                     foreach removed_port [lsort -ascii -index 0 $diff(removed)] {
@@ -167,6 +168,10 @@ namespace eval snapshot {
                             append note "   $field changed from '$old' to '$new'\n"
                         }
                     }
+                }
+
+                if {[llength $diff(added)] == 0 && [llength $diff(removed)] == 0 && [llength $diff(changed)] == 0} {
+                    append note "The current state and the specified snapshot match.\n"
                 }
 
                 ui_msg [string trimright $note "\n"]
