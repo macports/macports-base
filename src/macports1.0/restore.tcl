@@ -120,12 +120,14 @@ namespace eval restore {
 
         array set diff [snapshot::diff $snapshot]
 
-        foreach field {added removed changed} {
-            set result {}
-            foreach port $diff($field) {
-                lassign $port _ requested
-                if {$requested} {
-                    lappend result $port
+        if {!$include_unrequested} {
+            foreach field {added removed changed} {
+                set result {}
+                foreach port $diff($field) {
+                    lassign $port _ requested
+                    if {$requested} {
+                        lappend result $port
+                    }
                 }
                 set diff($field) $result
             }
