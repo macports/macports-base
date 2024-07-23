@@ -168,9 +168,48 @@ namespace eval restore {
             }
         }
 
-        if {[llength $diff(changed)] > 0} {
+        # It's possible that a port's state changed because it failed
+        # to activate, or it's a platform-independent port that stayed
+        # installed but a dependency failed. Report that separately.
+        set changed_and_failed {}
+        set just_changed {}
+        foreach changed_port $diff(changed) {
+            set name [lindex $changed_port 0]
+            if {[dict exists $failed $name]} {
+                lappend changed_and_failed $changed_port
+            } else {
+                lappend just_changed $changed_port
+            }
+        }
+
+        if {[llength $changed_and_failed] > 0} {
+            append note "The following ports could not be fully restored:\n"
+            foreach changed_port [lsort -ascii -index 0 $changed_and_failed] {
+                lassign $changed_port name _ _ _ requested_variants changes
+                if {$requested_variants ne ""} {
+                    append note " - $name\n"
+                } else {
+                    append note " - $name $requested_variants\n"
+                }
+                lassign [dict get $failed $name] type reason
+                switch $type {
+                    skipped {
+                        append note "   Skipped because its $reason\n"
+                    }
+                    failed {
+                        append note "   Failed: $reason\n"
+                    }
+                }
+                foreach change $changes {
+                    lassign $change field old new
+                    append note "   $field changed from '$old' to '$new'\n"
+                }
+            }
+        }
+
+        if {[llength $just_changed] > 0} {
             append note "The following ports were restored with changes:\n"
-            foreach changed_port [lsort -ascii -index 0 $diff(changed)] {
+            foreach changed_port [lsort -ascii -index 0 $just_changed] {
                 lassign $changed_port name _ _ _ requested_variants changes
                 if {$requested_variants ne ""} {
                     append note " - $name\n"
