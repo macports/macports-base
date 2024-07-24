@@ -4237,7 +4237,7 @@ set cmd_opts_array [dict create {*}{
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
     bump        {patch}
-    snapshot    {create list {diff 1} all {delete 1} help {note 1}}
+    snapshot    {create list {diff 1} all {delete 1} help {note 1} {export 1} import}
     restore     {{snapshot-id 1} all last}
     migrate     {continue all}
 }]
