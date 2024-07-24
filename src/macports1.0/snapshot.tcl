@@ -42,8 +42,8 @@ namespace eval snapshot {
         ui_msg "  port snapshot --delete <snapshot-id>"
     }
 
-	proc main {opts} {
-		# Function to create a snapshot of the current state of ports.
+    proc main {opts} {
+        # Function to create a snapshot of the current state of ports.
         #
         # Args:
         #           opts - The options passed in.
@@ -110,7 +110,10 @@ namespace eval snapshot {
                 return 0
             }
             "diff" {
-                set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_diff]]
+                if {[catch {set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_diff]]} result]} {
+                    ui_error "Failed to obtain snapshot with ID [dict get $opts ports_snapshot_diff]: $result"
+                    return 1
+                }
                 array set diff [diff $snapshot]
                 set show_all [dict exists $opts ports_snapshot_all]
                 set note ""
