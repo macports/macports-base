@@ -4907,10 +4907,10 @@ namespace eval portclient::progress {
             intermission -
             finish {
                 # erase to start of line
-                ::term::ansi::send::esol
+                ::term::ansi::send::esolch stderr
                 # return cursor to start of line
-                puts -nonewline "\r"
-                flush stdout
+                puts -nonewline stderr "\r"
+                flush stderr
             }
         }
 
@@ -4962,10 +4962,10 @@ namespace eval portclient::progress {
             }
             finish {
                 # erase to start of line
-                ::term::ansi::send::esol
+                ::term::ansi::send::esolch stderr
                 # return cursor to start of line
-                puts -nonewline "\r"
-                flush stdout
+                puts -nonewline stderr "\r"
+                flush stderr
             }
         }
 
@@ -5065,8 +5065,8 @@ namespace eval portclient::progress {
         # Format the percentage using the space that has been reserved for it
         set percentagesuffix [format " %[expr {$percentageWidth - 3}].1f %%" $percentage]
 
-        puts -nonewline "\r${prefix}\[${progressbar}\]${percentagesuffix}${suffix}"
-        flush stdout
+        puts -nonewline stderr "\r${prefix}\[${progressbar}\]${percentagesuffix}${suffix}"
+        flush stderr
     }
 
 
@@ -5107,8 +5107,8 @@ namespace eval portclient::progress {
             }
         }
 
-        puts -nonewline "\r${prefix}\[${progressbar}\]${suffix}"
-        flush stdout
+        puts -nonewline stderr "\r${prefix}\[${progressbar}\]${suffix}"
+        flush stderr
     }
 }
 
@@ -5550,7 +5550,7 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
     exit 1
 }
 
-if {[isatty stdout]
+if {[isatty stderr]
     && $portclient::progress::hasTermAnsiSend eq "yes"
     && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
     set ui_options(progress_download) portclient::progress::download
