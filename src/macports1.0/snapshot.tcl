@@ -32,6 +32,7 @@ package provide snapshot 1.0
 
 package require macports 1.0
 package require registry 1.0
+package require json::write
 
 namespace eval snapshot {
     proc print_usage {} {
@@ -40,6 +41,8 @@ namespace eval snapshot {
         ui_msg "  port snapshot --list"
         ui_msg "  port snapshot --diff <snapshot-id> \[--all\]"
         ui_msg "  port snapshot --delete <snapshot-id>"
+        ui_msg "  port snapshot --export <snapshot-id> >snapshot.json"
+        ui_msg "  port snapshot --import <snapshot.json"
     }
 
     proc main {opts} {
@@ -54,11 +57,11 @@ namespace eval snapshot {
             set operation "create"
         } else {
             set operation ""
-            foreach op {list create diff delete} {
+            foreach op {list create diff delete export import} {
                 set opname "ports_snapshot_$op"
                 if {[dict exists $opts $opname]} {
                     if {$operation ne ""} {
-                        ui_error "Only one of the --list, --create, --diff, and --delete options can be specified."
+                        ui_error "Only one of the --list, --create, --diff, --delete, --export, or --import options can be specified."
                         error "Incorrect usage, see port snapshot --help."
                     }
 
@@ -183,11 +186,96 @@ namespace eval snapshot {
             "delete" {
                 return [delete_snapshot $opts]
             }
+            "export" {
+                if {[catch {set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_export]]} result]} {
+                    ui_error "Failed to obtain snapshot with ID [dict get $opts ports_snapshot_export]: $result"
+                    return 1
+                }
+
+                puts [snapshot2json $snapshot]
+            }
+            "import" {
+            }
             default {
                 print_usage
                 return 1
             }
         }
+    }
+
+    proc snapshot2json {snapshot} {
+        # Convert the given snapshot to JSON format and return it
+        #
+        # The data format is
+        #
+        #   metadata:
+        #     type: string "org.macports/snapshot/v1", denoting the version of this format
+        #     note: string, the note associated with this snapshot
+        #     created_at: string, the local date at which the snapshot was created
+        #   ports:
+        #     list of objects:
+        #       port_name: string, the name of the port
+        #       requested: int, 1 for ports that are requested, 0 otherwise
+        #       state: string, "installed" for ports that are active
+        #       variants: string, list of active variants
+        #       requested_variants: string, list of variants requested by the user
+        #       port_files: list of strings, the files installed by this port
+        #
+        # Args:
+        #           snapshot - The snapshot object to convert to JSON
+        # Returns:
+        #           string representation of the snapshot object
+
+        # The conversion can take quite a while because we're querying all
+        # files installed by the various ports, so display a progress bar
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancy_output} {
+            set progress $macports::ui_options(progress_generic)
+        } else {
+            proc noop {args} {}
+            set progress noop
+        }
+        set counter 0
+        set total [llength [$snapshot ports]]
+
+        # Add some metadata and a version header that allows us to make
+        # backwards-incompatible changes to the output format.
+        set metadata [json::write object-strings \
+            type "org.macports/snapshot/v1" \
+            note [$snapshot note] \
+            created_at [$snapshot created_at]]
+
+        $progress start
+        $progress update $counter $total
+
+        # Convert each port into its JSON representation
+        set ports [list]
+        foreach port [$snapshot ports] {
+            incr counter
+
+            lassign $port port_name requested state variants requested_variants
+            set files [snapshot::port_files [$snapshot id] $port_name]
+
+            ui_debug "Processing port $counter/$total: $port_name"
+
+            lappend ports [json::write object \
+                port_name [json::write string $port_name] \
+                requested $requested \
+                state [json::write string $state] \
+                variants [json::write string $variants] \
+                requested_variants [json::write string $requested_variants] \
+                port_files [json::write array-strings {*}$files]]
+
+            $progress update $counter $total
+        }
+
+        # Assemble the metadata and port list into the final JSON object and
+        # return it.
+        set res [json::write object \
+            metadata $metadata \
+            ports [json::write array {*}$ports]]
+        $progress finish
+        return $res
     }
 
     proc create {opts} {
@@ -270,6 +358,29 @@ namespace eval snapshot {
         }
         $tdbc_connection transaction {
             set results [$file_owner_stmt execute]
+        }
+        set ret [lmap l [$results allrows] {lindex $l 1}]
+        $results close
+        return $ret
+    }
+
+    proc port_files {snapshot_id port_name} {
+        global registry::tdbc_connection
+        if {![info exists tdbc_connection]} {
+            registry::tdbc_connect
+        }
+        variable port_files_stmt
+        if {![info exists port_files_stmt]} {
+            set port_files_stmt [$tdbc_connection prepare {
+                    SELECT snapshot_files.path FROM snapshot_files
+                    INNER JOIN snapshot_ports ON snapshot_files.id = snapshot_ports.id
+                    WHERE snapshot_ports.port_name = :port_name
+                    AND snapshot_ports.snapshots_id = :snapshot_id
+                    ORDER BY snapshot_files.path ASC
+            }]
+        }
+        $tdbc_connection transaction {
+            set results [$port_files_stmt execute]
         }
         set ret [lmap l [$results allrows] {lindex $l 1}]
         $results close
