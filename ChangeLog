@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.10.0 (unreleased)
+Release 2.10.0 (2024-08-07 by jmr)
     - 'port space' no longer overcounts the space used by ports that
       install links. (#66526, jmr in 11662bd)
 
