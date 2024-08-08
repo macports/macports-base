@@ -233,13 +233,22 @@ namespace eval migrate {
     # configured for. Returns true, if migration is needed, false otherwise.
     #
     # @return true iff the migration procedure is needed
-    proc needs_migration {} {
+    proc needs_migration {{reasonvar {}}} {
         global macports::os_platform macports::os_major
+        if {$reasonvar ne {}} {
+            upvar $reasonvar reason
+            set reason {}
+        }
         if {$os_platform ne $macports::autoconf::os_platform
             || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)
-            || ($os_platform eq "darwin" && $os_major >= 20
-                && ![catch {sysctl sysctl.proc_translated} translated] && $translated)
         } then {
+            set reason "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
+            return 1
+        }
+        if {$os_platform eq "darwin" && $os_major >= 20
+                && ![catch {sysctl sysctl.proc_translated} translated] && $translated
+        } then {
+            set reason "MacPorts is running through Rosetta 2, and should be rebuilt for Apple Silicon"
             return 1
         }
         return 0
