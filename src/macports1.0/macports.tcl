@@ -1067,8 +1067,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
     set skip_migration_check [expr {[info exists macports::global_options(ports_no_migration_check)] && $macports::global_options(ports_no_migration_check)}]
-    if {!$skip_migration_check && [migrate::needs_migration]} {
-        ui_error "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
+    if {!$skip_migration_check && [migrate::needs_migration migrate_reason]} {
+        ui_error $migrate_reason
         ui_error "Please run 'sudo port migrate' or follow the migration instructions: https://trac.macports.org/wiki/Migration"
         return -code error "OS platform mismatch"
     }
