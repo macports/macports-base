@@ -454,6 +454,7 @@ proc selfupdate::install {source} {
     # Choose a sane compiler and SDK
     set cc_arg {}
     set sdk_arg {}
+    set arch_arg {}
     set jobs [macports::get_parallel_jobs yes]
     if {$os_platform eq "darwin"} {
         catch {exec /usr/bin/cc 2>@1} output
@@ -488,12 +489,16 @@ proc selfupdate::install {source} {
                 }
             }
         }
+        if {$os_major >= 20 && ![catch {sysctl sysctl.proc_translated} translated] && $translated} {
+            # Force a native build
+            set arch_arg "/usr/bin/arch -arm64 /usr/bin/env "
+        }
     }
 
     # do the actual configure, build and installation of new base
     ui_msg "$ui_prefix Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}"
     macports_try -pass_signal {
-        system -W $source "${cc_arg}${sdk_arg}./configure $configure_args_string && ${sdk_arg}make -j${jobs} SELFUPDATING=1 && make install SELFUPDATING=1"
+        system -W $source "${arch_arg}${cc_arg}${sdk_arg}./configure $configure_args_string && ${arch_arg}${sdk_arg}make -j${jobs} SELFUPDATING=1 && ${arch_arg}make install SELFUPDATING=1"
     } on error {eMessage} {
         error "Error installing new MacPorts base: $eMessage"
     }
