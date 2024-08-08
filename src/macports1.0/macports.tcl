@@ -3347,7 +3347,7 @@ proc mportsync {{options {}}} {
                     file delete -force ${destdir}/tmp
                     # delete any old uncompressed tarball
                     if {[file extension $tarball] eq ".gz"} {
-                        file delete -force [file rootname $tarball]
+                        file delete -force [file rootname $tarball] [file rootname $tarball].rmd160
                     }
                 }
 
