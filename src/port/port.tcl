@@ -169,17 +169,28 @@ proc registry_installed {portname {portversion ""} {require_single yes} {only_ac
     }
 
     if {[llength $matches] > 1} {
+        global macports::ui_options
         # set portname again since the one we were passed may not have had the correct case
         set portname [[lindex $matches 0] name]
-        ui_notice "The following versions of $portname are currently installed:"
+        set msg "The following versions of $portname are currently installed:"
+        set portilist [list]
         foreach i $matches {
             if {[$i state] eq "installed"} {
-                puts "  $portname @[$i version]_[$i revision][$i variants] (active)"
+                lappend portilist "  $portname @[$i version]_[$i revision][$i variants] (active)"
             } else {
-                puts "  $portname @[$i version]_[$i revision][$i variants]"
+                lappend portilist "  $portname @[$i version]_[$i revision][$i variants]"
             }
         }
-        return -code error "Registry error: Please specify the full version as recorded in the port registry."
+        if {[info exists ui_options(questions_singlechoice)]} {
+            set retindex [$macports::ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
+            return [lindex $matches $retindex]
+        } else {
+            ui_notice $msg
+            foreach portstr $portilist {
+                puts $portstr
+            }
+            return -code error "Registry error: Please specify the full version as recorded in the port registry."
+        }
     } elseif {[llength $matches] == 0} {
         if {$portversion eq ""} {
             return -code error "Registry error: $portname not registered as installed."
@@ -2202,15 +2213,17 @@ proc action_activate { action portlist opts } {
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
-        if {![dict exists $options ports_activate_no-exec]
-            && ![catch {registry_installed $portname $composite_version} regref]} {
-
-            if {[$regref installtype] eq "image" && [registry::run_target $regref activate $options]} {
-                continue
-            }
+        if {[catch {registry_installed $portname $composite_version} result]} {
+            break_softcontinue "port activate failed: $result" 1 status
+        }
+        set regref $result
+        if {![dict exists $options ports_activate_no-exec] &&
+            [registry::run_target $regref activate $options]
+        } then {
+            continue
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::activate_composite $portname $composite_version $options} result] } {
+            if {[catch {portimage::activate_composite $portname $composite_version $options} result]} {
                 ui_debug $::errorInfo
                 break_softcontinue "port activate failed: $result" 1 status
             }
