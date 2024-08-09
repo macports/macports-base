@@ -248,8 +248,27 @@ namespace eval migrate {
         if {$os_platform eq "darwin" && $os_major >= 20
                 && ![catch {sysctl sysctl.proc_translated} translated] && $translated
         } then {
-            set reason "MacPorts is running through Rosetta 2, and should be rebuilt for Apple Silicon"
-            return 1
+            # Check if our tclsh has an arm64 slice - rebuilding not needed if it's universal
+            set h [machista::create_handle]
+            set rlist [machista::parse_file $h $macports::autoconf::tclsh_path]
+            if {[lindex $rlist 0] == $machista::SUCCESS} {
+                set r [lindex $rlist 1]
+                set a [$r cget -mt_archs]
+                set has_arm64 0
+                while {$a ne "NULL"} {
+                    set arch [machista::get_arch_name [$a cget -mat_arch]]
+                    if {$arch eq "arm64"} {
+                        set has_arm64 1
+                        break
+                    }
+                    set a [$a cget -next]
+                }
+            }
+            machista::destroy_handle $h
+            if {[info exists has_arm64] && !$has_arm64} {
+                set reason "MacPorts is running through Rosetta 2, and should be rebuilt for Apple Silicon"
+                return 1
+            }
         }
         return 0
     }
