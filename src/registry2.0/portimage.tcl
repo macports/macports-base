@@ -757,12 +757,12 @@ proc _activate_contents {port {rename_list {}}} {
                                 set conflicting_paths [dict get $conflicts_port_to_paths $conflicting_port]
                                 set pathcounter 0
                                 set pathtotal [llength $conflicting_paths]
-                                foreach {_ actual_path} $conflicting_paths {
+                                foreach p $conflicting_paths {
                                     if {$pathcounter >= 3 && $pathtotal > 4} {
                                         append msg "  (... [expr {$pathtotal - $pathcounter}] more not shown)\n"
                                         break
                                     }
-                                    append msg "  ${actual_path}\n"
+                                    append msg "  [lindex $p 1]\n"
                                     incr pathcounter
                                 }
                             }
