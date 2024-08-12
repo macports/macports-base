@@ -634,6 +634,57 @@ proc _progress {args} {
     ui_progress_generic {*}${args}
 }
 
+proc _get_port_conflicts {port} {
+    global registry::tdbc_connection
+    if {![info exists tdbc_connection]} {
+        registry::tdbc_connect
+    }
+    variable conflicts_stmt
+    if {![info exists conflicts_stmt]} {
+        set query {SELECT files.id, files.path, files.actual_path FROM
+                (SELECT path FROM files where id = :thisport_id)
+                AS thisport_files
+                INNER JOIN files ON thisport_files.path = files.actual_path
+                WHERE files.active = 1}
+        set conflicts_stmt [$tdbc_connection prepare $query]
+    }
+
+    set thisport_id [$port id]
+    $tdbc_connection transaction {
+        set results [$conflicts_stmt execute]
+    }
+    set id_to_port [dict create]
+    set path_to_port [dict create]
+    set port_to_paths [dict create]
+    set is_replaced [dict create]
+    set todeactivate [dict create]
+    set thisport_name [$port name]
+    foreach result [$results allrows] {
+        set id [dict get $result id]
+        if {![dict exists $id_to_port $id]} {
+            dict set id_to_port $id [lindex [registry::entry search id $id] 0]
+        }
+        set conflicting_port [dict get $id_to_port $id]
+        if {![dict exists $is_replaced $conflicting_port]} {
+            lassign [mportlookup [$conflicting_port name]] _ portinfo
+            if {[dict exists $portinfo replaced_by] && [lsearch -exact -nocase [dict get $portinfo replaced_by] $thisport_name] != -1} {
+                dict set is_replaced $conflicting_port 1
+                dict set todeactivate $conflicting_port 1
+            } else {
+                dict set is_replaced $conflicting_port 0
+            }
+        }
+        set actual_path [dict get $result actual_path]
+        dict set path_to_port $actual_path $conflicting_port
+        if {![dict get $is_replaced $conflicting_port]} {
+            set imagepath [dict get $result path]
+            dict lappend port_to_paths $conflicting_port [list $imagepath $actual_path]
+        }
+    }
+    $results close
+    return [list $path_to_port $port_to_paths $todeactivate]
+}
+
 ## Activates the contents of a port
 proc _activate_contents {port {rename_list {}}} {
     variable force
@@ -679,7 +730,7 @@ proc _activate_contents {port {rename_list {}}} {
     # Last, if the file exists, and belongs to another port, and force is set
     #  we remove the file from the file_map, take ownership of it, and
     #  clobber it
-    set todeactivate [list]
+    set todeactivate [dict create]
     try {
         registry::write {
             foreach file $imagefiles {
@@ -694,51 +745,73 @@ proc _activate_contents {port {rename_list {}}} {
                     throw registry::image-error "Image error: Source file $srcfile does not appear to exist.  Unable to activate port ${portname}."
                 }
 
-                set owner [registry::entry owner $file]
-
-                if {$owner ne {} && $owner ne $port} {
-                    # deactivate conflicting port if it is replaced_by this one
-                    set result [mportlookup [$owner name]]
-                    set portinfo [lindex $result 1]
-                    if {[dict exists $portinfo replaced_by] && [lsearch -exact -nocase [dict get $portinfo replaced_by] $portname] != -1} {
-                        # we'll deactivate the owner later, but before activating our files
-                        lappend todeactivate $owner
-                        set owner "replaced"
-                    }
-                }
-
-                if {$owner ne "replaced"} {
-                    if {$force} {
-                        # if we're forcing the activation, then we move any existing
-                        # files to a backup file, both in the filesystem and in the
-                        # registry
-                        if { ![catch {::file type $file}] } {
-                            set bakfile "${file}${baksuffix}"
-                            _progress intermission
-                            ui_warn "File $file already exists.  Moving to: $bakfile."
-                            ::file rename -force -- $file $bakfile
-                            lappend backups $file
-                        }
-                        if { $owner ne {} } {
-                            $owner deactivate [list $file]
-                            $owner activate [list $file] [list "${file}${baksuffix}"]
-                        }
-                    } else {
-                        # if we're not forcing the activation, then we bail out if
-                        # we find any files that already exist, or have entries in
-                        # the registry
-                        if { $owner ne {} && $owner ne $port } {
-                            set msg "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate $portname' to force the activation."
-                            #registry::entry close $owner
+                if {![catch {::file type $file}]} {
+                    if {![info exists conflicts_path_to_port]} {
+                        # Check for conflicting ports. 'todeactivate' contains ports replaced by this one,
+                        # which we'll deactivate later, but before activating our files.
+                        lassign [_get_port_conflicts $port] conflicts_path_to_port conflicts_port_to_paths todeactivate
+                        if {!$force && [dict size $conflicts_port_to_paths] > 0} {
+                            set msg "The following ports have active files that conflict with ${portname}'s:\n"
+                            foreach conflicting_port [dict keys $conflicts_port_to_paths] {
+                                append msg "[$conflicting_port name] @[$conflicting_port version]_[$conflicting_port revision][$conflicting_port variants]\n"
+                                set conflicting_paths [dict get $conflicts_port_to_paths $conflicting_port]
+                                set pathcounter 0
+                                set pathtotal [llength $conflicting_paths]
+                                foreach {_ actual_path} $conflicting_paths {
+                                    if {$pathcounter >= 3 && $pathtotal > 4} {
+                                        append msg "  (... [expr {$pathtotal - $pathcounter}] more not shown)\n"
+                                        break
+                                    }
+                                    append msg "  ${actual_path}\n"
+                                    incr pathcounter
+                                }
+                            }
+                            append msg "Image error: Conflicting file(s) present. Please deactivate the conflicting port(s) first, or use 'port -f activate $portname' to force the activation."
                             throw registry::image-error $msg
-                        } elseif { $owner eq {} && ![catch {::file type $file}] } {
+                        }
+                    }
+                    if {[dict exists $conflicts_path_to_port $file]} {
+                        set owner [dict get $conflicts_path_to_port $file]
+                    } else {
+                        set owner {}
+                    }
+                    if {$owner eq {} || ![dict exists $todeactivate $owner]} {
+                        if {$force} {
+                            # if we're forcing the activation, then we move any existing
+                            # files to a backup file, both in the filesystem and in the
+                            # registry
+                            if {$owner ne {}} {
+                                # Rename all conflicting files for this owner.
+                                set owner_paths [list]
+                                set owner_actual_paths [list]
+                                foreach {path actual_path} [dict get $conflicts_port_to_paths $owner] {
+                                    lappend owner_deactivate_paths $path
+                                    if {![catch {::file type $actual_path}]} {
+                                        lappend owner_activate_paths $path
+                                        set bakfile ${actual_path}${baksuffix}
+                                        lappend owner_backup_paths $bakfile
+                                        ui_warn "File $actual_path already exists.  Moving to: $bakfile."
+                                        ::file rename -force -- $actual_path $bakfile
+                                        lappend backups $actual_path
+                                    }
+                                }
+                                $owner deactivate $owner_deactivate_paths
+                                $owner activate $owner_activate_paths $owner_backup_paths
+                            } else {
+                                # Just rename this file.
+                                set bakfile ${file}${baksuffix}
+                                _progress intermission
+                                ui_warn "File $file already exists.  Moving to: $bakfile."
+                                ::file rename -force -- $file $bakfile
+                                lappend backups $file
+                            }
+                        } else {
+                            # if we're not forcing the activation, then we bail out if
+                            # we find any files that already exist
                             set msg "Image error: $file already exists and does not belong to a registered port.  Unable to activate port ${portname}. Use 'port -f activate $portname' to force the activation."
                             throw registry::image-error $msg
                         }
                     }
-                    #if {$owner ne {}} {
-                    #    registry::entry close $owner
-                    #}
                 }
 
                 # Split out the filename's subpaths and add them to the
@@ -775,7 +848,7 @@ proc _activate_contents {port {rename_list {}}} {
 
         # deactivate ports replaced_by this one
         set deactivate_options [dict create ports_nodepcheck 1]
-        foreach owner $todeactivate {
+        foreach owner [dict keys $todeactivate] {
             _progress intermission
             if {$noexec || ![registry::run_target $owner deactivate $deactivate_options]} {
                 deactivate [$owner name] "" "" 0 $deactivate_options
@@ -860,7 +933,7 @@ proc _activate_contents {port {rename_list {}}} {
                 ::file rename -force -- "${file}${baksuffix}" $file
             }
             # reactivate deactivated ports
-            foreach entry $todeactivate {
+            foreach entry [dict keys $todeactivate] {
                 if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
                     activate [$entry name] [$entry version] [$entry revision] [$entry variants] [dict create ports_activate_no-exec $noexec]
                 }
@@ -873,7 +946,7 @@ proc _activate_contents {port {rename_list {}}} {
 
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
     } finally {
-        #foreach entry $todeactivate {
+        #foreach entry [dict keys $todeactivate] {
         #    registry::entry close $entry
         #}
         # Only delete extracted dir if there is an archive to re-extract from
