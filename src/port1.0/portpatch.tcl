@@ -68,7 +68,7 @@ proc portpatch::build_getpatchtype {args} {
 }
 
 proc portpatch::patch_main {args} {
-    global UI_PREFIX
+    global UI_PREFIX target_state_fd
 
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles] || [option patchfiles] eq ""} {
@@ -96,18 +96,24 @@ proc portpatch::patch_main {args} {
     catch {set xzcat "[findBinary xz $portutil::autoconf::xz_path] -dc"}
 
     foreach patch $patchlist {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] [file tail $patch]]"
-        switch -- [file extension $patch] {
-            .Z -
-            .gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
-            .bz2 {command_exec patch "$bzcat \"$patch\" | (" ")"}
-            .xz {
-                if {[info exists xzcat]} {
-                    command_exec patch "$xzcat \"$patch\" | (" ")"
-                } else {
-                    return -code error [msgcat::mc "xz binary not found; port needs to add 'depends_patch bin:xz:xz'"]
-                }}
-            default {command_exec patch "" "< '$patch'"}
+        set pfile [file tail $patch]
+        if {![check_statefile patch $pfile $target_state_fd]} {
+            ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] [file tail $patch]]"
+            switch -- [file extension $patch] {
+                .Z -
+                .gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
+                .bz2 {command_exec patch "$bzcat \"$patch\" | (" ")"}
+                .xz {
+                    if {[info exists xzcat]} {
+                        command_exec patch "$xzcat \"$patch\" | (" ")"
+                    } else {
+                        return -code error [msgcat::mc "xz binary not found; port needs to add 'depends_patch bin:xz:xz'"]
+                    }}
+                default {command_exec patch "" "< '$patch'"}
+            }
+            write_statefile patch $pfile $target_state_fd
+        } else {
+            ui_info "$UI_PREFIX [format [msgcat::mc "Skipping already applied %s"] $pfile]"
         }
     }
     return 0
