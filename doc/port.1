@@ -1268,6 +1268,29 @@ livecheck
 .RS 4
 Check if the software hasn\(cqt been updated since the Portfile was last modified\&.
 .RE
+.PP
+history
+.RS 4
+Show the git commit history for \fIportname\fR if its portdir lives in a git repository\&.
+.RE
+diff
+.RS 4
+Show non-committed changes made to \fIportname\fR (if its portdir lives in a git repository)\&.
+.RE
+status
+.RS 4
+Show the git status of \fIportname\fR (if its portdir lives in a git repository)\&.
+.RE
+add
+.RS 4
+Add the untracked files in \fIportname\fR\(cqs portdir (if it lives in a git repository)\&.
+.RE
+commit [--amend]
+.RS 4
+Commit changes made to \fIportname\fR (if its portdir lives in a git repository) or amend the last commit.
+Note that new files can be added with port add\&.
+.RE
+
 .SH "PACKAGING ACTIONS"
 .sp
 There are also actions for producing installable packages of ports:

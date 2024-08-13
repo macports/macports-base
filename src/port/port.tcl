@@ -3852,6 +3852,96 @@ proc action_portcmds { action portlist opts } {
                         ui_error [format "No homepage for %s" $portname]
                     }
                 }
+                history {
+                    set tmpdir [pwd]
+                    if {[file exists "/tmp"]} {set tmpdir "/tmp"}
+                    catch {set tmpdir $::env(TMPDIR)}
+                    set tmpfname [file join $tmpdir [join [list $portname "-history-" [pid] ".log"] ""]]
+                    if {[macports::ui_isset ports_verbose]} {
+                        # include diffs
+                        set opt "--color=always -p"
+                    } else {
+                        # include just a summary of the changes
+                        set opt "--no-color --summary"
+                    }
+                    if {[catch {system -W $portdir \
+                        "git log --decorate=full --source --full-diff $opt . > $tmpfname"} \
+                        result]} {
+                        ui_debug "$::errorInfo"
+                        file delete -force $tmpfname
+                        break_softcontinue "$result - probably not git repository?" 1 status
+                    }
+                    if {[file exists $tmpfname]} {
+                        if {[catch {set fp [open $tmpfname r]} result]} {
+                            break_softcontinue "Could not open file $tmpfname: $result" 1 status
+                        }
+                        puts "Commit history for port:$portname ($portfile):"
+                        set history [read $fp]
+                        set history [split $history "\n"]
+                        foreach line $history {
+                            puts "$line"
+                        }
+                        close $fp
+                        file delete -force $tmpfname
+                    }
+                }
+                diff {
+                    if {[macports::ui_isset ports_verbose]} {
+                        set opt "--color=always"
+                    } else {
+                        set opt "--color=never"
+                    }
+                    if {[catch {set diffOut [exec git -C $portdir \
+                        diff --no-prefix --no-ext-diff $opt HEAD -- .]} \
+                        result]} {
+                        ui_debug $::errorInfo
+                        break_softcontinue "$result - probably not git repository?" 1 status
+                    }
+                    if {${diffOut} ne ""} {
+                        puts "Git diff for port:$portname ($portfile):"
+                        puts ${diffOut}
+                    }
+                }
+                status {
+                    if {[catch {set statusOut [exec git -C $portdir \
+                        status .]} \
+                        result]} {
+                        ui_debug $::errorInfo
+                        break_softcontinue "$result - probably not git repository?" 1 status
+                    }
+                    if {${statusOut} ne ""} {
+                        puts "Git status for port:$portname ($portfile):"
+                        puts ${statusOut}
+                    }
+                }
+                add {
+                    if {[catch {set addOut [exec git -C $portdir \
+                        add -v .]} \
+                        result]} {
+                        ui_debug $::errorInfo
+                        break_softcontinue "$result - probably not a git repository?" 1 status
+                    }
+                    if {${addOut} ne ""} {
+                        puts "Git add for port:$portname ($portfile):"
+                        puts ${addOut}
+                    }
+                }
+                commit {
+                    global global_options
+                    if {[info exists global_options(ports_commit_amend)] && $global_options(ports_commit_amend)} {
+                         set gitOptions "-vuno --amend"
+                    } else {
+                         set gitOptions "-vuno"
+                    }
+                    if {[catch {exec -ignorestderr >@stdout <@stdin git -C $portdir \
+                        commit {*}${gitOptions} .} \
+                        result]} {
+                        ui_debug $::errorInfo
+                        break_softcontinue "$result (is there a .gitconfig file in $env(HOME)?)" 1 status
+                    } else {
+                         puts "Git commit of port:$portname ($portfile)"
+                    }
+                }
             }
         } else {
             break_softcontinue "Could not read $portfile" 1 status
@@ -4124,6 +4214,11 @@ set action_array [dict create \
     file        [list action_portcmds       [ACTION_ARGS_PORTS]] \
     logfile     [list action_portcmds       [ACTION_ARGS_PORTS]] \
     gohome      [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    history     [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    diff        [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    status      [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    add         [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    commit      [list action_portcmds       [ACTION_ARGS_PORTS]] \
     \
     fetch       [list action_target         [ACTION_ARGS_PORTS]] \
     checksum    [list action_target         [ACTION_ARGS_PORTS]] \
@@ -4214,6 +4309,7 @@ proc action_needs_portlist { action } {
 # Where option is the name of the option and argn specifies how many arguments
 # this argument takes
 set cmd_opts_array [dict create {*}{
+    commit      {amend}
     edit        {{editor 1}}
     info        {category categories conflicts depends_fetch depends_extract
                  depends_patch
