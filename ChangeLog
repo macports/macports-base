@@ -2,6 +2,16 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.10.1 (2024-08-16 by jmr)
+    - Fixed issues migrating when running under Rosetta 2 on
+      Apple Silicon. (#70512, jmr in 567fa44, e291303, 9eb441f)
+
+    - Fixed printing the list of installed versions twice when an
+      ambiguous 'port activate' is run. (#70514, jmr in d27484c)
+
+    - The default build_arch is now always arm64 when running on Apple
+      Silicon hardware, even under Rosetta 2. (#61750, jmr in 05cd570)
+
 Release 2.10.0 (2024-08-07 by jmr)
     - 'port space' no longer overcounts the space used by ports that
       install links. (#66526, jmr in 11662bd)
@@ -13,8 +23,8 @@ Release 2.10.0 (2024-08-07 by jmr)
       downloading a small file, and only downloads and extracts the
       source code (via http(s)) if a new version needs to be installed.
       Integrity of the source is checked using OpenBSD's signify(1).
-      The old rsync method is used as a fallback if the new method fails.
-      (#38265, cal in dd3acc4)
+      The old rsync method is used as a fallback if the new method
+      fails. (#38265, cal in dd3acc4)
 
     - Line continuation is supported in macports.conf by ending lines
       with a backslash. (jmr in b86ef1e)
