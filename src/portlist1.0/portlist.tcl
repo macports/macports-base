@@ -275,6 +275,7 @@ proc portlist::opComplement {a b} {
     # Top level keys are normalised port names.
     # Second level is a dict mapping fully discriminated names (to empty
     # strings since we don't need the full entries from b.)
+    set bdict [dict create]
     foreach bitem $b {
         dict set bdict [string tolower [dict get $bitem name]] [dict get $bitem fullname] ""
     }
