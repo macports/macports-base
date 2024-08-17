@@ -136,6 +136,20 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # Keep logs after successful installations.
 #keeplogs            	no
 
+# Progress reporting.
+# MacPorts will show a progressbar during lengthy operations which take more
+# than $progressbar_after milliseconds. The bar reports determinate progress
+# when the total amount of work and the work done are quantified. It can also
+# show an "indeterminate" indication of work being done (and switch to this
+# display after a certain amount of time) if $progressbar_type is set to `both`.
+# The operations that use this feature are downloads, builds and rev-upgrade,
+# plus a list of additional operations $progressbar_also_for which can include
+# `de/activation` (for `port deactivate` and `port activate`) and possibly more
+# in the future. NB: no quotes for the string values!
+# progressbar_after     500
+# progressbar_type      both
+# progressbar_also_for  de/activation
+
 # URLs that MacPorts attempts to download to find out whether a new version was
 # released. Multiple values, space-separated; only one of the URLs needs to be
 # available. Downloads will be attempted in the specified order.

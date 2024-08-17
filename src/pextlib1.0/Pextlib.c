@@ -1150,6 +1150,40 @@ int ClonefileCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
     return TCL_ERROR;
 }
 
+/*
+	processIsForeground
+	
+	synopsis: processIsForeground
+
+	Returns true if the process is running in the foreground or false
+	if in the background.
+*/
+int IsProcessForegroundCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	/* Check the arg count */
+	if (objc != 1) {
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
+		return TCL_ERROR;
+	}
+
+	int fd, fdo = fileno(stdout);
+    if ((fd = isatty(fdo) ? fdo : open("/dev/tty", O_RDONLY)) != -1) {
+        const pid_t pgrp = getpgrp();
+        const pid_t tcpgrp = tcgetpgrp(fd);
+        if (fd != fdo) {
+            close(fd);
+        }
+        if (pgrp != -1 && tcpgrp != -1) {
+            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(pgrp == tcpgrp));
+            return TCL_OK;
+        }
+    }
+    Tcl_SetErrno(errno);
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, "processIsForeground: ", (char *)Tcl_PosixError(interp), NULL);
+	return TCL_ERROR;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -1213,6 +1247,8 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "fs_clone_capable", FSCloneCapableCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "clonefile", ClonefileCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "processIsForeground", IsProcessForegroundCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

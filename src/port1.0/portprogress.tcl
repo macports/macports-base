@@ -41,6 +41,7 @@ namespace eval portprogress {
     variable indeterminate_timer        0
 
     # If our progress callback should issue indeterminate progress updates
+    variable allow_indeterminate        yes
     variable indeterminate              yes
 
     # ninja ([<completed tasks>/<pending tasks>])
@@ -53,7 +54,8 @@ namespace eval portprogress {
 # A SystemCmd callback that parses common target progress formats to display
 # a progress bar
 proc portprogress::target_progress_callback {event} {
-    global portverbose
+    global portverbose progressbar_type
+    variable allow_indeterminate
     variable indeterminate
     variable indeterminate_timer
     variable indeterminate_threshold
@@ -66,7 +68,11 @@ proc portprogress::target_progress_callback {event} {
 
     switch -- [dict get $event type] {
         exec {
-            set indeterminate yes
+            # reset allow_indeterminate to the user/default-configured setting
+            if {${progressbar_type} ne "both"} {
+			  set allow_indeterminate no
+		  }
+            set indeterminate ${allow_indeterminate}
             set indeterminate_timer 0
             ui_progress_generic start
         }
@@ -102,7 +108,7 @@ proc portprogress::target_progress_callback {event} {
                 set time_diff [expr { $time_now - $time_last }]
 
                 if {${time_diff} >= ${indeterminate_threshold}} {
-                    set indeterminate yes
+                    set indeterminate ${allow_indeterminate}
                 }
             }
 
