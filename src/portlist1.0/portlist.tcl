@@ -179,9 +179,14 @@ proc portlist_sortint {portlist} {
 }
 
 proc portlist_compareregrefs {a b} {
-    set byname [string compare -nocase [$a name] [$b name]]
-    if {$byname != 0} {
-        return $byname
+    set aname [$a name]
+    set bname [$b name]
+    if {![string equal -nocase $aname $bname]} {
+        # There's no -dictionary option for string compare as of Tcl 8.6
+        if {$aname eq [lindex [lsort -dictionary [list $aname $bname]] 0]} {
+            return -1
+        }
+        return 1
     }
     set byvers [vercmp [$a version] [$b version]]
     if {$byvers != 0} {
