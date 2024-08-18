@@ -836,6 +836,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		CURLcode theCurlCode;
 		long theModDate;
 		long userModDate;
+		const char* userAgent = PACKAGE_NAME "/" PACKAGE_VERSION " libcurl/" LIBCURL_VERSION;
 
 		optioncrsr = 2;
 		lastoption = objc - 3;
@@ -901,6 +902,13 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
 		/* -L option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* -A option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_USERAGENT, userAgent);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
