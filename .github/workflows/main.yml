@@ -47,9 +47,13 @@ jobs:
           set -eu
           platform=$(uname -s)
           case ${platform} in
-            Darwin) make -j"$(sysctl -n hw.activecpu)"
+            Darwin)
+              # shellcheck disable=2046
+              make -j$(sysctl -n hw.activecpu)
             ;;
-            Linux) make -j"$(nproc)"
+            Linux)
+              # shellcheck disable=2046
+              make -j$(nproc)
             ;;
           esac
       - name: Install MacPorts Base

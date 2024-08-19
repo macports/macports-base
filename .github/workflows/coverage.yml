@@ -32,7 +32,8 @@ jobs:
       - name: Build MacPorts Base
         run: |
           set -eu
-          make -j"$(sysctl -n hw.activecpu)"
+          # shellcheck disable=2046
+          make -j$(sysctl -n hw.activecpu)
       - name: Install MacPorts Base
         run: |
           set -eu
@@ -47,8 +48,10 @@ jobs:
           xcrun llvm-profdata merge --sparse --output=cov.profdata cov-*.profraw
           # tracelib cannot be profiled
           OBJ_FILES="$(find src -type f "(" -name "*.dylib" -o -name "*.a" ")" | grep -Fv darwintracelib1.0 | sed 's/^/--arch=arm64 --object=/')"
-          xcrun llvm-cov show --format=html --output-dir=covreport --ignore-filename-regex=vendor/ --instr-profile=cov.profdata "${OBJ_FILES}"
-          xcrun llvm-cov report --ignore-filename-regex=vendor/ --instr-profile=cov.profdata "${OBJ_FILES}"
+          # shellcheck disable=2086
+          xcrun llvm-cov show --format=html --output-dir=covreport --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
+          # shellcheck disable=2086
+          xcrun llvm-cov report --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
       - name: Archive code coverage results
         uses: actions/upload-artifact@v4
         with:
