@@ -1,0 +1,3 @@
+syntax(2)
+test_suite('install')
+atf_test_program{name='install_test.sh'}

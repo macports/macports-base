@@ -672,6 +672,7 @@ VENDOR_TCLX_SUBDIR
 VENDOR_DESTROOT
 VENDOR_TCL_INSTALL
 VENDOR_TCL_SUBDIR
+CLONEBIN_PATH
 localstatedir_expanded
 MPCONFIGDIR_EXPANDED
 DARWINTRACE_SIP_WORKAROUND_PATH
@@ -689,6 +690,8 @@ HAVE_STRLCPY
 HAVE_STRLCAT
 HAVE_GETLINE
 HAVE_GETDELIM
+EXTRA_PROGS
+HAVE_CLONEFILE
 HAVE_TIMINGSAFE_BCMP
 HAVE_GETENTROPY
 HAVE_ARC4RANDOM_BUF
@@ -704,7 +707,6 @@ RUNUSR
 DSTGRP
 DSTUSR
 MPCONFIGDIR
-EXTRA_PROGS
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 HAVE_FRAMEWORK_IOKIT
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
@@ -7012,8 +7014,6 @@ printf %s "checking for whether we will build daemondo... " >&6; }
 printf "%s\n" "${result}" >&6; }
 
 
-
-
 # Check for paths
 
 
@@ -7727,6 +7727,17 @@ HAVE_ARC4RANDOM_BUF=$ac_cv_func_arc4random_buf
 HAVE_GETENTROPY=$ac_cv_func_getentropy
 
 HAVE_TIMINGSAFE_BCMP=$ac_cv_func_timingsafe_bcmp
+
+
+# For vendor/install
+HAVE_CLONEFILE=$ac_cv_func_clonefile
+
+# For programs/cp
+if test x$ac_cv_func_clonefile = xyes; then
+EXTRA_PROGS="$EXTRA_PROGS cp"
+ac_config_files="$ac_config_files src/programs/cp/Makefile vendor/install/Makefile"
+
+fi
 
 
 # Check for library functions, replacements are in pextlib1.0/compat/
@@ -8659,6 +8670,11 @@ eval "macports_libexec_dir=${libexecdir}/macports"
 eval "macports_libexec_dir=$macports_libexec_dir"
 prefix=$oldprefix
 exec_prefix=$oldexec_prefix
+
+if test x$ac_cv_func_clonefile = xyes; then
+    CLONEBIN_PATH="${macports_libexec_dir}/clonebin"
+fi
+
 
 ## Tcl package
 	mp_fn_var_prepend() {
@@ -10448,6 +10464,8 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "src/programs/daemondo/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/daemondo/Makefile" ;;
+    "src/programs/cp/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/cp/Makefile" ;;
+    "vendor/install/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/install/Makefile" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;

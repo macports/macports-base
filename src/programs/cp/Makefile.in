@@ -1,0 +1,36 @@
+
+srcdir     = @srcdir@
+VPATH      = @srcdir@
+
+include ../../../Mk/macports.autoconf.mk
+
+SRCS		= cp.c
+OBJS		= cp.o
+PROGRAM		= build/cp
+
+.PHONY: cp mkdirs
+
+all: cp
+
+cp: mkdirs ${PROGRAM}
+
+${PROGRAM}: ${OBJS}
+	${CC} ${CFLAGS} -o ${PROGRAM} ${LIBS} ${OBJS}
+
+mkdirs:
+	mkdir -p build
+
+clean:
+	rm -Rf build ${PROGRAM} ${OBJS}
+
+distclean: clean
+	rm -f Makefile
+
+install: cp
+	${INSTALL} -d -m 755 "${DESTDIR}${TCL_PREFIX}/clonebin"
+	${INSTALL} -o "${DSTUSR}" -g "${DSTGRP}" -m 555 "${PROGRAM}" "${DESTDIR}${TCL_PREFIX}/clonebin"
+
+test:
+
+codesign:: ${PROGRAM}
+	../../codesign.sh $?

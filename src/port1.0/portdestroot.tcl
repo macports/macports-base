@@ -126,7 +126,19 @@ proc portdestroot::destroot_start {args} {
 }
 
 proc portdestroot::destroot_main {args} {
-    command_exec -callback portprogress::target_progress_callback destroot
+    global system_options
+    if {$system_options(clonebin_path) ne ""} {
+        global env
+        set saved_path $env(PATH)
+        set env(PATH) $system_options(clonebin_path):$env(PATH)
+    }
+    try {
+        command_exec -callback portprogress::target_progress_callback destroot
+    } finally {
+        if {[info exists saved_path]} {
+            set env(PATH) $saved_path
+        }
+    }
     return 0
 }
 

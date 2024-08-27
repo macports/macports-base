@@ -1,0 +1,129 @@
+Applied to original from file_cmds-430.140.2
+
+--- xinstall.c.orig	2024-08-20 16:07:42
++++ xinstall.c	2024-08-27 16:58:56
+@@ -70,9 +70,9 @@
+ #ifdef __APPLE__
+ #include <TargetConditionals.h>
+ #include <copyfile.h>
++#include <sys/attr.h>
++#include <sys/clonefile.h>
+ #endif	/* __APPLE__ */
+-
+-#include "pathnames.h"
+ 
+ /* Bootstrap aid - this doesn't exist in most older releases */
+ #ifndef MAP_FAILED
+@@ -92,6 +92,7 @@
+ mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+ char *suffix = BACKUP_SUFFIX;
+ 
++static int	clone __P((const char *, const char *, int, char *, size_t));
+ void	copy __P((int, char *, int, char *, off_t));
+ int	compare __P((int, const char *, size_t, int, const char *, size_t));
+ int	create_newfile __P((char *, int, struct stat *));
+@@ -100,6 +101,7 @@
+ void	install_dir __P((char *));
+ u_long	numeric_id __P((char *, char *));
+ void	strip __P((char *));
++static void tempfile_template __P((const char *, char *, size_t));
+ int	trymmap __P((int));
+ void	usage __P((void));
+ 
+@@ -276,9 +278,10 @@
+ {
+ 	struct stat from_sb, temp_sb, to_sb;
+ 	struct utimbuf utb;
+-	int devnull, files_match, from_fd=0, serrno, target;
+-	int tempcopy, temp_fd, to_fd=0;
++	int devnull, files_match, from_fd=-1, serrno, target;
++	int tempcopy, temp_fd=-1, to_fd=-1;
+ 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
++	const int tryclone = 1;
+ 
+ 	files_match = 0;
+ 
+@@ -334,6 +337,17 @@
+ 	}
+ 
+ 	if (!files_match) {
++		int done_clone = 0;
++	    if (tryclone && !devnull && !dostrip) {
++	        done_clone = (clone(from_name, to_name, tempcopy, tempfile, sizeof(tempfile)) == 0);
++	    }
++	    if (done_clone &&
++	        (((to_fd = open(tempcopy ? tempfile : to_name, O_RDONLY, 0)) < 0)
++	        || (!tempcopy && fstat(to_fd, &to_sb) == -1))) {
++                (void)unlink(tempcopy ? tempfile : to_name);
++                done_clone = 0;
++		}
++		if (!done_clone) {
+ 		if (tempcopy) {
+ 			to_fd = create_tempfile(to_name, tempfile,
+ 			    sizeof(tempfile));
+@@ -350,6 +364,7 @@
+ 		if (!devnull)
+ 			copy(from_fd, from_name, to_fd,
+ 			     tempcopy ? tempfile : to_name, from_sb.st_size);
++		} /* !done_clone */
+ 	}
+ 
+ 	if (dostrip) {
+@@ -592,11 +607,11 @@
+ }
+ 
+ /*
+- * create_tempfile --
+- *	create a temporary file based on path and open it
++ * tempfile_template --
++ *	prepare a template filename for use with mktemp/mkstemp.
+  */
+-int
+-create_tempfile(char *path,
++static void
++tempfile_template(const char *path,
+ 		char *temp,
+ 		size_t tsize)
+ {
+@@ -610,6 +625,18 @@
+ 		p = temp;
+ 	(void)strncpy(p, "INS@XXXX", &temp[tsize - 1] - p);
+ 	temp[tsize - 1] = '\0';
++}
++
++/*
++ * create_tempfile --
++ *	create a temporary file based on path and open it
++ */
++int
++create_tempfile(char *path,
++		char *temp,
++		size_t tsize)
++{
++	tempfile_template(path, temp, tsize);
+ 	return (mkstemp(temp));
+ }
+ 
+@@ -736,6 +763,22 @@
+ }
+ 
+ /*
++ * clone --
++ *	create a clone of a file
++ */
++static int
++clone(const char *from_name, const char *to_name,
++      int use_temp, char *temp_name, size_t tsize)
++{
++    if (use_temp) {
++        tempfile_template(to_name, temp_name, tsize);
++        mktemp(temp_name);
++        to_name = temp_name;
++    }
++    return clonefile(from_name, to_name, CLONE_NOFOLLOW|CLONE_NOOWNERCOPY);
++}
++
++/*
+  * strip --
+  *	use strip(1) to strip the target file
+  */

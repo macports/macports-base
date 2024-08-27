@@ -51,6 +51,18 @@
 #ifdef HAVE_FTS
 #include <fts.h>
 #endif
+#ifdef HAVE_SYS_CLONEFILE_H
+#include <sys/clonefile.h>
+#endif
+#ifdef HAVE_CLONEFILE
+#if defined(__APPLE__) && \
+	defined(MAC_OS_X_VERSION_MIN_REQUIRED) && \
+	MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#define MayUseCloneFile()	(clonefile != NULL)
+#else
+#define MayUseCloneFile()   (1)
+#endif
+#endif /* HAVE_CLONEFILE */
 
 /*
  * The following constants specify the type of callback when
@@ -526,14 +538,50 @@ DoCopyFile(
     }
     return TCL_OK;
 }
-
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * TclUnixCloneFile -
+ *
+ *	Helper function for TclUnixCopyFile. Clones one regular file, using
+ *	clonefile().
+ *
+ * Results:
+ *	A standard Tcl result.
+ *
+ * Side effects:
+ *	A file is cloned.
+ *
+ *----------------------------------------------------------------------
+ */
+#ifdef HAVE_CLONEFILE
+int
+TclUnixCloneFile(
+    const char *src,		/* Pathname of file to clone (native). */
+    const char *dst,		/* Pathname of file to create (native). */
+    const Tcl_StatBuf *statBufPtr,
+				/* Used to copy attributes. */
+    int dontCopyAtts)		/* If flag set, don't copy attributes. */
+{
+    if (clonefile(src, dst, CLONE_NOFOLLOW|CLONE_NOOWNERCOPY) == 0) {
+        if (dontCopyAtts || CopyFileAtts(src, dst, statBufPtr) == TCL_OK) {
+            return TCL_OK;
+        }
+    }
+    unlink(dst);					/* INTL: Native. */
+    return TCL_ERROR;
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  *
  * TclUnixCopyFile -
  *
  *	Helper function for TclpCopyFile. Copies one regular file, using
- *	read() and write().
+ *	read() and write(), or clones it with TclUnixCloneFile() if
+ *  supported.
  *
  * Results:
  *	A standard Tcl result.
@@ -557,6 +605,13 @@ TclUnixCopyFile(
     unsigned blockSize;		/* Optimal I/O blocksize for filesystem */
     char *buffer;		/* Data buffer for copy */
     size_t nread;
+
+#ifdef HAVE_CLONEFILE
+    if (MayUseCloneFile() &&
+            TclUnixCloneFile(src, dst, statBufPtr, dontCopyAtts) == TCL_OK) {
+        return TCL_OK;
+    }
+#endif
 
 #ifdef DJGPP
 #define BINMODE |O_BINARY

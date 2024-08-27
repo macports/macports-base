@@ -49,7 +49,7 @@ package require mpcommon 1.0
 namespace eval macports {
     variable bootstrap_options [dict create]
     # Config file options with no special handling
-    foreach opt [list binpath auto_path extra_env portdbformat \
+    foreach opt [list binpath auto_path clonebin_path extra_env portdbformat \
         portarchivetype portimage_mode hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask release_urls release_version_urls \
         rsync_server rsync_options rsync_dir \
@@ -86,6 +86,9 @@ namespace eval macports {
         os_platform os_subplatform macos_version macos_version_major macosx_version macosx_sdk_version \
         macosx_deployment_target packagemaker_path default_compilers sandbox_enable sandbox_network \
         delete_la_files cxx_stdlib pkg_post_unarchive_deletions {*}$user_options]
+
+    # Options set in the portfile interpreter but only in system_options
+    variable portinterp_private_options [list clonebin_path]
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -985,6 +988,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::portarchive_hfscompression \
         macports::host_cache \
         macports::porturl_prefix_map \
+        macports::clonebin_path \
         macports::ui_options \
         macports::global_options \
         macports::global_variations
@@ -1486,6 +1490,15 @@ match macports.conf.default."
         set env(PATH) $binpath
     }
 
+    if {![info exists clonebin_path]} {
+        if {![catch {fs_clone_capable [file join $portdbpath build]} result] && $result
+            && [file executable ${macports::autoconf::clonebin_path}/install]} {
+            set clonebin_path ${macports::autoconf::clonebin_path}
+        } else {
+            set clonebin_path {}
+        }
+    }
+
     # Set startupitem default type (can be overridden by portfile)
     if {![info exists startupitem_type]} {
         set startupitem_type default
@@ -1896,6 +1909,7 @@ proc macports::copy_xcode_plist {target_homedir} {
 
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
     variable portinterp_options; variable portinterp_deferred_options
+    variable portinterp_private_options
     variable ui_priorities; variable ui_options
 
     # Hide any Tcl commands that should be inaccessible to port1.0 and Portfiles
@@ -2042,6 +2056,15 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
         $workername eval [list trace add variable $opt read trace_$opt]
         # define some value now
         $workername eval [list set $opt ?]
+    }
+
+    foreach opt $portinterp_private_options {
+        if {![info exists $opt]} {
+            variable $opt
+        }
+        if {[info exists $opt]} {
+            $workername eval [list set system_options($opt) [set $opt]]
+        }
     }
 
     foreach {opt val} $options {

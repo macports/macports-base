@@ -2,14 +2,15 @@ TCL_SUBDIR=			@VENDOR_TCL_SUBDIR@
 TCLX_SUBDIR=		@VENDOR_TCLX_SUBDIR@
 TCLLIB_SUBDIR=		@VENDOR_TCLLIB_SUBDIR@
 SIGNIFY_SUBDIR=		signify-osx
+INSTALL_SUBDIR=		install
 
 PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
 
 .PHONY: all clean distclean install destroot test
-.PHONY: destroot-tcl destroot-tclx destroot-tcllib destroot-signify
-.PHONY: install-tcl install-tclx install-tcllib install-signify
-.PHONY: %-tcl %-tclx %-tcllib %-signify
+.PHONY: destroot-tcl destroot-tclx destroot-tcllib destroot-signify destroot-install
+.PHONY: install-tcl install-tclx install-tcllib install-signify install-install
+.PHONY: %-tcl %-tclx %-tcllib %-signify %-install
 
 # for make all, run destroot (where destroot will depend on all of each
 # subpackage)
@@ -37,32 +38,46 @@ all-tcllib: all-tcl
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
 	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} $(@:%-signify=%)
 
+%-install:
+	@echo ===\> making $(@:%-install=%) in ${DIRPRFX}${INSTALL_SUBDIR}
+	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} $(@:%-install=%)
+
 DESTROOT_TARGETS=   destroot-tcl destroot-tclx destroot-tcllib
 ifneq (@OS_PLATFORM@,linux)
 DESTROOT_TARGETS+=   destroot-signify
+endif
+ifeq (@HAVE_CLONEFILE@,yes)
+DESTROOT_TARGETS+=   destroot-install
 endif
 
 destroot: $(DESTROOT_TARGETS)
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ "DESTDIR=${DESTROOT}" @VENDOR_TCL_INSTALL@
 
 destroot-tclx: all-tclx
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLX_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ "DESTDIR=${DESTROOT}" @VENDOR_TCLX_INSTALL@
 
 destroot-tcllib: all-tcllib
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=${DESTROOT}" TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
 
 destroot-signify:
 	@echo ===\> staging to destroot in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install PREFIX=${DESTROOT}${PREFIX}/libexec/macports
+	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install "PREFIX=${DESTROOT}${PREFIX}/libexec/macports"
+
+destroot-install:
+	@echo ===\> staging to destroot in ${DIRPRFX}${INSTALL_SUBDIR}
+	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} install "DESTDIR=${DESTROOT}"
 
 INSTALL_TARGETS=    install-tcl install-tclx install-tcllib
 ifneq (@OS_PLATFORM@,linux)
 INSTALL_TARGETS+=   install-signify
+endif
+ifeq (@HAVE_CLONEFILE@,yes)
+INSTALL_TARGETS+=   install-install
 endif
 
 install: $(INSTALL_TARGETS)
@@ -106,12 +121,16 @@ install-signify:
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
 	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install PREFIX=$(DESTDIR)${PREFIX}/libexec/macports
 
+install-install:
+	@echo ===\> making $(@:%-install=%) in ${DIRPRFX}${INSTALL_SUBDIR}
+	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} install
+
 test:
 
-clean: clean-tcl clean-tcllib clean-tclx clean-signify
+clean: clean-tcl clean-tcllib clean-tclx clean-signify clean-install
 	rm -rf ${DESTROOT}
 
-distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-signify
+distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-signify distclean-install
 	rm -f Makefile
 	rm -rf vendor-destroot
 	rm -f tclsh

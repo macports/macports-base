@@ -35,6 +35,7 @@ namespace eval macports::autoconf {
     variable aa_path "@AA@"
     variable bzip2_path "@BZIP2_BIN@"
     variable chown_path "@CHOWN@"
+    variable clonebin_path "@CLONEBIN_PATH@"
     variable gzip_path "@GZIP_BIN@"
     variable macports_conf_path "@MPCONFIGDIR_EXPANDED@"
     variable macports_keys_base "@prefix_expanded@/share/macports/keys/base"

@@ -32,7 +32,7 @@ src/darwintracelib1.0/sip_copy_proc.[ch]
 src/machista1.0/tests/libmachista-test
 src/port/*
 !src/port/*.tcl
-src/programs/daemondo/build/
+src/programs/*/build/
 src/**/*.o
 src/**/*.a
 src/**/*.dylib
@@ -44,6 +44,7 @@ tests/test/trace/test.tcl
 
 vendor/vendor-destroot/
 vendor/tclsh
+vendor/install/build/
 vendor/**/*.o
 vendor/**/*.a
 vendor/**/*.dylib

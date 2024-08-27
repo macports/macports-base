@@ -291,7 +291,7 @@ options configure.perl configure.python configure.ruby \
 default configure.perl              {}
 default configure.python            {}
 default configure.ruby              {}
-default configure.install           {${portutil::autoconf::install_command}}
+default configure.install           {[expr {$system_options(clonebin_path) ne "" ? [file join $system_options(clonebin_path) install] : ${portutil::autoconf::install_command}}]}
 default configure.awk               {}
 default configure.bison             {}
 default configure.pkg_config        {}
