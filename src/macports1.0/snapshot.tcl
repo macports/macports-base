@@ -88,7 +88,9 @@ namespace eval snapshot {
                 set snapshots [registry::snapshot get_all]
 
                 if {[llength $snapshots] == 0} {
-                    ui_msg "There are no snapshots. Use 'sudo port snapshot \[--create\] \[--note '<message>'\]' to create one."
+                    if {![macports::ui_isset ports_quiet]} {
+                        ui_msg "There are no snapshots. Use 'sudo port snapshot \[--create\] \[--note '<message>'\]' to create one."
+                    }
                     return 0
                 }
 
@@ -105,8 +107,10 @@ namespace eval snapshot {
                 set formatStr "%*s  %-*s  %-*s"
                 set heading [format $formatStr [dict get $lens id] "ID" [dict get $lens created_at] "Created" [dict get $lens note] "Note"]
 
-                ui_msg $heading
-                ui_msg [string repeat "=" [string length $heading]]
+                if {![macports::ui_isset ports_quiet]} {
+                    ui_msg $heading
+                    ui_msg [string repeat "=" [string length $heading]]
+                }
                 foreach snapshot $snapshots {
                     ui_msg [format $formatStr [dict get $lens id] [$snapshot id] [dict get $lens created_at] [$snapshot created_at] [dict get $lens note] [$snapshot note]]
                 }
