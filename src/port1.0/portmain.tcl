@@ -262,6 +262,9 @@ proc portmain::get_source_date_epoch {} {
     }
     # TODO: Ensure commit timestamps as extracted above are set in
     # ports tree distributed as tarball.
+    global filespath
+    set maybe_filespath [expr {[file isdirectory $filespath] ? [list $filespath] : {}}]
+    set checkpaths [list [file join $portpath Portfile] {*}$maybe_filespath {*}[lrange $checkpaths 1 end]]
     fs-traverse fullpath $checkpaths {
         if {[catch {
             if {[file type $fullpath] eq "file"} {
