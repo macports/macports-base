@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/select.h>
 #include <utime.h>
 
@@ -82,6 +83,9 @@ static CURLM* theMHandle = NULL;
  * take advantage of HTTP pipelining, especially to the packages servers. */
 static CURL* theHandle = NULL;
 
+/* Global libcurl version info. */
+static curl_version_info_data *libcurl_version_info = NULL;
+
 /* ------------------------------------------------------------------------- **
  * Prototypes
  * ------------------------------------------------------------------------- */
@@ -103,6 +107,7 @@ static int CurlProgressHandler(tcl_callback_t *callback, double dltotal, double 
 static void CurlProgressCleanup(tcl_callback_t *callback);
 
 void CurlInit(void);
+static void set_curl_version_info(void);
 
 /* ========================================================================= **
  * Entry points
@@ -204,6 +209,9 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		struct CURLMsg *info = NULL;
 		int running; /* number of running transfers */
 		char* acceptEncoding = NULL;
+#if LIBCURL_VERSION_NUM >= 0x074d00
+		char *previous_scheme = NULL;
+#endif
 
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -349,6 +357,22 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				break;
 			}
 		}
+#if LIBCURL_VERSION_NUM >= 0x074d00
+        else {
+            set_curl_version_info();
+            if (libcurl_version_info == NULL) {
+                theResult = TCL_ERROR;
+                Tcl_SetResult(interp, "set_curl_version_info failed", TCL_STATIC);
+                break;
+            }
+            /* for mitigation of reused handle bug - see below */
+            if (libcurl_version_info->version_num >= 0x080600 && libcurl_version_info->version_num < 0x080800) {
+                if (curl_easy_getinfo(theHandle, CURLINFO_SCHEME, &previous_scheme) != CURLE_OK) {
+                    previous_scheme = NULL;
+                }
+            }
+        }
+#endif
 		/* If we're re-using a handle, the previous call did ensure to reset it
 		 * to the default state using curl_easy_reset(3) */
 
@@ -358,6 +382,33 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
 		}
+
+        /* Bug affecting some macOS releases (Monterey through Sequoia):
+           reusing an easy handle for different protocols can cause a
+           crash. https://github.com/curl/curl/issues/13731
+           TODO: Add upper bound here when we know what version macOS 16 ships. */
+#if LIBCURL_VERSION_NUM >= 0x074d00
+        if (previous_scheme != NULL) {
+            char *current_scheme = NULL;
+            if (curl_easy_getinfo(theHandle, CURLINFO_SCHEME, &current_scheme) == CURLE_OK
+                && current_scheme != NULL && 0 != strcasecmp(previous_scheme, current_scheme)) {
+                /* deallocate the handle and start again */
+                curl_easy_cleanup(theHandle);
+                theHandle = NULL;
+                theHandle = curl_easy_init();
+                if (theHandle == NULL) {
+                    theResult = TCL_ERROR;
+                    Tcl_SetResult(interp, "error in curl_easy_init", TCL_STATIC);
+                    break;
+                }
+                theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
+                if (theCurlCode != CURLE_OK) {
+                    theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+                    break;
+                }
+            }
+        }
+#endif
 
 #if LIBCURL_VERSION_NUM >= 0x071304 && LIBCURL_VERSION_NUM <= 0x071307
 		/* FTP_PROXY workaround for Snow Leopard */
@@ -649,7 +700,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			theResult = TCL_ERROR;
 			break;
 		}
-		
+
 		if (info->data.result != CURLE_OK) {
 			/* execution failed, use the error string if it is set */
 			if (theErrorString[0] != '\0') {
@@ -1436,6 +1487,14 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 	return theResult;
 }
 
+/* Fill in global libcurl_version_info structure */
+static void set_curl_version_info(void)
+{
+    if (libcurl_version_info == NULL) {
+        libcurl_version_info = curl_version_info(CURLVERSION_NOW);
+    }
+}
+
 /**
  * curl version subcommand entry point.
  *
@@ -1448,8 +1507,14 @@ CurlVersionCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 	Tcl_Obj *tcl_result = NULL;
+	curl_version_info_data *theVersionInfo;
 
-	curl_version_info_data *theVersionInfo = curl_version_info(CURLVERSION_NOW);
+    set_curl_version_info();
+    if (libcurl_version_info == NULL) {
+        return TCL_ERROR;
+    }
+    theVersionInfo = libcurl_version_info;
+
 	tcl_result = Tcl_NewDictObj();
 
 	// info from the curl version we were built against:
