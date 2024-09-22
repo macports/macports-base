@@ -159,6 +159,62 @@ SetResultFromCurlMErrorCode(Tcl_Interp *interp, CURLMcode inErrorCode)
 	return result;
 }
 
+/* Bug affecting some versions of Monterey through Sequoia:
+   reusing an easy handle for different protocols can cause a
+   crash. https://github.com/curl/curl/issues/13731
+   TODO: Add upper bound here when we know what version macOS 16 ships. */
+#if LIBCURL_VERSION_NUM >= 0x074d00
+static void cleanup_handle_if_needed(const char *theURL);
+
+static void cleanup_handle_if_needed(const char *theURL)
+{
+    static CURLU *currentURLHandle = NULL;
+    static CURLU *previousURLHandle = NULL;
+
+    set_curl_version_info();
+    if (libcurl_version_info == NULL) {
+        fprintf(stderr, "Warning: set_curl_version_info failed\n");
+        return;
+    }
+
+    if (libcurl_version_info->version_num >= 0x080600 && libcurl_version_info->version_num < 0x080800) {
+        if (previousURLHandle != NULL) {
+            curl_url_cleanup(previousURLHandle);
+        }
+        previousURLHandle = currentURLHandle;
+        currentURLHandle = curl_url();
+         if (currentURLHandle != NULL
+            && curl_url_set(currentURLHandle, CURLUPART_URL, theURL, 0) != CURLUE_OK) {
+            curl_url_cleanup(currentURLHandle);
+            currentURLHandle = NULL;
+        }
+        if (theMHandle != NULL && currentURLHandle != NULL && previousURLHandle != NULL) {
+            char *current_scheme = NULL;
+            char *previous_scheme = NULL;
+            char *current_host = NULL;
+            char *previous_host = NULL;
+            int must_recreate_handle = 0;
+            if (curl_url_get(previousURLHandle, CURLUPART_SCHEME, &previous_scheme, 0) == CURLUE_OK
+                && curl_url_get(currentURLHandle, CURLUPART_SCHEME, &current_scheme, 0) == CURLUE_OK
+                && 0 != strcasecmp(previous_scheme, current_scheme)) {
+                must_recreate_handle = 1;
+            }
+            if (!must_recreate_handle
+                && curl_url_get(previousURLHandle, CURLUPART_HOST, &previous_host, 0) == CURLUE_OK
+                && curl_url_get(currentURLHandle, CURLUPART_HOST, &current_host, 0) == CURLUE_OK
+                && 0 != strcasecmp(previous_host, current_host)) {
+                must_recreate_handle = 1;
+            }
+            if (must_recreate_handle) {
+                /* deallocate the handle and start again */
+                curl_multi_cleanup(theMHandle);
+                theMHandle = NULL;
+            }
+        }
+    }
+}
+#endif /* LIBCURL_VERSION_NUM >= 0x074d00 */
+
 /**
  * curl fetch subcommand entry point.
  *
@@ -209,9 +265,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		struct CURLMsg *info = NULL;
 		int running; /* number of running transfers */
 		char* acceptEncoding = NULL;
-#if LIBCURL_VERSION_NUM >= 0x074d00
-		char *previous_scheme = NULL;
-#endif
 
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -337,6 +390,10 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			break;
 		}
 
+#if LIBCURL_VERSION_NUM >= 0x074d00
+		cleanup_handle_if_needed(theURL);
+#endif
+
 		/* Create the CURL handles */
 		if (theMHandle == NULL) {
 			/* Re-use existing multi handle if theMHandle isn't NULL */
@@ -357,22 +414,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				break;
 			}
 		}
-#if LIBCURL_VERSION_NUM >= 0x074d00
-        else {
-            set_curl_version_info();
-            if (libcurl_version_info == NULL) {
-                theResult = TCL_ERROR;
-                Tcl_SetResult(interp, "set_curl_version_info failed", TCL_STATIC);
-                break;
-            }
-            /* for mitigation of reused handle bug - see below */
-            if (libcurl_version_info->version_num >= 0x080600 && libcurl_version_info->version_num < 0x080800) {
-                if (curl_easy_getinfo(theHandle, CURLINFO_SCHEME, &previous_scheme) != CURLE_OK) {
-                    previous_scheme = NULL;
-                }
-            }
-        }
-#endif
 		/* If we're re-using a handle, the previous call did ensure to reset it
 		 * to the default state using curl_easy_reset(3) */
 
@@ -382,33 +423,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
 		}
-
-        /* Bug affecting some macOS releases (Monterey through Sequoia):
-           reusing an easy handle for different protocols can cause a
-           crash. https://github.com/curl/curl/issues/13731
-           TODO: Add upper bound here when we know what version macOS 16 ships. */
-#if LIBCURL_VERSION_NUM >= 0x074d00
-        if (previous_scheme != NULL) {
-            char *current_scheme = NULL;
-            if (curl_easy_getinfo(theHandle, CURLINFO_SCHEME, &current_scheme) == CURLE_OK
-                && current_scheme != NULL && 0 != strcasecmp(previous_scheme, current_scheme)) {
-                /* deallocate the handle and start again */
-                curl_easy_cleanup(theHandle);
-                theHandle = NULL;
-                theHandle = curl_easy_init();
-                if (theHandle == NULL) {
-                    theResult = TCL_ERROR;
-                    Tcl_SetResult(interp, "error in curl_easy_init", TCL_STATIC);
-                    break;
-                }
-                theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
-                if (theCurlCode != CURLE_OK) {
-                    theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-                    break;
-                }
-            }
-        }
-#endif
 
 #if LIBCURL_VERSION_NUM >= 0x071304 && LIBCURL_VERSION_NUM <= 0x071307
 		/* FTP_PROXY workaround for Snow Leopard */
