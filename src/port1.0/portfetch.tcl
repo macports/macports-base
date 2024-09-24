@@ -186,14 +186,14 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                depends_fetch-append port:subversion
+                depends_fetch-append path:bin/svn:subversion
             }
             git {
                 # Oldest macOS version whose git can validate GitHub's SSL certificate.
                 if {${os.major} >= 14 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:git:git
                 } else {
-                    depends_fetch-append port:git
+                    depends_fetch-append path:bin/git:git
                 }
             }
             hg {
