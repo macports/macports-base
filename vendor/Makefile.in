@@ -47,7 +47,9 @@ ifneq (@OS_PLATFORM@,linux)
 DESTROOT_TARGETS+=   destroot-signify
 endif
 ifeq (@HAVE_CLONEFILE@,yes)
+ifeq (@HAVE_DECL_CLONE_NOOWNERCOPY@,yes)
 DESTROOT_TARGETS+=   destroot-install
+endif
 endif
 
 destroot: $(DESTROOT_TARGETS)
@@ -77,7 +79,9 @@ ifneq (@OS_PLATFORM@,linux)
 INSTALL_TARGETS+=   install-signify
 endif
 ifeq (@HAVE_CLONEFILE@,yes)
+ifeq (@HAVE_DECL_CLONE_NOOWNERCOPY@,yes)
 INSTALL_TARGETS+=   install-install
+endif
 endif
 
 install: $(INSTALL_TARGETS)

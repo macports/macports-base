@@ -682,6 +682,7 @@ CPP
 LDFLAGS_LIBCURL
 CFLAGS_LIBCURL
 CURL_CONFIG
+EXTRA_PROGS
 OS_MAJOR
 OS_PLATFORM
 READLINE_LIBS
@@ -690,7 +691,7 @@ HAVE_STRLCPY
 HAVE_STRLCAT
 HAVE_GETLINE
 HAVE_GETDELIM
-EXTRA_PROGS
+HAVE_DECL_CLONE_NOOWNERCOPY
 HAVE_CLONEFILE
 HAVE_TIMINGSAFE_BCMP
 HAVE_GETENTROPY
@@ -7730,15 +7731,25 @@ HAVE_TIMINGSAFE_BCMP=$ac_cv_func_timingsafe_bcmp
 
 
 # For vendor/install
+ac_fn_check_decl "$LINENO" "CLONE_NOOWNERCOPY" "ac_cv_have_decl_CLONE_NOOWNERCOPY" "#include <sys/clonefile.h>
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_CLONE_NOOWNERCOPY" = xyes
+then :
+  ac_have_decl=1
+else case e in #(
+  e) ac_have_decl=0 ;;
+esac
+fi
+printf "%s\n" "#define HAVE_DECL_CLONE_NOOWNERCOPY $ac_have_decl" >>confdefs.h
+
 HAVE_CLONEFILE=$ac_cv_func_clonefile
 
-# For programs/cp
-if test x$ac_cv_func_clonefile = xyes; then
-EXTRA_PROGS="$EXTRA_PROGS cp"
-ac_config_files="$ac_config_files src/programs/cp/Makefile vendor/install/Makefile"
+HAVE_DECL_CLONE_NOOWNERCOPY=$ac_cv_func_clonefile
+
+if test x$ac_cv_func_clonefile = xyes -a x$ac_cv_have_decl_CLONE_NOOWNERCOPY = xyes; then
+ac_config_files="$ac_config_files vendor/install/Makefile"
 
 fi
-
 
 # Check for library functions, replacements are in pextlib1.0/compat/
 ac_fn_c_check_func "$LINENO" "getline" "ac_cv_func_getline"
@@ -8168,6 +8179,14 @@ printf %s "checking for target platform... " >&6; }
 printf "%s\n" "$OS_PLATFORM $OS_MAJOR" >&6; }
 
 
+
+
+# For programs/cp - the -c option was added in 10.13
+if test "$OS_PLATFORM" = darwin -a "$OS_MAJOR" -ge 17; then
+EXTRA_PROGS="$EXTRA_PROGS cp"
+ac_config_files="$ac_config_files src/programs/cp/Makefile"
+
+fi
 
 
 ## libcurl
@@ -10464,8 +10483,8 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "src/programs/daemondo/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/daemondo/Makefile" ;;
-    "src/programs/cp/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/cp/Makefile" ;;
     "vendor/install/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/install/Makefile" ;;
+    "src/programs/cp/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/cp/Makefile" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;

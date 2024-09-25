@@ -26,6 +26,10 @@
    'atomic_compare_exchange_strong_explicit', and to 0 if you don't. */
 #undef HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT
 
+/* Define to 1 if you have the declaration of 'CLONE_NOOWNERCOPY', and to 0 if
+   you don't. */
+#undef HAVE_DECL_CLONE_NOOWNERCOPY
+
 /* Define to 1 if you have the declaration of 'completion_matches', and to 0
    if you don't. */
 #undef HAVE_DECL_COMPLETION_MATCHES
