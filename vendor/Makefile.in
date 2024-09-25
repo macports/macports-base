@@ -70,7 +70,7 @@ destroot-signify:
 	@echo ===\> staging to destroot in ${DIRPRFX}${SIGNIFY_SUBDIR}
 	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install "PREFIX=${DESTROOT}${PREFIX}/libexec/macports"
 
-destroot-install:
+destroot-install: all-install
 	@echo ===\> staging to destroot in ${DIRPRFX}${INSTALL_SUBDIR}
 	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} install "DESTDIR=${DESTROOT}"
 
