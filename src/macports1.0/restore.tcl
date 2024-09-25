@@ -494,7 +494,7 @@ namespace eval restore {
                 set variations [variants_to_variations_arr $requested_variants]
                 if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
                     $progress intermission
-                    ui_error "Unable to open port '$portname' with variants '$variants': $result"
+                    ui_error "Unable to open port '$portname' with variants '$requested_variants': $result"
                     continue
                 }
                 dict set mports $portname $mport
