@@ -139,7 +139,7 @@ static char *funcname;
 static int safecopy, docompare, dostrip, dobackup, dopreserve, nommap;
 static mode_t mode;
 
-#ifdefined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
 static int	clone(const char *, const char *, int, char *, size_t);
 #endif
 static int	copy(Tcl_Interp *interp, int, const char *, int, const char *, off_t);
