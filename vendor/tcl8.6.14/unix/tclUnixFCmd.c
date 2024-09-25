@@ -53,7 +53,10 @@
 #endif
 #ifdef HAVE_SYS_CLONEFILE_H
 #include <sys/clonefile.h>
+#ifndef CLONE_NOOWNERCOPY
+#include <unistd.h>
 #endif
+#endif /* HAVE_SYS_CLONEFILE_H */
 #ifdef HAVE_CLONEFILE
 #if defined(__APPLE__) && \
 	defined(MAC_OS_X_VERSION_MIN_REQUIRED) && \
@@ -564,6 +567,13 @@ TclUnixCloneFile(
 				/* Used to copy attributes. */
     int dontCopyAtts)		/* If flag set, don't copy attributes. */
 {
+#ifndef CLONE_NOOWNERCOPY
+#define CLONE_NOOWNERCOPY 0
+    if (dontCopyAtts && geteuid() == 0) {
+        /* ownership would always be copied without this flag */
+        return TCL_ERROR;
+    }
+#endif
     if (clonefile(src, dst, CLONE_NOFOLLOW|CLONE_NOOWNERCOPY) == 0) {
         if (dontCopyAtts || CopyFileAtts(src, dst, statBufPtr) == TCL_OK) {
             return TCL_OK;
