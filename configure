@@ -7744,7 +7744,7 @@ printf "%s\n" "#define HAVE_DECL_CLONE_NOOWNERCOPY $ac_have_decl" >>confdefs.h
 
 HAVE_CLONEFILE=$ac_cv_func_clonefile
 
-HAVE_DECL_CLONE_NOOWNERCOPY=$ac_cv_func_clonefile
+HAVE_DECL_CLONE_NOOWNERCOPY=$ac_cv_have_decl_CLONE_NOOWNERCOPY
 
 if test x$ac_cv_func_clonefile = xyes -a x$ac_cv_have_decl_CLONE_NOOWNERCOPY = xyes; then
 ac_config_files="$ac_config_files vendor/install/Makefile"

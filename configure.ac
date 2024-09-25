@@ -270,7 +270,7 @@ AC_SUBST(HAVE_TIMINGSAFE_BCMP, $ac_cv_func_timingsafe_bcmp)
 # For vendor/install
 AC_CHECK_DECLS([CLONE_NOOWNERCOPY], [], [], [[#include <sys/clonefile.h>]])
 AC_SUBST(HAVE_CLONEFILE, $ac_cv_func_clonefile)
-AC_SUBST(HAVE_DECL_CLONE_NOOWNERCOPY, $ac_cv_func_clonefile)
+AC_SUBST(HAVE_DECL_CLONE_NOOWNERCOPY, $ac_cv_have_decl_CLONE_NOOWNERCOPY)
 if test x$ac_cv_func_clonefile = xyes -a x$ac_cv_have_decl_CLONE_NOOWNERCOPY = xyes; then
 AC_CONFIG_FILES([vendor/install/Makefile])
 fi
