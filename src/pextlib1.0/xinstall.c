@@ -139,7 +139,7 @@ static char *funcname;
 static int safecopy, docompare, dostrip, dobackup, dopreserve, nommap;
 static mode_t mode;
 
-#ifdef HAVE_CLONEFILE
+#ifdefined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
 static int	clone(const char *, const char *, int, char *, size_t);
 #endif
 static int	copy(Tcl_Interp *interp, int, const char *, int, const char *, off_t);
@@ -535,7 +535,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 
 	if (!files_match) {
 	    int done_clone = 0;
-#ifdef HAVE_CLONEFILE
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
 	    if (tryclone && !devnull && !dostrip) {
 	        done_clone = (clone(from_name, to_name, tempcopy, tempfile, sizeof(tempfile)) == 0);
 	    }
@@ -1044,7 +1044,7 @@ copy(Tcl_Interp *interp, int from_fd, const char *from_name, int to_fd, const ch
  * clone --
  *	create a clone of a file
  */
-#ifdef HAVE_CLONEFILE
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
 static int
 clone(const char *from_name, const char *to_name,
       int use_temp, char *temp_name, size_t tsize)
