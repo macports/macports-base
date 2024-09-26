@@ -2784,8 +2784,8 @@ proc archiveTypeIsSupported {type} {
     return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
-# return the specified piece of metadata from the +CONTENTS file in the given archive
-proc extract_archive_metadata {archive_location archive_type metadata_type} {
+# return the specified pieces of metadata from the +CONTENTS file in the given archive
+proc extract_archive_metadata {archive_location archive_type metadata_types} {
     set qflag ${portutil::autoconf::tar_q}
     set raw_contents ""
 
@@ -2855,52 +2855,63 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
         close $fd
         file delete -force $tempdir
     }
-    if {$metadata_type eq "contents"} {
-        set contents [list]
-        set binary_info [list]
-        set ignore 0
-        set sep [file separator]
-        foreach line [split $raw_contents \n] {
-            if {$ignore} {
+    set ret [dict create]
+    foreach metadata_type $metadata_types {
+        switch -- $metadata_type {
+            contents {
+                set contents [list]
+                set binary_info [list]
                 set ignore 0
-                continue
-            }
-            if {[string index $line 0] ne "@"} {
-                lappend contents "${sep}${line}"
-            } elseif {$line eq "@ignore"} {
-                set ignore 1
-            } elseif {[string range $line 0 15] eq "@comment binary:"} {
-                lappend binary_info [lindex $contents end] [string range $line 16 end]
-            }
-        }
-        return [list $contents $binary_info]
-    } elseif {$metadata_type eq "portname"} {
-        foreach line [split $raw_contents \n] {
-            if {[lindex $line 0] eq "@portname"} {
-                return [lindex $line 1]
-            }
-        }
-        return ""
-    } elseif {$metadata_type eq "cxx_info"} {
-        set val_cxx_stdlib ""
-        set val_cxx_stdlib_overridden ""
-        foreach line [split $raw_contents \n] {
-            if {[lindex $line 0] eq "@cxx_stdlib"} {
-                set val_cxx_stdlib [lindex $line 1]
-                if {$val_cxx_stdlib_overridden ne ""} {
-                    break
+                set sep [file separator]
+                foreach line [split $raw_contents \n] {
+                    if {$ignore} {
+                        set ignore 0
+                        continue
+                    }
+                    if {[string index $line 0] ne "@"} {
+                        lappend contents "${sep}${line}"
+                    } elseif {$line eq "@ignore"} {
+                        set ignore 1
+                    } elseif {[string range $line 0 15] eq "@comment binary:"} {
+                        lappend binary_info [lindex $contents end] [string range $line 16 end]
+                    }
                 }
-            } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
-                set val_cxx_stdlib_overridden [lindex $line 1]
-                if {$val_cxx_stdlib ne ""} {
-                    break
+                dict set ret contents [list $contents $binary_info]
+            }
+            portname {
+                set portname {}
+                foreach line [split $raw_contents \n] {
+                    if {[lindex $line 0] eq "@portname"} {
+                        set portname [lindex $line 1]
+                        break
+                    }
                 }
+                dict set ret portname $portname
+            }
+            cxx_info {
+                set val_cxx_stdlib ""
+                set val_cxx_stdlib_overridden ""
+                foreach line [split $raw_contents \n] {
+                    if {[lindex $line 0] eq "@cxx_stdlib"} {
+                        set val_cxx_stdlib [lindex $line 1]
+                        if {$val_cxx_stdlib_overridden ne ""} {
+                            break
+                        }
+                    } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
+                        set val_cxx_stdlib_overridden [lindex $line 1]
+                        if {$val_cxx_stdlib ne ""} {
+                            break
+                        }
+                    }
+                }
+                dict set ret cxx_info [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
+            }
+            default {
+                return -code error "unknown metadata_type: $metadata_type"
             }
         }
-        return [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
-    } else {
-        return -code error "unknown metadata_type: $metadata_type"
     }
+    return $ret
 }
 
 #

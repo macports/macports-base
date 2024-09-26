@@ -242,7 +242,7 @@ proc portclean::clean_archive {args} {
             # thus can't be checked and aren't useful anyway.
             set archivetype [string range [file extension $path] 1 end]
             if {[file isfile $path] && ($archivetype eq "TMP"
-                || [extract_archive_metadata $path $archivetype portname] eq $subport)} {
+                || [dict get [extract_archive_metadata $path $archivetype portname] portname] eq $subport)} {
                 ui_debug "Removing archive: $path"
                 if {[catch {delete $path} result]} {
                     ui_debug "$::errorInfo"
