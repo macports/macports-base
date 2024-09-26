@@ -351,10 +351,6 @@ proc portinstall::create_archive {location archive.type} {
     }
 }
 
-proc portinstall::extract_contents {location type} {
-    return [extract_archive_metadata $location $type contents]
-}
-
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants requested_variants depends_lib PortInfo epoch \
@@ -380,10 +376,9 @@ proc portinstall::install_main {args} {
         delete [file join [option workpath] .macports.${subport}.state]
         set location [file join $install_dir [file tail $archive_path]]
         set current_archive_type [string range [file extension $location] 1 end]
-        set contents [extract_contents $location $current_archive_type]
-        lassign $contents installPlist file_is_binary
-        set cxxinfo [extract_archive_metadata $location $current_archive_type cxx_info]
-        lassign $cxxinfo actual_cxx_stdlib cxx_stdlib_overridden
+        set archive_metadata [extract_archive_metadata $location $current_archive_type {contents cxx_info}]
+        lassign [dict get $archive_metadata contents] installPlist file_is_binary
+        lassign [dict get $archive_metadata cxx_info] actual_cxx_stdlib cxx_stdlib_overridden
     } else {
         if {$portimage_mode eq "directory"} {
             # Special value to avoid writing archive out to disk, since
