@@ -627,19 +627,21 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
     }
 
-    if {$sdk_version eq "10.4"} {
-        set sdk ${sdks_dir}/MacOSX10.4u.sdk
-    } else {
-        set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
-    }
+    foreach try_path [list ${sdks_dir} ${cltpath}/SDKs] {
+        if {$sdk_version eq "10.4"} {
+            set sdk ${try_path}/MacOSX10.4u.sdk
+        } else {
+            set sdk ${try_path}/MacOSX${sdk_version}.sdk
+        }
 
-    if {[file exists $sdk]} {
-        return $sdk
-    } elseif {$sdk_major >= 11} {
-        # SDKs have minor versions as of macOS 11
-        set sdk [find_close_sdk $sdk_version ${sdks_dir}]
-        if {$sdk ne ""} {
+        if {[file exists $sdk]} {
             return $sdk
+        } elseif {$sdk_major >= 11} {
+            # SDKs have minor versions as of macOS 11
+            set sdk [find_close_sdk $sdk_version ${try_path}]
+            if {$sdk ne ""} {
+                return $sdk
+            }
         }
     }
 
