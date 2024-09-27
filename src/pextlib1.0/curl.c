@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/select.h>
 #include <utime.h>
 
@@ -82,6 +83,9 @@ static CURLM* theMHandle = NULL;
  * take advantage of HTTP pipelining, especially to the packages servers. */
 static CURL* theHandle = NULL;
 
+/* Global libcurl version info. */
+static curl_version_info_data *libcurl_version_info = NULL;
+
 /* ------------------------------------------------------------------------- **
  * Prototypes
  * ------------------------------------------------------------------------- */
@@ -102,6 +106,7 @@ static int CurlProgressHandler(tcl_callback_t *callback, double dltotal, double 
 static void CurlProgressCleanup(tcl_callback_t *callback);
 
 void CurlInit(void);
+static void set_curl_version_info(void);
 
 /* ========================================================================= **
  * Entry points
@@ -152,6 +157,62 @@ SetResultFromCurlMErrorCode(Tcl_Interp *interp, CURLMcode inErrorCode)
 
 	return result;
 }
+
+/* Bug affecting some versions of Monterey through Sequoia:
+   reusing an easy handle for different protocols can cause a
+   crash. https://github.com/curl/curl/issues/13731
+   TODO: Add upper bound here when we know what version macOS 16 ships. */
+#if LIBCURL_VERSION_NUM >= 0x074d00
+static void cleanup_handle_if_needed(const char *theURL);
+
+static void cleanup_handle_if_needed(const char *theURL)
+{
+    static CURLU *currentURLHandle = NULL;
+    static CURLU *previousURLHandle = NULL;
+
+    set_curl_version_info();
+    if (libcurl_version_info == NULL) {
+        fprintf(stderr, "Warning: set_curl_version_info failed\n");
+        return;
+    }
+
+    if (libcurl_version_info->version_num >= 0x080600 && libcurl_version_info->version_num < 0x080800) {
+        if (previousURLHandle != NULL) {
+            curl_url_cleanup(previousURLHandle);
+        }
+        previousURLHandle = currentURLHandle;
+        currentURLHandle = curl_url();
+         if (currentURLHandle != NULL
+            && curl_url_set(currentURLHandle, CURLUPART_URL, theURL, 0) != CURLUE_OK) {
+            curl_url_cleanup(currentURLHandle);
+            currentURLHandle = NULL;
+        }
+        if (theMHandle != NULL && currentURLHandle != NULL && previousURLHandle != NULL) {
+            char *current_scheme = NULL;
+            char *previous_scheme = NULL;
+            char *current_host = NULL;
+            char *previous_host = NULL;
+            int must_recreate_handle = 0;
+            if (curl_url_get(previousURLHandle, CURLUPART_SCHEME, &previous_scheme, 0) == CURLUE_OK
+                && curl_url_get(currentURLHandle, CURLUPART_SCHEME, &current_scheme, 0) == CURLUE_OK
+                && 0 != strcasecmp(previous_scheme, current_scheme)) {
+                must_recreate_handle = 1;
+            }
+            if (!must_recreate_handle
+                && curl_url_get(previousURLHandle, CURLUPART_HOST, &previous_host, 0) == CURLUE_OK
+                && curl_url_get(currentURLHandle, CURLUPART_HOST, &current_host, 0) == CURLUE_OK
+                && 0 != strcasecmp(previous_host, current_host)) {
+                must_recreate_handle = 1;
+            }
+            if (must_recreate_handle) {
+                /* deallocate the handle and start again */
+                curl_multi_cleanup(theMHandle);
+                theMHandle = NULL;
+            }
+        }
+    }
+}
+#endif /* LIBCURL_VERSION_NUM >= 0x074d00 */
 
 /**
  * curl fetch subcommand entry point.
@@ -327,6 +388,10 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			theResult = TCL_ERROR;
 			break;
 		}
+
+#if LIBCURL_VERSION_NUM >= 0x074d00
+		cleanup_handle_if_needed(theURL);
+#endif
 
 		/* Create the CURL handles */
 		if (theMHandle == NULL) {
@@ -648,7 +713,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			theResult = TCL_ERROR;
 			break;
 		}
-		
+
 		if (info->data.result != CURLE_OK) {
 			/* execution failed, use the error string if it is set */
 			if (theErrorString[0] != '\0') {
@@ -1433,6 +1498,14 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 	}
 
 	return theResult;
+}
+
+/* Fill in global libcurl_version_info structure */
+static void set_curl_version_info(void)
+{
+    if (libcurl_version_info == NULL) {
+        libcurl_version_info = curl_version_info(CURLVERSION_NOW);
+    }
 }
 
 /**
