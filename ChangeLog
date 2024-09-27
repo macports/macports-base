@@ -2,6 +2,25 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.10.2 (unreleased)
+    - Fixed 'port restore' erroring out when a Portfile failed to
+      parse. (#70903, jmr in 202d58b)
+
+    - Worked around a bug in the version of libcurl shipped in recent
+      macOS versions that was causing crashes when downloading from FTP
+      sites. (#70764, jmr in ff881a5, 1ac551f)
+
+    - 'port snapshot --list' now respects the -q option.
+      (jmr in e756756)
+
+    - Fixed expressions involving the complement operator ("and not")
+      causing an error when the right hand side evaluated to empty.
+      (jmr in 96520f2)
+
+    - Worked around a bug in Tiger's gnutar that caused an error when
+      installing from some archives generated on newer systems.
+      (#70622, jmr in d54e1de)
+
 Release 2.10.1 (2024-08-16 by jmr)
     - Fixed issues migrating when running under Rosetta 2 on
       Apple Silicon. (#70512, jmr in 567fa44, e291303, 9eb441f)
