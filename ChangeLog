@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.10.2 (unreleased)
+Release 2.10.2 (2024-10-01 by jmr)
     - Fixed 'port restore' erroring out when a Portfile failed to
       parse. (#70903, jmr in 202d58b)
 
