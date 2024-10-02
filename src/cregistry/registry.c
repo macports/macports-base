@@ -604,28 +604,30 @@ int reg_checkpoint(reg_registry* reg, reg_error* errPtr) {
 int reg_optimize(reg_registry* reg, reg_error* errPtr)
 {
 #if SQLITE_VERSION_NUMBER >= 3018000
-    int result = 0;
-    sqlite3_stmt* stmt = NULL;
-    if (sqlite3_prepare_v2(reg->db, "PRAGMA optimize", -1, &stmt, NULL) == SQLITE_OK) {
-        int r;
-        do {
-            sqlite3_step(stmt);
-            r = sqlite3_reset(stmt);
-            if (r == SQLITE_OK) {
-                result = 1;
-            }
-        } while (r == SQLITE_BUSY);
+    if (sqlite3_libversion_number() >= 3018000
+            && sqlite3_db_readonly(reg->db, "registry") == 0) {
+        int result = 0;
+        sqlite3_stmt* stmt = NULL;
+        if (sqlite3_prepare_v2(reg->db, "PRAGMA optimize", -1, &stmt, NULL) == SQLITE_OK) {
+            int r;
+            do {
+                sqlite3_step(stmt);
+                r = sqlite3_reset(stmt);
+                if (r == SQLITE_OK) {
+                    result = 1;
+                }
+            } while (r == SQLITE_BUSY);
+        }
+        if (!result) {
+            reg_sqlite_error(reg->db, errPtr, NULL);
+        }
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+        return result;
     }
-    if (!result) {
-        reg_sqlite_error(reg->db, errPtr, NULL);
-    }
-    if (stmt) {
-        sqlite3_finalize(stmt);
-    }
-    return result;
-#else
-    return 1;
 #endif
+    return 1;
 }
 
 /**
