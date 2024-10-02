@@ -167,10 +167,10 @@ proc portarchivefetch::checkfiles {urls} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc portarchivefetch::fetchfiles {args} {
-    global UI_PREFIX archivefetch.fulldestpath \
-           archivefetch.user archivefetch.password archivefetch.use_epsv \
-           archivefetch.ignore_sslcert archive.subdir \
-           portverbose ports_binary_only portdbpath
+    global UI_PREFIX archivefetch.fulldestpath archivefetch.user \
+           archivefetch.password archivefetch.use_epsv \
+           archivefetch.ignore_sslcert archive.subdir portverbose \
+           ports_binary_only portdbpath force_archive_refresh
     variable archivefetch_urls
     variable ::portfetch::urlmap
 
@@ -210,6 +210,10 @@ proc portarchivefetch::fetchfiles {args} {
     set sorted no
 
     set existing_archive [find_portarchive_path]
+    if {$existing_archive eq "" && ![tbool force_archive_refresh]
+        && [file isdirectory [file rootname [get_portimage_path]]]} {
+        set existing_archive yes
+    }
 
     foreach {url_var archive} $archivefetch_urls {
         if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
