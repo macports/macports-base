@@ -285,7 +285,10 @@ proc portunarchive::unarchive_main {args} {
         }
     } else {
         ui_info "$UI_PREFIX [format [msgcat::mc "Copying %s to destroot"] ${unarchive.file}]"
-        copy -force ${unarchive.path} ${unarchive.dir}
+        if {[file exists ${unarchive.dir}]} {
+            delete ${unarchive.dir}
+        }
+        copy ${unarchive.path} ${unarchive.dir}
     }
 
     return 0
