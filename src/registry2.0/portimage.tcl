@@ -63,6 +63,7 @@ namespace eval portimage {
 variable force 0
 variable noexec 0
 variable UI_PREFIX {---> }
+variable show_progressbar 1
 
 # takes a composite version spec rather than separate version,revision,variants
 proc activate_composite {name {v ""} {optionslist ""}} {
@@ -161,6 +162,7 @@ proc deactivate_composite {name {v ""} {optionslist ""}} {
 
 proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
     variable UI_PREFIX
+    variable show_progressbar
 
     if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         # this not using the namespace variable is correct, since activate
@@ -245,6 +247,12 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
             #registry::entry close $requested
             return
         }
+    }
+
+    if {[lsearch -exact ${macports::progressbar_also_for} "de/activation"] < 0} {
+        set show_progressbar 0
+        # minimise the overhead of calling _progress: it wouldn't do a thing so make it a stub
+        proc _progress {args} {}
     }
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
@@ -428,6 +436,8 @@ proc _activate_directories {dirs imageroot} {
 # extract an archive to a directory
 # returns: path to the extracted directory
 proc extract_archive_to_imagedir {location} {
+    variable show_progressbar
+
     set extractdir [file rootname $location]
     if {[file exists $extractdir]} {
         set extractdir [mkdtemp ${extractdir}XXXXXXXX]
@@ -586,7 +596,11 @@ proc extract_archive_to_imagedir {location} {
         } else {
             set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
         }
-        system -callback portimage::_extract_progress $cmdstring
+        if {${show_progressbar}} {
+            system -callback portimage::_extract_progress $cmdstring
+        } else {
+            system $cmdstring
+        }
     } on error {_ eOptions} {
         ::file delete -force $extractdir
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
@@ -627,7 +641,9 @@ proc _extract_progress {event} {
 }
 
 proc _progress {args} {
-    if {[macports::ui_isset ports_verbose]} {
+    variable show_progressbar
+
+    if {!${show_progressbar} || [macports::ui_isset ports_verbose]} {
         return
     }
 
@@ -693,6 +709,7 @@ proc _activate_contents {port {rename_list {}}} {
     variable keep_imagedir
     variable progress_step
     variable progress_total_steps
+    variable show_progressbar
 
     set files [list]
     set baksuffix .mp_[clock seconds]
@@ -700,6 +717,12 @@ proc _activate_contents {port {rename_list {}}} {
     set location [$port location]
     set imagefiles [$port imagefiles]
     set num_imagefiles [llength $imagefiles]
+
+    if {[lsearch -exact ${macports::progressbar_also_for} "de/activation"] < 0} {
+        set show_progressbar 0
+        # minimise the overhead of calling _progress: it wouldn't do a thing so make it a stub
+        proc _progress {args} {}
+    }
 
     set progress_step 0
     if {[::file isfile $location]} {

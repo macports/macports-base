@@ -52,6 +52,7 @@ namespace eval macports {
     foreach opt [list binpath auto_path clonebin_path extra_env portdbformat \
         portarchivetype portimage_mode hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask release_urls release_version_urls \
+        progressbar_after progressbar_type progressbar_also_for \
         rsync_server rsync_options rsync_dir \
         startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted \
@@ -78,6 +79,7 @@ namespace eval macports {
         registry.path registry.format user_home user_path user_ssh_auth_sock \
         portarchivetype portarchive_hfscompression archivefetch_pubkeys \
         portautoclean portimage_mode porttrace keeplogs portverbose destroot_umask \
+        progressbar_after progressbar_type progressbar_also_for \
         rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -986,6 +988,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::cxx_stdlib \
         macports::hfscompression \
         macports::portarchive_hfscompression \
+        macports::progressbar_after \
+        macports::progressbar_type \
+        macports::progressbar_also_for \
         macports::host_cache \
         macports::porturl_prefix_map \
         macports::clonebin_path \
@@ -1463,6 +1468,16 @@ Please edit sources.conf and change '$url' to '[string range $url 0 26]macports/
         set hfscompression yes
     }
     set portarchive_hfscompression $hfscompression
+
+    if {![info exists progressbar_after]} {
+        set progressbar_after 500
+    }
+    if {![info exists progressbar_type]} {
+        set progressbar_type "both"
+    }
+    if {![info exists progressbar_also_for]} {
+        set progressbar_also_for "de/activation"
+    }
 
     # Set rync options
     if {![info exists rsync_server]} {

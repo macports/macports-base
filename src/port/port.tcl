@@ -4829,9 +4829,11 @@ namespace eval portclient::progress {
     proc initDelay {} {
         variable show
         variable startTime
+        variable showTimeThreshold
 
         set startTime [clock milliseconds]
         set show no
+        set showTimeThreshold ${macports::progressbar_after}
     }
 
     ##
@@ -4907,7 +4909,9 @@ namespace eval portclient::progress {
             }
             update {
                 lassign $args now total
-                if {[showProgress $now $total] eq "yes"} {
+                # Check on each update if we're still outputting to a tty - the user can
+                # have pushed us into the background.
+                if {[processIsForeground] && ([showProgress $now $total] eq "yes")} {
                     set barPrefix "      "
                     set barPrefixLen [string length $barPrefix]
                     if {$total != 0} {
@@ -4919,11 +4923,13 @@ namespace eval portclient::progress {
             }
             intermission -
             finish {
-                # erase to start of line
-                ::term::ansi::send::esolch stderr
-                # return cursor to start of line
-                puts -nonewline stderr "\r"
-                flush stderr
+                if {[processIsForeground]} {
+                    # erase to start of line
+                    ::term::ansi::send::esolch stderr
+                    # return cursor to start of line
+                    puts -nonewline stderr "\r"
+                    flush stderr
+                }
             }
         }
 
@@ -4955,7 +4961,9 @@ namespace eval portclient::progress {
             }
             update {
                 lassign $args type total now speed
-                if {[showProgress $now $total] eq "yes"} {
+                # Check on each update if we're still outputting to a tty - the user can
+                # have pushed us into the background.
+                if {[processIsForeground] && ([showProgress $now $total] eq "yes")} {
                     set barPrefix "      "
                     set barPrefixLen [string length $barPrefix]
                     if {$total != 0} {
@@ -4974,11 +4982,13 @@ namespace eval portclient::progress {
                 }
             }
             finish {
-                # erase to start of line
-                ::term::ansi::send::esolch stderr
-                # return cursor to start of line
-                puts -nonewline stderr "\r"
-                flush stderr
+                if {[processIsForeground]} {
+                    # erase to start of line
+                    ::term::ansi::send::esolch stderr
+                    # return cursor to start of line
+                    puts -nonewline stderr "\r"
+                    flush stderr
+                }
             }
         }
 
