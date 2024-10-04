@@ -2810,6 +2810,10 @@ proc mportexec {mport target} {
         # install them
         set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
 
+        if {[getuid] == 0 && [geteuid] != 0} {
+            seteuid 0; setegid 0
+        }
+
         registry::exclusive_unlock
 
         if {$result ne ""} {
@@ -2877,6 +2881,11 @@ proc mportexec {mport target} {
 
     if {$log_needs_pop} {
         macports::pop_log
+    }
+
+    # Regain privileges that may have been dropped while running the target.
+    if {[getuid] == 0 && [geteuid] != 0} {
+        seteuid 0; setegid 0
     }
 
     return $result
