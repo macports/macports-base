@@ -143,7 +143,7 @@ static void delete_reg(ClientData reg, Tcl_Interp* interp) {
     reg_error error;
     if (((reg_registry*)reg)->status & reg_attached) {
         if (reg_optimize((reg_registry*)reg, &error) == 0) {
-            fprintf(stderr, "%s\n", error.description);
+            fprintf(stderr, "reg_optimize: %s\n", error.description);
             reg_error_destruct(&error);
         }
         if (Tcl_GetAssocData(interp, "registry::needs_vacuum", NULL) != NULL) {
@@ -151,16 +151,16 @@ static void delete_reg(ClientData reg, Tcl_Interp* interp) {
             Tcl_DeleteAssocData(interp, "registry::needs_vacuum");
         }
         if (reg_checkpoint((reg_registry*)reg, &error) == 0) {
-            fprintf(stderr, "%s\n", error.description);
+            fprintf(stderr, "reg_checkpoint: %s\n", error.description);
             reg_error_destruct(&error);
         }
         if (!registry_tcl_detach(interp, (reg_registry*)reg, &error)) {
-            fprintf(stderr, "%s", error.description);
+            fprintf(stderr, "registry_tcl_detach: %s", error.description);
             reg_error_destruct(&error);
         }
     }
     if (!reg_close((reg_registry*)reg, &error)) {
-        fprintf(stderr, "%s", error.description);
+        fprintf(stderr, "reg_close: %s", error.description);
         reg_error_destruct(&error);
     }
 }
@@ -245,7 +245,7 @@ static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
         } else {
             reg_error error;
             if (reg_optimize(reg, &error) == 0) {
-                fprintf(stderr, "%s\n", error.description);
+                fprintf(stderr, "reg_optimize: %s\n", error.description);
                 reg_error_destruct(&error);
             }
             if (Tcl_GetAssocData(interp, "registry::needs_vacuum", NULL) != NULL) {
@@ -254,7 +254,7 @@ static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
             }
             /* Not really anything we can do if this fails. */
             if (reg_checkpoint(reg, &error) == 0) {
-                fprintf(stderr, "%s\n", error.description);
+                fprintf(stderr, "reg_checkpoint: %s\n", error.description);
                 reg_error_destruct(&error);
             }
             if (registry_tcl_detach(interp, reg, &error)) {
