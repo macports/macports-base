@@ -146,14 +146,6 @@ static void delete_reg(ClientData reg, Tcl_Interp* interp) {
             fprintf(stderr, "reg_optimize: %s\n", error.description);
             reg_error_destruct(&error);
         }
-        if (Tcl_GetAssocData(interp, "registry::needs_vacuum", NULL) != NULL) {
-            reg_vacuum(Tcl_GetAssocData(interp, "registry::db_path", NULL));
-            Tcl_DeleteAssocData(interp, "registry::needs_vacuum");
-        }
-        if (reg_checkpoint((reg_registry*)reg, &error) == 0) {
-            fprintf(stderr, "reg_checkpoint: %s\n", error.description);
-            reg_error_destruct(&error);
-        }
         if (!registry_tcl_detach(interp, (reg_registry*)reg, &error)) {
             fprintf(stderr, "registry_tcl_detach: %s", error.description);
             reg_error_destruct(&error);
