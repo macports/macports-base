@@ -1,7 +1,7 @@
 Make the normal sqlite3 API externally visible (until we switch to tdbc...)
 
---- vendor/tcl/pkgs/sqlite3.44.2/Makefile.in.orig	2024-03-01 00:32:11
-+++ vendor/tcl/pkgs/sqlite3.44.2/Makefile.in	2024-03-01 00:26:48
+--- vendor/tcl/pkgs/sqlite3.45.3/Makefile.in.orig	2024-03-01 00:32:11
++++ vendor/tcl/pkgs/sqlite3.45.3/Makefile.in	2024-03-01 00:26:48
 @@ -155,7 +155,7 @@
  INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ -I. -I$(srcdir)/..
  #INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @TK_INCLUDES@ @TK_XINCLUDES@
@@ -11,8 +11,8 @@ Make the normal sqlite3 API externally visible (until we switch to tdbc...)
  
  # TCL_DEFS is not strictly need here, but if you remove it, then you
  # must make sure that configure.ac checks for the necessary components
---- vendor/tcl/pkgs/sqlite3.44.2/configure.orig	2024-03-01 00:31:18
-+++ vendor/tcl/pkgs/sqlite3.44.2/configure	2024-03-01 00:26:48
+--- vendor/tcl/pkgs/sqlite3.45.3/configure.orig	2024-03-01 00:31:18
++++ vendor/tcl/pkgs/sqlite3.45.3/configure	2024-03-01 00:26:48
 @@ -5671,7 +5671,7 @@
  
  else
