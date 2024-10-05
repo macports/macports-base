@@ -21,16 +21,19 @@ index 87dc84d1e..a161fed43 100755
  as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
  echo "$as_me:$LINENO: checking for $ac_func" >&5
 diff --git a/vendor/tcl8.6.14/unix/tclUnixFCmd.c b/vendor/tcl8.6.14/unix/tclUnixFCmd.c
-index 26429df73..82da6d433 100644
+index 26429df73..0fac81adc 100644
 --- a/vendor/tcl8.6.14/unix/tclUnixFCmd.c
 +++ b/vendor/tcl8.6.14/unix/tclUnixFCmd.c
-@@ -51,6 +51,18 @@
+@@ -51,6 +51,21 @@
  #ifdef HAVE_FTS
  #include <fts.h>
  #endif
 +#ifdef HAVE_SYS_CLONEFILE_H
 +#include <sys/clonefile.h>
++#ifndef CLONE_NOOWNERCOPY
++#include <unistd.h>
 +#endif
++#endif /* HAVE_SYS_CLONEFILE_H */
 +#ifdef HAVE_CLONEFILE
 +#if defined(__APPLE__) && \
 +	defined(MAC_OS_X_VERSION_MIN_REQUIRED) && \
@@ -43,7 +46,7 @@ index 26429df73..82da6d433 100644
  
  /*
   * The following constants specify the type of callback when
-@@ -526,14 +538,50 @@ DoCopyFile(
+@@ -526,14 +541,57 @@ DoCopyFile(
      }
      return TCL_OK;
  }
@@ -74,6 +77,13 @@ index 26429df73..82da6d433 100644
 +				/* Used to copy attributes. */
 +    int dontCopyAtts)		/* If flag set, don't copy attributes. */
 +{
++#ifndef CLONE_NOOWNERCOPY
++#define CLONE_NOOWNERCOPY 0
++    if (dontCopyAtts && geteuid() == 0) {
++        /* ownership would always be copied without this flag */
++        return TCL_ERROR;
++    }
++#endif
 +    if (clonefile(src, dst, CLONE_NOFOLLOW|CLONE_NOOWNERCOPY) == 0) {
 +        if (dontCopyAtts || CopyFileAtts(src, dst, statBufPtr) == TCL_OK) {
 +            return TCL_OK;
@@ -96,7 +106,7 @@ index 26429df73..82da6d433 100644
   *
   * Results:
   *	A standard Tcl result.
-@@ -558,6 +606,13 @@ TclUnixCopyFile(
+@@ -558,6 +616,13 @@ TclUnixCopyFile(
      char *buffer;		/* Data buffer for copy */
      size_t nread;
  
