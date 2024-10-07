@@ -371,6 +371,23 @@ proc portdestroot::destroot_finish {args} {
         ui_warn "[format [msgcat::mc "%s installs files outside the common directory structure."] $subport]"
     }
 
+    # Work around apparent filesystem bug.
+    # https://trac.macports.org/ticket/67336
+    if {[fs_clone_capable $destroot]} {
+        global workpath
+        ui_debug "Applying sparse file lseek bug workaround"
+        fs-traverse -depth fullpath [list $destroot] {
+            if {[file type $fullpath] eq "file" && [fileIsSparse $fullpath]} {
+                ui_debug "Cloning $fullpath for workaround"
+                clonefile $fullpath ${workpath}/.macports-sparse-workaround
+                file delete ${workpath}/.macports-sparse-workaround
+                if {![fileIsSparse $fullpath]} {
+                    ui_debug "$fullpath is no longer sparse"
+                }
+            }
+        }
+    }
+
     # Restore umask
     umask $oldmask
 
