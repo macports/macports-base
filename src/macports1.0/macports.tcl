@@ -6296,8 +6296,8 @@ proc macports::get_pingtime {host} {
         variable preferred_hosts
         foreach pattern $preferred_hosts {
             if {[string match -nocase $pattern $host]} {
-                dict set host_cache $host 1
-                return 1
+                dict set host_cache $host 0.001
+                return 0.001
             }
         }
         dict set host_cache $host 0
