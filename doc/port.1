@@ -1122,6 +1122,29 @@ gohome
 Loads the home page for the given portname in the default web browser\&.
 .RE
 .PP
+migrate
+.RS 4
+Reinstall MacPorts and all requested ports to ensure a smooth transition after major system changes such as operating system upgrades or CPU architecture changes\&. This automates the migration procedure previously documented at
+\m[blue]\fBMigration\fR\m[]\&\s-2\u[1]\d\s+2, which MacPorts recommends you follow after each major OS version upgrade\&. See
+\fBport-migrate\fR(1)
+for more details\&.
+.RE
+.PP
+snapshot
+.RS 4
+Create a snapshot of the currently installed ports to restore at a later point in time, e\&.g\&., after an OS upgrade\&. See
+\fBport-snapshot\fR(1)
+for more information\&.
+.RE
+.PP
+restore
+.RS 4
+Restore a previously created snapshot of installed ports created using
+\fBport-snapshot\fR(1)\&. See
+\fBport-restore\fR(1)
+for more information\&.
+.RE
+.PP
 usage
 .RS 4
 Displays a condensed usage summary\&.
@@ -1362,3 +1385,9 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.SH "EXTERNAL REFERENCES"
+.IP " 1." 4
+Migration
+.RS 4
+\%https://trac.macports.org/wiki/Migration
+.RE
