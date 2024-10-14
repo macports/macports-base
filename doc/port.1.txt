@@ -564,6 +564,22 @@ reload::
 gohome::
     Loads the home page for the given portname in the default web browser.
 
+migrate::
+    Reinstall MacPorts and all requested ports to ensure a smooth transition
+    after major system changes such as operating system upgrades or CPU
+    architecture changes. This automates the migration procedure previously
+    documented at wiki:Migration[], which MacPorts recommends you follow after
+    each major OS version upgrade. See man:port-migrate[1] for more details.
+
+snapshot::
+    Create a snapshot of the currently installed ports to restore at a later
+    point in time, e.g., after an OS upgrade. See man:port-snapshot[1] for more
+    information.
+
+restore::
+    Restore a previously created snapshot of installed ports created using
+    man:port-snapshot[1]. See man:port-restore[1] for more information.
+
 usage::
     Displays a condensed usage summary.
 
