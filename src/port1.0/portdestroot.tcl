@@ -376,15 +376,19 @@ proc portdestroot::destroot_finish {args} {
     if {[fs_clone_capable $destroot]} {
         global workpath
         ui_debug "Applying sparse file lseek bug workaround"
-        fs-traverse -depth fullpath [list $destroot] {
-            if {[file type $fullpath] eq "file" && [fileIsSparse $fullpath]} {
-                ui_debug "Cloning $fullpath for workaround"
-                clonefile $fullpath ${workpath}/.macports-sparse-workaround
-                file delete ${workpath}/.macports-sparse-workaround
-                if {![fileIsSparse $fullpath]} {
-                    ui_debug "$fullpath is no longer sparse"
+        try {
+            fs-traverse -depth fullpath [list $destroot] {
+                if {[file type $fullpath] eq "file" && [fileIsSparse $fullpath]} {
+                    ui_debug "Cloning $fullpath for workaround"
+                    clonefile $fullpath ${workpath}/.macports-sparse-workaround
+                    file delete ${workpath}/.macports-sparse-workaround
+                    if {![fileIsSparse $fullpath]} {
+                        ui_debug "$fullpath is no longer sparse"
+                    }
                 }
             }
+        } on error {eMessage} {
+            ui_debug "Error while applying sparse file workaround: $eMessage"
         }
     }
 
