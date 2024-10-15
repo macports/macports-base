@@ -414,6 +414,7 @@ proc selfupdate::verify_signature_legacy {path signature_path} {
 # @param source Path to the source code to be installed.
 proc selfupdate::install {source} {
     global \
+        macports::build_arch \
         macports::developer_dir \
         macports::macos_version_major \
         macports::os_major \
@@ -489,7 +490,7 @@ proc selfupdate::install {source} {
                 }
             }
         }
-        if {$os_major >= 20 && ![catch {sysctl sysctl.proc_translated} translated] && $translated} {
+        if {$os_major >= 20 && $build_arch ne "x86_64" && ![catch {sysctl sysctl.proc_translated} translated] && $translated} {
             # Force a native build
             set arch_arg "/usr/bin/arch -arm64 /usr/bin/env "
         }

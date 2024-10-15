@@ -234,7 +234,7 @@ namespace eval migrate {
     #
     # @return true iff the migration procedure is needed
     proc needs_migration {{reasonvar {}}} {
-        global macports::os_platform macports::os_major
+        global macports::os_platform macports::os_major macports::build_arch
         if {$reasonvar ne {}} {
             upvar $reasonvar reason
             set reason {}
@@ -245,7 +245,7 @@ namespace eval migrate {
             set reason "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
             return 1
         }
-        if {$os_platform eq "darwin" && $os_major >= 20
+        if {$os_platform eq "darwin" && $os_major >= 20 && $build_arch ne "x86_64"
                 && ![catch {sysctl sysctl.proc_translated} translated] && $translated
         } then {
             # Check if our tclsh has an arm64 slice - rebuilding not needed if it's universal
