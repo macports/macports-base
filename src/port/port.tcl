@@ -5607,6 +5607,20 @@ if {[catch {mportinit ui_options global_options global_variations} result]} {
     fatal "Failed to initialize MacPorts, $result"
 }
 
+# Re-execute if running under Rosetta 2 and not building for x86_64.
+# We know we are a universal binary if this is needed since mportinit
+# would have errored if not.
+if {${macports::os_major} >= 20 && ${macports::os_platform} eq "darwin" &&
+    ${macports::build_arch} ne "x86_64" &&
+    ![info exists global_options(ports_no_migration_check)] &&
+    ![catch {sysctl sysctl.proc_translated} translated] && $translated
+} then {
+    ui_warn "MacPorts started under Rosetta 2, re-executing natively"
+    execl /usr/bin/arch [list -arm64 $::argv0 {*}$::argv]
+    ui_debug "Would have executed $::argv0 $::argv"
+    ui_warn "Failed to re-execute MacPorts... just continuing"
+}
+
 # Change to port directory if requested
 if {[info exists global_options(ports_dir)]} {
     set dir $global_options(ports_dir)
