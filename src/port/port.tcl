@@ -4689,7 +4689,7 @@ proc get_next_cmdline { in out use_readline prompt linename history_file } {
         if { $use_readline && $line ne "" } {
             # Create macports user directory if it does not exist yet
             if {![file isdirectory $macports_user_dir]} {
-                file mkdir macports_user_dir
+                file mkdir $macports_user_dir
 
                 # Also write the history file if this is the case (this sets
                 # the cookie at the top of the file and perhaps other things)
