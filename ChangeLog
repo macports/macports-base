@@ -2,6 +2,29 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.10.3 (unreleased)
+    - On Apple Silicon Macs, the port command will now ensure that it
+      is running natively by relaunching itself if it is started under
+      Rosetta 2 and build_arch is not set to x86_64 in macports.conf.
+      Migration is no longer required when MacPorts base is x86_64
+      only, provided that build_arch is set to x86_64 in macports.conf.
+      This will ensure that most users are running natively while still
+      allowing a fully emulated x86_64 installation if desired.
+      (jmr in eee437c, 425b158)
+
+    - Fixed error trying to create the history file in shell mode when
+      ~/.macports doesn't exist yet. (#71143, jmr in e788103)
+
+    - Added mitigation for a rarely seen macOS bug affecting handling
+      of sparse files. (#67336, jmr in af49e24)
+
+    - Silenced error message from running 'pragma OPTIMIZE' on the
+      registry database without write access. (#71017, jmr in c219570)
+
+    - Fixed recreating the destroot from an installed port image that
+      is a directory, as needed by some targets like mpkg.
+      (#71011, jmr in c3c817e)
+
 Release 2.10.2 (2024-10-01 by jmr)
     - Fixed 'port restore' erroring out when a Portfile failed to
       parse. (#70903, jmr in 202d58b)
