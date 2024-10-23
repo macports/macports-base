@@ -974,7 +974,7 @@ test get_pingtime {
     if {[macports::get_pingtime macports_blacklist] != -1} {
         return "FAIL: wrong time for blacklisted host"
     }
-    if {[macports::get_pingtime macports_pref] != 1} {
+    if {[macports::get_pingtime macports_pref] != 0} {
         return "FAIL: wrong time for preferred host"
     }
     return "Get ping time successful."
