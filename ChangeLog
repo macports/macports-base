@@ -25,6 +25,8 @@ Release 2.10.3 (unreleased)
       is a directory, as needed by some targets like mpkg.
       (#71011, jmr in c3c817e)
 
+    - Fixed force activation of conflicting ports. (jmr in 1f52c5a)
+
 Release 2.10.2 (2024-10-01 by jmr)
     - Fixed 'port restore' erroring out when a Portfile failed to
       parse. (#70903, jmr in 202d58b)
