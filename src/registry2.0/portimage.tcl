@@ -782,9 +782,11 @@ proc _activate_contents {port {rename_list {}}} {
                             # registry
                             if {$owner ne {}} {
                                 # Rename all conflicting files for this owner.
-                                set owner_paths [list]
-                                set owner_actual_paths [list]
-                                foreach {path actual_path} [dict get $conflicts_port_to_paths $owner] {
+                                set owner_deactivate_paths [list]
+                                set owner_activate_paths [list]
+                                set owner_backup_paths [list]
+                                foreach pathpair [dict get $conflicts_port_to_paths $owner] {
+                                    lassign $pathpair path actual_path
                                     lappend owner_deactivate_paths $path
                                     if {![catch {::file type $actual_path}]} {
                                         lappend owner_activate_paths $path
