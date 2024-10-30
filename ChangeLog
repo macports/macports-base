@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.10.3 (unreleased)
+Release 2.10.3 (2024-10-31 by jmr)
     - On Apple Silicon Macs, the port command will now ensure that it
       is running natively by relaunching itself if it is started under
       Rosetta 2 and build_arch is not set to x86_64 in macports.conf.
