@@ -373,7 +373,7 @@ proc portdestroot::destroot_finish {args} {
 
     # Work around apparent filesystem bug.
     # https://trac.macports.org/ticket/67336
-    if {[fs_clone_capable $destroot]} {
+    if {![catch {fs_clone_capable $destroot} result] && $result} {
         global workpath
         ui_debug "Applying sparse file lseek bug workaround"
         try {
