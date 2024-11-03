@@ -46,6 +46,8 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <mach-o/dyld.h>
+
 #include <config.h>
 
 #ifdef HAVE_COPYFILE
@@ -334,6 +336,46 @@ resign_out:
     return result;
 }
 
+static struct timespec determine_pextlib_mtime() {
+    const char *needle_darwintrace = "/darwintrace1.0/darwintrace.dylib";
+    size_t needle_darwintrace_len = strlen(needle_darwintrace);
+    const char *needle_pextlib = "/pextlib1.0/Pextlib.dylib";
+    size_t needle_pextlib_len = strlen(needle_pextlib);
+
+    const char *lib_path = NULL;
+
+    for (uint32_t idx = 0; idx < _dyld_image_count(); ++idx) {
+        const char *image_name = _dyld_get_image_name(idx);
+        size_t image_name_len = strlen(image_name);
+
+        if (image_name_len > needle_darwintrace_len) {
+            if (strcmp(image_name + image_name_len - needle_darwintrace_len, needle_darwintrace) == 0) {
+                lib_path = image_name;
+                break;
+            }
+        }
+        if (image_name_len > needle_pextlib_len) {
+            if (strcmp(image_name + image_name_len - needle_pextlib_len, needle_pextlib) == 0) {
+                lib_path = image_name;
+                break;
+            }
+        }
+    }
+
+    if (lib_path == NULL) {
+        fprintf(stderr, "Failed to find Pextlib.dylib or darwintrace.dylib path in _dyld_get_image_name()\n");
+        abort();
+    }
+
+    struct stat st;
+    if (-1 == stat(lib_path, &st)) {
+        fprintf(stderr, "stat(%s) failed: %s", lib_path, strerror(errno));
+        abort();
+    }
+
+    return st.st_mtimespec;
+}
+
 static char *lazy_copy(const char *path, struct stat *in_st) {
     char *retval = NULL;
     uid_t euid = geteuid();
@@ -381,12 +423,27 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         goto lazy_copy_out;
     }
 
-    // check whether copying is needed; it isn't if the file exists and the
-    // modification times match
+    /* Check whether copying is needed; it isn't if the file exists and the
+     * modification times match. As an exception to this rule, also copy if the
+     * ctime of the target file is older than the ctime of the Pextlib.dylib
+     * that contains this code. This exception allows updating the copy
+     * mechanism and triggers new copies of files if it possibly changed. */
+    static struct timespec pextlib_mtimespec = {0};
+    if (pextlib_mtimespec.tv_sec == 0 && pextlib_mtimespec.tv_nsec == 0) {
+        pextlib_mtimespec = determine_pextlib_mtime();
+    }
+
     struct stat out_st = {0};
     if (-1 != stat(target_path, &out_st)
         && in_st->st_mtimespec.tv_sec == out_st.st_mtimespec.tv_sec
-        && in_st->st_mtimespec.tv_nsec == out_st.st_mtimespec.tv_nsec) {
+        && in_st->st_mtimespec.tv_nsec == out_st.st_mtimespec.tv_nsec
+        && (
+            out_st.st_ctimespec.tv_sec > pextlib_mtimespec.tv_sec
+            || (
+                out_st.st_ctimespec.tv_sec == pextlib_mtimespec.tv_sec
+                && out_st.st_ctimespec.tv_nsec > pextlib_mtimespec.tv_nsec
+            )
+        )) {
         // copying not needed
         retval = target_path;
         goto lazy_copy_out;
