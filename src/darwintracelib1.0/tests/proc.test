@@ -7,8 +7,6 @@ package require Pextlib 1.0
 
 source "testlib.tcl"
 
-testConstraint notarm64 [expr {[exec -ignorestderr -- /usr/bin/arch] ne "arm64"}]
-
 test execve_selfpreserving_env "Test that you cannot get out of the sandbox by unsetting environment variables" \
     -setup [setup [list allow $cwd]] \
     -cleanup [expect] \
@@ -211,7 +209,6 @@ test spawn_non_existing_inside_sandbox "Test that posix_spawn(2) on a non-existi
 # Apple-signed binaries, or arbitrary binaries on systems that are booted with
 # boot-args=-arm64e_preview_abi (which cannot be enabled without disabling SIP).
 test spawn_sip_binary "Test that posix_spawn(2) works on a SIP-protected binary (which will make a copy)" \
-    -constraints {notarm64} \
     -setup {
         file delete -force [file join $::env(DARWINTRACE_SIP_WORKAROUND_PATH) [getuid] usr/bin/env]
         [setup [list allow /]]
@@ -235,7 +232,6 @@ test spawn_sip_binary "Test that posix_spawn(2) works on a SIP-protected binary 
 # Apple-signed binaries, or arbitrary binaries on systems that are booted with
 # boot-args=-arm64e_preview_abi (which cannot be enabled without disabling SIP).
 test spawn_sip_script "Test that posix_spawn(2) works on a SIP-protected shell script (which will copy the interpreter)" \
-    -constraints {notarm64} \
     -setup [setup [list allow /]] \
     -cleanup [expect {}] \
     -body {exec -ignorestderr -- ./posix_spawn /usr/bin/umask} \

@@ -487,7 +487,7 @@ resign_out:
 }
 
 static struct timespec determine_pextlib_mtime(void) {
-    const char *needle_darwintrace = "/darwintrace1.0/darwintrace.dylib";
+    const char *needle_darwintrace = "/darwintrace.dylib";
     size_t needle_darwintrace_len = strlen(needle_darwintrace);
     const char *needle_pextlib = "/pextlib1.0/Pextlib.dylib";
     size_t needle_pextlib_len = strlen(needle_pextlib);
