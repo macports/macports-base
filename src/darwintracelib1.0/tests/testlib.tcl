@@ -186,3 +186,10 @@ proc tracelib_cleanup {} {
     array unset env DARWINTRACE_LOG
 }
 
+# used by the 'system' builtin in Pextlib.dylib
+proc ui_info {msg} {
+    puts stderr "$msg"
+}
+proc ui_debug {msg} {
+    puts stderr "$msg"
+}

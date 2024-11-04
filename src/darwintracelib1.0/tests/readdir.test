@@ -50,8 +50,8 @@ test darwintrace_readdir_at_maxpathlen "Test that readdir(3) with a directory at
         [setup [list allow $cwd]]
     } \
     -cleanup {
-        exec -ignorestderr -- rm -rf ab
         [expect]
+        exec -ignorestderr -- rm -rf ab
     } \
     -body {
         set lines [split [exec -ignorestderr -- ./readdir $dirname 2>@1] "\n"]
