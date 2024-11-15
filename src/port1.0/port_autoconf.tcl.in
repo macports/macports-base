@@ -79,4 +79,5 @@ namespace eval portutil::autoconf {
 	variable prefix "@prefix_expanded@"
 	variable tcl_package_path "@TCL_PACKAGE_PATH@"
 	variable trace_sipworkaround_path "@DARWINTRACE_SIP_WORKAROUND_PATH@"
+	variable clonebin_path "@CLONEBIN_PATH@"
 }
