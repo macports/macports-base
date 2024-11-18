@@ -833,10 +833,13 @@ proc macports::set_xcodecltversion {cachevar} {
 
     upvar $cachevar cache
     if {[dict exists $cache clt version] && [dict exists $cache clt mtime]
-            && [dict exists $cache clt checkfile]
-            && [file mtime [dict get $cache clt checkfile]] == [dict get $cache clt mtime]} {
-        set xcodecltversion [dict get $cache clt version]
-        return 0
+            && [dict exists $cache clt checkfile]} {
+        set checkfile [dict get $cache clt checkfile]
+        if {[file exists $checkfile]
+             && [file mtime $checkfile] == [dict get $cache clt mtime]} {
+            set xcodecltversion [dict get $cache clt version]
+            return 0
+        }
     }
 
     # Potential names for the CLTs pkg on different OS versions.
