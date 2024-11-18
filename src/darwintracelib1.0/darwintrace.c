@@ -1162,9 +1162,18 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 			while (true) {
 				ssize_t linksize;
 				if (-1 == (linksize = readlink(path_native, link, maxLinkLength - 1))) {
-					free(path_native);
-					perror("darwintrace: readlink");
-					abort();
+					/* If we can't read the link, don't error out, but jsut continue as if the path
+					 * wasn't a link. The build will later on have to deal with the same error and
+					 * will likely either gracefully handle it, or return a useful error message. */
+					free(link);
+					link = strdup(path_native);
+					if (!link) {
+						perror("darwintrace: strdup");
+						abort();
+					}
+
+					pathIsSymlink = false;
+					break;
 				}
 				link[linksize] = '\0';
 				if ((size_t) linksize < maxLinkLength - 1) {
