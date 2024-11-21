@@ -2,6 +2,13 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.10.5 (unreleased)
+    - Fixed error when the Command Line Tools receipt is missing.
+      (#71339, jmr in dab32c5)
+
+    - The darwintrace library used by trace mode no longer aborts when
+      it encounters an unreadable symlink. (cal in e3eed16)
+
 Release 2.10.4 (2024-11-01 by jmr)
     - Fixed destroot_finish error on some older macOS versions.
       (#71217, jmr in aa60115)
