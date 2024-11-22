@@ -3285,8 +3285,17 @@ proc mportsync {{options {}}} {
                     }
                     set include_option "--include=/${filename} --include=/${filename}.rmd160"
                     # need to do a few things before replacing the ports tree in this case
-                    set destdir [file dirname $destdir]
+                    set extractdir [file dirname $destdir]
+                    set destdir [file join $extractdir remote]
+                    file mkdir $destdir
                     set srcstr $rooturl
+                    set old_tarball_path [file join $extractdir $filename]
+                    if {[file isfile $old_tarball_path]} {
+                        file rename -force $old_tarball_path $destdir
+                    }
+                    set old_PortIndex_path [file join $extractdir PortIndex]
+                    file delete -force {*}[glob -nocomplain -directory $extractdir [file rootname $filename]*] \
+                        ${old_PortIndex_path} ${old_PortIndex_path}.rmd160
                 } else {
                     # Keep rsync happy with a trailing slash
                     if {[string index $source end] ne "/"} {
@@ -3359,9 +3368,9 @@ proc mportsync {{options {}}} {
                         set tar [macports::findBinary tar $tar_path]
                     }
                     # extract tarball and move into place
-                    file mkdir ${destdir}/tmp
+                    file mkdir ${extractdir}/tmp
                     set zflag [expr {[file extension $tarball] eq ".gz" ? "z" : ""}]
-                    set tar_cmd "$tar -C ${destdir}/tmp -x${zflag}f $tarball"
+                    set tar_cmd "$tar -C ${extractdir}/tmp -x${zflag}f $tarball"
                     macports_try -pass_signal {
                         system $tar_cmd
                     } on error {eMessage} {
@@ -3372,14 +3381,14 @@ proc mportsync {{options {}}} {
                     # save the local PortIndex data
                     if {[file isfile $indexfile]} {
                         file copy -force $indexfile ${destdir}/
-                        file rename -force $indexfile ${destdir}/tmp/ports/
+                        file rename -force $indexfile ${extractdir}/tmp/ports/
                         if {[file isfile ${indexfile}.quick]} {
-                            file rename -force ${indexfile}.quick ${destdir}/tmp/ports/
+                            file rename -force ${indexfile}.quick ${extractdir}/tmp/ports/
                         }
                     }
-                    file delete -force ${destdir}/ports
-                    file rename ${destdir}/tmp/ports ${destdir}/ports
-                    file delete -force ${destdir}/tmp
+                    file delete -force ${extractdir}/ports
+                    file rename ${extractdir}/tmp/ports ${extractdir}/ports
+                    file delete -force ${extractdir}/tmp
                     # delete any old uncompressed tarball
                     if {[file extension $tarball] eq ".gz"} {
                         file delete -force [file rootname $tarball] [file rootname $tarball].rmd160
@@ -3423,7 +3432,7 @@ proc mportsync {{options {}}} {
                             }
                             if {$ok} {
                                 # move PortIndex into place
-                                file rename -force ${destdir}/PortIndex ${destdir}/ports/
+                                file rename -force ${destdir}/PortIndex ${extractdir}/ports/
                             }
                         }
                         if {$ok} {
