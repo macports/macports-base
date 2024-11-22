@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.10.5 (unreleased)
+Release 2.10.5 (2024-11-23 by jmr)
     - Fixed error when the Command Line Tools receipt is missing.
       (#71339, jmr in dab32c5)
 
