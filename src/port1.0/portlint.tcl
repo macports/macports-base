@@ -269,10 +269,6 @@ proc portlint::lint_platforms {platforms} {
         }
     }
 
-    if {$platforms eq "darwin"} {
-        lappend warnings "Unnecessary platforms line as darwin is the default"
-    }
-
     return [list $errors $warnings]
 }
 
