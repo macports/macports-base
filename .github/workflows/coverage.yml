@@ -41,7 +41,7 @@ jobs:
       - name: Test MacPorts Base
         run: |
           set -eu
-          LLVM_PROFILE_FILE="${PWD}/cov-%p.profraw" make test
+          LLVM_PROFILE_FILE="$PWD/cov-%p.profraw" make test
       - name: Report Coverage
         run: |
           set -eu
