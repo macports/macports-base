@@ -4247,7 +4247,7 @@ set cmd_opts_array [dict create {*}{
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}
     diagnose    {quiet}
-    reclaim     {enable-reminders disable-reminders}
+    reclaim     {enable-reminders disable-reminders keep-build-deps}
     fetch       {no-mirrors}
     bump        {patch}
     snapshot    {create list {diff 1} all {delete 1} help {note 1} {export 1} {import 1}}
