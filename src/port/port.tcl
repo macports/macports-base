@@ -3669,7 +3669,13 @@ proc action_list { action portlist opts } {
             if {[dict exists $portinfo portdir]} {
                 set outdir [dict get $portinfo portdir]
             }
-            puts [format "%-30s @%-14s %s" [dict get $portinfo name] [dict get $portinfo version] $outdir]
+            if {[dict exists $portinfo version]} {
+                set version [dict get $portinfo version]
+            } else {
+                set version {}
+                ui_warn "required option 'version' is missing for $name"
+            }
+            puts [format "%-30s @%-14s %s" $name $version $outdir]
         }
     }
 
