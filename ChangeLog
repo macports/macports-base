@@ -9,6 +9,9 @@ Release 2.10.5 (2024-11-23 by jmr)
     - The darwintrace library used by trace mode no longer aborts when
       it encounters an unreadable symlink. (cal in e3eed16)
 
+    - Fixed CVE-2024-11681. Thanks to Simon Scannell of Google's Cloud
+      Vulnerability Research team. (jmr in 906525f)
+
 Release 2.10.4 (2024-11-01 by jmr)
     - Fixed destroot_finish error on some older macOS versions.
       (#71217, jmr in aa60115)
