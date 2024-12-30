@@ -2213,14 +2213,20 @@ proc action_activate { action portlist opts } {
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
-        if {[catch {registry_installed $portname $composite_version} result]} {
-            break_softcontinue "port activate failed: $result" 1 status
-        }
-        set regref $result
-        if {![dict exists $options ports_activate_no-exec] &&
-            [registry::run_target $regref activate $options]
-        } then {
-            continue
+        # if the user passed -f we go for activate_composite at once so that
+        # the selection list won't be shown twice if there are multiple versions
+        # or variants installed and the goal was to re-activate the already
+        # active port.
+        if {![dict exists $options ports_force]} {
+            if {[catch {registry_installed $portname $composite_version} result]} {
+                break_softcontinue "port activate failed: $result" 1 status
+            }
+            set regref $result
+            if {![dict exists $options ports_activate_no-exec] &&
+                [registry::run_target $regref activate $options]
+            } then {
+                continue
+            }
         }
         if {![macports::global_option_isset ports_dryrun]} {
             if {[catch {portimage::activate_composite $portname $composite_version $options} result]} {
