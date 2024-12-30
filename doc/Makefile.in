@@ -48,6 +48,7 @@ MAN1=	\
 		port-info.1 \
 		port-install.1 \
 		port-installed.1 \
+		port-licensecheck.1 \
 		port-lint.1 \
 		port-list.1 \
 		port-livecheck.1 \
