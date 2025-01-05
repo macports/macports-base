@@ -1,0 +1,82 @@
+name: Linux
+on:
+  push:
+    branches:
+    - "main"
+    - "core-8-branch"
+    - "core-8-6-branch"
+    tags:
+    - "core-**"
+permissions:
+  contents: read
+jobs:
+  gcc:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        config:
+          - ""
+          - "--disable-shared"
+          - "--enable-symbols"
+          - "--enable-symbols=mem"
+          - "--enable-symbols=all"
+          - "CFLAGS=-ftrapv"
+          - "CFLAGS=-DTCL_UTF_MAX=4"
+          - "CFLAGS=-DTCL_UTF_MAX=6"
+          # Duplicated below
+          - "CFLAGS=-m32 CPPFLAGS=-m32 LDFLAGS=-m32 --disable-64bit"
+    defaults:
+      run:
+        shell: bash
+        working-directory: unix
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        timeout-minutes: 5
+      - name: Install 32-bit dependencies if needed
+        # Duplicated from above
+        if: ${{ matrix.config == 'CFLAGS=-m32 CPPFLAGS=-m32 LDFLAGS=-m32 --disable-64bit' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc-multilib libc6-dev-i386
+      - name: Prepare
+        run: |
+          touch tclStubInit.c tclOOStubInit.c
+        working-directory: generic
+      - name: Configure ${{ matrix.config }}
+        run: |
+          mkdir "${HOME}/install dir"
+          ./configure ${CFGOPT} "--prefix=$HOME/install dir" || (cat config.log && exit 1)
+        env:
+          CFGOPT: ${{ matrix.config }}
+        timeout-minutes: 5
+      - name: Build
+        run: |
+          make -j4 all
+        timeout-minutes: 5
+      - name: Build Test Harness
+        run: |
+          make -j4 tcltest
+        timeout-minutes: 5
+      - name: Info
+        run: |
+          ulimit -a || echo 'get limit failed'
+          echo 'puts exe:\t[info nameofexecutable]\nver:\t[info patchlevel]\t[if {![catch tcl::build-info ret]} {set ret}]\nlib:\t[info library]\nplat:\t[lsort -dictionary -stride 2 [array get tcl_platform]]' | make runtest || echo 'get info failed'
+      - name: Run Tests
+        run: |
+          make test
+        env:
+          ERROR_ON_FAILURES: 1
+        timeout-minutes: 30
+      - name: Test-Drive Installation
+        run: |
+          make install
+        timeout-minutes: 5
+      - name: Create Distribution Package
+        run: |
+          make dist
+        timeout-minutes: 5
+      - name: Convert Documentation to HTML
+        run: |
+          make html-tcl
+        timeout-minutes: 5
