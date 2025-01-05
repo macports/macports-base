@@ -44,6 +44,43 @@ set worker_init_script {
 package require macports
 package require Thread
 
+# Spoof the compiler version
+rename macports::get_compiler_version macports::__get_compiler_version
+proc macports::get_compiler_version {compiler developer_dir} {
+    global port_options
+    if {![dict exists $port_options os.major]} {
+        return [macports::__get_compiler_version $compiler $developer_dir]
+    }
+    set os_major [dict get $port_options os.major]
+    switch -- [file tail ${compiler}] {
+        clang {
+            if {${os_major} >= 22} {
+                return "1500"
+            } elseif {${os_major} >= 17} {
+                return "1000.11.45.2"
+            } elseif {${os_major} >= 15} {
+                return "800.0.38"
+            } elseif {${os_major} >= 14} {
+                return "602.0.49"
+            } elseif {${os_major} >= 12} {
+                return "500.2.75"
+            } elseif {${os_major} >= 11} {
+                return "421.0.57"
+            } else {
+                return "1.0"
+            }
+        }
+        llvm-gcc-4.2 -
+        gcc-4.2 -
+        gcc-4.0 {
+            return "1.0"
+        }
+        default {
+            return -code error "don't know how to determine build number of compiler \"${compiler}\""
+        }
+    }
+}
+
 proc _read_index {idx} {
     global qindex oldfd
     set offset [dict get $qindex $idx]
