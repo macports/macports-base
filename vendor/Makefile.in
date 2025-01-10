@@ -147,6 +147,6 @@ distclean: $(DISTCLEAN_TARGETS)
 	rm -rf vendor-destroot
 	rm -f tclsh
 
-codesign:: signify-osx/signify tcl/unix/libtcl8.6.dylib tcl/unix/tclsh tclx/libtclx8.6.dylib tcl/unix/pkgs/itcl4.2.4/libitcl4.2.4.dylib tcl/unix/pkgs/tdbc1.1.7/libtdbc1.1.7.dylib tcl/unix/pkgs/tdbcpostgres1.1.7/libtdbcpostgres1.1.7.dylib tcl/unix/pkgs/thread2.8.9/libthread2.8.9.dylib tcl/unix/pkgs/tdbcmysql1.1.7/libtdbcmysql1.1.7.dylib tcl/unix/pkgs/tdbcodbc1.1.7/libtdbcodbc1.1.7.dylib tcl/unix/pkgs/sqlite3.44.2/libsqlite3.44.2.dylib
+codesign:: signify-osx/signify tcl/unix/libtcl8.6.dylib tcl/unix/tclsh tclx/libtclx8.6.dylib tcl/unix/pkgs/itcl4.3.2/libitcl4.3.2.dylib tcl/unix/pkgs/tdbc1.1.10/libtdbc1.1.10.dylib tcl/unix/pkgs/tdbcpostgres1.1.10/libtdbcpostgres1.1.10.dylib tcl/unix/pkgs/thread2.8.11/libthread2.8.11.dylib tcl/unix/pkgs/tdbcmysql1.1.10/libtdbcmysql1.1.10.dylib tcl/unix/pkgs/tdbcodbc1.1.10/libtdbcodbc1.1.10.dylib tcl/unix/pkgs/sqlite3.47.2/libsqlite3.47.2.dylib
 	../src/codesign.sh $?
 
