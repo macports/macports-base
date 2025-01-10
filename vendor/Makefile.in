@@ -43,12 +43,16 @@ all-tcllib: all-tcl
 	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} $(@:%-install=%)
 
 DESTROOT_TARGETS=   destroot-tcl destroot-tclx destroot-tcllib
+CLEAN_TARGETS= clean-tcl clean-tcllib clean-tclx clean-signify
+DISTCLEAN_TARGETS= distclean-tcl distclean-tcllib distclean-tclx distclean-signify
 ifneq (@OS_PLATFORM@,linux)
 DESTROOT_TARGETS+=   destroot-signify
 endif
 ifeq (@HAVE_CLONEFILE@,yes)
 ifeq (@HAVE_DECL_CLONE_NOOWNERCOPY@,yes)
 DESTROOT_TARGETS+=   destroot-install
+CLEAN_TARGETS+= clean-install
+DISTCLEAN_TARGETS+= distclean-install
 endif
 endif
 
@@ -135,10 +139,10 @@ install-install:
 
 test:
 
-clean: clean-tcl clean-tcllib clean-tclx clean-signify clean-install
+clean: $(CLEAN_TARGETS)
 	rm -rf ${DESTROOT}
 
-distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-signify distclean-install
+distclean: $(DISTCLEAN_TARGETS)
 	rm -f Makefile
 	rm -rf vendor-destroot
 	rm -f tclsh
