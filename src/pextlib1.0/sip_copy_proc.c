@@ -39,12 +39,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+
+#include <mach-o/dyld.h>
+#include <mach-o/fat.h>
+#include <mach-o/loader.h>
 
 #include <config.h>
 
@@ -279,6 +284,153 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
 #endif /* defined(SF_RESTRICTED) */
 }
 
+/**
+ * Apple ships system binaries on Apple Silicon systems with a separate CPU
+ * subtype that enables pointer authentication. While this is great from
+ * a security point of view, Apple marks this sub-architecture as for their use
+ * only and requires a boot arg to allow its use by binaries not signed by
+ * Apple. Changing the boot args in turn requires disabling system integrity
+ * protection.
+ *
+ * Fortunately it seems these binaries remain functional if we just change the
+ * CPU subtype in those binaries back to CPU_SUBTYPE_ARM64_ALL (i.e., disable
+ * pointer authentication). This function performs this change for arm64
+ * binaries and arm64 slices of universal binaries where necessary.
+ *
+ * See https://trac.macports.org/ticket/66358#comment:58.
+ */
+static int strip_pointer_auth(const char *filepath) {
+    int fd = -1;
+    struct stat st;
+    void *data = NULL;
+    int result = -1;
+    size_t filesize = 0;
+
+    if ((fd = open(filepath, O_RDWR)) < 0) {
+        fprintf(stderr, "failed to open '%s': %s", filepath, strerror(errno));
+        goto out;
+    }
+
+    if (fstat(fd, &st) != 0) {
+        fprintf(stderr, "failed to fstat '%s': %s", filepath, strerror(errno));
+        goto out;
+    }
+
+    if ((data = mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, fd, 0)) ==  MAP_FAILED) {
+        fprintf(stderr, "failed to mmap '%s': %s", filepath, strerror(errno));
+        goto out;
+    }
+
+    filesize = (size_t) st.st_size;
+
+    const uint32_t *magic = (uint32_t *) data;
+    switch (*magic) {
+        /* For the purpose of changing the CPU subtype from CPU_SUBTYPE_ARM64E
+         * to CPU_SUBTYPE_ARM64_ALL, we only care about 64-bit headers and fat
+         * binaries, all other cases can be safely ignored. */
+        case MH_MAGIC_64: {
+            if (filesize < sizeof(struct mach_header_64)) {
+                // short file
+                goto out;
+            }
+            struct mach_header_64 *header = (struct mach_header_64 *) data;
+            if (header->cputype == CPU_TYPE_ARM64 && header->cpusubtype == (int32_t) (CPU_SUBTYPE_PTRAUTH_ABI | CPU_SUBTYPE_ARM64E)) {
+                /* Disable pointer authentication for the copied binary, since
+                 * the kernel only allows it on binaries signed with Apple's
+                 * key. */
+                header->cpusubtype = CPU_SUBTYPE_ARM64_ALL;
+            }
+        }
+
+        case FAT_MAGIC:
+        case FAT_CIGAM: {
+            if (filesize < sizeof(struct fat_header)) {
+                // short file
+                goto out;
+            }
+            struct fat_header *header = (struct fat_header *) data;
+            uint32_t nfat_arch = OSSwapBigToHostInt32(header->nfat_arch);
+            for (uint32_t idx = 0; idx < nfat_arch; ++idx) {
+                if (filesize < sizeof(struct fat_header) + idx * sizeof(struct fat_arch)) {
+                    // short file
+                    goto out;
+                }
+                struct fat_arch *arch = (struct fat_arch *) (((char *) data) + sizeof(struct fat_header) + idx * sizeof(struct fat_arch));
+                if (OSSwapBigToHostInt32(arch->cputype) == CPU_TYPE_ARM64 &&
+                        OSSwapBigToHostInt32(arch->cpusubtype) == (CPU_SUBTYPE_PTRAUTH_ABI | CPU_SUBTYPE_ARM64E)) {
+                    /* Disable pointer authentication for the copied binary, since
+                     * the kernel only allows it on binaries signed with Apple's
+                     * key. */
+                    arch->cpusubtype = OSSwapHostToBigInt32(CPU_SUBTYPE_ARM64_ALL);
+
+                    uint32_t offset = OSSwapBigToHostInt32(arch->offset);
+
+                    if (filesize < sizeof(struct mach_header_64) + offset) {
+                        // short file
+                        goto out;
+                    }
+
+                    struct mach_header_64 *header = (struct mach_header_64 *) (((char *) data) + offset);
+                    if (header->cputype == CPU_TYPE_ARM64 && header->cpusubtype == (int32_t) (CPU_SUBTYPE_PTRAUTH_ABI | CPU_SUBTYPE_ARM64E)) {
+                        header->cpusubtype = CPU_SUBTYPE_ARM64_ALL;
+                    }
+                }
+            }
+        }
+
+        case FAT_MAGIC_64:
+        case FAT_CIGAM_64: {
+            if (filesize < sizeof(struct fat_header)) {
+                // short file
+                goto out;
+            }
+            struct fat_header *header = (struct fat_header *) data;
+            uint32_t nfat_arch = OSSwapBigToHostInt32(header->nfat_arch);
+            for (uint32_t idx = 0; idx < nfat_arch; ++idx) {
+                if (filesize < sizeof(struct fat_header) + idx * sizeof(struct fat_arch_64)) {
+                    // short file
+                    goto out;
+                }
+                struct fat_arch_64 *arch = (struct fat_arch_64 *) (((char *) data) + sizeof(struct fat_header) + idx * sizeof(struct fat_arch_64));
+                if (OSSwapBigToHostInt32(arch->cputype) == CPU_TYPE_ARM64 &&
+                        OSSwapBigToHostInt32(arch->cpusubtype) == (CPU_SUBTYPE_PTRAUTH_ABI | CPU_SUBTYPE_ARM64E)) {
+                    /* Disable pointer authentication for the copied binary, since
+                     * the kernel only allows it on binaries signed with Apple's
+                     * key. */
+                    arch->cpusubtype = OSSwapHostToBigInt32(CPU_SUBTYPE_ARM64_ALL);
+
+                    uint32_t offset = OSSwapBigToHostInt64(arch->offset);
+
+                    if (filesize < sizeof(struct mach_header_64) + offset) {
+                        // short file
+                        goto out;
+                    }
+
+                    struct mach_header_64 *header = (struct mach_header_64 *) (((char *) data) + offset);
+                    if (header->cputype == CPU_TYPE_ARM64 && header->cpusubtype == (int32_t) (CPU_SUBTYPE_PTRAUTH_ABI | CPU_SUBTYPE_ARM64E)) {
+                        header->cpusubtype = CPU_SUBTYPE_ARM64_ALL;
+                    }
+                }
+            }
+        }
+    }
+
+    result = 0;
+
+out:
+    if (data != NULL) {
+        munmap(data, st.st_size);
+        data = NULL;
+    }
+
+    if (fd != -1) {
+        close(fd);
+        fd = -1;
+    }
+
+    return result;
+}
+
 static int resign(const char *filepath) {
     int result = -1;
     int exitstatus = 0;
@@ -334,6 +486,46 @@ resign_out:
     return result;
 }
 
+static struct timespec determine_pextlib_mtime(void) {
+    const char *needle_darwintrace = "/darwintrace.dylib";
+    size_t needle_darwintrace_len = strlen(needle_darwintrace);
+    const char *needle_pextlib = "/pextlib1.0/Pextlib.dylib";
+    size_t needle_pextlib_len = strlen(needle_pextlib);
+
+    const char *lib_path = NULL;
+
+    for (uint32_t idx = 0; idx < _dyld_image_count(); ++idx) {
+        const char *image_name = _dyld_get_image_name(idx);
+        size_t image_name_len = strlen(image_name);
+
+        if (image_name_len > needle_darwintrace_len) {
+            if (strcmp(image_name + image_name_len - needle_darwintrace_len, needle_darwintrace) == 0) {
+                lib_path = image_name;
+                break;
+            }
+        }
+        if (image_name_len > needle_pextlib_len) {
+            if (strcmp(image_name + image_name_len - needle_pextlib_len, needle_pextlib) == 0) {
+                lib_path = image_name;
+                break;
+            }
+        }
+    }
+
+    if (lib_path == NULL) {
+        fprintf(stderr, "Failed to find Pextlib.dylib or darwintrace.dylib path in _dyld_get_image_name()\n");
+        abort();
+    }
+
+    struct stat st;
+    if (-1 == stat(lib_path, &st)) {
+        fprintf(stderr, "stat(%s) failed: %s", lib_path, strerror(errno));
+        abort();
+    }
+
+    return st.st_mtimespec;
+}
+
 static char *lazy_copy(const char *path, struct stat *in_st) {
     char *retval = NULL;
     uid_t euid = geteuid();
@@ -381,12 +573,27 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         goto lazy_copy_out;
     }
 
-    // check whether copying is needed; it isn't if the file exists and the
-    // modification times match
+    /* Check whether copying is needed; it isn't if the file exists and the
+     * modification times match. As an exception to this rule, also copy if the
+     * ctime of the target file is older than the ctime of the Pextlib.dylib
+     * that contains this code. This exception allows updating the copy
+     * mechanism and triggers new copies of files if it possibly changed. */
+    static struct timespec pextlib_mtimespec = {0};
+    if (pextlib_mtimespec.tv_sec == 0 && pextlib_mtimespec.tv_nsec == 0) {
+        pextlib_mtimespec = determine_pextlib_mtime();
+    }
+
     struct stat out_st = {0};
     if (-1 != stat(target_path, &out_st)
         && in_st->st_mtimespec.tv_sec == out_st.st_mtimespec.tv_sec
-        && in_st->st_mtimespec.tv_nsec == out_st.st_mtimespec.tv_nsec) {
+        && in_st->st_mtimespec.tv_nsec == out_st.st_mtimespec.tv_nsec
+        && (
+            out_st.st_ctimespec.tv_sec > pextlib_mtimespec.tv_sec
+            || (
+                out_st.st_ctimespec.tv_sec == pextlib_mtimespec.tv_sec
+                && out_st.st_ctimespec.tv_nsec > pextlib_mtimespec.tv_nsec
+            )
+        )) {
         // copying not needed
         retval = target_path;
         goto lazy_copy_out;
@@ -481,6 +688,11 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         goto lazy_copy_out;
     }
 #endif /* HAVE_COPYFILE */
+
+    if (-1 == strip_pointer_auth(target_path_temp)) {
+        fprintf(stderr, "sip_copy_proc: strip_pointer_auth(%s) failed\n", target_path_temp);
+        goto lazy_copy_out;
+    }
 
     if (-1 == resign(target_path_temp)) {
         fprintf(stderr, "sip_copy_proc: resign(%s) failed\n", target_path_temp);
