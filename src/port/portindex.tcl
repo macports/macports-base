@@ -212,7 +212,7 @@ proc init_threads {} {
             [list set oldmtime $oldmtime] \n
     }
     set maxjobs [macports::get_parallel_jobs no]
-    set poolid [tpool::create -minworkers $maxjobs -maxworkers $maxjobs -initcmd $worker_init_script]
+    set poolid [tpool::create -minworkers 1 -maxworkers $maxjobs -initcmd $worker_init_script]
     set pending_jobs [dict create]
     set nextjobnum 0
     tsv::set mutexes PortIndex [thread::mutex create]
@@ -243,7 +243,7 @@ proc handle_completed_jobs {} {
             if {$subport eq "" && [tsv::exists subports $jobnum]} {
                 foreach nextsubport [tsv::get subports $jobnum] {
                     tsv::set status $nextjobnum 99
-                    set jobid [tpool::post -nowait $poolid [list pindex $portdir $nextjobnum $nextsubport]]
+                    set jobid [tpool::post $poolid [list pindex $portdir $nextjobnum $nextsubport]]
                     dict set pending_jobs $jobid [list $nextjobnum $portdir $nextsubport]
                     incr nextjobnum
                 }
@@ -284,7 +284,7 @@ proc pindex_queue {portdir} {
     # Start with worst status so we get it when the thread
     # returns due to ctrl-c etc.
     tsv::set status $nextjobnum 99
-    set jobid [tpool::post -nowait $poolid [list pindex $portdir $nextjobnum {}]]
+    set jobid [tpool::post $poolid [list pindex $portdir $nextjobnum {}]]
     dict set pending_jobs $jobid [list $nextjobnum $portdir {}]
     incr nextjobnum
 }
