@@ -408,6 +408,21 @@ proc portpkg::write_package_info {infofile} {
     close $infofd
 }
 
+# Return a hostArchitectures Distribution attribute reflecting the
+# architectures that this pkg will work on.
+proc portpkg::get_hostArchitectures {} {
+    global supported_archs configure.build_arch configure.universal_archs
+    if {$supported_archs eq "noarch"} {
+        return \ hostArchitectures="arm64,i386,ppc,x86_64"
+    } elseif {[variant_exists universal] && [variant_isset universal] && [llength ${configure.universal_archs}] >= 2} {
+        return \ hostArchitectures="[join [lsort -ascii ${configure.universal_archs}] ,]"
+    } elseif {${configure.build_arch} ne ""} {
+        return \ hostArchitectures="${configure.build_arch}"
+    } else {
+        return {}
+    }
+}
+
 proc portpkg::write_distribution {dfile portname portversion portrevision} {
     global macosx_deployment_target
     set portname_e [xml_escape $portname]
@@ -415,7 +430,7 @@ proc portpkg::write_distribution {dfile portname portversion portrevision} {
     puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
     <title>${portname_e}</title>
-    <options customize=\"never\"/>
+    <options customize=\"never\"[get_hostArchitectures]/>
     <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
     <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
     <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
