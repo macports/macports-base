@@ -198,6 +198,8 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
 }
 
 proc portmpkg::write_distribution {dfile portname dependencies} {
+    # TODO: Set hostArchitectures. This requires calculating the intersection
+    # of the archs of all the component pkgs.
     global macosx_deployment_target
     set portname [xml_escape $portname]
     set dfd [open $dfile w+]
