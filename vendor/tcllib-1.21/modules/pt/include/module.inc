@@ -1,6 +1,0 @@
-[comment {--- Standard header for all manpages in this module --}]
-[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
-[moddesc {Parser Tools}]
-[include keywords.inc]
-[category {Parsing and Grammars}]
-[require Tcl 8.5]

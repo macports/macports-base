@@ -1,0 +1,89 @@
+# -*- tcl -*-
+# wcswidth.test:  tests for the wcswidth commands of the textutil package.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+testing {
+    useLocal wcswidth.tcl textutil::wcswidth
+}
+
+# -------------------------------------------------------------------------
+
+test wcswidth-1.0 {wcswidth, wrong # args} -body {
+    textutil::wcswidth
+} -returnCodes error -result {wrong # args: should be "textutil::wcswidth string"}
+
+test wcswidth-1.1 {wcswidth, wrong # args} -body {
+    textutil::wcswidth a b
+} -returnCodes error -result {wrong # args: should be "textutil::wcswidth string"}
+
+test wcswidth-2.0 {wcswidth, ASCII} -body {
+        textutil::wcswidth hello
+} -result 5
+
+test wcswidth-2.1 {wcswidth, wide characters} -body {
+    textutil::wcswidth {hello 橡萩原 world}
+} -result 18
+
+# -------------------------------------------------------------------------
+
+test wcswidth_char-1.0 {wcswidth_char, wrong # args} -body {
+    textutil::wcswidth_char
+} -returnCodes error -result {wrong # args: should be "textutil::wcswidth_char c"}
+
+test wcswidth_char-1.1 {wcswidth_char, wrong # args} -body {
+    textutil::wcswidth_char a b
+} -returnCodes error -result {wrong # args: should be "textutil::wcswidth_char c"}
+
+test wcswidth_char-2.0 {wcswidth_char, ASCII} -setup {
+    scan h %c char
+} -body {
+    textutil::wcswidth_char $char
+} -cleanup {
+    unset char
+} -result 1
+
+test wcswidth_char-2.1 {wcswidth_char, ASCII} -setup {
+    scan 橡 %c char
+} -body {
+    textutil::wcswidth_char $char
+} -cleanup {
+    unset char
+} -result 2
+
+# -------------------------------------------------------------------------
+
+test wcswidth_type-1.0 {wcswidth_type, wrong # args} -body {
+    textutil::wcswidth_type
+} -returnCodes error -result {wrong # args: should be "textutil::wcswidth_type c"}
+
+test wcswidth_type-1.1 {wcswidth_type, wrong # args} -body {
+    textutil::wcswidth_type a b
+} -returnCodes error -result {wrong # args: should be "textutil::wcswidth_type c"}
+
+test wcswidth_type-2.0 {wcswidth_type, ASCII} -setup {
+    scan h %c char
+} -body {
+    textutil::wcswidth_type $char
+} -cleanup {
+    unset char
+} -result N
+
+test wcswidth_type-2.1 {wcswidth_type, ASCII} -setup {
+    scan 橡 %c char
+} -body {
+    textutil::wcswidth_type $char
+} -cleanup {
+    unset char
+} -result W
+
+# -------------------------------------------------------------------------
+
+return

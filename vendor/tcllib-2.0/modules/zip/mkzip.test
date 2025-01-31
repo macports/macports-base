@@ -1,0 +1,75 @@
+# mkzip.test - Copyright (C) 2019 Andreas Kupries <andreas_kupriess@users.sf.net>
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+
+support {
+    useLocal decode.tcl zipfile::decode
+}
+testing {
+    useLocal mkzip.tcl zipfile::mkzip
+}
+
+# -------------------------------------------------------------------------
+
+test zipfile-mkzip-mkzip-1.0 {mkzip, wrong args, not enough} -body {
+    zipfile::mkzip::mkzip
+} -returnCodes error -result {wrong # args: should be "zipfile::mkzip::mkzip filename ?arg ...?"}
+
+test zipfile-mkzip-mkzip-2.0 {mkzip, tkt b9725d990b} -setup {
+    tcltest::makeDirectory foo
+    tcltest::makeDirectory foo/-1
+} -cleanup {
+    tcltest::removeDirectory foo
+    file delete foo.zip
+} -body {
+    zipfile::mkzip::mkzip foo.zip -directory foo
+} -result {}
+
+
+test zipfile-mkzip-mkzip-3.0 {mkzip, tkt d6427645ad, basic content} -setup {
+    tcltest::makeDirectory foo
+    tcltest::makeDirectory foo/a
+    tcltest::makeFile {}   foo/a/x
+} -cleanup {
+    tcltest::removeDirectory foo
+    file delete foo.zip
+} -body {
+    zipfile::mkzip::mkzip foo.zip -directory foo
+    lsort -dict [zipfile::decode::content foo.zip]
+} -result [list {*}{
+    a/
+    a/x
+}]
+
+test zipfile-mkzip-mkzip-3.1 {mkzip, tkt d6427645ad, with base directory} -setup {
+    tcltest::makeDirectory foo
+    tcltest::makeDirectory foo/a
+    tcltest::makeFile {}   foo/a/x
+} -cleanup {
+    tcltest::removeDirectory foo
+    file delete foo.zip
+} -body {
+    zipfile::mkzip::mkzip foo.zip -prepend-base-directory -directory foo
+    lsort -dict [zipfile::decode::content foo.zip]
+} -result [list {*}{
+    foo/
+    foo/a/
+    foo/a/x
+}]
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

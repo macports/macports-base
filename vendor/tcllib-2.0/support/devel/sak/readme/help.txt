@@ -1,0 +1,18 @@
+
+    readme -- Generate a readme listing changes to modules and packages.
+
+    sak readme ?-md? ?-I|-intro file? ?-D|-deprecations file?
+
+    	-md:   	     	     Generated markdown instead of plain text
+	-intro        file:  Insert file content before generated text
+	-deprecations file:  Insert file content just before changes section
+
+    	This command compares the current state of the modules and
+    	packages and against information from the last release
+    	(support/releases/PACKAGES) and generates a README.txt listing
+    	the relevant changes (new modules/packages, package version
+    	changes, unchanged packages).
+
+	The generated README is written to stdout.
+
+	This is a support command for the release manager.

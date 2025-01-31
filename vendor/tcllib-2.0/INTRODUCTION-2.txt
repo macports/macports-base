@@ -1,0 +1,56 @@
+Introduction
+============
+
+Tcllib 2.0 is the first major revision of Tcllib after a long series of
+minor 1.x releases.
+
+This revision
+
+  1. __drops support__ for Tcl versions before 8.5.
+
+       - All packages now require Tcl 8.5 as their minimum runtime.
+
+       - This does not mean that the implementations are already changed to use
+         Tcl 8.5 features.
+
+       - Such changes will be done incrementally.
+
+       - Users of Tcl 8.4 or even older still have Tcllib 1.21 available to them.
+
+  2. __adds support__ for Tcl 9, for both Tcl and C implementations
+     (where available).
+
+       - It is the first revision to have such support.
+
+       - Tcllib 1.21 and older will not work with Tcl 9.
+
+  3. enhances the visibility of the __C accelerators__ available for various
+     Tcllib packages through the adjunct __Tcllibc__ binary package.
+
+     Tcllibc's version has become 2.0 also, to match Tcllib itself.
+
+       - The Makefile's `install` target is extended to install both Tcllib and
+         Tcllibc.
+
+	 In other words, Tcllibc is now __built by default__, requiring a Critcl
+	 installation.
+
+	 Eben so, Tcllibc is __still optional__, and Tcllib can still be built
+	 and installed without it.
+
+       - To install only Tcllib use the new target `install-tcl`.
+
+       - To install only Tcllibc use the new target `install-binaries`.
+
+       - __Beware__ that Tcllibc, as a binary package, has to be compiled for
+         either Tcl 8 or Tcl 9.
+
+       - __Beware__, that the Tcllibc binary package requires Tcl 8.6 as its
+       	 minimum runtime.
+	 This is due to the Tcl 9 portability support, which requires 8.6 on the
+       	 other side of the border.
+	 This should not be true hardship.
+	 Tcllib 1.21 is still available, and does not have this restriction.
+
+Further documentation, including more detailed instructions on how to build and
+install Tcllib/Tcllibc, is available at <https://core.tcl-lang.org/tcllib>

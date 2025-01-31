@@ -2,8 +2,8 @@ Allow tcllib's configure to run without tclsh. Remember to update the
 version numbers to match support/installation/version.tcl when updating
 tclllib.
 
---- tcllib-1.21/configure.orig	2022-09-07 22:20:50.000000000 +1000
-+++ tcllib-1.21/configure	2022-09-08 01:07:43.000000000 +1000
+--- tcllib-2.0/configure.orig	2022-09-07 22:20:50.000000000 +1000
++++ tcllib-2.0/configure	2022-09-08 01:07:43.000000000 +1000
 @@ -1301,9 +1301,7 @@
  	echo "$as_me:$LINENO: result: $TCLSH_PROG" >&5
  echo "${ECHO_T}$TCLSH_PROG" >&6
@@ -23,8 +23,8 @@ tclllib.
 -MAJOR_VERSION=`$TCLSH_PROG "${SAK}" major`
 -MINOR_VERSION=`$TCLSH_PROG "${SAK}" minor`
 +PACKAGE=tcllib
-+MAJOR_VERSION=1
-+MINOR_VERSION=21
++MAJOR_VERSION=2
++MINOR_VERSION=0
  PATCHLEVEL=""
  
  VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}

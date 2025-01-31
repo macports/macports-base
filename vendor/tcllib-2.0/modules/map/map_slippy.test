@@ -1,0 +1,76 @@
+# Tests for the map::slippy module.                           -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcl built-in commands.  Sourcing
+# this file into Tcl runs the tests and generates output for errors.  No output means no errors were
+# found.
+#
+# Copyright (c) 2010-2022 Andreas Kupries
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+package require tcltest
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+    devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2.1
+
+support {
+    use math/math.tcl      math
+    use math/constants.tcl math::constants
+}
+testing {
+    useTcllibC
+    useLocalKeep  map_slippy.tcl map::slippy
+    TestAccelInit                map::slippy
+}
+
+set tests [localPath map_slippy.testsuite]
+
+# -------------------------------------------------------------------------
+## Match floating point numbers to within 4 digits.
+
+proc matchNumbers {expected actual} {
+    foreach a $actual e $expected {
+        if {$e eq {}} { return 0 }
+        if {abs($a-$e) > 1e-4} { return 0 }
+    }
+    return 1
+}
+
+proc xMatchNumbers {expected actual} {
+    foreach a $actual e $expected {
+        if {![llength $e]} { return 0 }
+        if {![matchNumbers $a $e]} { return 0 }
+    }
+    return 1
+}
+
+customMatch  4digits  matchNumbers
+customMatch x4digits xMatchNumbers
+
+# -------------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite (in map_slippy.testsuite) does
+# expect from the environment.
+
+TestAccelDo map::slippy impl {
+    source $tests
+}
+
+# -------------------------------------------------------------------------
+
+unset tests
+TestAccelExit map::slippy
+testsuiteCleanup
+return
+
+# -------------------------------------------------------------------------
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

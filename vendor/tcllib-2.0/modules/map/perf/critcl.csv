@@ -1,0 +1,5522 @@
+# -*- tcl -*- bench/csv
+1
+1,8.6.12,/home/aku/opt/ActiveTcl/bin/tclsh-critcl
+1,BBox 0 51 6 51 7,1.161
+2,BBox 1 51 6 50 6,1.34
+3,BBox 2 0 0 0 1,1.256
+4,BBox 3 0 0 1 0,1.327
+5,BBox 4 50.777 6 50.778 6,1.331
+6,BBox 5 50.777 6 50.778 6.001,1.164
+7,BBox 6 50 6 -50 174,1.592
+8,BBoxList 0 51 6 51 7,1.092
+9,BBoxList 1 51 6 50 6,1.258
+10,BBoxList 2 0 0 0 1,1.082
+11,BBoxList 3 0 0 1 0,1.259
+12,BBoxList 4 50.777 6 50.778 6,1.244
+13,BBoxList 5 50.777 6 50.778 6.001,1.125
+14,BBoxList 6 50 6 -50 174,1.093
+15,Box2Point 0 380.0 267.0,1.438
+16,Box2Point 1 380.0 267.0,1.72
+17,Box2Point 2 1410.0 913.0,1.763
+18,Box2Point 3 1423.0 913.0,1.596
+19,BoxCenter 0 51 6 51 7,1.278
+20,BoxCenter 1 51 6 50 6,1.419
+21,BoxCenter 2 0 0 0 1,1.235
+22,BoxCenter 3 0 0 1 0,1.203
+23,BoxCenter 4 50.777 6 50.778 6,1.231
+24,BoxCenter 5 50.777 6 50.778 6.001,1.236
+25,BoxCenter 6 50 6 -50 174,1.204
+26,BoxCorners 0 49.300005 -123.158551 49.301624 -123.157253,1.754
+27,BoxCorners 1 49.292809 -123.1589   49.314037 -123.116543,2.07
+28,BoxCorners 2 49.300005 -123.158551 49.301624 -123.157253,2.069
+29,BoxCorners 3 49.292809 -123.1589   49.314037 -123.116543,2.291
+30,BoxDiameter 0 51 6 51 7,1.18
+31,BoxDiameter 1 51 6 50 6,1.382
+32,BoxDiameter 2 0 0 0 1,1.174
+33,BoxDiameter 3 0 0 1 0,1.35
+34,BoxDiameter 4 50.777 6 50.778 6,1.324
+35,BoxDiameter 5 50.777 6 50.778 6.001,1.19
+36,BoxDiameter 6 50 6 -50 174,1.402
+37,BoxDimensions 0 51 6 51 7,1.296
+38,BoxDimensions 1 51 6 50 6,1.449
+39,BoxDimensions 2 0 0 0 1,1.231
+40,BoxDimensions 3 0 0 1 0,1.213
+41,BoxDimensions 4 50.777 6 50.778 6,1.22
+42,BoxDimensions 5 50.777 6 50.778 6.001,1.218
+43,BoxDimensions 6 50 6 -50 174,1.319
+44,BoxFit 0 380.0 267.0 49.300005 -123.158551 49.301624 -123.157253,1.703
+45,BoxFit 1 380.0 267.0 49.292809 -123.1589   49.314037 -123.116543,1.817
+46,BoxFit 2 1410.0 913.0 49.300005 -123.158551 49.301624 -123.157253,1.579
+47,BoxFit 3 1423.0 913.0 49.292809 -123.1589   49.314037 -123.116543,1.616
+48,BoxInside 0 60 50 1,1.102
+49,BoxInside 1 40 50 0,1.092
+50,BoxInside 2 90 50 0,1.35
+51,BoxInside 3 60 10 0,1.318
+52,BoxInside 4 60 80 0,1.279
+53,BoxOpposites 0 49.300005 -123.158551 49.301624 -123.157253,1.466
+54,BoxOpposites 1 49.292809 -123.1589   49.314037 -123.116543,1.747
+55,BoxOpposites 2 49.300005 -123.158551 49.301624 -123.157253,1.691
+56,BoxOpposites 3 49.292809 -123.1589   49.314037 -123.116543,1.717
+57,BoxPerimeter 0 51 6 51 7,1.335
+58,BoxPerimeter 1 51 6 50 6,1.361
+59,BoxPerimeter 2 0 0 0 1,1.243
+60,BoxPerimeter 3 0 0 1 0,1.268
+61,BoxPerimeter 4 50.777 6 50.778 6,1.279
+62,BoxPerimeter 5 50.777 6 50.778 6.001,1.44
+63,BoxPerimeter 6 50 6 -50 174,1.703
+64,BoxValid 0 170,1.045
+65,BoxValid 1 170,1.056
+66,BoxValid 2 170,1.236
+67,BoxValid 3 170,1.03
+68,BoxValid 4 170,1.019
+69,BoxValid 5 170,1.188
+70,BoxValid 6 170,1.212
+71,BoxValid 7 170,1.209
+72,BoxValidList 0 170,1.054
+73,BoxValidList 1 170,1.07
+74,BoxValidList 2 170,1.262
+75,BoxValidList 3 170,1.046
+76,BoxValidList 4 170,1.038
+77,BoxValidList 5 170,1.3
+78,BoxValidList 6 170,1.275
+79,BoxValidList 7 170,1.799
+80,Center 0 51 6 51 7,1.632
+81,Center 1 51 6 50 6,1.285
+82,Center 2 0 0 0 1,1.084
+83,Center 3 0 0 1 0,1.092
+84,Center 4 50.777 6 50.778 6,1.086
+85,Center 5 50.777 6 50.778 6.001,1.2
+86,Center 6 50 6 -50 174,1.082
+87,CenterList 0 51 6 51 7,1.105
+88,CenterList 1 51 6 50 6,1.487
+89,CenterList 2 0 0 0 1,1.019
+90,CenterList 3 0 0 1 0,1.016
+91,CenterList 4 50.777 6 50.778 6,1.02
+92,CenterList 5 50.777 6 50.778 6.001,0.996
+93,CenterList 6 50 6 -50 174,1.173
+94,Diameter 0 51 6 51 7,1.052
+95,Diameter 1 51 6 50 6,1.045
+96,Diameter 2 0 0 0 1,1.034
+97,Diameter 3 0 0 1 0,1.019
+98,Diameter 4 50.777 6 50.778 6,1.029
+99,Diameter 5 50.777 6 50.778 6.001,1.014
+100,Diameter 6 50 6 -50 174,1.032
+101,DiameterList 0 51 6 51 7,0.973
+102,DiameterList 1 51 6 50 6,0.975
+103,DiameterList 2 0 0 0 1,1.45
+104,DiameterList 3 0 0 1 0,1.325
+105,DiameterList 4 50.777 6 50.778 6,0.953
+106,DiameterList 5 50.777 6 50.778 6.001,0.933
+107,DiameterList 6 50 6 -50 174,0.946
+108,Distance* 0 51 6 51 7,1.075
+109,Distance* 1 51 6 50 6,1.066
+110,Distance* 2 0 0 0 1,1.618
+111,Distance* 3 0 0 1 0,1.287
+112,Distance* 4 50.777 6 50.778 6,1.326
+113,Distance* 5 50.777 6 50.778 6.001,1.02
+114,Distance* 6 50 6 -50 174,1.168
+115,Distance 0 51 6 51 7,1.035
+116,Distance 1 51 6 50 6,1.01
+117,Distance 2 0 0 0 1,1.514
+118,Distance 3 0 0 1 0,1.234
+119,Distance 4 50.777 6 50.778 6,1.445
+120,Distance 5 50.777 6 50.778 6.001,1.078
+121,Distance 6 50 6 -50 174,1.004
+122,DistanceList 0 51 6 51 7,0.97
+123,DistanceList 1 51 6 50 6,0.969
+124,DistanceList 2 0 0 0 1,1.182
+125,DistanceList 3 0 0 1 0,1.178
+126,DistanceList 4 50.777 6 50.778 6,1.089
+127,DistanceList 5 50.777 6 50.778 6.001,1.242
+128,DistanceList 6 50 6 -50 174,0.957
+129,Geo2Point* 1x 0 -10 -10,1.348
+130,Geo2Point* 1x 0 -10 0,1.317
+131,Geo2Point* 1x 0 -10 10,1.311
+132,Geo2Point* 1x 0 0 -10,1.301
+133,Geo2Point* 1x 0 0 0,1.298
+134,Geo2Point* 1x 0 0 10,1.326
+135,Geo2Point* 1x 0 10 -10,1.338
+136,Geo2Point* 1x 0 10 0,1.537
+137,Geo2Point* 1x 0 10 10,1.361
+138,Geo2Point* 1x 1 -10 -10,1.549
+139,Geo2Point* 1x 1 -10 0,1.341
+140,Geo2Point* 1x 1 -10 10,1.306
+141,Geo2Point* 1x 1 0 -10,1.321
+142,Geo2Point* 1x 1 0 0,1.538
+143,Geo2Point* 1x 1 0 10,1.31
+144,Geo2Point* 1x 1 10 -10,1.542
+145,Geo2Point* 1x 1 10 0,1.313
+146,Geo2Point* 1x 1 10 10,1.329
+147,Geo2Point* 1x 2 -10 -10,1.525
+148,Geo2Point* 1x 2 -10 0,1.559
+149,Geo2Point* 1x 2 -10 10,1.491
+150,Geo2Point* 1x 2 0 -10,1.554
+151,Geo2Point* 1x 2 0 0,1.491
+152,Geo2Point* 1x 2 0 10,1.306
+153,Geo2Point* 1x 2 10 -10,1.56
+154,Geo2Point* 1x 2 10 0,1.509
+155,Geo2Point* 1x 2 10 10,1.561
+156,Geo2Point* 1x 3 -10 -10,1.308
+157,Geo2Point* 1x 3 -10 0,1.298
+158,Geo2Point* 1x 3 -10 10,1.306
+159,Geo2Point* 1x 3 0 -10,1.304
+160,Geo2Point* 1x 3 0 0,1.548
+161,Geo2Point* 1x 3 0 10,1.441
+162,Geo2Point* 1x 3 10 -10,1.539
+163,Geo2Point* 1x 3 10 0,1.353
+164,Geo2Point* 1x 3 10 10,1.319
+165,Geo2Point* 1x 4 -10 -10,1.314
+166,Geo2Point* 1x 4 -10 0,1.3
+167,Geo2Point* 1x 4 -10 10,1.555
+168,Geo2Point* 1x 4 0 -10,1.511
+169,Geo2Point* 1x 4 0 0,1.364
+170,Geo2Point* 1x 4 0 10,1.466
+171,Geo2Point* 1x 4 10 -10,1.352
+172,Geo2Point* 1x 4 10 0,1.506
+173,Geo2Point* 1x 4 10 10,1.305
+174,Geo2Point* 1x 5 -10 -10,1.31
+175,Geo2Point* 1x 5 -10 0,1.338
+176,Geo2Point* 1x 5 -10 10,1.372
+177,Geo2Point* 1x 5 0 -10,1.389
+178,Geo2Point* 1x 5 0 0,1.513
+179,Geo2Point* 1x 5 0 10,1.546
+180,Geo2Point* 1x 5 10 -10,1.313
+181,Geo2Point* 1x 5 10 0,1.567
+182,Geo2Point* 1x 5 10 10,1.441
+183,Geo2Point* 1x 6 -10 -10,1.533
+184,Geo2Point* 1x 6 -10 0,1.56
+185,Geo2Point* 1x 6 -10 10,1.312
+186,Geo2Point* 1x 6 0 -10,1.325
+187,Geo2Point* 1x 6 0 0,1.737
+188,Geo2Point* 1x 6 0 10,1.501
+189,Geo2Point* 1x 6 10 -10,1.306
+190,Geo2Point* 1x 6 10 0,1.812
+191,Geo2Point* 1x 6 10 10,1.551
+192,Geo2Point* 1x 7 -10 -10,1.325
+193,Geo2Point* 1x 7 -10 0,1.308
+194,Geo2Point* 1x 7 -10 10,1.313
+195,Geo2Point* 1x 7 0 -10,1.31
+196,Geo2Point* 1x 7 0 0,1.624
+197,Geo2Point* 1x 7 0 10,1.512
+198,Geo2Point* 1x 7 10 -10,1.336
+199,Geo2Point* 1x 7 10 0,1.335
+200,Geo2Point* 1x 7 10 10,1.321
+201,Geo2Point* 1x 8 -10 -10,1.32
+202,Geo2Point* 1x 8 -10 0,1.365
+203,Geo2Point* 1x 8 -10 10,1.515
+204,Geo2Point* 1x 8 0 -10,1.29
+205,Geo2Point* 1x 8 0 0,1.775
+206,Geo2Point* 1x 8 0 10,1.503
+207,Geo2Point* 1x 8 10 -10,1.406
+208,Geo2Point* 1x 8 10 0,1.567
+209,Geo2Point* 1x 8 10 10,1.348
+210,Geo2Point* 1x 9 -10 -10,1.499
+211,Geo2Point* 1x 9 -10 0,1.325
+212,Geo2Point* 1x 9 -10 10,1.345
+213,Geo2Point* 1x 9 0 -10,2.244
+214,Geo2Point* 1x 9 0 0,1.502
+215,Geo2Point* 1x 9 0 10,1.607
+216,Geo2Point* 1x 9 10 -10,1.544
+217,Geo2Point* 1x 9 10 0,1.519
+218,Geo2Point* 1x 9 10 10,1.532
+219,Geo2Point* 1x 10 -10 -10,1.324
+220,Geo2Point* 1x 10 -10 0,1.345
+221,Geo2Point* 1x 10 -10 10,1.314
+222,Geo2Point* 1x 10 0 -10,1.329
+223,Geo2Point* 1x 10 0 0,1.988
+224,Geo2Point* 1x 10 0 10,1.303
+225,Geo2Point* 1x 10 10 -10,1.719
+226,Geo2Point* 1x 10 10 0,1.338
+227,Geo2Point* 1x 10 10 10,1.287
+228,Geo2Point* 1x 11 -10 -10,1.569
+229,Geo2Point* 1x 11 -10 0,1.852
+230,Geo2Point* 1x 11 -10 10,1.432
+231,Geo2Point* 1x 11 0 -10,1.518
+232,Geo2Point* 1x 11 0 0,1.548
+233,Geo2Point* 1x 11 0 10,1.308
+234,Geo2Point* 1x 11 10 -10,1.32
+235,Geo2Point* 1x 11 10 0,1.335
+236,Geo2Point* 1x 11 10 10,1.307
+237,Geo2Point* 1x 12 -10 -10,1.716
+238,Geo2Point* 1x 12 -10 0,1.574
+239,Geo2Point* 1x 12 -10 10,1.33
+240,Geo2Point* 1x 12 0 -10,1.518
+241,Geo2Point* 1x 12 0 0,1.78
+242,Geo2Point* 1x 12 0 10,1.305
+243,Geo2Point* 1x 12 10 -10,1.566
+244,Geo2Point* 1x 12 10 0,1.44
+245,Geo2Point* 1x 12 10 10,1.534
+246,Geo2Point* 1x 13 -10 -10,1.322
+247,Geo2Point* 1x 13 -10 0,1.535
+248,Geo2Point* 1x 13 -10 10,1.537
+249,Geo2Point* 1x 13 0 -10,1.318
+250,Geo2Point* 1x 13 0 0,1.495
+251,Geo2Point* 1x 13 0 10,1.415
+252,Geo2Point* 1x 13 10 -10,1.527
+253,Geo2Point* 1x 13 10 0,1.327
+254,Geo2Point* 1x 13 10 10,1.316
+255,Geo2Point* 1x 14 -10 -10,1.693
+256,Geo2Point* 1x 14 -10 0,1.567
+257,Geo2Point* 1x 14 -10 10,1.323
+258,Geo2Point* 1x 14 0 -10,1.464
+259,Geo2Point* 1x 14 0 0,1.3
+260,Geo2Point* 1x 14 0 10,1.661
+261,Geo2Point* 1x 14 10 -10,1.382
+262,Geo2Point* 1x 14 10 0,1.309
+263,Geo2Point* 1x 14 10 10,1.534
+264,Geo2Point* 1x 15 -10 -10,1.316
+265,Geo2Point* 1x 15 -10 0,1.623
+266,Geo2Point* 1x 15 -10 10,1.321
+267,Geo2Point* 1x 15 0 -10,1.659
+268,Geo2Point* 1x 15 0 0,1.492
+269,Geo2Point* 1x 15 0 10,1.313
+270,Geo2Point* 1x 15 10 -10,1.54
+271,Geo2Point* 1x 15 10 0,1.34
+272,Geo2Point* 1x 15 10 10,1.536
+273,Geo2Point* 1x 16 -10 -10,1.704
+274,Geo2Point* 1x 16 -10 0,1.309
+275,Geo2Point* 1x 16 -10 10,1.34
+276,Geo2Point* 1x 16 0 -10,1.331
+277,Geo2Point* 1x 16 0 0,1.632
+278,Geo2Point* 1x 16 0 10,1.328
+279,Geo2Point* 1x 16 10 -10,1.333
+280,Geo2Point* 1x 16 10 0,1.666
+281,Geo2Point* 1x 16 10 10,1.321
+282,Geo2Point* 1x 17 -10 -10,1.4
+283,Geo2Point* 1x 17 -10 0,1.469
+284,Geo2Point* 1x 17 -10 10,1.334
+285,Geo2Point* 1x 17 0 -10,1.51
+286,Geo2Point* 1x 17 0 0,1.318
+287,Geo2Point* 1x 17 0 10,1.61
+288,Geo2Point* 1x 17 10 -10,1.592
+289,Geo2Point* 1x 17 10 0,1.309
+290,Geo2Point* 1x 17 10 10,1.532
+291,Geo2Point* 1x 18 -10 -10,1.467
+292,Geo2Point* 1x 18 -10 0,1.497
+293,Geo2Point* 1x 18 -10 10,1.503
+294,Geo2Point* 1x 18 0 -10,1.542
+295,Geo2Point* 1x 18 0 0,1.311
+296,Geo2Point* 1x 18 0 10,1.519
+297,Geo2Point* 1x 18 10 -10,1.585
+298,Geo2Point* 1x 18 10 0,1.615
+299,Geo2Point* 1x 18 10 10,1.373
+300,Geo2Point* 2x 0 -10 -10,1.782
+301,Geo2Point* 2x 0 -10 0,2.112
+302,Geo2Point* 2x 0 -10 10,1.779
+303,Geo2Point* 2x 0 0 -10,1.487
+304,Geo2Point* 2x 0 0 0,2.001
+305,Geo2Point* 2x 0 0 10,1.501
+306,Geo2Point* 2x 0 10 -10,1.531
+307,Geo2Point* 2x 0 10 0,1.743
+308,Geo2Point* 2x 0 10 10,1.688
+309,Geo2Point* 2x 1 -10 -10,1.782
+310,Geo2Point* 2x 1 -10 0,1.964
+311,Geo2Point* 2x 1 -10 10,1.614
+312,Geo2Point* 2x 1 0 -10,1.655
+313,Geo2Point* 2x 1 0 0,1.739
+314,Geo2Point* 2x 1 0 10,1.901
+315,Geo2Point* 2x 1 10 -10,1.761
+316,Geo2Point* 2x 1 10 0,1.536
+317,Geo2Point* 2x 1 10 10,1.535
+318,Geo2Point* 2x 2 -10 -10,1.703
+319,Geo2Point* 2x 2 -10 0,1.787
+320,Geo2Point* 2x 2 -10 10,1.81
+321,Geo2Point* 2x 2 0 -10,1.718
+322,Geo2Point* 2x 2 0 0,1.944
+323,Geo2Point* 2x 2 0 10,1.658
+324,Geo2Point* 2x 2 10 -10,2.046
+325,Geo2Point* 2x 2 10 0,1.772
+326,Geo2Point* 2x 2 10 10,1.826
+327,Geo2Point* 2x 3 -10 -10,2.134
+328,Geo2Point* 2x 3 -10 0,1.536
+329,Geo2Point* 2x 3 -10 10,1.746
+330,Geo2Point* 2x 3 0 -10,1.467
+331,Geo2Point* 2x 3 0 0,1.826
+332,Geo2Point* 2x 3 0 10,1.495
+333,Geo2Point* 2x 3 10 -10,1.79
+334,Geo2Point* 2x 3 10 0,1.518
+335,Geo2Point* 2x 3 10 10,1.529
+336,Geo2Point* 2x 4 -10 -10,1.501
+337,Geo2Point* 2x 4 -10 0,1.514
+338,Geo2Point* 2x 4 -10 10,1.773
+339,Geo2Point* 2x 4 0 -10,1.723
+340,Geo2Point* 2x 4 0 0,1.592
+341,Geo2Point* 2x 4 0 10,1.594
+342,Geo2Point* 2x 4 10 -10,1.949
+343,Geo2Point* 2x 4 10 0,1.501
+344,Geo2Point* 2x 4 10 10,1.517
+345,Geo2Point* 2x 5 -10 -10,1.529
+346,Geo2Point* 2x 5 -10 0,1.541
+347,Geo2Point* 2x 5 -10 10,1.935
+348,Geo2Point* 2x 5 0 -10,2.02
+349,Geo2Point* 2x 5 0 0,1.505
+350,Geo2Point* 2x 5 0 10,1.493
+351,Geo2Point* 2x 5 10 -10,1.529
+352,Geo2Point* 2x 5 10 0,1.798
+353,Geo2Point* 2x 5 10 10,1.52
+354,Geo2Point* 2x 6 -10 -10,1.753
+355,Geo2Point* 2x 6 -10 0,1.503
+356,Geo2Point* 2x 6 -10 10,1.525
+357,Geo2Point* 2x 6 0 -10,1.735
+358,Geo2Point* 2x 6 0 0,1.74
+359,Geo2Point* 2x 6 0 10,2.311
+360,Geo2Point* 2x 6 10 -10,1.505
+361,Geo2Point* 2x 6 10 0,1.636
+362,Geo2Point* 2x 6 10 10,1.783
+363,Geo2Point* 2x 7 -10 -10,1.525
+364,Geo2Point* 2x 7 -10 0,1.604
+365,Geo2Point* 2x 7 -10 10,1.499
+366,Geo2Point* 2x 7 0 -10,1.515
+367,Geo2Point* 2x 7 0 0,1.733
+368,Geo2Point* 2x 7 0 10,1.543
+369,Geo2Point* 2x 7 10 -10,2.107
+370,Geo2Point* 2x 7 10 0,1.547
+371,Geo2Point* 2x 7 10 10,1.518
+372,Geo2Point* 2x 8 -10 -10,2.146
+373,Geo2Point* 2x 8 -10 0,1.719
+374,Geo2Point* 2x 8 -10 10,1.775
+375,Geo2Point* 2x 8 0 -10,1.493
+376,Geo2Point* 2x 8 0 0,1.578
+377,Geo2Point* 2x 8 0 10,1.705
+378,Geo2Point* 2x 8 10 -10,1.559
+379,Geo2Point* 2x 8 10 0,1.762
+380,Geo2Point* 2x 8 10 10,1.54
+381,Geo2Point* 2x 9 -10 -10,1.791
+382,Geo2Point* 2x 9 -10 0,1.534
+383,Geo2Point* 2x 9 -10 10,1.534
+384,Geo2Point* 2x 9 0 -10,1.479
+385,Geo2Point* 2x 9 0 0,1.53
+386,Geo2Point* 2x 9 0 10,1.495
+387,Geo2Point* 2x 9 10 -10,1.787
+388,Geo2Point* 2x 9 10 0,1.51
+389,Geo2Point* 2x 9 10 10,1.523
+390,Geo2Point* 2x 10 -10 -10,1.539
+391,Geo2Point* 2x 10 -10 0,1.531
+392,Geo2Point* 2x 10 -10 10,1.509
+393,Geo2Point* 2x 10 0 -10,1.515
+394,Geo2Point* 2x 10 0 0,1.75
+395,Geo2Point* 2x 10 0 10,1.51
+396,Geo2Point* 2x 10 10 -10,1.575
+397,Geo2Point* 2x 10 10 0,1.886
+398,Geo2Point* 2x 10 10 10,2.057
+399,Geo2Point* 2x 11 -10 -10,1.782
+400,Geo2Point* 2x 11 -10 0,2.131
+401,Geo2Point* 2x 11 -10 10,1.532
+402,Geo2Point* 2x 11 0 -10,1.639
+403,Geo2Point* 2x 11 0 0,1.768
+404,Geo2Point* 2x 11 0 10,1.506
+405,Geo2Point* 2x 11 10 -10,1.903
+406,Geo2Point* 2x 11 10 0,1.538
+407,Geo2Point* 2x 11 10 10,1.534
+408,Geo2Point* 2x 12 -10 -10,1.779
+409,Geo2Point* 2x 12 -10 0,1.871
+410,Geo2Point* 2x 12 -10 10,1.727
+411,Geo2Point* 2x 12 0 -10,1.519
+412,Geo2Point* 2x 12 0 0,1.876
+413,Geo2Point* 2x 12 0 10,1.486
+414,Geo2Point* 2x 12 10 -10,1.575
+415,Geo2Point* 2x 12 10 0,1.897
+416,Geo2Point* 2x 12 10 10,1.521
+417,Geo2Point* 2x 13 -10 -10,1.527
+418,Geo2Point* 2x 13 -10 0,1.523
+419,Geo2Point* 2x 13 -10 10,1.524
+420,Geo2Point* 2x 13 0 -10,1.529
+421,Geo2Point* 2x 13 0 0,1.757
+422,Geo2Point* 2x 13 0 10,1.472
+423,Geo2Point* 2x 13 10 -10,1.769
+424,Geo2Point* 2x 13 10 0,1.537
+425,Geo2Point* 2x 13 10 10,1.504
+426,Geo2Point* 2x 14 -10 -10,1.914
+427,Geo2Point* 2x 14 -10 0,1.77
+428,Geo2Point* 2x 14 -10 10,1.915
+429,Geo2Point* 2x 14 0 -10,1.5
+430,Geo2Point* 2x 14 0 0,2.881
+431,Geo2Point* 2x 14 0 10,1.485
+432,Geo2Point* 2x 14 10 -10,1.522
+433,Geo2Point* 2x 14 10 0,1.52
+434,Geo2Point* 2x 14 10 10,1.787
+435,Geo2Point* 2x 15 -10 -10,1.895
+436,Geo2Point* 2x 15 -10 0,1.877
+437,Geo2Point* 2x 15 -10 10,1.706
+438,Geo2Point* 2x 15 0 -10,2.146
+439,Geo2Point* 2x 15 0 0,1.596
+440,Geo2Point* 2x 15 0 10,2.255
+441,Geo2Point* 2x 15 10 -10,1.534
+442,Geo2Point* 2x 15 10 0,1.522
+443,Geo2Point* 2x 15 10 10,1.792
+444,Geo2Point* 2x 16 -10 -10,1.533
+445,Geo2Point* 2x 16 -10 0,1.657
+446,Geo2Point* 2x 16 -10 10,1.852
+447,Geo2Point* 2x 16 0 -10,1.525
+448,Geo2Point* 2x 16 0 0,1.791
+449,Geo2Point* 2x 16 0 10,1.513
+450,Geo2Point* 2x 16 10 -10,1.777
+451,Geo2Point* 2x 16 10 0,1.623
+452,Geo2Point* 2x 16 10 10,2.308
+453,Geo2Point* 2x 17 -10 -10,2.067
+454,Geo2Point* 2x 17 -10 0,1.53
+455,Geo2Point* 2x 17 -10 10,1.527
+456,Geo2Point* 2x 17 0 -10,1.737
+457,Geo2Point* 2x 17 0 0,1.52
+458,Geo2Point* 2x 17 0 10,1.804
+459,Geo2Point* 2x 17 10 -10,1.88
+460,Geo2Point* 2x 17 10 0,1.794
+461,Geo2Point* 2x 17 10 10,1.817
+462,Geo2Point* 2x 18 -10 -10,1.544
+463,Geo2Point* 2x 18 -10 0,1.816
+464,Geo2Point* 2x 18 -10 10,1.555
+465,Geo2Point* 2x 18 0 -10,1.773
+466,Geo2Point* 2x 18 0 0,1.991
+467,Geo2Point* 2x 18 0 10,1.546
+468,Geo2Point* 2x 18 10 -10,1.52
+469,Geo2Point* 2x 18 10 0,1.78
+470,Geo2Point* 2x 18 10 10,1.774
+471,Geo2Point* 5x 0 -10 -10,2.065
+472,Geo2Point* 5x 0 -10 0,2.096
+473,Geo2Point* 5x 0 -10 10,2.963
+474,Geo2Point* 5x 0 0 -10,1.995
+475,Geo2Point* 5x 0 0 0,2.56
+476,Geo2Point* 5x 0 0 10,2.007
+477,Geo2Point* 5x 0 10 -10,2.104
+478,Geo2Point* 5x 0 10 0,2.079
+479,Geo2Point* 5x 0 10 10,2.101
+480,Geo2Point* 5x 1 -10 -10,4.655
+481,Geo2Point* 5x 1 -10 0,2.553
+482,Geo2Point* 5x 1 -10 10,2.472
+483,Geo2Point* 5x 1 0 -10,2.49
+484,Geo2Point* 5x 1 0 0,2.02
+485,Geo2Point* 5x 1 0 10,2.224
+486,Geo2Point* 5x 1 10 -10,2.5
+487,Geo2Point* 5x 1 10 0,2.523
+488,Geo2Point* 5x 1 10 10,2.447
+489,Geo2Point* 5x 2 -10 -10,2.409
+490,Geo2Point* 5x 2 -10 0,2.073
+491,Geo2Point* 5x 2 -10 10,2.076
+492,Geo2Point* 5x 2 0 -10,2.001
+493,Geo2Point* 5x 2 0 0,2.367
+494,Geo2Point* 5x 2 0 10,2.376
+495,Geo2Point* 5x 2 10 -10,2.117
+496,Geo2Point* 5x 2 10 0,2.827
+497,Geo2Point* 5x 2 10 10,2.068
+498,Geo2Point* 5x 3 -10 -10,2.492
+499,Geo2Point* 5x 3 -10 0,2.721
+500,Geo2Point* 5x 3 -10 10,2.977
+501,Geo2Point* 5x 3 0 -10,2.572
+502,Geo2Point* 5x 3 0 0,1.99
+503,Geo2Point* 5x 3 0 10,2.009
+504,Geo2Point* 5x 3 10 -10,3.128
+505,Geo2Point* 5x 3 10 0,3.164
+506,Geo2Point* 5x 3 10 10,2.259
+507,Geo2Point* 5x 4 -10 -10,2.099
+508,Geo2Point* 5x 4 -10 0,2.086
+509,Geo2Point* 5x 4 -10 10,2.078
+510,Geo2Point* 5x 4 0 -10,2.043
+511,Geo2Point* 5x 4 0 0,2.356
+512,Geo2Point* 5x 4 0 10,2.1
+513,Geo2Point* 5x 4 10 -10,2.407
+514,Geo2Point* 5x 4 10 0,3.048
+515,Geo2Point* 5x 4 10 10,2.34
+516,Geo2Point* 5x 5 -10 -10,2.085
+517,Geo2Point* 5x 5 -10 0,5.295
+518,Geo2Point* 5x 5 -10 10,2.56
+519,Geo2Point* 5x 5 0 -10,2.385
+520,Geo2Point* 5x 5 0 0,2.626
+521,Geo2Point* 5x 5 0 10,2.008
+522,Geo2Point* 5x 5 10 -10,2.116
+523,Geo2Point* 5x 5 10 0,2.105
+524,Geo2Point* 5x 5 10 10,2.535
+525,Geo2Point* 5x 6 -10 -10,2.072
+526,Geo2Point* 5x 6 -10 0,2.498
+527,Geo2Point* 5x 6 -10 10,2.096
+528,Geo2Point* 5x 6 0 -10,2.273
+529,Geo2Point* 5x 6 0 0,2.392
+530,Geo2Point* 5x 6 0 10,2.395
+531,Geo2Point* 5x 6 10 -10,2.084
+532,Geo2Point* 5x 6 10 0,2.186
+533,Geo2Point* 5x 6 10 10,2.112
+534,Geo2Point* 5x 7 -10 -10,2.085
+535,Geo2Point* 5x 7 -10 0,2.702
+536,Geo2Point* 5x 7 -10 10,2.085
+537,Geo2Point* 5x 7 0 -10,1.967
+538,Geo2Point* 5x 7 0 0,2.371
+539,Geo2Point* 5x 7 0 10,2.006
+540,Geo2Point* 5x 7 10 -10,2.495
+541,Geo2Point* 5x 7 10 0,2.585
+542,Geo2Point* 5x 7 10 10,2.447
+543,Geo2Point* 5x 8 -10 -10,2.083
+544,Geo2Point* 5x 8 -10 0,3.19
+545,Geo2Point* 5x 8 -10 10,2.946
+546,Geo2Point* 5x 8 0 -10,2.753
+547,Geo2Point* 5x 8 0 0,2.336
+548,Geo2Point* 5x 8 0 10,2.561
+549,Geo2Point* 5x 8 10 -10,2.184
+550,Geo2Point* 5x 8 10 0,2.096
+551,Geo2Point* 5x 8 10 10,2.095
+552,Geo2Point* 5x 9 -10 -10,2.122
+553,Geo2Point* 5x 9 -10 0,2.087
+554,Geo2Point* 5x 9 -10 10,2.131
+555,Geo2Point* 5x 9 0 -10,1.992
+556,Geo2Point* 5x 9 0 0,2.008
+557,Geo2Point* 5x 9 0 10,2.0
+558,Geo2Point* 5x 9 10 -10,2.496
+559,Geo2Point* 5x 9 10 0,2.697
+560,Geo2Point* 5x 9 10 10,2.1
+561,Geo2Point* 5x 10 -10 -10,2.107
+562,Geo2Point* 5x 10 -10 0,2.572
+563,Geo2Point* 5x 10 -10 10,2.495
+564,Geo2Point* 5x 10 0 -10,2.928
+565,Geo2Point* 5x 10 0 0,2.32
+566,Geo2Point* 5x 10 0 10,2.474
+567,Geo2Point* 5x 10 10 -10,2.1
+568,Geo2Point* 5x 10 10 0,2.522
+569,Geo2Point* 5x 10 10 10,2.131
+570,Geo2Point* 5x 11 -10 -10,2.083
+571,Geo2Point* 5x 11 -10 0,2.515
+572,Geo2Point* 5x 11 -10 10,2.31
+573,Geo2Point* 5x 11 0 -10,2.019
+574,Geo2Point* 5x 11 0 0,2.38
+575,Geo2Point* 5x 11 0 10,2.021
+576,Geo2Point* 5x 11 10 -10,2.18
+577,Geo2Point* 5x 11 10 0,2.354
+578,Geo2Point* 5x 11 10 10,3.122
+579,Geo2Point* 5x 12 -10 -10,2.376
+580,Geo2Point* 5x 12 -10 0,2.355
+581,Geo2Point* 5x 12 -10 10,2.284
+582,Geo2Point* 5x 12 0 -10,2.02
+583,Geo2Point* 5x 12 0 0,2.433
+584,Geo2Point* 5x 12 0 10,2.342
+585,Geo2Point* 5x 12 10 -10,2.115
+586,Geo2Point* 5x 12 10 0,2.185
+587,Geo2Point* 5x 12 10 10,3.285
+588,Geo2Point* 5x 13 -10 -10,2.581
+589,Geo2Point* 5x 13 -10 0,2.687
+590,Geo2Point* 5x 13 -10 10,2.59
+591,Geo2Point* 5x 13 0 -10,3.074
+592,Geo2Point* 5x 13 0 0,2.182
+593,Geo2Point* 5x 13 0 10,1.993
+594,Geo2Point* 5x 13 10 -10,2.504
+595,Geo2Point* 5x 13 10 0,3.008
+596,Geo2Point* 5x 13 10 10,3.125
+597,Geo2Point* 5x 14 -10 -10,2.524
+598,Geo2Point* 5x 14 -10 0,2.445
+599,Geo2Point* 5x 14 -10 10,2.579
+600,Geo2Point* 5x 14 0 -10,2.0
+601,Geo2Point* 5x 14 0 0,2.367
+602,Geo2Point* 5x 14 0 10,1.998
+603,Geo2Point* 5x 14 10 -10,2.429
+604,Geo2Point* 5x 14 10 0,2.073
+605,Geo2Point* 5x 14 10 10,2.691
+606,Geo2Point* 5x 15 -10 -10,2.513
+607,Geo2Point* 5x 15 -10 0,2.534
+608,Geo2Point* 5x 15 -10 10,2.054
+609,Geo2Point* 5x 15 0 -10,2.376
+610,Geo2Point* 5x 15 0 0,2.133
+611,Geo2Point* 5x 15 0 10,2.396
+612,Geo2Point* 5x 15 10 -10,2.196
+613,Geo2Point* 5x 15 10 0,2.106
+614,Geo2Point* 5x 15 10 10,2.296
+615,Geo2Point* 5x 16 -10 -10,2.072
+616,Geo2Point* 5x 16 -10 0,2.478
+617,Geo2Point* 5x 16 -10 10,2.157
+618,Geo2Point* 5x 16 0 -10,2.558
+619,Geo2Point* 5x 16 0 0,2.401
+620,Geo2Point* 5x 16 0 10,1.996
+621,Geo2Point* 5x 16 10 -10,2.836
+622,Geo2Point* 5x 16 10 0,2.525
+623,Geo2Point* 5x 16 10 10,2.556
+624,Geo2Point* 5x 17 -10 -10,2.118
+625,Geo2Point* 5x 17 -10 0,2.469
+626,Geo2Point* 5x 17 -10 10,2.091
+627,Geo2Point* 5x 17 0 -10,2.374
+628,Geo2Point* 5x 17 0 0,2.403
+629,Geo2Point* 5x 17 0 10,2.333
+630,Geo2Point* 5x 17 10 -10,2.509
+631,Geo2Point* 5x 17 10 0,2.059
+632,Geo2Point* 5x 17 10 10,2.645
+633,Geo2Point* 5x 18 -10 -10,2.088
+634,Geo2Point* 5x 18 -10 0,2.527
+635,Geo2Point* 5x 18 -10 10,2.118
+636,Geo2Point* 5x 18 0 -10,2.387
+637,Geo2Point* 5x 18 0 0,2.45
+638,Geo2Point* 5x 18 0 10,3.085
+639,Geo2Point* 5x 18 10 -10,2.109
+640,Geo2Point* 5x 18 10 0,2.175
+641,Geo2Point* 5x 18 10 10,2.15
+642,Geo2Point* 10x 0 -10 -10,3.048
+643,Geo2Point* 10x 0 -10 0,3.0
+644,Geo2Point* 10x 0 -10 10,3.706
+645,Geo2Point* 10x 0 0 -10,3.821
+646,Geo2Point* 10x 0 0 0,3.474
+647,Geo2Point* 10x 0 0 10,2.829
+648,Geo2Point* 10x 0 10 -10,3.185
+649,Geo2Point* 10x 0 10 0,3.669
+650,Geo2Point* 10x 0 10 10,3.006
+651,Geo2Point* 10x 1 -10 -10,7.724
+652,Geo2Point* 10x 1 -10 0,3.741
+653,Geo2Point* 10x 1 -10 10,3.103
+654,Geo2Point* 10x 1 0 -10,3.442
+655,Geo2Point* 10x 1 0 0,3.531
+656,Geo2Point* 10x 1 0 10,3.194
+657,Geo2Point* 10x 1 10 -10,3.711
+658,Geo2Point* 10x 1 10 0,3.714
+659,Geo2Point* 10x 1 10 10,3.025
+660,Geo2Point* 10x 2 -10 -10,3.768
+661,Geo2Point* 10x 2 -10 0,4.218
+662,Geo2Point* 10x 2 -10 10,3.098
+663,Geo2Point* 10x 2 0 -10,2.845
+664,Geo2Point* 10x 2 0 0,2.825
+665,Geo2Point* 10x 2 0 10,3.507
+666,Geo2Point* 10x 2 10 -10,3.331
+667,Geo2Point* 10x 2 10 0,3.67
+668,Geo2Point* 10x 2 10 10,2.997
+669,Geo2Point* 10x 3 -10 -10,3.635
+670,Geo2Point* 10x 3 -10 0,3.019
+671,Geo2Point* 10x 3 -10 10,3.715
+672,Geo2Point* 10x 3 0 -10,3.847
+673,Geo2Point* 10x 3 0 0,2.793
+674,Geo2Point* 10x 3 0 10,3.501
+675,Geo2Point* 10x 3 10 -10,3.703
+676,Geo2Point* 10x 3 10 0,3.72
+677,Geo2Point* 10x 3 10 10,3.068
+678,Geo2Point* 10x 4 -10 -10,3.711
+679,Geo2Point* 10x 4 -10 0,3.857
+680,Geo2Point* 10x 4 -10 10,3.516
+681,Geo2Point* 10x 4 0 -10,2.949
+682,Geo2Point* 10x 4 0 0,3.014
+683,Geo2Point* 10x 4 0 10,3.147
+684,Geo2Point* 10x 4 10 -10,3.067
+685,Geo2Point* 10x 4 10 0,3.719
+686,Geo2Point* 10x 4 10 10,3.072
+687,Geo2Point* 10x 5 -10 -10,3.025
+688,Geo2Point* 10x 5 -10 0,2.998
+689,Geo2Point* 10x 5 -10 10,3.718
+690,Geo2Point* 10x 5 0 -10,3.457
+691,Geo2Point* 10x 5 0 0,3.471
+692,Geo2Point* 10x 5 0 10,2.854
+693,Geo2Point* 10x 5 10 -10,3.038
+694,Geo2Point* 10x 5 10 0,3.849
+695,Geo2Point* 10x 5 10 10,3.077
+696,Geo2Point* 10x 6 -10 -10,4.565
+697,Geo2Point* 10x 6 -10 0,4.025
+698,Geo2Point* 10x 6 -10 10,3.163
+699,Geo2Point* 10x 6 0 -10,2.868
+700,Geo2Point* 10x 6 0 0,3.32
+701,Geo2Point* 10x 6 0 10,3.483
+702,Geo2Point* 10x 6 10 -10,3.97
+703,Geo2Point* 10x 6 10 0,3.667
+704,Geo2Point* 10x 6 10 10,4.046
+705,Geo2Point* 10x 7 -10 -10,4.044
+706,Geo2Point* 10x 7 -10 0,3.735
+707,Geo2Point* 10x 7 -10 10,3.111
+708,Geo2Point* 10x 7 0 -10,3.608
+709,Geo2Point* 10x 7 0 0,2.815
+710,Geo2Point* 10x 7 0 10,3.464
+711,Geo2Point* 10x 7 10 -10,3.036
+712,Geo2Point* 10x 7 10 0,3.028
+713,Geo2Point* 10x 7 10 10,3.027
+714,Geo2Point* 10x 8 -10 -10,3.046
+715,Geo2Point* 10x 8 -10 0,3.702
+716,Geo2Point* 10x 8 -10 10,3.773
+717,Geo2Point* 10x 8 0 -10,2.845
+718,Geo2Point* 10x 8 0 0,2.857
+719,Geo2Point* 10x 8 0 10,3.343
+720,Geo2Point* 10x 8 10 -10,4.231
+721,Geo2Point* 10x 8 10 0,4.364
+722,Geo2Point* 10x 8 10 10,4.108
+723,Geo2Point* 10x 9 -10 -10,3.498
+724,Geo2Point* 10x 9 -10 0,3.785
+725,Geo2Point* 10x 9 -10 10,3.079
+726,Geo2Point* 10x 9 0 -10,2.825
+727,Geo2Point* 10x 9 0 0,3.682
+728,Geo2Point* 10x 9 0 10,2.829
+729,Geo2Point* 10x 9 10 -10,3.03
+730,Geo2Point* 10x 9 10 0,3.904
+731,Geo2Point* 10x 9 10 10,4.619
+732,Geo2Point* 10x 10 -10 -10,3.384
+733,Geo2Point* 10x 10 -10 0,3.302
+734,Geo2Point* 10x 10 -10 10,3.682
+735,Geo2Point* 10x 10 0 -10,3.47
+736,Geo2Point* 10x 10 0 0,2.826
+737,Geo2Point* 10x 10 0 10,3.375
+738,Geo2Point* 10x 10 10 -10,3.022
+739,Geo2Point* 10x 10 10 0,3.037
+740,Geo2Point* 10x 10 10 10,2.996
+741,Geo2Point* 10x 11 -10 -10,3.854
+742,Geo2Point* 10x 11 -10 0,3.022
+743,Geo2Point* 10x 11 -10 10,3.04
+744,Geo2Point* 10x 11 0 -10,3.584
+745,Geo2Point* 10x 11 0 0,2.858
+746,Geo2Point* 10x 11 0 10,3.06
+747,Geo2Point* 10x 11 10 -10,3.063
+748,Geo2Point* 10x 11 10 0,3.046
+749,Geo2Point* 10x 11 10 10,3.386
+750,Geo2Point* 10x 12 -10 -10,3.035
+751,Geo2Point* 10x 12 -10 0,3.02
+752,Geo2Point* 10x 12 -10 10,3.044
+753,Geo2Point* 10x 12 0 -10,3.146
+754,Geo2Point* 10x 12 0 0,3.042
+755,Geo2Point* 10x 12 0 10,3.484
+756,Geo2Point* 10x 12 10 -10,3.875
+757,Geo2Point* 10x 12 10 0,3.163
+758,Geo2Point* 10x 12 10 10,3.006
+759,Geo2Point* 10x 13 -10 -10,3.242
+760,Geo2Point* 10x 13 -10 0,3.002
+761,Geo2Point* 10x 13 -10 10,3.723
+762,Geo2Point* 10x 13 0 -10,3.518
+763,Geo2Point* 10x 13 0 0,3.549
+764,Geo2Point* 10x 13 0 10,3.335
+765,Geo2Point* 10x 13 10 -10,3.461
+766,Geo2Point* 10x 13 10 0,3.751
+767,Geo2Point* 10x 13 10 10,3.283
+768,Geo2Point* 10x 14 -10 -10,3.074
+769,Geo2Point* 10x 14 -10 0,3.256
+770,Geo2Point* 10x 14 -10 10,3.708
+771,Geo2Point* 10x 14 0 -10,3.561
+772,Geo2Point* 10x 14 0 0,3.095
+773,Geo2Point* 10x 14 0 10,3.562
+774,Geo2Point* 10x 14 10 -10,4.072
+775,Geo2Point* 10x 14 10 0,4.227
+776,Geo2Point* 10x 14 10 10,4.534
+777,Geo2Point* 10x 15 -10 -10,3.587
+778,Geo2Point* 10x 15 -10 0,3.959
+779,Geo2Point* 10x 15 -10 10,3.093
+780,Geo2Point* 10x 15 0 -10,3.099
+781,Geo2Point* 10x 15 0 0,2.941
+782,Geo2Point* 10x 15 0 10,3.445
+783,Geo2Point* 10x 15 10 -10,3.48
+784,Geo2Point* 10x 15 10 0,3.521
+785,Geo2Point* 10x 15 10 10,4.094
+786,Geo2Point* 10x 16 -10 -10,3.023
+787,Geo2Point* 10x 16 -10 0,3.724
+788,Geo2Point* 10x 16 -10 10,3.501
+789,Geo2Point* 10x 16 0 -10,3.555
+790,Geo2Point* 10x 16 0 0,3.402
+791,Geo2Point* 10x 16 0 10,3.553
+792,Geo2Point* 10x 16 10 -10,6.354
+793,Geo2Point* 10x 16 10 0,3.004
+794,Geo2Point* 10x 16 10 10,3.245
+795,Geo2Point* 10x 17 -10 -10,3.07
+796,Geo2Point* 10x 17 -10 0,3.078
+797,Geo2Point* 10x 17 -10 10,4.475
+798,Geo2Point* 10x 17 0 -10,3.364
+799,Geo2Point* 10x 17 0 0,2.849
+800,Geo2Point* 10x 17 0 10,3.097
+801,Geo2Point* 10x 17 10 -10,3.055
+802,Geo2Point* 10x 17 10 0,3.04
+803,Geo2Point* 10x 17 10 10,3.041
+804,Geo2Point* 10x 18 -10 -10,3.143
+805,Geo2Point* 10x 18 -10 0,3.014
+806,Geo2Point* 10x 18 -10 10,3.061
+807,Geo2Point* 10x 18 0 -10,3.689
+808,Geo2Point* 10x 18 0 0,3.444
+809,Geo2Point* 10x 18 0 10,3.488
+810,Geo2Point* 10x 18 10 -10,3.576
+811,Geo2Point* 10x 18 10 0,3.164
+812,Geo2Point* 10x 18 10 10,3.017
+813,Geo2Point* 20x 0 -10 -10,4.93
+814,Geo2Point* 20x 0 -10 0,5.23
+815,Geo2Point* 20x 0 -10 10,4.949
+816,Geo2Point* 20x 0 0 -10,4.478
+817,Geo2Point* 20x 0 0 0,5.276
+818,Geo2Point* 20x 0 0 10,4.702
+819,Geo2Point* 20x 0 10 -10,5.325
+820,Geo2Point* 20x 0 10 0,4.882
+821,Geo2Point* 20x 0 10 10,5.12
+822,Geo2Point* 20x 1 -10 -10,5.814
+823,Geo2Point* 20x 1 -10 0,6.003
+824,Geo2Point* 20x 1 -10 10,5.919
+825,Geo2Point* 20x 1 0 -10,5.879
+826,Geo2Point* 20x 1 0 0,4.706
+827,Geo2Point* 20x 1 0 10,5.422
+828,Geo2Point* 20x 1 10 -10,5.119
+829,Geo2Point* 20x 1 10 0,5.795
+830,Geo2Point* 20x 1 10 10,5.488
+831,Geo2Point* 20x 2 -10 -10,4.871
+832,Geo2Point* 20x 2 -10 0,4.962
+833,Geo2Point* 20x 2 -10 10,5.497
+834,Geo2Point* 20x 2 0 -10,5.613
+835,Geo2Point* 20x 2 0 0,5.291
+836,Geo2Point* 20x 2 0 10,4.505
+837,Geo2Point* 20x 2 10 -10,6.332
+838,Geo2Point* 20x 2 10 0,5.498
+839,Geo2Point* 20x 2 10 10,6.22
+840,Geo2Point* 20x 3 -10 -10,5.771
+841,Geo2Point* 20x 3 -10 0,4.886
+842,Geo2Point* 20x 3 -10 10,5.842
+843,Geo2Point* 20x 3 0 -10,5.086
+844,Geo2Point* 20x 3 0 0,5.394
+845,Geo2Point* 20x 3 0 10,4.648
+846,Geo2Point* 20x 3 10 -10,5.343
+847,Geo2Point* 20x 3 10 0,5.421
+848,Geo2Point* 20x 3 10 10,5.478
+849,Geo2Point* 20x 4 -10 -10,6.218
+850,Geo2Point* 20x 4 -10 0,5.789
+851,Geo2Point* 20x 4 -10 10,4.909
+852,Geo2Point* 20x 4 0 -10,4.964
+853,Geo2Point* 20x 4 0 0,4.862
+854,Geo2Point* 20x 4 0 10,6.002
+855,Geo2Point* 20x 4 10 -10,5.638
+856,Geo2Point* 20x 4 10 0,5.538
+857,Geo2Point* 20x 4 10 10,5.075
+858,Geo2Point* 20x 5 -10 -10,4.981
+859,Geo2Point* 20x 5 -10 0,6.082
+860,Geo2Point* 20x 5 -10 10,6.639
+861,Geo2Point* 20x 5 0 -10,5.914
+862,Geo2Point* 20x 5 0 0,4.85
+863,Geo2Point* 20x 5 0 10,5.659
+864,Geo2Point* 20x 5 10 -10,4.944
+865,Geo2Point* 20x 5 10 0,6.073
+866,Geo2Point* 20x 5 10 10,4.978
+867,Geo2Point* 20x 6 -10 -10,4.941
+868,Geo2Point* 20x 6 -10 0,5.733
+869,Geo2Point* 20x 6 -10 10,4.96
+870,Geo2Point* 20x 6 0 -10,5.453
+871,Geo2Point* 20x 6 0 0,5.683
+872,Geo2Point* 20x 6 0 10,5.142
+873,Geo2Point* 20x 6 10 -10,5.013
+874,Geo2Point* 20x 6 10 0,6.477
+875,Geo2Point* 20x 6 10 10,6.065
+876,Geo2Point* 20x 7 -10 -10,5.996
+877,Geo2Point* 20x 7 -10 0,5.341
+878,Geo2Point* 20x 7 -10 10,4.952
+879,Geo2Point* 20x 7 0 -10,5.646
+880,Geo2Point* 20x 7 0 0,5.928
+881,Geo2Point* 20x 7 0 10,4.52
+882,Geo2Point* 20x 7 10 -10,5.836
+883,Geo2Point* 20x 7 10 0,4.998
+884,Geo2Point* 20x 7 10 10,4.912
+885,Geo2Point* 20x 8 -10 -10,5.712
+886,Geo2Point* 20x 8 -10 0,6.265
+887,Geo2Point* 20x 8 -10 10,5.941
+888,Geo2Point* 20x 8 0 -10,4.577
+889,Geo2Point* 20x 8 0 0,6.001
+890,Geo2Point* 20x 8 0 10,4.671
+891,Geo2Point* 20x 8 10 -10,5.153
+892,Geo2Point* 20x 8 10 0,5.764
+893,Geo2Point* 20x 8 10 10,4.902
+894,Geo2Point* 20x 9 -10 -10,6.178
+895,Geo2Point* 20x 9 -10 0,5.651
+896,Geo2Point* 20x 9 -10 10,5.126
+897,Geo2Point* 20x 9 0 -10,5.727
+898,Geo2Point* 20x 9 0 0,5.557
+899,Geo2Point* 20x 9 0 10,5.326
+900,Geo2Point* 20x 9 10 -10,6.21
+901,Geo2Point* 20x 9 10 0,5.082
+902,Geo2Point* 20x 9 10 10,4.944
+903,Geo2Point* 20x 10 -10 -10,4.978
+904,Geo2Point* 20x 10 -10 0,5.023
+905,Geo2Point* 20x 10 -10 10,5.857
+906,Geo2Point* 20x 10 0 -10,5.469
+907,Geo2Point* 20x 10 0 0,5.612
+908,Geo2Point* 20x 10 0 10,4.533
+909,Geo2Point* 20x 10 10 -10,5.863
+910,Geo2Point* 20x 10 10 0,5.752
+911,Geo2Point* 20x 10 10 10,5.39
+912,Geo2Point* 20x 11 -10 -10,6.119
+913,Geo2Point* 20x 11 -10 0,5.527
+914,Geo2Point* 20x 11 -10 10,5.034
+915,Geo2Point* 20x 11 0 -10,5.046
+916,Geo2Point* 20x 11 0 0,5.79
+917,Geo2Point* 20x 11 0 10,4.571
+918,Geo2Point* 20x 11 10 -10,5.678
+919,Geo2Point* 20x 11 10 0,5.218
+920,Geo2Point* 20x 11 10 10,5.513
+921,Geo2Point* 20x 12 -10 -10,6.403
+922,Geo2Point* 20x 12 -10 0,6.239
+923,Geo2Point* 20x 12 -10 10,5.499
+924,Geo2Point* 20x 12 0 -10,4.57
+925,Geo2Point* 20x 12 0 0,5.88
+926,Geo2Point* 20x 12 0 10,4.674
+927,Geo2Point* 20x 12 10 -10,5.02
+928,Geo2Point* 20x 12 10 0,6.138
+929,Geo2Point* 20x 12 10 10,5.386
+930,Geo2Point* 20x 13 -10 -10,5.249
+931,Geo2Point* 20x 13 -10 0,4.963
+932,Geo2Point* 20x 13 -10 10,5.007
+933,Geo2Point* 20x 13 0 -10,4.916
+934,Geo2Point* 20x 13 0 0,4.566
+935,Geo2Point* 20x 13 0 10,4.633
+936,Geo2Point* 20x 13 10 -10,5.58
+937,Geo2Point* 20x 13 10 0,6.485
+938,Geo2Point* 20x 13 10 10,5.901
+939,Geo2Point* 20x 14 -10 -10,6.842
+940,Geo2Point* 20x 14 -10 0,6.517
+941,Geo2Point* 20x 14 -10 10,5.905
+942,Geo2Point* 20x 14 0 -10,4.543
+943,Geo2Point* 20x 14 0 0,5.555
+944,Geo2Point* 20x 14 0 10,4.562
+945,Geo2Point* 20x 14 10 -10,6.437
+946,Geo2Point* 20x 14 10 0,4.952
+947,Geo2Point* 20x 14 10 10,5.458
+948,Geo2Point* 20x 15 -10 -10,6.761
+949,Geo2Point* 20x 15 -10 0,6.171
+950,Geo2Point* 20x 15 -10 10,4.946
+951,Geo2Point* 20x 15 0 -10,5.796
+952,Geo2Point* 20x 15 0 0,4.627
+953,Geo2Point* 20x 15 0 10,5.714
+954,Geo2Point* 20x 15 10 -10,5.005
+955,Geo2Point* 20x 15 10 0,5.048
+956,Geo2Point* 20x 15 10 10,5.832
+957,Geo2Point* 20x 16 -10 -10,6.243
+958,Geo2Point* 20x 16 -10 0,5.402
+959,Geo2Point* 20x 16 -10 10,5.509
+960,Geo2Point* 20x 16 0 -10,5.126
+961,Geo2Point* 20x 16 0 0,4.988
+962,Geo2Point* 20x 16 0 10,4.69
+963,Geo2Point* 20x 16 10 -10,4.974
+964,Geo2Point* 20x 16 10 0,5.893
+965,Geo2Point* 20x 16 10 10,6.841
+966,Geo2Point* 20x 17 -10 -10,5.678
+967,Geo2Point* 20x 17 -10 0,4.926
+968,Geo2Point* 20x 17 -10 10,5.375
+969,Geo2Point* 20x 17 0 -10,5.031
+970,Geo2Point* 20x 17 0 0,4.677
+971,Geo2Point* 20x 17 0 10,5.717
+972,Geo2Point* 20x 17 10 -10,6.379
+973,Geo2Point* 20x 17 10 0,6.834
+974,Geo2Point* 20x 17 10 10,5.098
+975,Geo2Point* 20x 18 -10 -10,5.717
+976,Geo2Point* 20x 18 -10 0,6.253
+977,Geo2Point* 20x 18 -10 10,6.152
+978,Geo2Point* 20x 18 0 -10,5.651
+979,Geo2Point* 20x 18 0 0,5.949
+980,Geo2Point* 20x 18 0 10,5.129
+981,Geo2Point* 20x 18 10 -10,6.178
+982,Geo2Point* 20x 18 10 0,5.078
+983,Geo2Point* 20x 18 10 10,6.296
+984,Geo2Point* 50x 0 -10 -10,11.83
+985,Geo2Point* 50x 0 -10 0,11.576
+986,Geo2Point* 50x 0 -10 10,10.805
+987,Geo2Point* 50x 0 0 -10,12.314
+988,Geo2Point* 50x 0 0 0,10.426
+989,Geo2Point* 50x 0 0 10,10.381
+990,Geo2Point* 50x 0 10 -10,13.738
+991,Geo2Point* 50x 0 10 0,10.796
+992,Geo2Point* 50x 0 10 10,12.577
+993,Geo2Point* 50x 1 -10 -10,11.598
+994,Geo2Point* 50x 1 -10 0,11.74
+995,Geo2Point* 50x 1 -10 10,12.58
+996,Geo2Point* 50x 1 0 -10,10.567
+997,Geo2Point* 50x 1 0 0,11.077
+998,Geo2Point* 50x 1 0 10,11.586
+999,Geo2Point* 50x 1 10 -10,14.075
+1000,Geo2Point* 50x 1 10 0,13.776
+1001,Geo2Point* 50x 1 10 10,14.233
+1002,Geo2Point* 50x 2 -10 -10,11.408
+1003,Geo2Point* 50x 2 -10 0,12.919
+1004,Geo2Point* 50x 2 -10 10,12.084
+1005,Geo2Point* 50x 2 0 -10,11.175
+1006,Geo2Point* 50x 2 0 0,11.322
+1007,Geo2Point* 50x 2 0 10,11.607
+1008,Geo2Point* 50x 2 10 -10,13.776
+1009,Geo2Point* 50x 2 10 0,12.48
+1010,Geo2Point* 50x 2 10 10,12.76
+1011,Geo2Point* 50x 3 -10 -10,11.664
+1012,Geo2Point* 50x 3 -10 0,12.862
+1013,Geo2Point* 50x 3 -10 10,11.988
+1014,Geo2Point* 50x 3 0 -10,12.267
+1015,Geo2Point* 50x 3 0 0,10.649
+1016,Geo2Point* 50x 3 0 10,10.597
+1017,Geo2Point* 50x 3 10 -10,11.418
+1018,Geo2Point* 50x 3 10 0,13.619
+1019,Geo2Point* 50x 3 10 10,11.708
+1020,Geo2Point* 50x 4 -10 -10,13.31
+1021,Geo2Point* 50x 4 -10 0,10.965
+1022,Geo2Point* 50x 4 -10 10,12.741
+1023,Geo2Point* 50x 4 0 -10,11.917
+1024,Geo2Point* 50x 4 0 0,11.709
+1025,Geo2Point* 50x 4 0 10,12.228
+1026,Geo2Point* 50x 4 10 -10,11.749
+1027,Geo2Point* 50x 4 10 0,11.421
+1028,Geo2Point* 50x 4 10 10,11.057
+1029,Geo2Point* 50x 5 -10 -10,13.264
+1030,Geo2Point* 50x 5 -10 0,12.672
+1031,Geo2Point* 50x 5 -10 10,12.269
+1032,Geo2Point* 50x 5 0 -10,12.117
+1033,Geo2Point* 50x 5 0 0,11.189
+1034,Geo2Point* 50x 5 0 10,11.093
+1035,Geo2Point* 50x 5 10 -10,11.069
+1036,Geo2Point* 50x 5 10 0,12.643
+1037,Geo2Point* 50x 5 10 10,10.899
+1038,Geo2Point* 50x 6 -10 -10,12.945
+1039,Geo2Point* 50x 6 -10 0,12.418
+1040,Geo2Point* 50x 6 -10 10,12.647
+1041,Geo2Point* 50x 6 0 -10,10.928
+1042,Geo2Point* 50x 6 0 0,12.314
+1043,Geo2Point* 50x 6 0 10,11.084
+1044,Geo2Point* 50x 6 10 -10,11.48
+1045,Geo2Point* 50x 6 10 0,13.464
+1046,Geo2Point* 50x 6 10 10,12.478
+1047,Geo2Point* 50x 7 -10 -10,13.721
+1048,Geo2Point* 50x 7 -10 0,11.838
+1049,Geo2Point* 50x 7 -10 10,11.122
+1050,Geo2Point* 50x 7 0 -10,10.156
+1051,Geo2Point* 50x 7 0 0,11.351
+1052,Geo2Point* 50x 7 0 10,11.002
+1053,Geo2Point* 50x 7 10 -10,12.338
+1054,Geo2Point* 50x 7 10 0,11.86
+1055,Geo2Point* 50x 7 10 10,10.899
+1056,Geo2Point* 50x 8 -10 -10,11.716
+1057,Geo2Point* 50x 8 -10 0,11.76
+1058,Geo2Point* 50x 8 -10 10,11.89
+1059,Geo2Point* 50x 8 0 -10,12.098
+1060,Geo2Point* 50x 8 0 0,11.268
+1061,Geo2Point* 50x 8 0 10,10.575
+1062,Geo2Point* 50x 8 10 -10,12.396
+1063,Geo2Point* 50x 8 10 0,13.987
+1064,Geo2Point* 50x 8 10 10,11.567
+1065,Geo2Point* 50x 9 -10 -10,12.704
+1066,Geo2Point* 50x 9 -10 0,11.532
+1067,Geo2Point* 50x 9 -10 10,11.833
+1068,Geo2Point* 50x 9 0 -10,10.862
+1069,Geo2Point* 50x 9 0 0,11.182
+1070,Geo2Point* 50x 9 0 10,10.434
+1071,Geo2Point* 50x 9 10 -10,12.654
+1072,Geo2Point* 50x 9 10 0,11.04
+1073,Geo2Point* 50x 9 10 10,15.166
+1074,Geo2Point* 50x 10 -10 -10,13.606
+1075,Geo2Point* 50x 10 -10 0,12.99
+1076,Geo2Point* 50x 10 -10 10,11.915
+1077,Geo2Point* 50x 10 0 -10,9.877
+1078,Geo2Point* 50x 10 0 0,10.39
+1079,Geo2Point* 50x 10 0 10,11.409
+1080,Geo2Point* 50x 10 10 -10,12.34
+1081,Geo2Point* 50x 10 10 0,12.718
+1082,Geo2Point* 50x 10 10 10,12.345
+1083,Geo2Point* 50x 11 -10 -10,10.928
+1084,Geo2Point* 50x 11 -10 0,11.672
+1085,Geo2Point* 50x 11 -10 10,10.823
+1086,Geo2Point* 50x 11 0 -10,12.313
+1087,Geo2Point* 50x 11 0 0,11.183
+1088,Geo2Point* 50x 11 0 10,10.183
+1089,Geo2Point* 50x 11 10 -10,12.596
+1090,Geo2Point* 50x 11 10 0,11.285
+1091,Geo2Point* 50x 11 10 10,11.51
+1092,Geo2Point* 50x 12 -10 -10,12.205
+1093,Geo2Point* 50x 12 -10 0,12.092
+1094,Geo2Point* 50x 12 -10 10,11.301
+1095,Geo2Point* 50x 12 0 -10,11.064
+1096,Geo2Point* 50x 12 0 0,11.657
+1097,Geo2Point* 50x 12 0 10,10.363
+1098,Geo2Point* 50x 12 10 -10,12.426
+1099,Geo2Point* 50x 12 10 0,13.439
+1100,Geo2Point* 50x 12 10 10,11.3
+1101,Geo2Point* 50x 13 -10 -10,10.97
+1102,Geo2Point* 50x 13 -10 0,12.007
+1103,Geo2Point* 50x 13 -10 10,12.1
+1104,Geo2Point* 50x 13 0 -10,11.128
+1105,Geo2Point* 50x 13 0 0,11.649
+1106,Geo2Point* 50x 13 0 10,11.404
+1107,Geo2Point* 50x 13 10 -10,12.461
+1108,Geo2Point* 50x 13 10 0,13.226
+1109,Geo2Point* 50x 13 10 10,12.953
+1110,Geo2Point* 50x 14 -10 -10,11.602
+1111,Geo2Point* 50x 14 -10 0,12.363
+1112,Geo2Point* 50x 14 -10 10,11.698
+1113,Geo2Point* 50x 14 0 -10,12.984
+1114,Geo2Point* 50x 14 0 0,10.828
+1115,Geo2Point* 50x 14 0 10,11.272
+1116,Geo2Point* 50x 14 10 -10,11.377
+1117,Geo2Point* 50x 14 10 0,11.01
+1118,Geo2Point* 50x 14 10 10,12.658
+1119,Geo2Point* 50x 15 -10 -10,12.833
+1120,Geo2Point* 50x 15 -10 0,14.185
+1121,Geo2Point* 50x 15 -10 10,11.38
+1122,Geo2Point* 50x 15 0 -10,12.341
+1123,Geo2Point* 50x 15 0 0,9.858
+1124,Geo2Point* 50x 15 0 10,10.97
+1125,Geo2Point* 50x 15 10 -10,11.211
+1126,Geo2Point* 50x 15 10 0,13.307
+1127,Geo2Point* 50x 15 10 10,10.886
+1128,Geo2Point* 50x 16 -10 -10,13.074
+1129,Geo2Point* 50x 16 -10 0,11.617
+1130,Geo2Point* 50x 16 -10 10,11.692
+1131,Geo2Point* 50x 16 0 -10,10.798
+1132,Geo2Point* 50x 16 0 0,12.189
+1133,Geo2Point* 50x 16 0 10,12.471
+1134,Geo2Point* 50x 16 10 -10,11.46
+1135,Geo2Point* 50x 16 10 0,11.99
+1136,Geo2Point* 50x 16 10 10,12.711
+1137,Geo2Point* 50x 17 -10 -10,12.029
+1138,Geo2Point* 50x 17 -10 0,12.271
+1139,Geo2Point* 50x 17 -10 10,14.105
+1140,Geo2Point* 50x 17 0 -10,12.0
+1141,Geo2Point* 50x 17 0 0,9.915
+1142,Geo2Point* 50x 17 0 10,12.191
+1143,Geo2Point* 50x 17 10 -10,13.503
+1144,Geo2Point* 50x 17 10 0,12.767
+1145,Geo2Point* 50x 17 10 10,12.97
+1146,Geo2Point* 50x 18 -10 -10,13.845
+1147,Geo2Point* 50x 18 -10 0,12.363
+1148,Geo2Point* 50x 18 -10 10,13.279
+1149,Geo2Point* 50x 18 0 -10,11.447
+1150,Geo2Point* 50x 18 0 0,11.765
+1151,Geo2Point* 50x 18 0 10,11.534
+1152,Geo2Point* 50x 18 10 -10,12.299
+1153,Geo2Point* 50x 18 10 0,12.126
+1154,Geo2Point* 50x 18 10 10,12.595
+1155,Geo2Point* 100x 0 -10 -10,24.375
+1156,Geo2Point* 100x 0 -10 0,22.706
+1157,Geo2Point* 100x 0 -10 10,21.066
+1158,Geo2Point* 100x 0 0 -10,22.551
+1159,Geo2Point* 100x 0 0 0,19.119
+1160,Geo2Point* 100x 0 0 10,19.607
+1161,Geo2Point* 100x 0 10 -10,25.126
+1162,Geo2Point* 100x 0 10 0,21.591
+1163,Geo2Point* 100x 0 10 10,21.844
+1164,Geo2Point* 100x 1 -10 -10,24.936
+1165,Geo2Point* 100x 1 -10 0,24.723
+1166,Geo2Point* 100x 1 -10 10,23.251
+1167,Geo2Point* 100x 1 0 -10,21.081
+1168,Geo2Point* 100x 1 0 0,20.129
+1169,Geo2Point* 100x 1 0 10,22.77
+1170,Geo2Point* 100x 1 10 -10,24.911
+1171,Geo2Point* 100x 1 10 0,22.797
+1172,Geo2Point* 100x 1 10 10,25.632
+1173,Geo2Point* 100x 2 -10 -10,23.01
+1174,Geo2Point* 100x 2 -10 0,23.234
+1175,Geo2Point* 100x 2 -10 10,24.628
+1176,Geo2Point* 100x 2 0 -10,22.327
+1177,Geo2Point* 100x 2 0 0,22.833
+1178,Geo2Point* 100x 2 0 10,21.193
+1179,Geo2Point* 100x 2 10 -10,25.079
+1180,Geo2Point* 100x 2 10 0,26.764
+1181,Geo2Point* 100x 2 10 10,25.061
+1182,Geo2Point* 100x 3 -10 -10,22.356
+1183,Geo2Point* 100x 3 -10 0,26.703
+1184,Geo2Point* 100x 3 -10 10,21.546
+1185,Geo2Point* 100x 3 0 -10,19.779
+1186,Geo2Point* 100x 3 0 0,22.509
+1187,Geo2Point* 100x 3 0 10,21.075
+1188,Geo2Point* 100x 3 10 -10,24.116
+1189,Geo2Point* 100x 3 10 0,23.574
+1190,Geo2Point* 100x 3 10 10,22.261
+1191,Geo2Point* 100x 4 -10 -10,23.018
+1192,Geo2Point* 100x 4 -10 0,22.304
+1193,Geo2Point* 100x 4 -10 10,22.528
+1194,Geo2Point* 100x 4 0 -10,23.553
+1195,Geo2Point* 100x 4 0 0,21.145
+1196,Geo2Point* 100x 4 0 10,21.071
+1197,Geo2Point* 100x 4 10 -10,22.39
+1198,Geo2Point* 100x 4 10 0,22.61
+1199,Geo2Point* 100x 4 10 10,24.637
+1200,Geo2Point* 100x 5 -10 -10,22.686
+1201,Geo2Point* 100x 5 -10 0,23.085
+1202,Geo2Point* 100x 5 -10 10,24.787
+1203,Geo2Point* 100x 5 0 -10,20.271
+1204,Geo2Point* 100x 5 0 0,20.851
+1205,Geo2Point* 100x 5 0 10,21.171
+1206,Geo2Point* 100x 5 10 -10,23.758
+1207,Geo2Point* 100x 5 10 0,23.996
+1208,Geo2Point* 100x 5 10 10,22.661
+1209,Geo2Point* 100x 6 -10 -10,21.883
+1210,Geo2Point* 100x 6 -10 0,23.018
+1211,Geo2Point* 100x 6 -10 10,22.343
+1212,Geo2Point* 100x 6 0 -10,19.957
+1213,Geo2Point* 100x 6 0 0,21.792
+1214,Geo2Point* 100x 6 0 10,20.176
+1215,Geo2Point* 100x 6 10 -10,21.253
+1216,Geo2Point* 100x 6 10 0,24.414
+1217,Geo2Point* 100x 6 10 10,25.79
+1218,Geo2Point* 100x 7 -10 -10,24.869
+1219,Geo2Point* 100x 7 -10 0,22.701
+1220,Geo2Point* 100x 7 -10 10,24.167
+1221,Geo2Point* 100x 7 0 -10,23.879
+1222,Geo2Point* 100x 7 0 0,21.631
+1223,Geo2Point* 100x 7 0 10,21.34
+1224,Geo2Point* 100x 7 10 -10,24.507
+1225,Geo2Point* 100x 7 10 0,24.32
+1226,Geo2Point* 100x 7 10 10,23.413
+1227,Geo2Point* 100x 8 -10 -10,24.205
+1228,Geo2Point* 100x 8 -10 0,21.831
+1229,Geo2Point* 100x 8 -10 10,22.113
+1230,Geo2Point* 100x 8 0 -10,19.528
+1231,Geo2Point* 100x 8 0 0,21.55
+1232,Geo2Point* 100x 8 0 10,21.098
+1233,Geo2Point* 100x 8 10 -10,23.823
+1234,Geo2Point* 100x 8 10 0,23.904
+1235,Geo2Point* 100x 8 10 10,23.952
+1236,Geo2Point* 100x 9 -10 -10,24.498
+1237,Geo2Point* 100x 9 -10 0,24.218
+1238,Geo2Point* 100x 9 -10 10,26.092
+1239,Geo2Point* 100x 9 0 -10,19.759
+1240,Geo2Point* 100x 9 0 0,20.276
+1241,Geo2Point* 100x 9 0 10,20.677
+1242,Geo2Point* 100x 9 10 -10,22.247
+1243,Geo2Point* 100x 9 10 0,21.039
+1244,Geo2Point* 100x 9 10 10,22.142
+1245,Geo2Point* 100x 10 -10 -10,23.574
+1246,Geo2Point* 100x 10 -10 0,22.135
+1247,Geo2Point* 100x 10 -10 10,23.521
+1248,Geo2Point* 100x 10 0 -10,20.813
+1249,Geo2Point* 100x 10 0 0,21.12
+1250,Geo2Point* 100x 10 0 10,21.18
+1251,Geo2Point* 100x 10 10 -10,23.588
+1252,Geo2Point* 100x 10 10 0,24.706
+1253,Geo2Point* 100x 10 10 10,22.096
+1254,Geo2Point* 100x 11 -10 -10,21.092
+1255,Geo2Point* 100x 11 -10 0,21.858
+1256,Geo2Point* 100x 11 -10 10,22.496
+1257,Geo2Point* 100x 11 0 -10,22.636
+1258,Geo2Point* 100x 11 0 0,19.784
+1259,Geo2Point* 100x 11 0 10,20.781
+1260,Geo2Point* 100x 11 10 -10,21.988
+1261,Geo2Point* 100x 11 10 0,22.156
+1262,Geo2Point* 100x 11 10 10,24.448
+1263,Geo2Point* 100x 12 -10 -10,23.59
+1264,Geo2Point* 100x 12 -10 0,23.471
+1265,Geo2Point* 100x 12 -10 10,22.407
+1266,Geo2Point* 100x 12 0 -10,21.576
+1267,Geo2Point* 100x 12 0 0,22.137
+1268,Geo2Point* 100x 12 0 10,21.149
+1269,Geo2Point* 100x 12 10 -10,22.517
+1270,Geo2Point* 100x 12 10 0,22.198
+1271,Geo2Point* 100x 12 10 10,25.213
+1272,Geo2Point* 100x 13 -10 -10,24.366
+1273,Geo2Point* 100x 13 -10 0,23.792
+1274,Geo2Point* 100x 13 -10 10,25.078
+1275,Geo2Point* 100x 13 0 -10,20.47
+1276,Geo2Point* 100x 13 0 0,19.54
+1277,Geo2Point* 100x 13 0 10,21.148
+1278,Geo2Point* 100x 13 10 -10,22.157
+1279,Geo2Point* 100x 13 10 0,21.542
+1280,Geo2Point* 100x 13 10 10,22.718
+1281,Geo2Point* 100x 14 -10 -10,22.795
+1282,Geo2Point* 100x 14 -10 0,21.544
+1283,Geo2Point* 100x 14 -10 10,21.528
+1284,Geo2Point* 100x 14 0 -10,19.961
+1285,Geo2Point* 100x 14 0 0,21.395
+1286,Geo2Point* 100x 14 0 10,19.309
+1287,Geo2Point* 100x 14 10 -10,23.977
+1288,Geo2Point* 100x 14 10 0,24.239
+1289,Geo2Point* 100x 14 10 10,22.116
+1290,Geo2Point* 100x 15 -10 -10,24.572
+1291,Geo2Point* 100x 15 -10 0,21.822
+1292,Geo2Point* 100x 15 -10 10,22.896
+1293,Geo2Point* 100x 15 0 -10,20.421
+1294,Geo2Point* 100x 15 0 0,20.905
+1295,Geo2Point* 100x 15 0 10,21.156
+1296,Geo2Point* 100x 15 10 -10,21.847
+1297,Geo2Point* 100x 15 10 0,24.733
+1298,Geo2Point* 100x 15 10 10,24.582
+1299,Geo2Point* 100x 16 -10 -10,21.85
+1300,Geo2Point* 100x 16 -10 0,25.156
+1301,Geo2Point* 100x 16 -10 10,23.474
+1302,Geo2Point* 100x 16 0 -10,20.675
+1303,Geo2Point* 100x 16 0 0,21.901
+1304,Geo2Point* 100x 16 0 10,21.573
+1305,Geo2Point* 100x 16 10 -10,24.321
+1306,Geo2Point* 100x 16 10 0,23.595
+1307,Geo2Point* 100x 16 10 10,24.21
+1308,Geo2Point* 100x 17 -10 -10,22.062
+1309,Geo2Point* 100x 17 -10 0,21.23
+1310,Geo2Point* 100x 17 -10 10,21.204
+1311,Geo2Point* 100x 17 0 -10,20.511
+1312,Geo2Point* 100x 17 0 0,21.761
+1313,Geo2Point* 100x 17 0 10,22.5
+1314,Geo2Point* 100x 17 10 -10,22.343
+1315,Geo2Point* 100x 17 10 0,24.993
+1316,Geo2Point* 100x 17 10 10,26.364
+1317,Geo2Point* 100x 18 -10 -10,21.85
+1318,Geo2Point* 100x 18 -10 0,24.704
+1319,Geo2Point* 100x 18 -10 10,22.467
+1320,Geo2Point* 100x 18 0 -10,21.069
+1321,Geo2Point* 100x 18 0 0,22.252
+1322,Geo2Point* 100x 18 0 10,20.306
+1323,Geo2Point* 100x 18 10 -10,23.193
+1324,Geo2Point* 100x 18 10 0,22.744
+1325,Geo2Point* 100x 18 10 10,24.068
+1326,Geo2Point 0 -10 -10,1.529
+1327,Geo2Point 0 -10 0,1.115
+1328,Geo2Point 0 -10 10,1.118
+1329,Geo2Point 0 0 -10,1.116
+1330,Geo2Point 0 0 0,1.096
+1331,Geo2Point 0 0 10,1.173
+1332,Geo2Point 0 10 -10,1.153
+1333,Geo2Point 0 10 0,1.309
+1334,Geo2Point 0 10 10,1.55
+1335,Geo2Point 1 -10 -10,1.473
+1336,Geo2Point 1 -10 0,1.313
+1337,Geo2Point 1 -10 10,1.266
+1338,Geo2Point 1 0 -10,1.226
+1339,Geo2Point 1 0 0,1.309
+1340,Geo2Point 1 0 10,1.124
+1341,Geo2Point 1 10 -10,1.315
+1342,Geo2Point 1 10 0,1.118
+1343,Geo2Point 1 10 10,1.124
+1344,Geo2Point 2 -10 -10,1.351
+1345,Geo2Point 2 -10 0,1.462
+1346,Geo2Point 2 -10 10,1.366
+1347,Geo2Point 2 0 -10,1.552
+1348,Geo2Point 2 0 0,1.281
+1349,Geo2Point 2 0 10,1.12
+1350,Geo2Point 2 10 -10,1.385
+1351,Geo2Point 2 10 0,1.123
+1352,Geo2Point 2 10 10,1.442
+1353,Geo2Point 3 -10 -10,1.118
+1354,Geo2Point 3 -10 0,1.113
+1355,Geo2Point 3 -10 10,1.106
+1356,Geo2Point 3 0 -10,1.277
+1357,Geo2Point 3 0 0,1.115
+1358,Geo2Point 3 0 10,1.216
+1359,Geo2Point 3 10 -10,1.32
+1360,Geo2Point 3 10 0,1.307
+1361,Geo2Point 3 10 10,1.162
+1362,Geo2Point 4 -10 -10,1.118
+1363,Geo2Point 4 -10 0,1.119
+1364,Geo2Point 4 -10 10,1.579
+1365,Geo2Point 4 0 -10,1.676
+1366,Geo2Point 4 0 0,1.175
+1367,Geo2Point 4 0 10,1.255
+1368,Geo2Point 4 10 -10,1.157
+1369,Geo2Point 4 10 0,1.315
+1370,Geo2Point 4 10 10,1.114
+1371,Geo2Point 5 -10 -10,1.113
+1372,Geo2Point 5 -10 0,1.125
+1373,Geo2Point 5 -10 10,1.317
+1374,Geo2Point 5 0 -10,1.122
+1375,Geo2Point 5 0 0,1.302
+1376,Geo2Point 5 0 10,1.361
+1377,Geo2Point 5 10 -10,1.119
+1378,Geo2Point 5 10 0,1.371
+1379,Geo2Point 5 10 10,1.333
+1380,Geo2Point 6 -10 -10,1.325
+1381,Geo2Point 6 -10 0,1.117
+1382,Geo2Point 6 -10 10,1.172
+1383,Geo2Point 6 0 -10,1.118
+1384,Geo2Point 6 0 0,1.704
+1385,Geo2Point 6 0 10,1.121
+1386,Geo2Point 6 10 -10,1.122
+1387,Geo2Point 6 10 0,1.259
+1388,Geo2Point 6 10 10,1.323
+1389,Geo2Point 7 -10 -10,1.123
+1390,Geo2Point 7 -10 0,1.213
+1391,Geo2Point 7 -10 10,1.123
+1392,Geo2Point 7 0 -10,1.126
+1393,Geo2Point 7 0 0,1.131
+1394,Geo2Point 7 0 10,1.312
+1395,Geo2Point 7 10 -10,1.128
+1396,Geo2Point 7 10 0,1.143
+1397,Geo2Point 7 10 10,1.121
+1398,Geo2Point 8 -10 -10,1.133
+1399,Geo2Point 8 -10 0,1.135
+1400,Geo2Point 8 -10 10,1.339
+1401,Geo2Point 8 0 -10,1.108
+1402,Geo2Point 8 0 0,1.124
+1403,Geo2Point 8 0 10,1.292
+1404,Geo2Point 8 10 -10,1.304
+1405,Geo2Point 8 10 0,1.428
+1406,Geo2Point 8 10 10,1.123
+1407,Geo2Point 9 -10 -10,1.668
+1408,Geo2Point 9 -10 0,1.109
+1409,Geo2Point 9 -10 10,1.243
+1410,Geo2Point 9 0 -10,1.292
+1411,Geo2Point 9 0 0,1.299
+1412,Geo2Point 9 0 10,1.126
+1413,Geo2Point 9 10 -10,1.461
+1414,Geo2Point 9 10 0,1.319
+1415,Geo2Point 9 10 10,1.322
+1416,Geo2Point 10 -10 -10,1.299
+1417,Geo2Point 10 -10 0,1.326
+1418,Geo2Point 10 -10 10,1.339
+1419,Geo2Point 10 0 -10,1.306
+1420,Geo2Point 10 0 0,1.736
+1421,Geo2Point 10 0 10,1.109
+1422,Geo2Point 10 10 -10,1.304
+1423,Geo2Point 10 10 0,1.135
+1424,Geo2Point 10 10 10,1.093
+1425,Geo2Point 11 -10 -10,1.672
+1426,Geo2Point 11 -10 0,1.128
+1427,Geo2Point 11 -10 10,1.108
+1428,Geo2Point 11 0 -10,1.3
+1429,Geo2Point 11 0 0,1.631
+1430,Geo2Point 11 0 10,1.131
+1431,Geo2Point 11 10 -10,1.122
+1432,Geo2Point 11 10 0,1.124
+1433,Geo2Point 11 10 10,1.116
+1434,Geo2Point 12 -10 -10,1.119
+1435,Geo2Point 12 -10 0,1.128
+1436,Geo2Point 12 -10 10,1.128
+1437,Geo2Point 12 0 -10,1.294
+1438,Geo2Point 12 0 0,1.113
+1439,Geo2Point 12 0 10,1.126
+1440,Geo2Point 12 10 -10,1.358
+1441,Geo2Point 12 10 0,1.503
+1442,Geo2Point 12 10 10,1.334
+1443,Geo2Point 13 -10 -10,1.114
+1444,Geo2Point 13 -10 0,1.331
+1445,Geo2Point 13 -10 10,1.34
+1446,Geo2Point 13 0 -10,1.14
+1447,Geo2Point 13 0 0,1.736
+1448,Geo2Point 13 0 10,1.285
+1449,Geo2Point 13 10 -10,1.12
+1450,Geo2Point 13 10 0,1.125
+1451,Geo2Point 13 10 10,1.115
+1452,Geo2Point 14 -10 -10,1.324
+1453,Geo2Point 14 -10 0,1.118
+1454,Geo2Point 14 -10 10,1.337
+1455,Geo2Point 14 0 -10,1.276
+1456,Geo2Point 14 0 0,1.116
+1457,Geo2Point 14 0 10,1.369
+1458,Geo2Point 14 10 -10,1.319
+1459,Geo2Point 14 10 0,1.131
+1460,Geo2Point 14 10 10,1.363
+1461,Geo2Point 15 -10 -10,1.13
+1462,Geo2Point 15 -10 0,1.708
+1463,Geo2Point 15 -10 10,1.115
+1464,Geo2Point 15 0 -10,1.114
+1465,Geo2Point 15 0 0,1.307
+1466,Geo2Point 15 0 10,1.113
+1467,Geo2Point 15 10 -10,1.336
+1468,Geo2Point 15 10 0,1.111
+1469,Geo2Point 15 10 10,1.359
+1470,Geo2Point 16 -10 -10,1.345
+1471,Geo2Point 16 -10 0,1.122
+1472,Geo2Point 16 -10 10,1.119
+1473,Geo2Point 16 0 -10,1.13
+1474,Geo2Point 16 0 0,1.19
+1475,Geo2Point 16 0 10,1.14
+1476,Geo2Point 16 10 -10,1.13
+1477,Geo2Point 16 10 0,1.134
+1478,Geo2Point 16 10 10,1.116
+1479,Geo2Point 17 -10 -10,1.336
+1480,Geo2Point 17 -10 0,1.312
+1481,Geo2Point 17 -10 10,1.336
+1482,Geo2Point 17 0 -10,1.66
+1483,Geo2Point 17 0 0,1.122
+1484,Geo2Point 17 0 10,1.519
+1485,Geo2Point 17 10 -10,1.262
+1486,Geo2Point 17 10 0,1.58
+1487,Geo2Point 17 10 10,1.332
+1488,Geo2Point 18 -10 -10,1.278
+1489,Geo2Point 18 -10 0,1.549
+1490,Geo2Point 18 -10 10,1.176
+1491,Geo2Point 18 0 -10,1.413
+1492,Geo2Point 18 0 0,1.108
+1493,Geo2Point 18 0 10,1.31
+1494,Geo2Point 18 10 -10,1.274
+1495,Geo2Point 18 10 0,1.368
+1496,Geo2Point 18 10 10,1.128
+1497,Geo2PointList 1x 0 -10 -10,1.472
+1498,Geo2PointList 1x 0 -10 0,1.297
+1499,Geo2PointList 1x 0 -10 10,1.45
+1500,Geo2PointList 1x 0 0 -10,1.234
+1501,Geo2PointList 1x 0 0 0,1.259
+1502,Geo2PointList 1x 0 0 10,1.251
+1503,Geo2PointList 1x 0 10 -10,1.381
+1504,Geo2PointList 1x 0 10 0,1.471
+1505,Geo2PointList 1x 0 10 10,1.254
+1506,Geo2PointList 1x 1 -10 -10,1.51
+1507,Geo2PointList 1x 1 -10 0,1.243
+1508,Geo2PointList 1x 1 -10 10,1.256
+1509,Geo2PointList 1x 1 0 -10,1.258
+1510,Geo2PointList 1x 1 0 0,1.496
+1511,Geo2PointList 1x 1 0 10,1.434
+1512,Geo2PointList 1x 1 10 -10,1.474
+1513,Geo2PointList 1x 1 10 0,1.252
+1514,Geo2PointList 1x 1 10 10,1.286
+1515,Geo2PointList 1x 2 -10 -10,1.444
+1516,Geo2PointList 1x 2 -10 0,1.461
+1517,Geo2PointList 1x 2 -10 10,1.51
+1518,Geo2PointList 1x 2 0 -10,1.412
+1519,Geo2PointList 1x 2 0 0,1.377
+1520,Geo2PointList 1x 2 0 10,1.232
+1521,Geo2PointList 1x 2 10 -10,1.507
+1522,Geo2PointList 1x 2 10 0,1.247
+1523,Geo2PointList 1x 2 10 10,1.474
+1524,Geo2PointList 1x 3 -10 -10,1.687
+1525,Geo2PointList 1x 3 -10 0,1.261
+1526,Geo2PointList 1x 3 -10 10,1.253
+1527,Geo2PointList 1x 3 0 -10,1.23
+1528,Geo2PointList 1x 3 0 0,1.844
+1529,Geo2PointList 1x 3 0 10,1.254
+1530,Geo2PointList 1x 3 10 -10,1.486
+1531,Geo2PointList 1x 3 10 0,1.253
+1532,Geo2PointList 1x 3 10 10,1.263
+1533,Geo2PointList 1x 4 -10 -10,1.24
+1534,Geo2PointList 1x 4 -10 0,1.252
+1535,Geo2PointList 1x 4 -10 10,1.454
+1536,Geo2PointList 1x 4 0 -10,1.319
+1537,Geo2PointList 1x 4 0 0,1.304
+1538,Geo2PointList 1x 4 0 10,1.296
+1539,Geo2PointList 1x 4 10 -10,1.276
+1540,Geo2PointList 1x 4 10 0,1.252
+1541,Geo2PointList 1x 4 10 10,1.25
+1542,Geo2PointList 1x 5 -10 -10,1.23
+1543,Geo2PointList 1x 5 -10 0,1.269
+1544,Geo2PointList 1x 5 -10 10,1.261
+1545,Geo2PointList 1x 5 0 -10,1.884
+1546,Geo2PointList 1x 5 0 0,1.425
+1547,Geo2PointList 1x 5 0 10,1.276
+1548,Geo2PointList 1x 5 10 -10,1.249
+1549,Geo2PointList 1x 5 10 0,1.487
+1550,Geo2PointList 1x 5 10 10,1.265
+1551,Geo2PointList 1x 6 -10 -10,1.453
+1552,Geo2PointList 1x 6 -10 0,1.344
+1553,Geo2PointList 1x 6 -10 10,1.246
+1554,Geo2PointList 1x 6 0 -10,1.802
+1555,Geo2PointList 1x 6 0 0,1.438
+1556,Geo2PointList 1x 6 0 10,1.752
+1557,Geo2PointList 1x 6 10 -10,1.26
+1558,Geo2PointList 1x 6 10 0,1.558
+1559,Geo2PointList 1x 6 10 10,1.477
+1560,Geo2PointList 1x 7 -10 -10,1.271
+1561,Geo2PointList 1x 7 -10 0,1.47
+1562,Geo2PointList 1x 7 -10 10,1.239
+1563,Geo2PointList 1x 7 0 -10,1.243
+1564,Geo2PointList 1x 7 0 0,1.45
+1565,Geo2PointList 1x 7 0 10,1.433
+1566,Geo2PointList 1x 7 10 -10,1.267
+1567,Geo2PointList 1x 7 10 0,1.261
+1568,Geo2PointList 1x 7 10 10,1.273
+1569,Geo2PointList 1x 8 -10 -10,1.277
+1570,Geo2PointList 1x 8 -10 0,1.459
+1571,Geo2PointList 1x 8 -10 10,1.259
+1572,Geo2PointList 1x 8 0 -10,1.257
+1573,Geo2PointList 1x 8 0 0,1.347
+1574,Geo2PointList 1x 8 0 10,1.441
+1575,Geo2PointList 1x 8 10 -10,1.274
+1576,Geo2PointList 1x 8 10 0,1.472
+1577,Geo2PointList 1x 8 10 10,1.277
+1578,Geo2PointList 1x 9 -10 -10,1.462
+1579,Geo2PointList 1x 9 -10 0,1.26
+1580,Geo2PointList 1x 9 -10 10,1.286
+1581,Geo2PointList 1x 9 0 -10,1.738
+1582,Geo2PointList 1x 9 0 0,1.443
+1583,Geo2PointList 1x 9 0 10,1.527
+1584,Geo2PointList 1x 9 10 -10,1.466
+1585,Geo2PointList 1x 9 10 0,1.428
+1586,Geo2PointList 1x 9 10 10,1.464
+1587,Geo2PointList 1x 10 -10 -10,1.281
+1588,Geo2PointList 1x 10 -10 0,1.288
+1589,Geo2PointList 1x 10 -10 10,1.246
+1590,Geo2PointList 1x 10 0 -10,1.258
+1591,Geo2PointList 1x 10 0 0,1.71
+1592,Geo2PointList 1x 10 0 10,1.248
+1593,Geo2PointList 1x 10 10 -10,1.246
+1594,Geo2PointList 1x 10 10 0,1.655
+1595,Geo2PointList 1x 10 10 10,1.248
+1596,Geo2PointList 1x 11 -10 -10,1.488
+1597,Geo2PointList 1x 11 -10 0,1.935
+1598,Geo2PointList 1x 11 -10 10,1.248
+1599,Geo2PointList 1x 11 0 -10,1.457
+1600,Geo2PointList 1x 11 0 0,1.491
+1601,Geo2PointList 1x 11 0 10,1.269
+1602,Geo2PointList 1x 11 10 -10,1.252
+1603,Geo2PointList 1x 11 10 0,1.281
+1604,Geo2PointList 1x 11 10 10,1.257
+1605,Geo2PointList 1x 12 -10 -10,1.582
+1606,Geo2PointList 1x 12 -10 0,1.588
+1607,Geo2PointList 1x 12 -10 10,1.277
+1608,Geo2PointList 1x 12 0 -10,1.466
+1609,Geo2PointList 1x 12 0 0,1.511
+1610,Geo2PointList 1x 12 0 10,1.339
+1611,Geo2PointList 1x 12 10 -10,1.524
+1612,Geo2PointList 1x 12 10 0,1.524
+1613,Geo2PointList 1x 12 10 10,1.296
+1614,Geo2PointList 1x 13 -10 -10,1.253
+1615,Geo2PointList 1x 13 -10 0,1.262
+1616,Geo2PointList 1x 13 -10 10,1.43
+1617,Geo2PointList 1x 13 0 -10,1.254
+1618,Geo2PointList 1x 13 0 0,1.428
+1619,Geo2PointList 1x 13 0 10,1.233
+1620,Geo2PointList 1x 13 10 -10,1.864
+1621,Geo2PointList 1x 13 10 0,1.251
+1622,Geo2PointList 1x 13 10 10,1.258
+1623,Geo2PointList 1x 14 -10 -10,1.672
+1624,Geo2PointList 1x 14 -10 0,1.403
+1625,Geo2PointList 1x 14 -10 10,1.482
+1626,Geo2PointList 1x 14 0 -10,1.257
+1627,Geo2PointList 1x 14 0 0,1.537
+1628,Geo2PointList 1x 14 0 10,1.447
+1629,Geo2PointList 1x 14 10 -10,1.274
+1630,Geo2PointList 1x 14 10 0,1.239
+1631,Geo2PointList 1x 14 10 10,1.486
+1632,Geo2PointList 1x 15 -10 -10,1.886
+1633,Geo2PointList 1x 15 -10 0,1.535
+1634,Geo2PointList 1x 15 -10 10,1.266
+1635,Geo2PointList 1x 15 0 -10,1.851
+1636,Geo2PointList 1x 15 0 0,1.447
+1637,Geo2PointList 1x 15 0 10,1.593
+1638,Geo2PointList 1x 15 10 -10,1.298
+1639,Geo2PointList 1x 15 10 0,1.282
+1640,Geo2PointList 1x 15 10 10,1.464
+1641,Geo2PointList 1x 16 -10 -10,1.274
+1642,Geo2PointList 1x 16 -10 0,1.268
+1643,Geo2PointList 1x 16 -10 10,1.279
+1644,Geo2PointList 1x 16 0 -10,1.259
+1645,Geo2PointList 1x 16 0 0,1.63
+1646,Geo2PointList 1x 16 0 10,1.24
+1647,Geo2PointList 1x 16 10 -10,1.484
+1648,Geo2PointList 1x 16 10 0,1.379
+1649,Geo2PointList 1x 16 10 10,1.417
+1650,Geo2PointList 1x 17 -10 -10,1.291
+1651,Geo2PointList 1x 17 -10 0,1.266
+1652,Geo2PointList 1x 17 -10 10,1.26
+1653,Geo2PointList 1x 17 0 -10,1.458
+1654,Geo2PointList 1x 17 0 0,1.263
+1655,Geo2PointList 1x 17 0 10,1.534
+1656,Geo2PointList 1x 17 10 -10,1.534
+1657,Geo2PointList 1x 17 10 0,1.301
+1658,Geo2PointList 1x 17 10 10,1.447
+1659,Geo2PointList 1x 18 -10 -10,1.278
+1660,Geo2PointList 1x 18 -10 0,1.529
+1661,Geo2PointList 1x 18 -10 10,1.484
+1662,Geo2PointList 1x 18 0 -10,1.537
+1663,Geo2PointList 1x 18 0 0,1.341
+1664,Geo2PointList 1x 18 0 10,1.253
+1665,Geo2PointList 1x 18 10 -10,1.499
+1666,Geo2PointList 1x 18 10 0,1.532
+1667,Geo2PointList 1x 18 10 10,1.812
+1668,Geo2PointList 2x 0 -10 -10,1.722
+1669,Geo2PointList 2x 0 -10 0,1.747
+1670,Geo2PointList 2x 0 -10 10,1.698
+1671,Geo2PointList 2x 0 0 -10,1.389
+1672,Geo2PointList 2x 0 0 0,1.425
+1673,Geo2PointList 2x 0 0 10,1.417
+1674,Geo2PointList 2x 0 10 -10,1.45
+1675,Geo2PointList 2x 0 10 0,1.599
+1676,Geo2PointList 2x 0 10 10,1.43
+1677,Geo2PointList 2x 1 -10 -10,1.697
+1678,Geo2PointList 2x 1 -10 0,1.745
+1679,Geo2PointList 2x 1 -10 10,1.969
+1680,Geo2PointList 2x 1 0 -10,1.803
+1681,Geo2PointList 2x 1 0 0,1.65
+1682,Geo2PointList 2x 1 0 10,1.715
+1683,Geo2PointList 2x 1 10 -10,1.481
+1684,Geo2PointList 2x 1 10 0,2.017
+1685,Geo2PointList 2x 1 10 10,2.035
+1686,Geo2PointList 2x 2 -10 -10,1.677
+1687,Geo2PointList 2x 2 -10 0,1.54
+1688,Geo2PointList 2x 2 -10 10,1.687
+1689,Geo2PointList 2x 2 0 -10,1.514
+1690,Geo2PointList 2x 2 0 0,1.741
+1691,Geo2PointList 2x 2 0 10,1.625
+1692,Geo2PointList 2x 2 10 -10,1.755
+1693,Geo2PointList 2x 2 10 0,1.764
+1694,Geo2PointList 2x 2 10 10,1.56
+1695,Geo2PointList 2x 3 -10 -10,1.719
+1696,Geo2PointList 2x 3 -10 0,1.431
+1697,Geo2PointList 2x 3 -10 10,2.164
+1698,Geo2PointList 2x 3 0 -10,1.42
+1699,Geo2PointList 2x 3 0 0,1.714
+1700,Geo2PointList 2x 3 0 10,1.429
+1701,Geo2PointList 2x 3 10 -10,2.18
+1702,Geo2PointList 2x 3 10 0,1.671
+1703,Geo2PointList 2x 3 10 10,1.949
+1704,Geo2PointList 2x 4 -10 -10,1.462
+1705,Geo2PointList 2x 4 -10 0,1.439
+1706,Geo2PointList 2x 4 -10 10,1.459
+1707,Geo2PointList 2x 4 0 -10,1.433
+1708,Geo2PointList 2x 4 0 0,1.756
+1709,Geo2PointList 2x 4 0 10,1.487
+1710,Geo2PointList 2x 4 10 -10,1.877
+1711,Geo2PointList 2x 4 10 0,1.452
+1712,Geo2PointList 2x 4 10 10,1.935
+1713,Geo2PointList 2x 5 -10 -10,2.033
+1714,Geo2PointList 2x 5 -10 0,2.04
+1715,Geo2PointList 2x 5 -10 10,1.638
+1716,Geo2PointList 2x 5 0 -10,1.668
+1717,Geo2PointList 2x 5 0 0,1.431
+1718,Geo2PointList 2x 5 0 10,1.428
+1719,Geo2PointList 2x 5 10 -10,1.449
+1720,Geo2PointList 2x 5 10 0,1.707
+1721,Geo2PointList 2x 5 10 10,1.616
+1722,Geo2PointList 2x 6 -10 -10,1.448
+1723,Geo2PointList 2x 6 -10 0,1.443
+1724,Geo2PointList 2x 6 -10 10,1.445
+1725,Geo2PointList 2x 6 0 -10,1.587
+1726,Geo2PointList 2x 6 0 0,1.653
+1727,Geo2PointList 2x 6 0 10,1.774
+1728,Geo2PointList 2x 6 10 -10,1.447
+1729,Geo2PointList 2x 6 10 0,1.441
+1730,Geo2PointList 2x 6 10 10,1.474
+1731,Geo2PointList 2x 7 -10 -10,1.438
+1732,Geo2PointList 2x 7 -10 0,1.519
+1733,Geo2PointList 2x 7 -10 10,1.444
+1734,Geo2PointList 2x 7 0 -10,1.427
+1735,Geo2PointList 2x 7 0 0,1.653
+1736,Geo2PointList 2x 7 0 10,1.416
+1737,Geo2PointList 2x 7 10 -10,1.498
+1738,Geo2PointList 2x 7 10 0,1.685
+1739,Geo2PointList 2x 7 10 10,1.453
+1740,Geo2PointList 2x 8 -10 -10,1.457
+1741,Geo2PointList 2x 8 -10 0,1.689
+1742,Geo2PointList 2x 8 -10 10,1.573
+1743,Geo2PointList 2x 8 0 -10,1.439
+1744,Geo2PointList 2x 8 0 0,1.491
+1745,Geo2PointList 2x 8 0 10,1.669
+1746,Geo2PointList 2x 8 10 -10,1.48
+1747,Geo2PointList 2x 8 10 0,1.695
+1748,Geo2PointList 2x 8 10 10,1.464
+1749,Geo2PointList 2x 9 -10 -10,1.729
+1750,Geo2PointList 2x 9 -10 0,1.466
+1751,Geo2PointList 2x 9 -10 10,1.465
+1752,Geo2PointList 2x 9 0 -10,1.493
+1753,Geo2PointList 2x 9 0 0,1.43
+1754,Geo2PointList 2x 9 0 10,1.411
+1755,Geo2PointList 2x 9 10 -10,1.725
+1756,Geo2PointList 2x 9 10 0,1.447
+1757,Geo2PointList 2x 9 10 10,1.462
+1758,Geo2PointList 2x 10 -10 -10,1.461
+1759,Geo2PointList 2x 10 -10 0,1.465
+1760,Geo2PointList 2x 10 -10 10,1.448
+1761,Geo2PointList 2x 10 0 -10,1.463
+1762,Geo2PointList 2x 10 0 0,1.668
+1763,Geo2PointList 2x 10 0 10,1.44
+1764,Geo2PointList 2x 10 10 -10,1.461
+1765,Geo2PointList 2x 10 10 0,1.536
+1766,Geo2PointList 2x 10 10 10,1.555
+1767,Geo2PointList 2x 11 -10 -10,1.562
+1768,Geo2PointList 2x 11 -10 0,1.713
+1769,Geo2PointList 2x 11 -10 10,1.665
+1770,Geo2PointList 2x 11 0 -10,1.432
+1771,Geo2PointList 2x 11 0 0,1.708
+1772,Geo2PointList 2x 11 0 10,1.445
+1773,Geo2PointList 2x 11 10 -10,1.704
+1774,Geo2PointList 2x 11 10 0,1.858
+1775,Geo2PointList 2x 11 10 10,1.822
+1776,Geo2PointList 2x 12 -10 -10,1.774
+1777,Geo2PointList 2x 12 -10 0,1.761
+1778,Geo2PointList 2x 12 -10 10,1.8
+1779,Geo2PointList 2x 12 0 -10,1.435
+1780,Geo2PointList 2x 12 0 0,1.772
+1781,Geo2PointList 2x 12 0 10,1.681
+1782,Geo2PointList 2x 12 10 -10,1.454
+1783,Geo2PointList 2x 12 10 0,1.771
+1784,Geo2PointList 2x 12 10 10,1.868
+1785,Geo2PointList 2x 13 -10 -10,1.908
+1786,Geo2PointList 2x 13 -10 0,1.468
+1787,Geo2PointList 2x 13 -10 10,1.467
+1788,Geo2PointList 2x 13 0 -10,1.837
+1789,Geo2PointList 2x 13 0 0,1.663
+1790,Geo2PointList 2x 13 0 10,1.413
+1791,Geo2PointList 2x 13 10 -10,1.744
+1792,Geo2PointList 2x 13 10 0,2.237
+1793,Geo2PointList 2x 13 10 10,1.919
+1794,Geo2PointList 2x 14 -10 -10,1.726
+1795,Geo2PointList 2x 14 -10 0,1.451
+1796,Geo2PointList 2x 14 -10 10,1.789
+1797,Geo2PointList 2x 14 0 -10,1.434
+1798,Geo2PointList 2x 14 0 0,2.044
+1799,Geo2PointList 2x 14 0 10,1.424
+1800,Geo2PointList 2x 14 10 -10,1.459
+1801,Geo2PointList 2x 14 10 0,1.44
+1802,Geo2PointList 2x 14 10 10,1.876
+1803,Geo2PointList 2x 15 -10 -10,1.752
+1804,Geo2PointList 2x 15 -10 0,1.713
+1805,Geo2PointList 2x 15 -10 10,1.598
+1806,Geo2PointList 2x 15 0 -10,1.65
+1807,Geo2PointList 2x 15 0 0,1.802
+1808,Geo2PointList 2x 15 0 10,1.912
+1809,Geo2PointList 2x 15 10 -10,1.483
+1810,Geo2PointList 2x 15 10 0,1.463
+1811,Geo2PointList 2x 15 10 10,1.712
+1812,Geo2PointList 2x 16 -10 -10,1.471
+1813,Geo2PointList 2x 16 -10 0,1.893
+1814,Geo2PointList 2x 16 -10 10,1.727
+1815,Geo2PointList 2x 16 0 -10,1.472
+1816,Geo2PointList 2x 16 0 0,1.65
+1817,Geo2PointList 2x 16 0 10,1.431
+1818,Geo2PointList 2x 16 10 -10,1.686
+1819,Geo2PointList 2x 16 10 0,1.56
+1820,Geo2PointList 2x 16 10 10,2.218
+1821,Geo2PointList 2x 17 -10 -10,1.545
+1822,Geo2PointList 2x 17 -10 0,1.476
+1823,Geo2PointList 2x 17 -10 10,1.451
+1824,Geo2PointList 2x 17 0 -10,1.664
+1825,Geo2PointList 2x 17 0 0,1.921
+1826,Geo2PointList 2x 17 0 10,1.619
+1827,Geo2PointList 2x 17 10 -10,1.753
+1828,Geo2PointList 2x 17 10 0,1.739
+1829,Geo2PointList 2x 17 10 10,1.722
+1830,Geo2PointList 2x 18 -10 -10,1.477
+1831,Geo2PointList 2x 18 -10 0,1.733
+1832,Geo2PointList 2x 18 -10 10,1.453
+1833,Geo2PointList 2x 18 0 -10,1.677
+1834,Geo2PointList 2x 18 0 0,1.575
+1835,Geo2PointList 2x 18 0 10,1.616
+1836,Geo2PointList 2x 18 10 -10,1.451
+1837,Geo2PointList 2x 18 10 0,1.711
+1838,Geo2PointList 2x 18 10 10,1.792
+1839,Geo2PointList 5x 0 -10 -10,1.981
+1840,Geo2PointList 5x 0 -10 0,2.041
+1841,Geo2PointList 5x 0 -10 10,2.35
+1842,Geo2PointList 5x 0 0 -10,1.894
+1843,Geo2PointList 5x 0 0 0,2.284
+1844,Geo2PointList 5x 0 0 10,2.06
+1845,Geo2PointList 5x 0 10 -10,1.998
+1846,Geo2PointList 5x 0 10 0,2.54
+1847,Geo2PointList 5x 0 10 10,1.986
+1848,Geo2PointList 5x 1 -10 -10,4.818
+1849,Geo2PointList 5x 1 -10 0,2.377
+1850,Geo2PointList 5x 1 -10 10,2.56
+1851,Geo2PointList 5x 1 0 -10,2.285
+1852,Geo2PointList 5x 1 0 0,2.26
+1853,Geo2PointList 5x 1 0 10,1.907
+1854,Geo2PointList 5x 1 10 -10,2.611
+1855,Geo2PointList 5x 1 10 0,2.399
+1856,Geo2PointList 5x 1 10 10,2.219
+1857,Geo2PointList 5x 2 -10 -10,2.476
+1858,Geo2PointList 5x 2 -10 0,2.005
+1859,Geo2PointList 5x 2 -10 10,1.973
+1860,Geo2PointList 5x 2 0 -10,1.921
+1861,Geo2PointList 5x 2 0 0,2.262
+1862,Geo2PointList 5x 2 0 10,2.409
+1863,Geo2PointList 5x 2 10 -10,1.987
+1864,Geo2PointList 5x 2 10 0,2.492
+1865,Geo2PointList 5x 2 10 10,1.988
+1866,Geo2PointList 5x 3 -10 -10,2.393
+1867,Geo2PointList 5x 3 -10 0,2.226
+1868,Geo2PointList 5x 3 -10 10,2.395
+1869,Geo2PointList 5x 3 0 -10,2.824
+1870,Geo2PointList 5x 3 0 0,1.926
+1871,Geo2PointList 5x 3 0 10,1.919
+1872,Geo2PointList 5x 3 10 -10,2.406
+1873,Geo2PointList 5x 3 10 0,2.379
+1874,Geo2PointList 5x 3 10 10,2.334
+1875,Geo2PointList 5x 4 -10 -10,2.001
+1876,Geo2PointList 5x 4 -10 0,2.449
+1877,Geo2PointList 5x 4 -10 10,2.006
+1878,Geo2PointList 5x 4 0 -10,2.021
+1879,Geo2PointList 5x 4 0 0,2.014
+1880,Geo2PointList 5x 4 0 10,1.999
+1881,Geo2PointList 5x 4 10 -10,2.462
+1882,Geo2PointList 5x 4 10 0,2.9
+1883,Geo2PointList 5x 4 10 10,2.02
+1884,Geo2PointList 5x 5 -10 -10,1.998
+1885,Geo2PointList 5x 5 -10 0,2.006
+1886,Geo2PointList 5x 5 -10 10,2.397
+1887,Geo2PointList 5x 5 0 -10,2.271
+1888,Geo2PointList 5x 5 0 0,2.31
+1889,Geo2PointList 5x 5 0 10,1.917
+1890,Geo2PointList 5x 5 10 -10,2.389
+1891,Geo2PointList 5x 5 10 0,2.544
+1892,Geo2PointList 5x 5 10 10,1.996
+1893,Geo2PointList 5x 6 -10 -10,2.101
+1894,Geo2PointList 5x 6 -10 0,2.022
+1895,Geo2PointList 5x 6 -10 10,2.046
+1896,Geo2PointList 5x 6 0 -10,1.911
+1897,Geo2PointList 5x 6 0 0,1.931
+1898,Geo2PointList 5x 6 0 10,2.287
+1899,Geo2PointList 5x 6 10 -10,2.015
+1900,Geo2PointList 5x 6 10 0,2.039
+1901,Geo2PointList 5x 6 10 10,2.866
+1902,Geo2PointList 5x 7 -10 -10,2.021
+1903,Geo2PointList 5x 7 -10 0,2.451
+1904,Geo2PointList 5x 7 -10 10,2.615
+1905,Geo2PointList 5x 7 0 -10,1.927
+1906,Geo2PointList 5x 7 0 0,2.234
+1907,Geo2PointList 5x 7 0 10,2.326
+1908,Geo2PointList 5x 7 10 -10,2.042
+1909,Geo2PointList 5x 7 10 0,2.081
+1910,Geo2PointList 5x 7 10 10,2.073
+1911,Geo2PointList 5x 8 -10 -10,2.028
+1912,Geo2PointList 5x 8 -10 0,2.639
+1913,Geo2PointList 5x 8 -10 10,2.482
+1914,Geo2PointList 5x 8 0 -10,1.952
+1915,Geo2PointList 5x 8 0 0,1.898
+1916,Geo2PointList 5x 8 0 10,2.125
+1917,Geo2PointList 5x 8 10 -10,2.431
+1918,Geo2PointList 5x 8 10 0,2.013
+1919,Geo2PointList 5x 8 10 10,2.294
+1920,Geo2PointList 5x 9 -10 -10,2.006
+1921,Geo2PointList 5x 9 -10 0,2.015
+1922,Geo2PointList 5x 9 -10 10,2.037
+1923,Geo2PointList 5x 9 0 -10,1.916
+1924,Geo2PointList 5x 9 0 0,2.529
+1925,Geo2PointList 5x 9 0 10,1.935
+1926,Geo2PointList 5x 9 10 -10,2.087
+1927,Geo2PointList 5x 9 10 0,3.036
+1928,Geo2PointList 5x 9 10 10,2.336
+1929,Geo2PointList 5x 10 -10 -10,2.386
+1930,Geo2PointList 5x 10 -10 0,2.287
+1931,Geo2PointList 5x 10 -10 10,3.063
+1932,Geo2PointList 5x 10 0 -10,2.379
+1933,Geo2PointList 5x 10 0 0,1.93
+1934,Geo2PointList 5x 10 0 10,2.136
+1935,Geo2PointList 5x 10 10 -10,2.0
+1936,Geo2PointList 5x 10 10 0,2.117
+1937,Geo2PointList 5x 10 10 10,2.009
+1938,Geo2PointList 5x 11 -10 -10,2.024
+1939,Geo2PointList 5x 11 -10 0,2.194
+1940,Geo2PointList 5x 11 -10 10,1.971
+1941,Geo2PointList 5x 11 0 -10,2.357
+1942,Geo2PointList 5x 11 0 0,2.057
+1943,Geo2PointList 5x 11 0 10,2.58
+1944,Geo2PointList 5x 11 10 -10,1.996
+1945,Geo2PointList 5x 11 10 0,2.31
+1946,Geo2PointList 5x 11 10 10,2.412
+1947,Geo2PointList 5x 12 -10 -10,1.991
+1948,Geo2PointList 5x 12 -10 0,2.0
+1949,Geo2PointList 5x 12 -10 10,2.04
+1950,Geo2PointList 5x 12 0 -10,2.522
+1951,Geo2PointList 5x 12 0 0,2.294
+1952,Geo2PointList 5x 12 0 10,2.325
+1953,Geo2PointList 5x 12 10 -10,2.012
+1954,Geo2PointList 5x 12 10 0,2.014
+1955,Geo2PointList 5x 12 10 10,2.07
+1956,Geo2PointList 5x 13 -10 -10,2.022
+1957,Geo2PointList 5x 13 -10 0,2.181
+1958,Geo2PointList 5x 13 -10 10,2.342
+1959,Geo2PointList 5x 13 0 -10,2.263
+1960,Geo2PointList 5x 13 0 0,1.922
+1961,Geo2PointList 5x 13 0 10,2.176
+1962,Geo2PointList 5x 13 10 -10,2.371
+1963,Geo2PointList 5x 13 10 0,2.38
+1964,Geo2PointList 5x 13 10 10,2.396
+1965,Geo2PointList 5x 14 -10 -10,2.407
+1966,Geo2PointList 5x 14 -10 0,2.391
+1967,Geo2PointList 5x 14 -10 10,2.392
+1968,Geo2PointList 5x 14 0 -10,2.054
+1969,Geo2PointList 5x 14 0 0,2.261
+1970,Geo2PointList 5x 14 0 10,1.89
+1971,Geo2PointList 5x 14 10 -10,3.023
+1972,Geo2PointList 5x 14 10 0,3.001
+1973,Geo2PointList 5x 14 10 10,2.808
+1974,Geo2PointList 5x 15 -10 -10,2.398
+1975,Geo2PointList 5x 15 -10 0,2.43
+1976,Geo2PointList 5x 15 -10 10,1.973
+1977,Geo2PointList 5x 15 0 -10,2.256
+1978,Geo2PointList 5x 15 0 0,2.051
+1979,Geo2PointList 5x 15 0 10,2.286
+1980,Geo2PointList 5x 15 10 -10,2.617
+1981,Geo2PointList 5x 15 10 0,2.035
+1982,Geo2PointList 5x 15 10 10,2.733
+1983,Geo2PointList 5x 16 -10 -10,2.014
+1984,Geo2PointList 5x 16 -10 0,2.419
+1985,Geo2PointList 5x 16 -10 10,2.149
+1986,Geo2PointList 5x 16 0 -10,2.294
+1987,Geo2PointList 5x 16 0 0,2.272
+1988,Geo2PointList 5x 16 0 10,2.251
+1989,Geo2PointList 5x 16 10 -10,4.725
+1990,Geo2PointList 5x 16 10 0,2.41
+1991,Geo2PointList 5x 16 10 10,2.416
+1992,Geo2PointList 5x 17 -10 -10,2.025
+1993,Geo2PointList 5x 17 -10 0,2.141
+1994,Geo2PointList 5x 17 -10 10,2.025
+1995,Geo2PointList 5x 17 0 -10,2.088
+1996,Geo2PointList 5x 17 0 0,2.275
+1997,Geo2PointList 5x 17 0 10,2.228
+1998,Geo2PointList 5x 17 10 -10,2.343
+1999,Geo2PointList 5x 17 10 0,1.987
+2000,Geo2PointList 5x 17 10 10,2.273
+2001,Geo2PointList 5x 18 -10 -10,2.036
+2002,Geo2PointList 5x 18 -10 0,2.099
+2003,Geo2PointList 5x 18 -10 10,2.02
+2004,Geo2PointList 5x 18 0 -10,2.293
+2005,Geo2PointList 5x 18 0 0,2.386
+2006,Geo2PointList 5x 18 0 10,2.5
+2007,Geo2PointList 5x 18 10 -10,2.016
+2008,Geo2PointList 5x 18 10 0,2.006
+2009,Geo2PointList 5x 18 10 10,1.998
+2010,Geo2PointList 10x 0 -10 -10,3.488
+2011,Geo2PointList 10x 0 -10 0,2.826
+2012,Geo2PointList 10x 0 -10 10,3.145
+2013,Geo2PointList 10x 0 0 -10,3.056
+2014,Geo2PointList 10x 0 0 0,2.763
+2015,Geo2PointList 10x 0 0 10,3.469
+2016,Geo2PointList 10x 0 10 -10,3.299
+2017,Geo2PointList 10x 0 10 0,3.442
+2018,Geo2PointList 10x 0 10 10,3.531
+2019,Geo2PointList 10x 1 -10 -10,3.795
+2020,Geo2PointList 10x 1 -10 0,3.084
+2021,Geo2PointList 10x 1 -10 10,3.005
+2022,Geo2PointList 10x 1 0 -10,3.26
+2023,Geo2PointList 10x 1 0 0,3.778
+2024,Geo2PointList 10x 1 0 10,2.851
+2025,Geo2PointList 10x 1 10 -10,3.519
+2026,Geo2PointList 10x 1 10 0,3.259
+2027,Geo2PointList 10x 1 10 10,3.323
+2028,Geo2PointList 10x 2 -10 -10,3.483
+2029,Geo2PointList 10x 2 -10 0,3.325
+2030,Geo2PointList 10x 2 -10 10,3.386
+2031,Geo2PointList 10x 2 0 -10,3.282
+2032,Geo2PointList 10x 2 0 0,2.697
+2033,Geo2PointList 10x 2 0 10,3.056
+2034,Geo2PointList 10x 2 10 -10,3.761
+2035,Geo2PointList 10x 2 10 0,3.167
+2036,Geo2PointList 10x 2 10 10,3.379
+2037,Geo2PointList 10x 3 -10 -10,2.964
+2038,Geo2PointList 10x 3 -10 0,2.903
+2039,Geo2PointList 10x 3 -10 10,3.185
+2040,Geo2PointList 10x 3 0 -10,3.242
+2041,Geo2PointList 10x 3 0 0,2.677
+2042,Geo2PointList 10x 3 0 10,2.983
+2043,Geo2PointList 10x 3 10 -10,3.507
+2044,Geo2PointList 10x 3 10 0,3.072
+2045,Geo2PointList 10x 3 10 10,2.916
+2046,Geo2PointList 10x 4 -10 -10,3.541
+2047,Geo2PointList 10x 4 -10 0,3.516
+2048,Geo2PointList 10x 4 -10 10,2.862
+2049,Geo2PointList 10x 4 0 -10,3.272
+2050,Geo2PointList 10x 4 0 0,2.899
+2051,Geo2PointList 10x 4 0 10,3.245
+2052,Geo2PointList 10x 4 10 -10,2.916
+2053,Geo2PointList 10x 4 10 0,3.135
+2054,Geo2PointList 10x 4 10 10,2.936
+2055,Geo2PointList 10x 5 -10 -10,2.876
+2056,Geo2PointList 10x 5 -10 0,2.877
+2057,Geo2PointList 10x 5 -10 10,3.072
+2058,Geo2PointList 10x 5 0 -10,3.601
+2059,Geo2PointList 10x 5 0 0,2.799
+2060,Geo2PointList 10x 5 0 10,3.468
+2061,Geo2PointList 10x 5 10 -10,2.904
+2062,Geo2PointList 10x 5 10 0,3.572
+2063,Geo2PointList 10x 5 10 10,2.914
+2064,Geo2PointList 10x 6 -10 -10,3.543
+2065,Geo2PointList 10x 6 -10 0,3.67
+2066,Geo2PointList 10x 6 -10 10,3.189
+2067,Geo2PointList 10x 6 0 -10,2.76
+2068,Geo2PointList 10x 6 0 0,3.393
+2069,Geo2PointList 10x 6 0 10,3.428
+2070,Geo2PointList 10x 6 10 -10,3.181
+2071,Geo2PointList 10x 6 10 0,4.089
+2072,Geo2PointList 10x 6 10 10,3.537
+2073,Geo2PointList 10x 7 -10 -10,3.614
+2074,Geo2PointList 10x 7 -10 0,2.967
+2075,Geo2PointList 10x 7 -10 10,2.935
+2076,Geo2PointList 10x 7 0 -10,3.258
+2077,Geo2PointList 10x 7 0 0,2.649
+2078,Geo2PointList 10x 7 0 10,2.925
+2079,Geo2PointList 10x 7 10 -10,2.909
+2080,Geo2PointList 10x 7 10 0,2.893
+2081,Geo2PointList 10x 7 10 10,3.035
+2082,Geo2PointList 10x 8 -10 -10,2.894
+2083,Geo2PointList 10x 8 -10 0,2.883
+2084,Geo2PointList 10x 8 -10 10,3.52
+2085,Geo2PointList 10x 8 0 -10,2.708
+2086,Geo2PointList 10x 8 0 0,2.69
+2087,Geo2PointList 10x 8 0 10,3.251
+2088,Geo2PointList 10x 8 10 -10,4.054
+2089,Geo2PointList 10x 8 10 0,3.558
+2090,Geo2PointList 10x 8 10 10,3.472
+2091,Geo2PointList 10x 9 -10 -10,3.656
+2092,Geo2PointList 10x 9 -10 0,3.577
+2093,Geo2PointList 10x 9 -10 10,3.62
+2094,Geo2PointList 10x 9 0 -10,3.155
+2095,Geo2PointList 10x 9 0 0,3.465
+2096,Geo2PointList 10x 9 0 10,2.684
+2097,Geo2PointList 10x 9 10 -10,8.162
+2098,Geo2PointList 10x 9 10 0,3.419
+2099,Geo2PointList 10x 9 10 10,3.577
+2100,Geo2PointList 10x 10 -10 -10,2.906
+2101,Geo2PointList 10x 10 -10 0,3.191
+2102,Geo2PointList 10x 10 -10 10,3.504
+2103,Geo2PointList 10x 10 0 -10,3.287
+2104,Geo2PointList 10x 10 0 0,4.018
+2105,Geo2PointList 10x 10 0 10,3.288
+2106,Geo2PointList 10x 10 10 -10,2.9
+2107,Geo2PointList 10x 10 10 0,2.891
+2108,Geo2PointList 10x 10 10 10,2.854
+2109,Geo2PointList 10x 11 -10 -10,3.552
+2110,Geo2PointList 10x 11 -10 0,3.479
+2111,Geo2PointList 10x 11 -10 10,2.886
+2112,Geo2PointList 10x 11 0 -10,3.31
+2113,Geo2PointList 10x 11 0 0,3.797
+2114,Geo2PointList 10x 11 0 10,2.694
+2115,Geo2PointList 10x 11 10 -10,2.914
+2116,Geo2PointList 10x 11 10 0,2.922
+2117,Geo2PointList 10x 11 10 10,2.926
+2118,Geo2PointList 10x 12 -10 -10,2.895
+2119,Geo2PointList 10x 12 -10 0,2.893
+2120,Geo2PointList 10x 12 -10 10,2.904
+2121,Geo2PointList 10x 12 0 -10,2.678
+2122,Geo2PointList 10x 12 0 0,2.91
+2123,Geo2PointList 10x 12 0 10,3.314
+2124,Geo2PointList 10x 12 10 -10,3.11
+2125,Geo2PointList 10x 12 10 0,3.726
+2126,Geo2PointList 10x 12 10 10,2.9
+2127,Geo2PointList 10x 13 -10 -10,2.909
+2128,Geo2PointList 10x 13 -10 0,2.888
+2129,Geo2PointList 10x 13 -10 10,3.063
+2130,Geo2PointList 10x 13 0 -10,2.869
+2131,Geo2PointList 10x 13 0 0,2.787
+2132,Geo2PointList 10x 13 0 10,2.71
+2133,Geo2PointList 10x 13 10 -10,3.685
+2134,Geo2PointList 10x 13 10 0,3.065
+2135,Geo2PointList 10x 13 10 10,2.934
+2136,Geo2PointList 10x 14 -10 -10,3.568
+2137,Geo2PointList 10x 14 -10 0,2.873
+2138,Geo2PointList 10x 14 -10 10,2.959
+2139,Geo2PointList 10x 14 0 -10,2.715
+2140,Geo2PointList 10x 14 0 0,2.714
+2141,Geo2PointList 10x 14 0 10,2.969
+2142,Geo2PointList 10x 14 10 -10,3.555
+2143,Geo2PointList 10x 14 10 0,3.276
+2144,Geo2PointList 10x 14 10 10,3.568
+2145,Geo2PointList 10x 15 -10 -10,2.906
+2146,Geo2PointList 10x 15 -10 0,3.722
+2147,Geo2PointList 10x 15 -10 10,4.263
+2148,Geo2PointList 10x 15 0 -10,3.094
+2149,Geo2PointList 10x 15 0 0,2.752
+2150,Geo2PointList 10x 15 0 10,2.698
+2151,Geo2PointList 10x 15 10 -10,2.914
+2152,Geo2PointList 10x 15 10 0,3.013
+2153,Geo2PointList 10x 15 10 10,3.487
+2154,Geo2PointList 10x 16 -10 -10,2.999
+2155,Geo2PointList 10x 16 -10 0,3.394
+2156,Geo2PointList 10x 16 -10 10,2.918
+2157,Geo2PointList 10x 16 0 -10,3.283
+2158,Geo2PointList 10x 16 0 0,2.813
+2159,Geo2PointList 10x 16 0 10,2.859
+2160,Geo2PointList 10x 16 10 -10,3.852
+2161,Geo2PointList 10x 16 10 0,3.034
+2162,Geo2PointList 10x 16 10 10,2.907
+2163,Geo2PointList 10x 17 -10 -10,2.923
+2164,Geo2PointList 10x 17 -10 0,2.936
+2165,Geo2PointList 10x 17 -10 10,3.537
+2166,Geo2PointList 10x 17 0 -10,3.077
+2167,Geo2PointList 10x 17 0 0,2.7
+2168,Geo2PointList 10x 17 0 10,3.751
+2169,Geo2PointList 10x 17 10 -10,3.453
+2170,Geo2PointList 10x 17 10 0,3.403
+2171,Geo2PointList 10x 17 10 10,2.899
+2172,Geo2PointList 10x 18 -10 -10,3.67
+2173,Geo2PointList 10x 18 -10 0,3.877
+2174,Geo2PointList 10x 18 -10 10,4.599
+2175,Geo2PointList 10x 18 0 -10,3.338
+2176,Geo2PointList 10x 18 0 0,3.267
+2177,Geo2PointList 10x 18 0 10,3.278
+2178,Geo2PointList 10x 18 10 -10,3.853
+2179,Geo2PointList 10x 18 10 0,3.911
+2180,Geo2PointList 10x 18 10 10,3.061
+2181,Geo2PointList 20x 0 -10 -10,4.653
+2182,Geo2PointList 20x 0 -10 0,5.675
+2183,Geo2PointList 20x 0 -10 10,5.245
+2184,Geo2PointList 20x 0 0 -10,4.279
+2185,Geo2PointList 20x 0 0 0,4.326
+2186,Geo2PointList 20x 0 0 10,5.255
+2187,Geo2PointList 20x 0 10 -10,5.939
+2188,Geo2PointList 20x 0 10 0,5.446
+2189,Geo2PointList 20x 0 10 10,4.895
+2190,Geo2PointList 20x 1 -10 -10,5.794
+2191,Geo2PointList 20x 1 -10 0,5.405
+2192,Geo2PointList 20x 1 -10 10,5.868
+2193,Geo2PointList 20x 1 0 -10,5.316
+2194,Geo2PointList 20x 1 0 0,4.915
+2195,Geo2PointList 20x 1 0 10,5.378
+2196,Geo2PointList 20x 1 10 -10,6.471
+2197,Geo2PointList 20x 1 10 0,5.894
+2198,Geo2PointList 20x 1 10 10,5.902
+2199,Geo2PointList 20x 2 -10 -10,5.318
+2200,Geo2PointList 20x 2 -10 0,4.676
+2201,Geo2PointList 20x 2 -10 10,4.671
+2202,Geo2PointList 20x 2 0 -10,4.92
+2203,Geo2PointList 20x 2 0 0,5.277
+2204,Geo2PointList 20x 2 0 10,5.34
+2205,Geo2PointList 20x 2 10 -10,5.855
+2206,Geo2PointList 20x 2 10 0,5.811
+2207,Geo2PointList 20x 2 10 10,5.144
+2208,Geo2PointList 20x 3 -10 -10,5.522
+2209,Geo2PointList 20x 3 -10 0,5.884
+2210,Geo2PointList 20x 3 -10 10,4.805
+2211,Geo2PointList 20x 3 0 -10,5.786
+2212,Geo2PointList 20x 3 0 0,5.284
+2213,Geo2PointList 20x 3 0 10,4.31
+2214,Geo2PointList 20x 3 10 -10,4.855
+2215,Geo2PointList 20x 3 10 0,6.503
+2216,Geo2PointList 20x 3 10 10,6.583
+2217,Geo2PointList 20x 4 -10 -10,5.185
+2218,Geo2PointList 20x 4 -10 0,6.096
+2219,Geo2PointList 20x 4 -10 10,4.702
+2220,Geo2PointList 20x 4 0 -10,4.425
+2221,Geo2PointList 20x 4 0 0,6.363
+2222,Geo2PointList 20x 4 0 10,5.324
+2223,Geo2PointList 20x 4 10 -10,4.693
+2224,Geo2PointList 20x 4 10 0,4.783
+2225,Geo2PointList 20x 4 10 10,5.324
+2226,Geo2PointList 20x 5 -10 -10,8.242
+2227,Geo2PointList 20x 5 -10 0,5.856
+2228,Geo2PointList 20x 5 -10 10,5.932
+2229,Geo2PointList 20x 5 0 -10,5.312
+2230,Geo2PointList 20x 5 0 0,5.653
+2231,Geo2PointList 20x 5 0 10,4.348
+2232,Geo2PointList 20x 5 10 -10,5.399
+2233,Geo2PointList 20x 5 10 0,5.956
+2234,Geo2PointList 20x 5 10 10,5.811
+2235,Geo2PointList 20x 6 -10 -10,5.815
+2236,Geo2PointList 20x 6 -10 0,5.639
+2237,Geo2PointList 20x 6 -10 10,4.818
+2238,Geo2PointList 20x 6 0 -10,5.175
+2239,Geo2PointList 20x 6 0 0,4.671
+2240,Geo2PointList 20x 6 0 10,4.305
+2241,Geo2PointList 20x 6 10 -10,4.97
+2242,Geo2PointList 20x 6 10 0,5.831
+2243,Geo2PointList 20x 6 10 10,5.961
+2244,Geo2PointList 20x 7 -10 -10,5.717
+2245,Geo2PointList 20x 7 -10 0,5.66
+2246,Geo2PointList 20x 7 -10 10,5.34
+2247,Geo2PointList 20x 7 0 -10,4.278
+2248,Geo2PointList 20x 7 0 0,5.072
+2249,Geo2PointList 20x 7 0 10,4.363
+2250,Geo2PointList 20x 7 10 -10,5.818
+2251,Geo2PointList 20x 7 10 0,5.405
+2252,Geo2PointList 20x 7 10 10,5.421
+2253,Geo2PointList 20x 8 -10 -10,4.923
+2254,Geo2PointList 20x 8 -10 0,4.918
+2255,Geo2PointList 20x 8 -10 10,6.379
+2256,Geo2PointList 20x 8 0 -10,5.197
+2257,Geo2PointList 20x 8 0 0,5.271
+2258,Geo2PointList 20x 8 0 10,5.418
+2259,Geo2PointList 20x 8 10 -10,4.69
+2260,Geo2PointList 20x 8 10 0,5.292
+2261,Geo2PointList 20x 8 10 10,5.447
+2262,Geo2PointList 20x 9 -10 -10,5.214
+2263,Geo2PointList 20x 9 -10 0,4.774
+2264,Geo2PointList 20x 9 -10 10,4.687
+2265,Geo2PointList 20x 9 0 -10,4.906
+2266,Geo2PointList 20x 9 0 0,5.121
+2267,Geo2PointList 20x 9 0 10,4.301
+2268,Geo2PointList 20x 9 10 -10,6.36
+2269,Geo2PointList 20x 9 10 0,5.335
+2270,Geo2PointList 20x 9 10 10,5.251
+2271,Geo2PointList 20x 10 -10 -10,4.931
+2272,Geo2PointList 20x 10 -10 0,6.309
+2273,Geo2PointList 20x 10 -10 10,6.542
+2274,Geo2PointList 20x 10 0 -10,5.308
+2275,Geo2PointList 20x 10 0 0,4.836
+2276,Geo2PointList 20x 10 0 10,5.946
+2277,Geo2PointList 20x 10 10 -10,5.194
+2278,Geo2PointList 20x 10 10 0,5.191
+2279,Geo2PointList 20x 10 10 10,5.303
+2280,Geo2PointList 20x 11 -10 -10,5.39
+2281,Geo2PointList 20x 11 -10 0,4.691
+2282,Geo2PointList 20x 11 -10 10,5.281
+2283,Geo2PointList 20x 11 0 -10,4.98
+2284,Geo2PointList 20x 11 0 0,4.698
+2285,Geo2PointList 20x 11 0 10,4.855
+2286,Geo2PointList 20x 11 10 -10,6.141
+2287,Geo2PointList 20x 11 10 0,5.957
+2288,Geo2PointList 20x 11 10 10,4.677
+2289,Geo2PointList 20x 12 -10 -10,4.945
+2290,Geo2PointList 20x 12 -10 0,4.864
+2291,Geo2PointList 20x 12 -10 10,5.838
+2292,Geo2PointList 20x 12 0 -10,4.714
+2293,Geo2PointList 20x 12 0 0,4.492
+2294,Geo2PointList 20x 12 0 10,5.706
+2295,Geo2PointList 20x 12 10 -10,4.764
+2296,Geo2PointList 20x 12 10 0,4.699
+2297,Geo2PointList 20x 12 10 10,5.001
+2298,Geo2PointList 20x 13 -10 -10,5.126
+2299,Geo2PointList 20x 13 -10 0,6.59
+2300,Geo2PointList 20x 13 -10 10,6.419
+2301,Geo2PointList 20x 13 0 -10,5.941
+2302,Geo2PointList 20x 13 0 0,4.34
+2303,Geo2PointList 20x 13 0 10,4.343
+2304,Geo2PointList 20x 13 10 -10,4.695
+2305,Geo2PointList 20x 13 10 0,5.822
+2306,Geo2PointList 20x 13 10 10,6.23
+2307,Geo2PointList 20x 14 -10 -10,5.763
+2308,Geo2PointList 20x 14 -10 0,4.796
+2309,Geo2PointList 20x 14 -10 10,5.115
+2310,Geo2PointList 20x 14 0 -10,4.356
+2311,Geo2PointList 20x 14 0 0,4.471
+2312,Geo2PointList 20x 14 0 10,4.369
+2313,Geo2PointList 20x 14 10 -10,4.721
+2314,Geo2PointList 20x 14 10 0,5.383
+2315,Geo2PointList 20x 14 10 10,5.914
+2316,Geo2PointList 20x 15 -10 -10,5.151
+2317,Geo2PointList 20x 15 -10 0,4.989
+2318,Geo2PointList 20x 15 -10 10,4.75
+2319,Geo2PointList 20x 15 0 -10,5.249
+2320,Geo2PointList 20x 15 0 0,4.877
+2321,Geo2PointList 20x 15 0 10,4.289
+2322,Geo2PointList 20x 15 10 -10,5.538
+2323,Geo2PointList 20x 15 10 0,4.732
+2324,Geo2PointList 20x 15 10 10,5.353
+2325,Geo2PointList 20x 16 -10 -10,5.155
+2326,Geo2PointList 20x 16 -10 0,4.744
+2327,Geo2PointList 20x 16 -10 10,4.721
+2328,Geo2PointList 20x 16 0 -10,5.401
+2329,Geo2PointList 20x 16 0 0,4.3
+2330,Geo2PointList 20x 16 0 10,4.351
+2331,Geo2PointList 20x 16 10 -10,4.696
+2332,Geo2PointList 20x 16 10 0,4.732
+2333,Geo2PointList 20x 16 10 10,5.474
+2334,Geo2PointList 20x 17 -10 -10,5.487
+2335,Geo2PointList 20x 17 -10 0,5.505
+2336,Geo2PointList 20x 17 -10 10,5.453
+2337,Geo2PointList 20x 17 0 -10,4.276
+2338,Geo2PointList 20x 17 0 0,4.849
+2339,Geo2PointList 20x 17 0 10,4.474
+2340,Geo2PointList 20x 17 10 -10,5.175
+2341,Geo2PointList 20x 17 10 0,5.817
+2342,Geo2PointList 20x 17 10 10,5.539
+2343,Geo2PointList 20x 18 -10 -10,4.673
+2344,Geo2PointList 20x 18 -10 0,4.998
+2345,Geo2PointList 20x 18 -10 10,4.679
+2346,Geo2PointList 20x 18 0 -10,4.64
+2347,Geo2PointList 20x 18 0 0,5.282
+2348,Geo2PointList 20x 18 0 10,5.394
+2349,Geo2PointList 20x 18 10 -10,4.666
+2350,Geo2PointList 20x 18 10 0,4.677
+2351,Geo2PointList 20x 18 10 10,4.87
+2352,Geo2PointList 50x 0 -10 -10,10.322
+2353,Geo2PointList 50x 0 -10 0,10.066
+2354,Geo2PointList 50x 0 -10 10,11.037
+2355,Geo2PointList 50x 0 0 -10,10.707
+2356,Geo2PointList 50x 0 0 0,11.221
+2357,Geo2PointList 50x 0 0 10,9.117
+2358,Geo2PointList 50x 0 10 -10,12.781
+2359,Geo2PointList 50x 0 10 0,11.039
+2360,Geo2PointList 50x 0 10 10,12.118
+2361,Geo2PointList 50x 1 -10 -10,10.991
+2362,Geo2PointList 50x 1 -10 0,10.016
+2363,Geo2PointList 50x 1 -10 10,11.297
+2364,Geo2PointList 50x 1 0 -10,10.753
+2365,Geo2PointList 50x 1 0 0,10.794
+2366,Geo2PointList 50x 1 0 10,11.17
+2367,Geo2PointList 50x 1 10 -10,11.788
+2368,Geo2PointList 50x 1 10 0,11.58
+2369,Geo2PointList 50x 1 10 10,11.497
+2370,Geo2PointList 50x 2 -10 -10,11.178
+2371,Geo2PointList 50x 2 -10 0,11.163
+2372,Geo2PointList 50x 2 -10 10,10.854
+2373,Geo2PointList 50x 2 0 -10,11.003
+2374,Geo2PointList 50x 2 0 0,11.303
+2375,Geo2PointList 50x 2 0 10,11.026
+2376,Geo2PointList 50x 2 10 -10,12.934
+2377,Geo2PointList 50x 2 10 0,12.916
+2378,Geo2PointList 50x 2 10 10,11.055
+2379,Geo2PointList 50x 3 -10 -10,10.367
+2380,Geo2PointList 50x 3 -10 0,13.02
+2381,Geo2PointList 50x 3 -10 10,10.535
+2382,Geo2PointList 50x 3 0 -10,9.77
+2383,Geo2PointList 50x 3 0 0,9.281
+2384,Geo2PointList 50x 3 0 10,9.626
+2385,Geo2PointList 50x 3 10 -10,10.103
+2386,Geo2PointList 50x 3 10 0,10.128
+2387,Geo2PointList 50x 3 10 10,10.317
+2388,Geo2PointList 50x 4 -10 -10,12.922
+2389,Geo2PointList 50x 4 -10 0,11.26
+2390,Geo2PointList 50x 4 -10 10,11.81
+2391,Geo2PointList 50x 4 0 -10,11.172
+2392,Geo2PointList 50x 4 0 0,9.999
+2393,Geo2PointList 50x 4 0 10,10.235
+2394,Geo2PointList 50x 4 10 -10,10.78
+2395,Geo2PointList 50x 4 10 0,12.537
+2396,Geo2PointList 50x 4 10 10,13.361
+2397,Geo2PointList 50x 5 -10 -10,12.354
+2398,Geo2PointList 50x 5 -10 0,10.279
+2399,Geo2PointList 50x 5 -10 10,10.389
+2400,Geo2PointList 50x 5 0 -10,10.512
+2401,Geo2PointList 50x 5 0 0,9.952
+2402,Geo2PointList 50x 5 0 10,10.183
+2403,Geo2PointList 50x 5 10 -10,11.172
+2404,Geo2PointList 50x 5 10 0,12.499
+2405,Geo2PointList 50x 5 10 10,11.456
+2406,Geo2PointList 50x 6 -10 -10,10.616
+2407,Geo2PointList 50x 6 -10 0,12.063
+2408,Geo2PointList 50x 6 -10 10,10.714
+2409,Geo2PointList 50x 6 0 -10,9.754
+2410,Geo2PointList 50x 6 0 0,11.602
+2411,Geo2PointList 50x 6 0 10,9.734
+2412,Geo2PointList 50x 6 10 -10,11.299
+2413,Geo2PointList 50x 6 10 0,13.237
+2414,Geo2PointList 50x 6 10 10,12.211
+2415,Geo2PointList 50x 7 -10 -10,12.515
+2416,Geo2PointList 50x 7 -10 0,10.576
+2417,Geo2PointList 50x 7 -10 10,11.051
+2418,Geo2PointList 50x 7 0 -10,10.298
+2419,Geo2PointList 50x 7 0 0,10.595
+2420,Geo2PointList 50x 7 0 10,10.564
+2421,Geo2PointList 50x 7 10 -10,11.076
+2422,Geo2PointList 50x 7 10 0,12.055
+2423,Geo2PointList 50x 7 10 10,10.543
+2424,Geo2PointList 50x 8 -10 -10,11.405
+2425,Geo2PointList 50x 8 -10 0,10.318
+2426,Geo2PointList 50x 8 -10 10,12.544
+2427,Geo2PointList 50x 8 0 -10,11.274
+2428,Geo2PointList 50x 8 0 0,10.918
+2429,Geo2PointList 50x 8 0 10,11.907
+2430,Geo2PointList 50x 8 10 -10,11.636
+2431,Geo2PointList 50x 8 10 0,12.321
+2432,Geo2PointList 50x 8 10 10,10.733
+2433,Geo2PointList 50x 9 -10 -10,12.153
+2434,Geo2PointList 50x 9 -10 0,10.907
+2435,Geo2PointList 50x 9 -10 10,11.126
+2436,Geo2PointList 50x 9 0 -10,9.678
+2437,Geo2PointList 50x 9 0 0,11.038
+2438,Geo2PointList 50x 9 0 10,10.21
+2439,Geo2PointList 50x 9 10 -10,13.383
+2440,Geo2PointList 50x 9 10 0,11.015
+2441,Geo2PointList 50x 9 10 10,11.318
+2442,Geo2PointList 50x 10 -10 -10,11.548
+2443,Geo2PointList 50x 10 -10 0,12.066
+2444,Geo2PointList 50x 10 -10 10,11.353
+2445,Geo2PointList 50x 10 0 -10,9.707
+2446,Geo2PointList 50x 10 0 0,9.503
+2447,Geo2PointList 50x 10 0 10,9.725
+2448,Geo2PointList 50x 10 10 -10,13.187
+2449,Geo2PointList 50x 10 10 0,12.206
+2450,Geo2PointList 50x 10 10 10,12.743
+2451,Geo2PointList 50x 11 -10 -10,10.681
+2452,Geo2PointList 50x 11 -10 0,10.642
+2453,Geo2PointList 50x 11 -10 10,11.929
+2454,Geo2PointList 50x 11 0 -10,11.543
+2455,Geo2PointList 50x 11 0 0,9.592
+2456,Geo2PointList 50x 11 0 10,10.93
+2457,Geo2PointList 50x 11 10 -10,12.283
+2458,Geo2PointList 50x 11 10 0,11.91
+2459,Geo2PointList 50x 11 10 10,10.273
+2460,Geo2PointList 50x 12 -10 -10,10.349
+2461,Geo2PointList 50x 12 -10 0,10.092
+2462,Geo2PointList 50x 12 -10 10,11.092
+2463,Geo2PointList 50x 12 0 -10,10.528
+2464,Geo2PointList 50x 12 0 0,10.304
+2465,Geo2PointList 50x 12 0 10,10.839
+2466,Geo2PointList 50x 12 10 -10,11.631
+2467,Geo2PointList 50x 12 10 0,19.106
+2468,Geo2PointList 50x 12 10 10,12.171
+2469,Geo2PointList 50x 13 -10 -10,12.162
+2470,Geo2PointList 50x 13 -10 0,11.217
+2471,Geo2PointList 50x 13 -10 10,12.741
+2472,Geo2PointList 50x 13 0 -10,11.314
+2473,Geo2PointList 50x 13 0 0,10.166
+2474,Geo2PointList 50x 13 0 10,10.905
+2475,Geo2PointList 50x 13 10 -10,12.397
+2476,Geo2PointList 50x 13 10 0,10.782
+2477,Geo2PointList 50x 13 10 10,11.74
+2478,Geo2PointList 50x 14 -10 -10,11.172
+2479,Geo2PointList 50x 14 -10 0,10.572
+2480,Geo2PointList 50x 14 -10 10,10.124
+2481,Geo2PointList 50x 14 0 -10,11.68
+2482,Geo2PointList 50x 14 0 0,9.638
+2483,Geo2PointList 50x 14 0 10,9.795
+2484,Geo2PointList 50x 14 10 -10,11.935
+2485,Geo2PointList 50x 14 10 0,10.698
+2486,Geo2PointList 50x 14 10 10,12.291
+2487,Geo2PointList 50x 15 -10 -10,11.809
+2488,Geo2PointList 50x 15 -10 0,12.544
+2489,Geo2PointList 50x 15 -10 10,10.691
+2490,Geo2PointList 50x 15 0 -10,10.382
+2491,Geo2PointList 50x 15 0 0,10.708
+2492,Geo2PointList 50x 15 0 10,10.489
+2493,Geo2PointList 50x 15 10 -10,11.512
+2494,Geo2PointList 50x 15 10 0,12.127
+2495,Geo2PointList 50x 15 10 10,12.236
+2496,Geo2PointList 50x 16 -10 -10,11.444
+2497,Geo2PointList 50x 16 -10 0,11.971
+2498,Geo2PointList 50x 16 -10 10,12.221
+2499,Geo2PointList 50x 16 0 -10,10.199
+2500,Geo2PointList 50x 16 0 0,9.393
+2501,Geo2PointList 50x 16 0 10,10.02
+2502,Geo2PointList 50x 16 10 -10,11.695
+2503,Geo2PointList 50x 16 10 0,10.832
+2504,Geo2PointList 50x 16 10 10,12.323
+2505,Geo2PointList 50x 17 -10 -10,10.159
+2506,Geo2PointList 50x 17 -10 0,10.811
+2507,Geo2PointList 50x 17 -10 10,10.695
+2508,Geo2PointList 50x 17 0 -10,11.482
+2509,Geo2PointList 50x 17 0 0,10.283
+2510,Geo2PointList 50x 17 0 10,10.963
+2511,Geo2PointList 50x 17 10 -10,11.816
+2512,Geo2PointList 50x 17 10 0,12.881
+2513,Geo2PointList 50x 17 10 10,11.56
+2514,Geo2PointList 50x 18 -10 -10,12.541
+2515,Geo2PointList 50x 18 -10 0,11.422
+2516,Geo2PointList 50x 18 -10 10,11.567
+2517,Geo2PointList 50x 18 0 -10,10.909
+2518,Geo2PointList 50x 18 0 0,10.32
+2519,Geo2PointList 50x 18 0 10,10.182
+2520,Geo2PointList 50x 18 10 -10,11.249
+2521,Geo2PointList 50x 18 10 0,11.026
+2522,Geo2PointList 50x 18 10 10,11.93
+2523,Geo2PointList 100x 0 -10 -10,21.084
+2524,Geo2PointList 100x 0 -10 0,22.204
+2525,Geo2PointList 100x 0 -10 10,21.862
+2526,Geo2PointList 100x 0 0 -10,20.246
+2527,Geo2PointList 100x 0 0 0,18.644
+2528,Geo2PointList 100x 0 0 10,17.894
+2529,Geo2PointList 100x 0 10 -10,22.695
+2530,Geo2PointList 100x 0 10 0,19.856
+2531,Geo2PointList 100x 0 10 10,19.573
+2532,Geo2PointList 100x 1 -10 -10,22.338
+2533,Geo2PointList 100x 1 -10 0,21.403
+2534,Geo2PointList 100x 1 -10 10,21.819
+2535,Geo2PointList 100x 1 0 -10,20.771
+2536,Geo2PointList 100x 1 0 0,19.282
+2537,Geo2PointList 100x 1 0 10,19.879
+2538,Geo2PointList 100x 1 10 -10,20.398
+2539,Geo2PointList 100x 1 10 0,20.243
+2540,Geo2PointList 100x 1 10 10,20.644
+2541,Geo2PointList 100x 2 -10 -10,21.255
+2542,Geo2PointList 100x 2 -10 0,21.294
+2543,Geo2PointList 100x 2 -10 10,21.565
+2544,Geo2PointList 100x 2 0 -10,21.725
+2545,Geo2PointList 100x 2 0 0,20.956
+2546,Geo2PointList 100x 2 0 10,20.568
+2547,Geo2PointList 100x 2 10 -10,23.57
+2548,Geo2PointList 100x 2 10 0,23.137
+2549,Geo2PointList 100x 2 10 10,23.102
+2550,Geo2PointList 100x 3 -10 -10,19.911
+2551,Geo2PointList 100x 3 -10 0,20.504
+2552,Geo2PointList 100x 3 -10 10,20.781
+2553,Geo2PointList 100x 3 0 -10,17.657
+2554,Geo2PointList 100x 3 0 0,18.73
+2555,Geo2PointList 100x 3 0 10,20.186
+2556,Geo2PointList 100x 3 10 -10,22.434
+2557,Geo2PointList 100x 3 10 0,22.056
+2558,Geo2PointList 100x 3 10 10,22.111
+2559,Geo2PointList 100x 4 -10 -10,23.406
+2560,Geo2PointList 100x 4 -10 0,20.907
+2561,Geo2PointList 100x 4 -10 10,20.693
+2562,Geo2PointList 100x 4 0 -10,19.038
+2563,Geo2PointList 100x 4 0 0,19.669
+2564,Geo2PointList 100x 4 0 10,19.571
+2565,Geo2PointList 100x 4 10 -10,22.838
+2566,Geo2PointList 100x 4 10 0,23.96
+2567,Geo2PointList 100x 4 10 10,23.417
+2568,Geo2PointList 100x 5 -10 -10,20.628
+2569,Geo2PointList 100x 5 -10 0,21.512
+2570,Geo2PointList 100x 5 -10 10,22.554
+2571,Geo2PointList 100x 5 0 -10,19.747
+2572,Geo2PointList 100x 5 0 0,21.271
+2573,Geo2PointList 100x 5 0 10,18.698
+2574,Geo2PointList 100x 5 10 -10,23.537
+2575,Geo2PointList 100x 5 10 0,22.296
+2576,Geo2PointList 100x 5 10 10,23.159
+2577,Geo2PointList 100x 6 -10 -10,21.8
+2578,Geo2PointList 100x 6 -10 0,20.035
+2579,Geo2PointList 100x 6 -10 10,21.193
+2580,Geo2PointList 100x 6 0 -10,18.508
+2581,Geo2PointList 100x 6 0 0,19.906
+2582,Geo2PointList 100x 6 0 10,19.79
+2583,Geo2PointList 100x 6 10 -10,20.724
+2584,Geo2PointList 100x 6 10 0,23.122
+2585,Geo2PointList 100x 6 10 10,19.392
+2586,Geo2PointList 100x 7 -10 -10,21.109
+2587,Geo2PointList 100x 7 -10 0,22.137
+2588,Geo2PointList 100x 7 -10 10,22.65
+2589,Geo2PointList 100x 7 0 -10,20.723
+2590,Geo2PointList 100x 7 0 0,18.594
+2591,Geo2PointList 100x 7 0 10,18.979
+2592,Geo2PointList 100x 7 10 -10,19.674
+2593,Geo2PointList 100x 7 10 0,21.422
+2594,Geo2PointList 100x 7 10 10,22.648
+2595,Geo2PointList 100x 8 -10 -10,21.166
+2596,Geo2PointList 100x 8 -10 0,22.841
+2597,Geo2PointList 100x 8 -10 10,21.364
+2598,Geo2PointList 100x 8 0 -10,18.244
+2599,Geo2PointList 100x 8 0 0,20.329
+2600,Geo2PointList 100x 8 0 10,21.666
+2601,Geo2PointList 100x 8 10 -10,22.439
+2602,Geo2PointList 100x 8 10 0,20.254
+2603,Geo2PointList 100x 8 10 10,21.735
+2604,Geo2PointList 100x 9 -10 -10,21.539
+2605,Geo2PointList 100x 9 -10 0,21.292
+2606,Geo2PointList 100x 9 -10 10,19.981
+2607,Geo2PointList 100x 9 0 -10,20.898
+2608,Geo2PointList 100x 9 0 0,18.445
+2609,Geo2PointList 100x 9 0 10,17.947
+2610,Geo2PointList 100x 9 10 -10,21.649
+2611,Geo2PointList 100x 9 10 0,23.124
+2612,Geo2PointList 100x 9 10 10,22.625
+2613,Geo2PointList 100x 10 -10 -10,25.109
+2614,Geo2PointList 100x 10 -10 0,22.482
+2615,Geo2PointList 100x 10 -10 10,21.885
+2616,Geo2PointList 100x 10 0 -10,19.705
+2617,Geo2PointList 100x 10 0 0,19.301
+2618,Geo2PointList 100x 10 0 10,18.734
+2619,Geo2PointList 100x 10 10 -10,20.004
+2620,Geo2PointList 100x 10 10 0,19.911
+2621,Geo2PointList 100x 10 10 10,21.774
+2622,Geo2PointList 100x 11 -10 -10,20.038
+2623,Geo2PointList 100x 11 -10 0,19.613
+2624,Geo2PointList 100x 11 -10 10,23.047
+2625,Geo2PointList 100x 11 0 -10,17.896
+2626,Geo2PointList 100x 11 0 0,19.972
+2627,Geo2PointList 100x 11 0 10,18.251
+2628,Geo2PointList 100x 11 10 -10,21.679
+2629,Geo2PointList 100x 11 10 0,24.933
+2630,Geo2PointList 100x 11 10 10,21.803
+2631,Geo2PointList 100x 12 -10 -10,23.543
+2632,Geo2PointList 100x 12 -10 0,21.204
+2633,Geo2PointList 100x 12 -10 10,21.024
+2634,Geo2PointList 100x 12 0 -10,20.531
+2635,Geo2PointList 100x 12 0 0,20.982
+2636,Geo2PointList 100x 12 0 10,22.378
+2637,Geo2PointList 100x 12 10 -10,20.437
+2638,Geo2PointList 100x 12 10 0,24.062
+2639,Geo2PointList 100x 12 10 10,21.384
+2640,Geo2PointList 100x 13 -10 -10,21.649
+2641,Geo2PointList 100x 13 -10 0,21.66
+2642,Geo2PointList 100x 13 -10 10,21.901
+2643,Geo2PointList 100x 13 0 -10,18.182
+2644,Geo2PointList 100x 13 0 0,17.881
+2645,Geo2PointList 100x 13 0 10,20.264
+2646,Geo2PointList 100x 13 10 -10,19.698
+2647,Geo2PointList 100x 13 10 0,21.232
+2648,Geo2PointList 100x 13 10 10,19.815
+2649,Geo2PointList 100x 14 -10 -10,21.476
+2650,Geo2PointList 100x 14 -10 0,21.457
+2651,Geo2PointList 100x 14 -10 10,20.312
+2652,Geo2PointList 100x 14 0 -10,19.669
+2653,Geo2PointList 100x 14 0 0,18.725
+2654,Geo2PointList 100x 14 0 10,19.129
+2655,Geo2PointList 100x 14 10 -10,20.007
+2656,Geo2PointList 100x 14 10 0,21.472
+2657,Geo2PointList 100x 14 10 10,20.969
+2658,Geo2PointList 100x 15 -10 -10,21.679
+2659,Geo2PointList 100x 15 -10 0,20.868
+2660,Geo2PointList 100x 15 -10 10,22.06
+2661,Geo2PointList 100x 15 0 -10,20.621
+2662,Geo2PointList 100x 15 0 0,18.186
+2663,Geo2PointList 100x 15 0 10,21.044
+2664,Geo2PointList 100x 15 10 -10,22.577
+2665,Geo2PointList 100x 15 10 0,22.862
+2666,Geo2PointList 100x 15 10 10,23.771
+2667,Geo2PointList 100x 16 -10 -10,19.729
+2668,Geo2PointList 100x 16 -10 0,21.534
+2669,Geo2PointList 100x 16 -10 10,20.188
+2670,Geo2PointList 100x 16 0 -10,17.699
+2671,Geo2PointList 100x 16 0 0,18.178
+2672,Geo2PointList 100x 16 0 10,19.062
+2673,Geo2PointList 100x 16 10 -10,19.926
+2674,Geo2PointList 100x 16 10 0,21.789
+2675,Geo2PointList 100x 16 10 10,19.633
+2676,Geo2PointList 100x 17 -10 -10,21.554
+2677,Geo2PointList 100x 17 -10 0,23.837
+2678,Geo2PointList 100x 17 -10 10,21.194
+2679,Geo2PointList 100x 17 0 -10,18.919
+2680,Geo2PointList 100x 17 0 0,19.655
+2681,Geo2PointList 100x 17 0 10,21.506
+2682,Geo2PointList 100x 17 10 -10,22.288
+2683,Geo2PointList 100x 17 10 0,24.399
+2684,Geo2PointList 100x 17 10 10,25.108
+2685,Geo2PointList 100x 18 -10 -10,20.707
+2686,Geo2PointList 100x 18 -10 0,21.065
+2687,Geo2PointList 100x 18 -10 10,22.215
+2688,Geo2PointList 100x 18 0 -10,20.618
+2689,Geo2PointList 100x 18 0 0,20.976
+2690,Geo2PointList 100x 18 0 10,19.204
+2691,Geo2PointList 100x 18 10 -10,22.541
+2692,Geo2PointList 100x 18 10 0,20.649
+2693,Geo2PointList 100x 18 10 10,22.494
+2694,GeoBoxLimit 0,1.266
+2695,GeoBoxLimit 1,1.209
+2696,GeoBoxLimit 2,1.233
+2697,GeoBoxLimit 3,1.37
+2698,GeoBoxLimit 4,1.359
+2699,GeoBoxLimit 5,1.244
+2700,GeoBoxLimit 6,1.23
+2701,GeoBoxLimit 7,1.302
+2702,GeoBoxLimit 8,1.229
+2703,GeoBoxLimit 9,1.229
+2704,GeoLimit 0,0.962
+2705,GeoLimit 1,0.956
+2706,GeoLimit 2,0.979
+2707,GeoLimit 3,1.298
+2708,GeoLimit 4,0.987
+2709,GeoLimit 5,0.963
+2710,GeoLimit 6,0.958
+2711,GeoLimit 7,1.052
+2712,GeoLimit 8,0.975
+2713,GeoLimit 9,0.971
+2714,Length 0,0.684
+2715,Length 1,0.685
+2716,Length 2,0.773
+2717,Length 3,0.684
+2718,Length 4,0.679
+2719,Length 5,0.674
+2720,Length 6,1.03
+2721,Length 7,0.681
+2722,Length 8,0.699
+2723,Length 9,1.016
+2724,Length 10,0.778
+2725,Length 11,0.99
+2726,Length 12,0.672
+2727,Length 13,0.695
+2728,Length 14,0.767
+2729,Length 15,0.679
+2730,Length 16,0.681
+2731,Length 17,0.755
+2732,Length 18,0.945
+2733,Limit2 0,0.705
+2734,Limit2 1,0.68
+2735,Limit2 2,0.695
+2736,Limit2 3,0.69
+2737,Limit2 4,0.728
+2738,Limit2 5,0.681
+2739,Limit2 6,0.697
+2740,Limit2 7,0.83
+2741,Limit2 8,0.693
+2742,Limit2 9,0.686
+2743,Limit3 0,0.785
+2744,Limit3 1,0.68
+2745,Limit3 2,0.704
+2746,Limit3 3,0.693
+2747,Limit3 4,0.71
+2748,Limit3 5,0.713
+2749,Limit3 6,0.687
+2750,Limit3 7,0.939
+2751,Limit3 8,0.697
+2752,Limit3 9,0.697
+2753,Limit6 0,0.987
+2754,Limit6 1,0.707
+2755,Limit6 2,0.698
+2756,Limit6 3,0.704
+2757,Limit6 4,0.708
+2758,Limit6 5,0.783
+2759,Limit6 6,0.708
+2760,Limit6 7,0.706
+2761,Limit6 8,0.704
+2762,Limit6 9,0.688
+2763,Point/BBox 0 51 6 51 7,1.177
+2764,Point/BBox 1 51 6 50 6,1.161
+2765,Point/BBox 2 0 0 0 1,1.345
+2766,Point/BBox 3 0 0 1 0,1.405
+2767,Point/BBox 4 50.777 6 50.778 6,1.317
+2768,Point/BBox 5 50.777 6 50.778 6.001,1.715
+2769,Point/BBox 6 50 6 -50 174,1.696
+2770,Point/BBoxList 0 51 6 51 7,1.075
+2771,Point/BBoxList 1 51 6 50 6,1.093
+2772,Point/BBoxList 2 0 0 0 1,1.245
+2773,Point/BBoxList 3 0 0 1 0,1.261
+2774,Point/BBoxList 4 50.777 6 50.778 6,1.259
+2775,Point/BBoxList 5 50.777 6 50.778 6.001,1.665
+2776,Point/BBoxList 6 50 6 -50 174,1.248
+2777,Point/Box2Point 0 380.0 267.0,1.985
+2778,Point/Box2Point 1 380.0 267.0,1.689
+2779,Point/Box2Point 2 1410.0 913.0,1.737
+2780,Point/Box2Point 3 1423.0 913.0,1.687
+2781,Point/BoxCenter 0 51 6 51 7,1.219
+2782,Point/BoxCenter 1 51 6 50 6,1.229
+2783,Point/BoxCenter 2 0 0 0 1,1.419
+2784,Point/BoxCenter 3 0 0 1 0,1.349
+2785,Point/BoxCenter 4 50.777 6 50.778 6,1.242
+2786,Point/BoxCenter 5 50.777 6 50.778 6.001,1.435
+2787,Point/BoxCenter 6 50 6 -50 174,1.208
+2788,Point/BoxCorners 0 49.300005 -123.158551 49.301624 -123.157253,1.738
+2789,Point/BoxCorners 1 49.292809 -123.1589   49.314037 -123.116543,2.042
+2790,Point/BoxCorners 2 49.300005 -123.158551 49.301624 -123.157253,1.807
+2791,Point/BoxCorners 3 49.292809 -123.1589   49.314037 -123.116543,2.07
+2792,Point/BoxDiameter 0 51 6 51 7,1.118
+2793,Point/BoxDiameter 1 51 6 50 6,1.123
+2794,Point/BoxDiameter 2 0 0 0 1,1.295
+2795,Point/BoxDiameter 3 0 0 1 0,1.318
+2796,Point/BoxDiameter 4 50.777 6 50.778 6,1.263
+2797,Point/BoxDiameter 5 50.777 6 50.778 6.001,1.392
+2798,Point/BoxDiameter 6 50 6 -50 174,1.341
+2799,Point/BoxDimensions 0 51 6 51 7,1.235
+2800,Point/BoxDimensions 1 51 6 50 6,1.228
+2801,Point/BoxDimensions 2 0 0 0 1,1.423
+2802,Point/BoxDimensions 3 0 0 1 0,1.411
+2803,Point/BoxDimensions 4 50.777 6 50.778 6,1.207
+2804,Point/BoxDimensions 5 50.777 6 50.778 6.001,1.421
+2805,Point/BoxDimensions 6 50 6 -50 174,1.189
+2806,Point/BoxInside 0 60 50 1,1.112
+2807,Point/BoxInside 1 40 50 0,1.656
+2808,Point/BoxInside 2 90 50 0,1.704
+2809,Point/BoxInside 3 60 10 0,1.305
+2810,Point/BoxInside 4 60 80 0,1.289
+2811,Point/BoxOpposites 0 49.300005 -123.158551 49.301624 -123.157253,1.457
+2812,Point/BoxOpposites 1 49.292809 -123.1589   49.314037 -123.116543,2.126
+2813,Point/BoxOpposites 2 49.300005 -123.158551 49.301624 -123.157253,1.469
+2814,Point/BoxOpposites 3 49.292809 -123.1589   49.314037 -123.116543,1.499
+2815,Point/BoxPerimeter 0 51 6 51 7,1.235
+2816,Point/BoxPerimeter 1 51 6 50 6,1.161
+2817,Point/BoxPerimeter 2 0 0 0 1,1.331
+2818,Point/BoxPerimeter 3 0 0 1 0,1.35
+2819,Point/BoxPerimeter 4 50.777 6 50.778 6,1.154
+2820,Point/BoxPerimeter 5 50.777 6 50.778 6.001,1.353
+2821,Point/BoxPerimeter 6 50 6 -50 174,1.233
+2822,Point/Center 0 51 6 51 7,1.146
+2823,Point/Center 1 51 6 50 6,1.08
+2824,Point/Center 2 0 0 0 1,1.097
+2825,Point/Center 3 0 0 1 0,1.087
+2826,Point/Center 4 50.777 6 50.778 6,1.086
+2827,Point/Center 5 50.777 6 50.778 6.001,1.068
+2828,Point/Center 6 50 6 -50 174,1.099
+2829,Point/CenterList 0 51 6 51 7,1.289
+2830,Point/CenterList 1 51 6 50 6,1.014
+2831,Point/CenterList 2 0 0 0 1,1.012
+2832,Point/CenterList 3 0 0 1 0,1.021
+2833,Point/CenterList 4 50.777 6 50.778 6,1.03
+2834,Point/CenterList 5 50.777 6 50.778 6.001,1.002
+2835,Point/CenterList 6 50 6 -50 174,1.015
+2836,Point/Diameter 0 51 6 51 7,1.183
+2837,Point/Diameter 1 51 6 50 6,1.131
+2838,Point/Diameter 2 0 0 0 1,1.252
+2839,Point/Diameter 3 0 0 1 0,1.007
+2840,Point/Diameter 4 50.777 6 50.778 6,0.981
+2841,Point/Diameter 5 50.777 6 50.778 6.001,0.981
+2842,Point/Diameter 6 50 6 -50 174,0.968
+2843,Point/DiameterList 0 51 6 51 7,1.054
+2844,Point/DiameterList 1 51 6 50 6,1.391
+2845,Point/DiameterList 2 0 0 0 1,1.144
+2846,Point/DiameterList 3 0 0 1 0,1.012
+2847,Point/DiameterList 4 50.777 6 50.778 6,0.93
+2848,Point/DiameterList 5 50.777 6 50.778 6.001,0.912
+2849,Point/DiameterList 6 50 6 -50 174,0.903
+2850,Point/Distance* 0 51 6 51 7,1.196
+2851,Point/Distance* 1 51 6 50 6,1.158
+2852,Point/Distance* 2 0 0 0 1,1.22
+2853,Point/Distance* 3 0 0 1 0,1.187
+2854,Point/Distance* 4 50.777 6 50.778 6,1.398
+2855,Point/Distance* 5 50.777 6 50.778 6.001,1.0
+2856,Point/Distance* 6 50 6 -50 174,1.002
+2857,Point/Distance 0 51 6 51 7,1.129
+2858,Point/Distance 1 51 6 50 6,1.269
+2859,Point/Distance 2 0 0 0 1,1.152
+2860,Point/Distance 3 0 0 1 0,1.313
+2861,Point/Distance 4 50.777 6 50.778 6,0.965
+2862,Point/Distance 5 50.777 6 50.778 6.001,0.953
+2863,Point/Distance 6 50 6 -50 174,0.962
+2864,Point/DistanceList 0 51 6 51 7,1.077
+2865,Point/DistanceList 1 51 6 50 6,1.088
+2866,Point/DistanceList 2 0 0 0 1,1.074
+2867,Point/DistanceList 3 0 0 1 0,1.106
+2868,Point/DistanceList 4 50.777 6 50.778 6,1.026
+2869,Point/DistanceList 5 50.777 6 50.778 6.001,1.142
+2870,Point/DistanceList 6 50 6 -50 174,0.924
+2871,Point/Simple/Radial 0 0.5,18.489
+2872,Point/Simple/Radial 1 1.5,10.547
+2873,Point/Simple/Radial 2 2.5,7.703
+2874,Point/Simple/Radial 3 3.5,7.077
+2875,Point/Simple/Radial 4 4.5,5.911
+2876,Point/Simple/Radial 5 5.5,5.886
+2877,Point/Simple/Radial 6 6.5,7.501
+2878,Point/Simple/Radial 7 #-1,1.239
+2879,Point/Simple/Radial 8 #0,1.099
+2880,Point/Simple/Radial 9 #1,1.401
+2881,Point/Simple/RDP 0 #0,1.024
+2882,Point/Simple/RDP 1 #1,1.072
+2883,Point/Simple/RDP 2 #2,1.205
+2884,Point/Simple/RDP 3 #5,1.603
+2885,Point/Simple/RDP 4 #10,3.657
+2886,Point/Simple/RDP 5 #5,2.704
+2887,Point/Simple/RDP 6 #9,3.377
+2888,Point2Geo* 1x 0 10 10,1.328
+2889,Point2Geo* 1x 0 10 20,1.535
+2890,Point2Geo* 1x 0 10 30,1.883
+2891,Point2Geo* 1x 0 20 10,1.326
+2892,Point2Geo* 1x 0 20 20,1.85
+2893,Point2Geo* 1x 0 20 30,1.328
+2894,Point2Geo* 1x 0 30 10,1.332
+2895,Point2Geo* 1x 0 30 20,1.505
+2896,Point2Geo* 1x 0 30 30,1.302
+2897,Point2Geo* 1x 1 10 10,1.311
+2898,Point2Geo* 1x 1 10 20,1.628
+2899,Point2Geo* 1x 1 10 30,1.309
+2900,Point2Geo* 1x 1 20 10,1.568
+2901,Point2Geo* 1x 1 20 20,1.538
+2902,Point2Geo* 1x 1 20 30,1.386
+2903,Point2Geo* 1x 1 30 10,1.536
+2904,Point2Geo* 1x 1 30 20,1.472
+2905,Point2Geo* 1x 1 30 30,1.577
+2906,Point2Geo* 1x 2 10 10,1.609
+2907,Point2Geo* 1x 2 10 20,1.331
+2908,Point2Geo* 1x 2 10 30,1.311
+2909,Point2Geo* 1x 2 20 10,1.578
+2910,Point2Geo* 1x 2 20 20,1.587
+2911,Point2Geo* 1x 2 20 30,1.322
+2912,Point2Geo* 1x 2 30 10,1.518
+2913,Point2Geo* 1x 2 30 20,1.332
+2914,Point2Geo* 1x 2 30 30,1.322
+2915,Point2Geo* 1x 3 10 10,1.518
+2916,Point2Geo* 1x 3 10 20,2.498
+2917,Point2Geo* 1x 3 10 30,1.335
+2918,Point2Geo* 1x 3 20 10,1.314
+2919,Point2Geo* 1x 3 20 20,1.522
+2920,Point2Geo* 1x 3 20 30,1.581
+2921,Point2Geo* 1x 3 30 10,1.616
+2922,Point2Geo* 1x 3 30 20,1.33
+2923,Point2Geo* 1x 3 30 30,1.307
+2924,Point2Geo* 1x 4 10 10,1.328
+2925,Point2Geo* 1x 4 10 20,1.534
+2926,Point2Geo* 1x 4 10 30,1.898
+2927,Point2Geo* 1x 4 20 10,1.325
+2928,Point2Geo* 1x 4 20 20,1.33
+2929,Point2Geo* 1x 4 20 30,1.322
+2930,Point2Geo* 1x 4 30 10,1.64
+2931,Point2Geo* 1x 4 30 20,1.743
+2932,Point2Geo* 1x 4 30 30,1.32
+2933,Point2Geo* 1x 5 10 10,1.529
+2934,Point2Geo* 1x 5 10 20,1.322
+2935,Point2Geo* 1x 5 10 30,1.591
+2936,Point2Geo* 1x 5 20 10,1.398
+2937,Point2Geo* 1x 5 20 20,1.557
+2938,Point2Geo* 1x 5 20 30,1.556
+2939,Point2Geo* 1x 5 30 10,1.91
+2940,Point2Geo* 1x 5 30 20,1.69
+2941,Point2Geo* 1x 5 30 30,1.587
+2942,Point2Geo* 1x 6 10 10,1.321
+2943,Point2Geo* 1x 6 10 20,1.406
+2944,Point2Geo* 1x 6 10 30,1.329
+2945,Point2Geo* 1x 6 20 10,1.325
+2946,Point2Geo* 1x 6 20 20,1.428
+2947,Point2Geo* 1x 6 20 30,1.663
+2948,Point2Geo* 1x 6 30 10,1.563
+2949,Point2Geo* 1x 6 30 20,1.543
+2950,Point2Geo* 1x 6 30 30,1.549
+2951,Point2Geo* 1x 7 10 10,1.56
+2952,Point2Geo* 1x 7 10 20,1.534
+2953,Point2Geo* 1x 7 10 30,1.314
+2954,Point2Geo* 1x 7 20 10,1.331
+2955,Point2Geo* 1x 7 20 20,1.324
+2956,Point2Geo* 1x 7 20 30,1.3
+2957,Point2Geo* 1x 7 30 10,1.436
+2958,Point2Geo* 1x 7 30 20,1.305
+2959,Point2Geo* 1x 7 30 30,1.7
+2960,Point2Geo* 1x 8 10 10,1.523
+2961,Point2Geo* 1x 8 10 20,1.335
+2962,Point2Geo* 1x 8 10 30,1.539
+2963,Point2Geo* 1x 8 20 10,1.325
+2964,Point2Geo* 1x 8 20 20,1.319
+2965,Point2Geo* 1x 8 20 30,1.464
+2966,Point2Geo* 1x 8 30 10,1.883
+2967,Point2Geo* 1x 8 30 20,1.402
+2968,Point2Geo* 1x 8 30 30,1.32
+2969,Point2Geo* 1x 9 10 10,1.549
+2970,Point2Geo* 1x 9 10 20,1.344
+2971,Point2Geo* 1x 9 10 30,1.547
+2972,Point2Geo* 1x 9 20 10,1.314
+2973,Point2Geo* 1x 9 20 20,1.57
+2974,Point2Geo* 1x 9 20 30,1.542
+2975,Point2Geo* 1x 9 30 10,1.332
+2976,Point2Geo* 1x 9 30 20,1.757
+2977,Point2Geo* 1x 9 30 30,1.356
+2978,Point2Geo* 1x 10 10 10,1.337
+2979,Point2Geo* 1x 10 10 20,1.333
+2980,Point2Geo* 1x 10 10 30,1.842
+2981,Point2Geo* 1x 10 20 10,1.321
+2982,Point2Geo* 1x 10 20 20,1.336
+2983,Point2Geo* 1x 10 20 30,1.986
+2984,Point2Geo* 1x 10 30 10,1.553
+2985,Point2Geo* 1x 10 30 20,1.703
+2986,Point2Geo* 1x 10 30 30,1.317
+2987,Point2Geo* 1x 11 10 10,1.318
+2988,Point2Geo* 1x 11 10 20,1.332
+2989,Point2Geo* 1x 11 10 30,1.357
+2990,Point2Geo* 1x 11 20 10,1.327
+2991,Point2Geo* 1x 11 20 20,1.327
+2992,Point2Geo* 1x 11 20 30,1.512
+2993,Point2Geo* 1x 11 30 10,1.544
+2994,Point2Geo* 1x 11 30 20,2.025
+2995,Point2Geo* 1x 11 30 30,1.517
+2996,Point2Geo* 1x 12 10 10,1.541
+2997,Point2Geo* 1x 12 10 20,1.336
+2998,Point2Geo* 1x 12 10 30,1.381
+2999,Point2Geo* 1x 12 20 10,1.527
+3000,Point2Geo* 1x 12 20 20,1.93
+3001,Point2Geo* 1x 12 20 30,1.377
+3002,Point2Geo* 1x 12 30 10,1.536
+3003,Point2Geo* 1x 12 30 20,1.384
+3004,Point2Geo* 1x 12 30 30,1.358
+3005,Point2Geo* 1x 13 10 10,1.324
+3006,Point2Geo* 1x 13 10 20,1.322
+3007,Point2Geo* 1x 13 10 30,1.327
+3008,Point2Geo* 1x 13 20 10,1.415
+3009,Point2Geo* 1x 13 20 20,1.326
+3010,Point2Geo* 1x 13 20 30,1.323
+3011,Point2Geo* 1x 13 30 10,1.424
+3012,Point2Geo* 1x 13 30 20,1.554
+3013,Point2Geo* 1x 13 30 30,1.335
+3014,Point2Geo* 1x 14 10 10,1.343
+3015,Point2Geo* 1x 14 10 20,1.332
+3016,Point2Geo* 1x 14 10 30,1.336
+3017,Point2Geo* 1x 14 20 10,1.448
+3018,Point2Geo* 1x 14 20 20,1.33
+3019,Point2Geo* 1x 14 20 30,1.423
+3020,Point2Geo* 1x 14 30 10,1.339
+3021,Point2Geo* 1x 14 30 20,1.337
+3022,Point2Geo* 1x 14 30 30,1.332
+3023,Point2Geo* 1x 15 10 10,1.552
+3024,Point2Geo* 1x 15 10 20,2.303
+3025,Point2Geo* 1x 15 10 30,1.327
+3026,Point2Geo* 1x 15 20 10,1.339
+3027,Point2Geo* 1x 15 20 20,1.524
+3028,Point2Geo* 1x 15 20 30,1.309
+3029,Point2Geo* 1x 15 30 10,1.315
+3030,Point2Geo* 1x 15 30 20,1.364
+3031,Point2Geo* 1x 15 30 30,1.323
+3032,Point2Geo* 1x 16 10 10,1.448
+3033,Point2Geo* 1x 16 10 20,1.345
+3034,Point2Geo* 1x 16 10 30,1.337
+3035,Point2Geo* 1x 16 20 10,1.564
+3036,Point2Geo* 1x 16 20 20,1.394
+3037,Point2Geo* 1x 16 20 30,1.735
+3038,Point2Geo* 1x 16 30 10,1.314
+3039,Point2Geo* 1x 16 30 20,1.342
+3040,Point2Geo* 1x 16 30 30,1.325
+3041,Point2Geo* 1x 17 10 10,1.502
+3042,Point2Geo* 1x 17 10 20,1.332
+3043,Point2Geo* 1x 17 10 30,1.376
+3044,Point2Geo* 1x 17 20 10,1.427
+3045,Point2Geo* 1x 17 20 20,1.57
+3046,Point2Geo* 1x 17 20 30,1.884
+3047,Point2Geo* 1x 17 30 10,1.34
+3048,Point2Geo* 1x 17 30 20,1.338
+3049,Point2Geo* 1x 17 30 30,1.802
+3050,Point2Geo* 1x 18 10 10,1.919
+3051,Point2Geo* 1x 18 10 20,1.318
+3052,Point2Geo* 1x 18 10 30,1.533
+3053,Point2Geo* 1x 18 20 10,1.389
+3054,Point2Geo* 1x 18 20 20,1.565
+3055,Point2Geo* 1x 18 20 30,1.696
+3056,Point2Geo* 1x 18 30 10,1.324
+3057,Point2Geo* 1x 18 30 20,1.317
+3058,Point2Geo* 1x 18 30 30,1.379
+3059,Point2Geo* 2x 0 10 10,1.733
+3060,Point2Geo* 2x 0 10 20,1.596
+3061,Point2Geo* 2x 0 10 30,1.805
+3062,Point2Geo* 2x 0 20 10,1.606
+3063,Point2Geo* 2x 0 20 20,1.828
+3064,Point2Geo* 2x 0 20 30,1.718
+3065,Point2Geo* 2x 0 30 10,1.977
+3066,Point2Geo* 2x 0 30 20,1.998
+3067,Point2Geo* 2x 0 30 30,1.9
+3068,Point2Geo* 2x 1 10 10,1.906
+3069,Point2Geo* 2x 1 10 20,1.583
+3070,Point2Geo* 2x 1 10 30,1.526
+3071,Point2Geo* 2x 1 20 10,1.813
+3072,Point2Geo* 2x 1 20 20,1.751
+3073,Point2Geo* 2x 1 20 30,1.521
+3074,Point2Geo* 2x 1 30 10,1.811
+3075,Point2Geo* 2x 1 30 20,1.828
+3076,Point2Geo* 2x 1 30 30,1.792
+3077,Point2Geo* 2x 2 10 10,1.83
+3078,Point2Geo* 2x 2 10 20,1.994
+3079,Point2Geo* 2x 2 10 30,2.101
+3080,Point2Geo* 2x 2 20 10,1.528
+3081,Point2Geo* 2x 2 20 20,1.68
+3082,Point2Geo* 2x 2 20 30,1.538
+3083,Point2Geo* 2x 2 30 10,1.768
+3084,Point2Geo* 2x 2 30 20,2.133
+3085,Point2Geo* 2x 2 30 30,1.552
+3086,Point2Geo* 2x 3 10 10,1.511
+3087,Point2Geo* 2x 3 10 20,1.527
+3088,Point2Geo* 2x 3 10 30,1.559
+3089,Point2Geo* 2x 3 20 10,2.17
+3090,Point2Geo* 2x 3 20 20,1.785
+3091,Point2Geo* 2x 3 20 30,1.805
+3092,Point2Geo* 2x 3 30 10,1.866
+3093,Point2Geo* 2x 3 30 20,1.541
+3094,Point2Geo* 2x 3 30 30,1.536
+3095,Point2Geo* 2x 4 10 10,1.915
+3096,Point2Geo* 2x 4 10 20,1.83
+3097,Point2Geo* 2x 4 10 30,1.826
+3098,Point2Geo* 2x 4 20 10,2.071
+3099,Point2Geo* 2x 4 20 20,1.667
+3100,Point2Geo* 2x 4 20 30,1.526
+3101,Point2Geo* 2x 4 30 10,1.802
+3102,Point2Geo* 2x 4 30 20,1.629
+3103,Point2Geo* 2x 4 30 30,1.535
+3104,Point2Geo* 2x 5 10 10,1.712
+3105,Point2Geo* 2x 5 10 20,1.55
+3106,Point2Geo* 2x 5 10 30,1.891
+3107,Point2Geo* 2x 5 20 10,1.559
+3108,Point2Geo* 2x 5 20 20,1.83
+3109,Point2Geo* 2x 5 20 30,2.035
+3110,Point2Geo* 2x 5 30 10,1.925
+3111,Point2Geo* 2x 5 30 20,1.945
+3112,Point2Geo* 2x 5 30 30,1.788
+3113,Point2Geo* 2x 6 10 10,1.542
+3114,Point2Geo* 2x 6 10 20,1.894
+3115,Point2Geo* 2x 6 10 30,1.562
+3116,Point2Geo* 2x 6 20 10,2.188
+3117,Point2Geo* 2x 6 20 20,1.644
+3118,Point2Geo* 2x 6 20 30,1.798
+3119,Point2Geo* 2x 6 30 10,1.781
+3120,Point2Geo* 2x 6 30 20,1.809
+3121,Point2Geo* 2x 6 30 30,1.54
+3122,Point2Geo* 2x 7 10 10,1.543
+3123,Point2Geo* 2x 7 10 20,1.66
+3124,Point2Geo* 2x 7 10 30,1.544
+3125,Point2Geo* 2x 7 20 10,1.551
+3126,Point2Geo* 2x 7 20 20,1.946
+3127,Point2Geo* 2x 7 20 30,1.902
+3128,Point2Geo* 2x 7 30 10,1.564
+3129,Point2Geo* 2x 7 30 20,1.545
+3130,Point2Geo* 2x 7 30 30,1.693
+3131,Point2Geo* 2x 8 10 10,1.803
+3132,Point2Geo* 2x 8 10 20,2.075
+3133,Point2Geo* 2x 8 10 30,1.581
+3134,Point2Geo* 2x 8 20 10,1.795
+3135,Point2Geo* 2x 8 20 20,2.303
+3136,Point2Geo* 2x 8 20 30,1.558
+3137,Point2Geo* 2x 8 30 10,1.704
+3138,Point2Geo* 2x 8 30 20,1.838
+3139,Point2Geo* 2x 8 30 30,2.19
+3140,Point2Geo* 2x 9 10 10,1.823
+3141,Point2Geo* 2x 9 10 20,1.521
+3142,Point2Geo* 2x 9 10 30,1.783
+3143,Point2Geo* 2x 9 20 10,1.586
+3144,Point2Geo* 2x 9 20 20,1.824
+3145,Point2Geo* 2x 9 20 30,1.714
+3146,Point2Geo* 2x 9 30 10,1.546
+3147,Point2Geo* 2x 9 30 20,1.891
+3148,Point2Geo* 2x 9 30 30,1.584
+3149,Point2Geo* 2x 10 10 10,1.525
+3150,Point2Geo* 2x 10 10 20,1.549
+3151,Point2Geo* 2x 10 10 30,1.557
+3152,Point2Geo* 2x 10 20 10,1.575
+3153,Point2Geo* 2x 10 20 20,1.681
+3154,Point2Geo* 2x 10 20 30,1.539
+3155,Point2Geo* 2x 10 30 10,1.557
+3156,Point2Geo* 2x 10 30 20,1.957
+3157,Point2Geo* 2x 10 30 30,1.549
+3158,Point2Geo* 2x 11 10 10,1.652
+3159,Point2Geo* 2x 11 10 20,1.564
+3160,Point2Geo* 2x 11 10 30,1.579
+3161,Point2Geo* 2x 11 20 10,1.55
+3162,Point2Geo* 2x 11 20 20,1.686
+3163,Point2Geo* 2x 11 20 30,1.567
+3164,Point2Geo* 2x 11 30 10,1.553
+3165,Point2Geo* 2x 11 30 20,2.046
+3166,Point2Geo* 2x 11 30 30,1.799
+3167,Point2Geo* 2x 12 10 10,1.544
+3168,Point2Geo* 2x 12 10 20,1.777
+3169,Point2Geo* 2x 12 10 30,1.79
+3170,Point2Geo* 2x 12 20 10,1.572
+3171,Point2Geo* 2x 12 20 20,1.565
+3172,Point2Geo* 2x 12 20 30,1.54
+3173,Point2Geo* 2x 12 30 10,1.579
+3174,Point2Geo* 2x 12 30 20,1.777
+3175,Point2Geo* 2x 12 30 30,1.559
+3176,Point2Geo* 2x 13 10 10,1.548
+3177,Point2Geo* 2x 13 10 20,1.53
+3178,Point2Geo* 2x 13 10 30,1.825
+3179,Point2Geo* 2x 13 20 10,1.65
+3180,Point2Geo* 2x 13 20 20,1.724
+3181,Point2Geo* 2x 13 20 30,1.566
+3182,Point2Geo* 2x 13 30 10,1.858
+3183,Point2Geo* 2x 13 30 20,1.637
+3184,Point2Geo* 2x 13 30 30,1.545
+3185,Point2Geo* 2x 14 10 10,1.541
+3186,Point2Geo* 2x 14 10 20,1.783
+3187,Point2Geo* 2x 14 10 30,1.825
+3188,Point2Geo* 2x 14 20 10,1.543
+3189,Point2Geo* 2x 14 20 20,1.565
+3190,Point2Geo* 2x 14 20 30,1.636
+3191,Point2Geo* 2x 14 30 10,1.568
+3192,Point2Geo* 2x 14 30 20,2.385
+3193,Point2Geo* 2x 14 30 30,1.864
+3194,Point2Geo* 2x 15 10 10,1.698
+3195,Point2Geo* 2x 15 10 20,1.87
+3196,Point2Geo* 2x 15 10 30,1.989
+3197,Point2Geo* 2x 15 20 10,1.542
+3198,Point2Geo* 2x 15 20 20,1.546
+3199,Point2Geo* 2x 15 20 30,1.539
+3200,Point2Geo* 2x 15 30 10,1.559
+3201,Point2Geo* 2x 15 30 20,1.546
+3202,Point2Geo* 2x 15 30 30,1.873
+3203,Point2Geo* 2x 16 10 10,1.678
+3204,Point2Geo* 2x 16 10 20,1.555
+3205,Point2Geo* 2x 16 10 30,1.534
+3206,Point2Geo* 2x 16 20 10,1.783
+3207,Point2Geo* 2x 16 20 20,1.539
+3208,Point2Geo* 2x 16 20 30,1.549
+3209,Point2Geo* 2x 16 30 10,1.54
+3210,Point2Geo* 2x 16 30 20,2.333
+3211,Point2Geo* 2x 16 30 30,1.534
+3212,Point2Geo* 2x 17 10 10,2.052
+3213,Point2Geo* 2x 17 10 20,1.558
+3214,Point2Geo* 2x 17 10 30,1.941
+3215,Point2Geo* 2x 17 20 10,1.823
+3216,Point2Geo* 2x 17 20 20,1.717
+3217,Point2Geo* 2x 17 20 30,1.858
+3218,Point2Geo* 2x 17 30 10,1.885
+3219,Point2Geo* 2x 17 30 20,1.95
+3220,Point2Geo* 2x 17 30 30,1.846
+3221,Point2Geo* 2x 18 10 10,1.873
+3222,Point2Geo* 2x 18 10 20,1.986
+3223,Point2Geo* 2x 18 10 30,1.827
+3224,Point2Geo* 2x 18 20 10,1.555
+3225,Point2Geo* 2x 18 20 20,1.772
+3226,Point2Geo* 2x 18 20 30,1.942
+3227,Point2Geo* 2x 18 30 10,1.558
+3228,Point2Geo* 2x 18 30 20,1.525
+3229,Point2Geo* 2x 18 30 30,1.547
+3230,Point2Geo* 5x 0 10 10,2.556
+3231,Point2Geo* 5x 0 10 20,2.117
+3232,Point2Geo* 5x 0 10 30,2.531
+3233,Point2Geo* 5x 0 20 10,2.247
+3234,Point2Geo* 5x 0 20 20,2.532
+3235,Point2Geo* 5x 0 20 30,2.147
+3236,Point2Geo* 5x 0 30 10,2.612
+3237,Point2Geo* 5x 0 30 20,2.495
+3238,Point2Geo* 5x 0 30 30,2.17
+3239,Point2Geo* 5x 1 10 10,2.636
+3240,Point2Geo* 5x 1 10 20,2.285
+3241,Point2Geo* 5x 1 10 30,2.467
+3242,Point2Geo* 5x 1 20 10,2.429
+3243,Point2Geo* 5x 1 20 20,2.739
+3244,Point2Geo* 5x 1 20 30,2.743
+3245,Point2Geo* 5x 1 30 10,2.647
+3246,Point2Geo* 5x 1 30 20,2.086
+3247,Point2Geo* 5x 1 30 30,2.119
+3248,Point2Geo* 5x 2 10 10,2.264
+3249,Point2Geo* 5x 2 10 20,2.302
+3250,Point2Geo* 5x 2 10 30,2.868
+3251,Point2Geo* 5x 2 20 10,2.111
+3252,Point2Geo* 5x 2 20 20,2.454
+3253,Point2Geo* 5x 2 20 30,3.078
+3254,Point2Geo* 5x 2 30 10,2.453
+3255,Point2Geo* 5x 2 30 20,2.488
+3256,Point2Geo* 5x 2 30 30,2.301
+3257,Point2Geo* 5x 3 10 10,2.524
+3258,Point2Geo* 5x 3 10 20,2.116
+3259,Point2Geo* 5x 3 10 30,2.145
+3260,Point2Geo* 5x 3 20 10,2.259
+3261,Point2Geo* 5x 3 20 20,2.111
+3262,Point2Geo* 5x 3 20 30,2.286
+3263,Point2Geo* 5x 3 30 10,2.6
+3264,Point2Geo* 5x 3 30 20,2.131
+3265,Point2Geo* 5x 3 30 30,2.72
+3266,Point2Geo* 5x 4 10 10,2.719
+3267,Point2Geo* 5x 4 10 20,2.124
+3268,Point2Geo* 5x 4 10 30,4.132
+3269,Point2Geo* 5x 4 20 10,2.097
+3270,Point2Geo* 5x 4 20 20,2.131
+3271,Point2Geo* 5x 4 20 30,2.104
+3272,Point2Geo* 5x 4 30 10,2.565
+3273,Point2Geo* 5x 4 30 20,2.106
+3274,Point2Geo* 5x 4 30 30,2.393
+3275,Point2Geo* 5x 5 10 10,2.264
+3276,Point2Geo* 5x 5 10 20,2.65
+3277,Point2Geo* 5x 5 10 30,2.734
+3278,Point2Geo* 5x 5 20 10,2.422
+3279,Point2Geo* 5x 5 20 20,2.638
+3280,Point2Geo* 5x 5 20 30,2.56
+3281,Point2Geo* 5x 5 30 10,2.74
+3282,Point2Geo* 5x 5 30 20,2.782
+3283,Point2Geo* 5x 5 30 30,2.553
+3284,Point2Geo* 5x 6 10 10,2.772
+3285,Point2Geo* 5x 6 10 20,2.317
+3286,Point2Geo* 5x 6 10 30,3.215
+3287,Point2Geo* 5x 6 20 10,2.592
+3288,Point2Geo* 5x 6 20 20,2.153
+3289,Point2Geo* 5x 6 20 30,2.464
+3290,Point2Geo* 5x 6 30 10,2.467
+3291,Point2Geo* 5x 6 30 20,2.398
+3292,Point2Geo* 5x 6 30 30,2.145
+3293,Point2Geo* 5x 7 10 10,2.126
+3294,Point2Geo* 5x 7 10 20,2.15
+3295,Point2Geo* 5x 7 10 30,2.222
+3296,Point2Geo* 5x 7 20 10,2.132
+3297,Point2Geo* 5x 7 20 20,2.116
+3298,Point2Geo* 5x 7 20 30,2.146
+3299,Point2Geo* 5x 7 30 10,2.145
+3300,Point2Geo* 5x 7 30 20,2.641
+3301,Point2Geo* 5x 7 30 30,2.279
+3302,Point2Geo* 5x 8 10 10,2.1
+3303,Point2Geo* 5x 8 10 20,2.128
+3304,Point2Geo* 5x 8 10 30,2.28
+3305,Point2Geo* 5x 8 20 10,2.671
+3306,Point2Geo* 5x 8 20 20,2.573
+3307,Point2Geo* 5x 8 20 30,2.65
+3308,Point2Geo* 5x 8 30 10,2.587
+3309,Point2Geo* 5x 8 30 20,2.144
+3310,Point2Geo* 5x 8 30 30,2.637
+3311,Point2Geo* 5x 9 10 10,2.771
+3312,Point2Geo* 5x 9 10 20,2.635
+3313,Point2Geo* 5x 9 10 30,2.563
+3314,Point2Geo* 5x 9 20 10,2.626
+3315,Point2Geo* 5x 9 20 20,2.568
+3316,Point2Geo* 5x 9 20 30,2.122
+3317,Point2Geo* 5x 9 30 10,2.135
+3318,Point2Geo* 5x 9 30 20,2.576
+3319,Point2Geo* 5x 9 30 30,2.716
+3320,Point2Geo* 5x 10 10 10,3.26
+3321,Point2Geo* 5x 10 10 20,2.148
+3322,Point2Geo* 5x 10 10 30,2.113
+3323,Point2Geo* 5x 10 20 10,2.116
+3324,Point2Geo* 5x 10 20 20,2.7
+3325,Point2Geo* 5x 10 20 30,2.157
+3326,Point2Geo* 5x 10 30 10,2.139
+3327,Point2Geo* 5x 10 30 20,2.505
+3328,Point2Geo* 5x 10 30 30,2.235
+3329,Point2Geo* 5x 11 10 10,2.872
+3330,Point2Geo* 5x 11 10 20,3.272
+3331,Point2Geo* 5x 11 10 30,2.116
+3332,Point2Geo* 5x 11 20 10,2.633
+3333,Point2Geo* 5x 11 20 20,2.706
+3334,Point2Geo* 5x 11 20 30,2.152
+3335,Point2Geo* 5x 11 30 10,2.997
+3336,Point2Geo* 5x 11 30 20,2.554
+3337,Point2Geo* 5x 11 30 30,2.204
+3338,Point2Geo* 5x 12 10 10,2.589
+3339,Point2Geo* 5x 12 10 20,2.935
+3340,Point2Geo* 5x 12 10 30,2.122
+3341,Point2Geo* 5x 12 20 10,2.35
+3342,Point2Geo* 5x 12 20 20,2.14
+3343,Point2Geo* 5x 12 20 30,3.257
+3344,Point2Geo* 5x 12 30 10,2.137
+3345,Point2Geo* 5x 12 30 20,2.486
+3346,Point2Geo* 5x 12 30 30,2.616
+3347,Point2Geo* 5x 13 10 10,2.632
+3348,Point2Geo* 5x 13 10 20,2.24
+3349,Point2Geo* 5x 13 10 30,3.276
+3350,Point2Geo* 5x 13 20 10,2.168
+3351,Point2Geo* 5x 13 20 20,2.32
+3352,Point2Geo* 5x 13 20 30,2.147
+3353,Point2Geo* 5x 13 30 10,2.899
+3354,Point2Geo* 5x 13 30 20,2.343
+3355,Point2Geo* 5x 13 30 30,2.863
+3356,Point2Geo* 5x 14 10 10,2.145
+3357,Point2Geo* 5x 14 10 20,2.733
+3358,Point2Geo* 5x 14 10 30,2.647
+3359,Point2Geo* 5x 14 20 10,2.301
+3360,Point2Geo* 5x 14 20 20,2.995
+3361,Point2Geo* 5x 14 20 30,2.131
+3362,Point2Geo* 5x 14 30 10,2.573
+3363,Point2Geo* 5x 14 30 20,2.197
+3364,Point2Geo* 5x 14 30 30,2.134
+3365,Point2Geo* 5x 15 10 10,3.225
+3366,Point2Geo* 5x 15 10 20,2.126
+3367,Point2Geo* 5x 15 10 30,2.145
+3368,Point2Geo* 5x 15 20 10,2.554
+3369,Point2Geo* 5x 15 20 20,2.112
+3370,Point2Geo* 5x 15 20 30,3.067
+3371,Point2Geo* 5x 15 30 10,2.872
+3372,Point2Geo* 5x 15 30 20,2.11
+3373,Point2Geo* 5x 15 30 30,2.253
+3374,Point2Geo* 5x 16 10 10,2.269
+3375,Point2Geo* 5x 16 10 20,2.198
+3376,Point2Geo* 5x 16 10 30,2.197
+3377,Point2Geo* 5x 16 20 10,2.135
+3378,Point2Geo* 5x 16 20 20,2.916
+3379,Point2Geo* 5x 16 20 30,2.155
+3380,Point2Geo* 5x 16 30 10,2.122
+3381,Point2Geo* 5x 16 30 20,2.573
+3382,Point2Geo* 5x 16 30 30,2.143
+3383,Point2Geo* 5x 17 10 10,2.511
+3384,Point2Geo* 5x 17 10 20,2.207
+3385,Point2Geo* 5x 17 10 30,2.616
+3386,Point2Geo* 5x 17 20 10,3.06
+3387,Point2Geo* 5x 17 20 20,2.473
+3388,Point2Geo* 5x 17 20 30,2.545
+3389,Point2Geo* 5x 17 30 10,2.635
+3390,Point2Geo* 5x 17 30 20,2.891
+3391,Point2Geo* 5x 17 30 30,2.119
+3392,Point2Geo* 5x 18 10 10,2.126
+3393,Point2Geo* 5x 18 10 20,2.633
+3394,Point2Geo* 5x 18 10 30,2.43
+3395,Point2Geo* 5x 18 20 10,2.117
+3396,Point2Geo* 5x 18 20 20,2.167
+3397,Point2Geo* 5x 18 20 30,2.465
+3398,Point2Geo* 5x 18 30 10,2.147
+3399,Point2Geo* 5x 18 30 20,2.548
+3400,Point2Geo* 5x 18 30 30,2.129
+3401,Point2Geo* 10x 0 10 10,3.405
+3402,Point2Geo* 10x 0 10 20,3.096
+3403,Point2Geo* 10x 0 10 30,3.112
+3404,Point2Geo* 10x 0 20 10,3.394
+3405,Point2Geo* 10x 0 20 20,3.408
+3406,Point2Geo* 10x 0 20 30,3.095
+3407,Point2Geo* 10x 0 30 10,3.355
+3408,Point2Geo* 10x 0 30 20,3.101
+3409,Point2Geo* 10x 0 30 30,3.967
+3410,Point2Geo* 10x 1 10 10,3.706
+3411,Point2Geo* 10x 1 10 20,3.831
+3412,Point2Geo* 10x 1 10 30,3.857
+3413,Point2Geo* 10x 1 20 10,4.014
+3414,Point2Geo* 10x 1 20 20,3.806
+3415,Point2Geo* 10x 1 20 30,3.764
+3416,Point2Geo* 10x 1 30 10,3.854
+3417,Point2Geo* 10x 1 30 20,3.118
+3418,Point2Geo* 10x 1 30 30,3.1
+3419,Point2Geo* 10x 2 10 10,3.672
+3420,Point2Geo* 10x 2 10 20,3.098
+3421,Point2Geo* 10x 2 10 30,3.172
+3422,Point2Geo* 10x 2 20 10,3.746
+3423,Point2Geo* 10x 2 20 20,7.813
+3424,Point2Geo* 10x 2 20 30,3.465
+3425,Point2Geo* 10x 2 30 10,3.959
+3426,Point2Geo* 10x 2 30 20,3.138
+3427,Point2Geo* 10x 2 30 30,3.231
+3428,Point2Geo* 10x 3 10 10,3.841
+3429,Point2Geo* 10x 3 10 20,3.585
+3430,Point2Geo* 10x 3 10 30,3.793
+3431,Point2Geo* 10x 3 20 10,3.11
+3432,Point2Geo* 10x 3 20 20,3.666
+3433,Point2Geo* 10x 3 20 30,3.308
+3434,Point2Geo* 10x 3 30 10,3.806
+3435,Point2Geo* 10x 3 30 20,3.724
+3436,Point2Geo* 10x 3 30 30,3.751
+3437,Point2Geo* 10x 4 10 10,3.496
+3438,Point2Geo* 10x 4 10 20,3.949
+3439,Point2Geo* 10x 4 10 30,8.208
+3440,Point2Geo* 10x 4 20 10,3.121
+3441,Point2Geo* 10x 4 20 20,3.131
+3442,Point2Geo* 10x 4 20 30,3.93
+3443,Point2Geo* 10x 4 30 10,3.084
+3444,Point2Geo* 10x 4 30 20,3.087
+3445,Point2Geo* 10x 4 30 30,3.552
+3446,Point2Geo* 10x 5 10 10,3.349
+3447,Point2Geo* 10x 5 10 20,3.84
+3448,Point2Geo* 10x 5 10 30,3.901
+3449,Point2Geo* 10x 5 20 10,3.822
+3450,Point2Geo* 10x 5 20 20,3.543
+3451,Point2Geo* 10x 5 20 30,3.656
+3452,Point2Geo* 10x 5 30 10,4.167
+3453,Point2Geo* 10x 5 30 20,4.296
+3454,Point2Geo* 10x 5 30 30,3.115
+3455,Point2Geo* 10x 6 10 10,3.133
+3456,Point2Geo* 10x 6 10 20,3.177
+3457,Point2Geo* 10x 6 10 30,3.828
+3458,Point2Geo* 10x 6 20 10,3.604
+3459,Point2Geo* 10x 6 20 20,3.118
+3460,Point2Geo* 10x 6 20 30,3.123
+3461,Point2Geo* 10x 6 30 10,3.596
+3462,Point2Geo* 10x 6 30 20,3.957
+3463,Point2Geo* 10x 6 30 30,4.11
+3464,Point2Geo* 10x 7 10 10,4.394
+3465,Point2Geo* 10x 7 10 20,3.998
+3466,Point2Geo* 10x 7 10 30,3.965
+3467,Point2Geo* 10x 7 20 10,3.94
+3468,Point2Geo* 10x 7 20 20,3.123
+3469,Point2Geo* 10x 7 20 30,3.114
+3470,Point2Geo* 10x 7 30 10,3.73
+3471,Point2Geo* 10x 7 30 20,3.073
+3472,Point2Geo* 10x 7 30 30,3.076
+3473,Point2Geo* 10x 8 10 10,4.686
+3474,Point2Geo* 10x 8 10 20,3.229
+3475,Point2Geo* 10x 8 10 30,3.82
+3476,Point2Geo* 10x 8 20 10,3.8
+3477,Point2Geo* 10x 8 20 20,3.305
+3478,Point2Geo* 10x 8 20 30,3.839
+3479,Point2Geo* 10x 8 30 10,3.195
+3480,Point2Geo* 10x 8 30 20,3.453
+3481,Point2Geo* 10x 8 30 30,3.834
+3482,Point2Geo* 10x 9 10 10,3.661
+3483,Point2Geo* 10x 9 10 20,3.758
+3484,Point2Geo* 10x 9 10 30,3.973
+3485,Point2Geo* 10x 9 20 10,3.224
+3486,Point2Geo* 10x 9 20 20,3.074
+3487,Point2Geo* 10x 9 20 30,3.097
+3488,Point2Geo* 10x 9 30 10,3.827
+3489,Point2Geo* 10x 9 30 20,3.541
+3490,Point2Geo* 10x 9 30 30,3.112
+3491,Point2Geo* 10x 10 10 10,3.804
+3492,Point2Geo* 10x 10 10 20,3.77
+3493,Point2Geo* 10x 10 10 30,3.241
+3494,Point2Geo* 10x 10 20 10,3.102
+3495,Point2Geo* 10x 10 20 20,3.845
+3496,Point2Geo* 10x 10 20 30,3.217
+3497,Point2Geo* 10x 10 30 10,3.117
+3498,Point2Geo* 10x 10 30 20,3.363
+3499,Point2Geo* 10x 10 30 30,3.106
+3500,Point2Geo* 10x 11 10 10,3.873
+3501,Point2Geo* 10x 11 10 20,3.858
+3502,Point2Geo* 10x 11 10 30,3.13
+3503,Point2Geo* 10x 11 20 10,3.168
+3504,Point2Geo* 10x 11 20 20,3.86
+3505,Point2Geo* 10x 11 20 30,3.191
+3506,Point2Geo* 10x 11 30 10,3.845
+3507,Point2Geo* 10x 11 30 20,3.113
+3508,Point2Geo* 10x 11 30 30,4.076
+3509,Point2Geo* 10x 12 10 10,3.112
+3510,Point2Geo* 10x 12 10 20,3.423
+3511,Point2Geo* 10x 12 10 30,3.902
+3512,Point2Geo* 10x 12 20 10,4.947
+3513,Point2Geo* 10x 12 20 20,3.26
+3514,Point2Geo* 10x 12 20 30,3.857
+3515,Point2Geo* 10x 12 30 10,3.745
+3516,Point2Geo* 10x 12 30 20,3.449
+3517,Point2Geo* 10x 12 30 30,3.116
+3518,Point2Geo* 10x 13 10 10,3.143
+3519,Point2Geo* 10x 13 10 20,3.104
+3520,Point2Geo* 10x 13 10 30,3.821
+3521,Point2Geo* 10x 13 20 10,3.124
+3522,Point2Geo* 10x 13 20 20,4.206
+3523,Point2Geo* 10x 13 20 30,3.17
+3524,Point2Geo* 10x 13 30 10,3.094
+3525,Point2Geo* 10x 13 30 20,3.129
+3526,Point2Geo* 10x 13 30 30,3.646
+3527,Point2Geo* 10x 14 10 10,3.282
+3528,Point2Geo* 10x 14 10 20,3.66
+3529,Point2Geo* 10x 14 10 30,3.853
+3530,Point2Geo* 10x 14 20 10,3.316
+3531,Point2Geo* 10x 14 20 20,3.892
+3532,Point2Geo* 10x 14 20 30,3.058
+3533,Point2Geo* 10x 14 30 10,3.095
+3534,Point2Geo* 10x 14 30 20,3.107
+3535,Point2Geo* 10x 14 30 30,3.148
+3536,Point2Geo* 10x 15 10 10,3.835
+3537,Point2Geo* 10x 15 10 20,3.138
+3538,Point2Geo* 10x 15 10 30,3.123
+3539,Point2Geo* 10x 15 20 10,3.273
+3540,Point2Geo* 10x 15 20 20,3.326
+3541,Point2Geo* 10x 15 20 30,3.861
+3542,Point2Geo* 10x 15 30 10,3.847
+3543,Point2Geo* 10x 15 30 20,3.096
+3544,Point2Geo* 10x 15 30 30,3.273
+3545,Point2Geo* 10x 16 10 10,3.1
+3546,Point2Geo* 10x 16 10 20,3.877
+3547,Point2Geo* 10x 16 10 30,3.485
+3548,Point2Geo* 10x 16 20 10,3.922
+3549,Point2Geo* 10x 16 20 20,3.843
+3550,Point2Geo* 10x 16 20 30,3.076
+3551,Point2Geo* 10x 16 30 10,3.292
+3552,Point2Geo* 10x 16 30 20,3.278
+3553,Point2Geo* 10x 16 30 30,3.666
+3554,Point2Geo* 10x 17 10 10,3.097
+3555,Point2Geo* 10x 17 10 20,3.736
+3556,Point2Geo* 10x 17 10 30,3.267
+3557,Point2Geo* 10x 17 20 10,3.906
+3558,Point2Geo* 10x 17 20 20,4.155
+3559,Point2Geo* 10x 17 20 30,3.111
+3560,Point2Geo* 10x 17 30 10,3.732
+3561,Point2Geo* 10x 17 30 20,3.865
+3562,Point2Geo* 10x 17 30 30,3.178
+3563,Point2Geo* 10x 18 10 10,3.204
+3564,Point2Geo* 10x 18 10 20,3.86
+3565,Point2Geo* 10x 18 10 30,3.463
+3566,Point2Geo* 10x 18 20 10,4.069
+3567,Point2Geo* 10x 18 20 20,4.025
+3568,Point2Geo* 10x 18 20 30,3.084
+3569,Point2Geo* 10x 18 30 10,4.099
+3570,Point2Geo* 10x 18 30 20,3.873
+3571,Point2Geo* 10x 18 30 30,4.107
+3572,Point2Geo* 20x 0 10 10,5.633
+3573,Point2Geo* 20x 0 10 20,5.084
+3574,Point2Geo* 20x 0 10 30,5.986
+3575,Point2Geo* 20x 0 20 10,6.352
+3576,Point2Geo* 20x 0 20 20,6.314
+3577,Point2Geo* 20x 0 20 30,6.716
+3578,Point2Geo* 20x 0 30 10,7.162
+3579,Point2Geo* 20x 0 30 20,6.013
+3580,Point2Geo* 20x 0 30 30,5.866
+3581,Point2Geo* 20x 1 10 10,6.023
+3582,Point2Geo* 20x 1 10 20,6.134
+3583,Point2Geo* 20x 1 10 30,5.251
+3584,Point2Geo* 20x 1 20 10,5.07
+3585,Point2Geo* 20x 1 20 20,6.145
+3586,Point2Geo* 20x 1 20 30,6.383
+3587,Point2Geo* 20x 1 30 10,6.107
+3588,Point2Geo* 20x 1 30 20,6.859
+3589,Point2Geo* 20x 1 30 30,5.974
+3590,Point2Geo* 20x 2 10 10,5.285
+3591,Point2Geo* 20x 2 10 20,6.375
+3592,Point2Geo* 20x 2 10 30,6.071
+3593,Point2Geo* 20x 2 20 10,5.286
+3594,Point2Geo* 20x 2 20 20,8.627
+3595,Point2Geo* 20x 2 20 30,5.8
+3596,Point2Geo* 20x 2 30 10,6.637
+3597,Point2Geo* 20x 2 30 20,5.796
+3598,Point2Geo* 20x 2 30 30,5.078
+3599,Point2Geo* 20x 3 10 10,5.227
+3600,Point2Geo* 20x 3 10 20,5.235
+3601,Point2Geo* 20x 3 10 30,5.064
+3602,Point2Geo* 20x 3 20 10,6.094
+3603,Point2Geo* 20x 3 20 20,6.414
+3604,Point2Geo* 20x 3 20 30,6.326
+3605,Point2Geo* 20x 3 30 10,5.2
+3606,Point2Geo* 20x 3 30 20,5.127
+3607,Point2Geo* 20x 3 30 30,5.847
+3608,Point2Geo* 20x 4 10 10,6.223
+3609,Point2Geo* 20x 4 10 20,5.938
+3610,Point2Geo* 20x 4 10 30,6.911
+3611,Point2Geo* 20x 4 20 10,5.947
+3612,Point2Geo* 20x 4 20 20,6.185
+3613,Point2Geo* 20x 4 20 30,5.554
+3614,Point2Geo* 20x 4 30 10,6.562
+3615,Point2Geo* 20x 4 30 20,5.65
+3616,Point2Geo* 20x 4 30 30,5.4
+3617,Point2Geo* 20x 5 10 10,5.707
+3618,Point2Geo* 20x 5 10 20,6.929
+3619,Point2Geo* 20x 5 10 30,6.627
+3620,Point2Geo* 20x 5 20 10,5.643
+3621,Point2Geo* 20x 5 20 20,5.079
+3622,Point2Geo* 20x 5 20 30,6.28
+3623,Point2Geo* 20x 5 30 10,6.384
+3624,Point2Geo* 20x 5 30 20,6.043
+3625,Point2Geo* 20x 5 30 30,6.539
+3626,Point2Geo* 20x 6 10 10,5.125
+3627,Point2Geo* 20x 6 10 20,6.723
+3628,Point2Geo* 20x 6 10 30,6.477
+3629,Point2Geo* 20x 6 20 10,6.697
+3630,Point2Geo* 20x 6 20 20,5.666
+3631,Point2Geo* 20x 6 20 30,5.427
+3632,Point2Geo* 20x 6 30 10,5.443
+3633,Point2Geo* 20x 6 30 20,6.071
+3634,Point2Geo* 20x 6 30 30,5.649
+3635,Point2Geo* 20x 7 10 10,5.907
+3636,Point2Geo* 20x 7 10 20,5.985
+3637,Point2Geo* 20x 7 10 30,6.216
+3638,Point2Geo* 20x 7 20 10,5.415
+3639,Point2Geo* 20x 7 20 20,6.335
+3640,Point2Geo* 20x 7 20 30,5.681
+3641,Point2Geo* 20x 7 30 10,5.092
+3642,Point2Geo* 20x 7 30 20,5.315
+3643,Point2Geo* 20x 7 30 30,6.68
+3644,Point2Geo* 20x 8 10 10,5.087
+3645,Point2Geo* 20x 8 10 20,6.36
+3646,Point2Geo* 20x 8 10 30,5.177
+3647,Point2Geo* 20x 8 20 10,6.195
+3648,Point2Geo* 20x 8 20 20,7.171
+3649,Point2Geo* 20x 8 20 30,6.183
+3650,Point2Geo* 20x 8 30 10,6.155
+3651,Point2Geo* 20x 8 30 20,5.086
+3652,Point2Geo* 20x 8 30 30,6.471
+3653,Point2Geo* 20x 9 10 10,5.071
+3654,Point2Geo* 20x 9 10 20,5.721
+3655,Point2Geo* 20x 9 10 30,5.556
+3656,Point2Geo* 20x 9 20 10,5.093
+3657,Point2Geo* 20x 9 20 20,5.104
+3658,Point2Geo* 20x 9 20 30,5.621
+3659,Point2Geo* 20x 9 30 10,5.2
+3660,Point2Geo* 20x 9 30 20,5.052
+3661,Point2Geo* 20x 9 30 30,5.112
+3662,Point2Geo* 20x 10 10 10,6.175
+3663,Point2Geo* 20x 10 10 20,5.311
+3664,Point2Geo* 20x 10 10 30,5.87
+3665,Point2Geo* 20x 10 20 10,6.285
+3666,Point2Geo* 20x 10 20 20,5.895
+3667,Point2Geo* 20x 10 20 30,6.528
+3668,Point2Geo* 20x 10 30 10,7.875
+3669,Point2Geo* 20x 10 30 20,5.85
+3670,Point2Geo* 20x 10 30 30,6.411
+3671,Point2Geo* 20x 11 10 10,5.565
+3672,Point2Geo* 20x 11 10 20,5.923
+3673,Point2Geo* 20x 11 10 30,6.428
+3674,Point2Geo* 20x 11 20 10,5.101
+3675,Point2Geo* 20x 11 20 20,6.287
+3676,Point2Geo* 20x 11 20 30,5.774
+3677,Point2Geo* 20x 11 30 10,5.614
+3678,Point2Geo* 20x 11 30 20,6.327
+3679,Point2Geo* 20x 11 30 30,5.119
+3680,Point2Geo* 20x 12 10 10,5.577
+3681,Point2Geo* 20x 12 10 20,6.712
+3682,Point2Geo* 20x 12 10 30,5.066
+3683,Point2Geo* 20x 12 20 10,6.424
+3684,Point2Geo* 20x 12 20 20,6.467
+3685,Point2Geo* 20x 12 20 30,6.01
+3686,Point2Geo* 20x 12 30 10,5.266
+3687,Point2Geo* 20x 12 30 20,5.094
+3688,Point2Geo* 20x 12 30 30,5.521
+3689,Point2Geo* 20x 13 10 10,5.114
+3690,Point2Geo* 20x 13 10 20,5.389
+3691,Point2Geo* 20x 13 10 30,5.959
+3692,Point2Geo* 20x 13 20 10,5.802
+3693,Point2Geo* 20x 13 20 20,6.431
+3694,Point2Geo* 20x 13 20 30,5.058
+3695,Point2Geo* 20x 13 30 10,5.663
+3696,Point2Geo* 20x 13 30 20,5.052
+3697,Point2Geo* 20x 13 30 30,5.148
+3698,Point2Geo* 20x 14 10 10,5.055
+3699,Point2Geo* 20x 14 10 20,5.701
+3700,Point2Geo* 20x 14 10 30,7.19
+3701,Point2Geo* 20x 14 20 10,5.104
+3702,Point2Geo* 20x 14 20 20,5.759
+3703,Point2Geo* 20x 14 20 30,5.786
+3704,Point2Geo* 20x 14 30 10,5.063
+3705,Point2Geo* 20x 14 30 20,5.716
+3706,Point2Geo* 20x 14 30 30,5.782
+3707,Point2Geo* 20x 15 10 10,5.797
+3708,Point2Geo* 20x 15 10 20,6.444
+3709,Point2Geo* 20x 15 10 30,5.97
+3710,Point2Geo* 20x 15 20 10,5.593
+3711,Point2Geo* 20x 15 20 20,6.598
+3712,Point2Geo* 20x 15 20 30,7.193
+3713,Point2Geo* 20x 15 30 10,6.317
+3714,Point2Geo* 20x 15 30 20,5.697
+3715,Point2Geo* 20x 15 30 30,6.412
+3716,Point2Geo* 20x 16 10 10,7.081
+3717,Point2Geo* 20x 16 10 20,5.096
+3718,Point2Geo* 20x 16 10 30,5.051
+3719,Point2Geo* 20x 16 20 10,5.117
+3720,Point2Geo* 20x 16 20 20,5.69
+3721,Point2Geo* 20x 16 20 30,6.597
+3722,Point2Geo* 20x 16 30 10,6.173
+3723,Point2Geo* 20x 16 30 20,6.532
+3724,Point2Geo* 20x 16 30 30,6.396
+3725,Point2Geo* 20x 17 10 10,6.597
+3726,Point2Geo* 20x 17 10 20,5.051
+3727,Point2Geo* 20x 17 10 30,6.502
+3728,Point2Geo* 20x 17 20 10,5.897
+3729,Point2Geo* 20x 17 20 20,5.329
+3730,Point2Geo* 20x 17 20 30,6.305
+3731,Point2Geo* 20x 17 30 10,6.59
+3732,Point2Geo* 20x 17 30 20,5.582
+3733,Point2Geo* 20x 17 30 30,6.484
+3734,Point2Geo* 20x 18 10 10,6.394
+3735,Point2Geo* 20x 18 10 20,6.609
+3736,Point2Geo* 20x 18 10 30,5.76
+3737,Point2Geo* 20x 18 20 10,5.541
+3738,Point2Geo* 20x 18 20 20,5.582
+3739,Point2Geo* 20x 18 20 30,6.577
+3740,Point2Geo* 20x 18 30 10,6.087
+3741,Point2Geo* 20x 18 30 20,5.102
+3742,Point2Geo* 20x 18 30 30,5.699
+3743,Point2Geo* 50x 0 10 10,11.813
+3744,Point2Geo* 50x 0 10 20,11.966
+3745,Point2Geo* 50x 0 10 30,13.575
+3746,Point2Geo* 50x 0 20 10,13.076
+3747,Point2Geo* 50x 0 20 20,11.893
+3748,Point2Geo* 50x 0 20 30,11.715
+3749,Point2Geo* 50x 0 30 10,12.638
+3750,Point2Geo* 50x 0 30 20,14.109
+3751,Point2Geo* 50x 0 30 30,12.352
+3752,Point2Geo* 50x 1 10 10,13.796
+3753,Point2Geo* 50x 1 10 20,13.033
+3754,Point2Geo* 50x 1 10 30,12.687
+3755,Point2Geo* 50x 1 20 10,13.321
+3756,Point2Geo* 50x 1 20 20,12.75
+3757,Point2Geo* 50x 1 20 30,12.893
+3758,Point2Geo* 50x 1 30 10,13.388
+3759,Point2Geo* 50x 1 30 20,14.058
+3760,Point2Geo* 50x 1 30 30,13.198
+3761,Point2Geo* 50x 2 10 10,12.536
+3762,Point2Geo* 50x 2 10 20,12.025
+3763,Point2Geo* 50x 2 10 30,12.674
+3764,Point2Geo* 50x 2 20 10,13.398
+3765,Point2Geo* 50x 2 20 20,12.741
+3766,Point2Geo* 50x 2 20 30,11.971
+3767,Point2Geo* 50x 2 30 10,13.315
+3768,Point2Geo* 50x 2 30 20,12.252
+3769,Point2Geo* 50x 2 30 30,11.453
+3770,Point2Geo* 50x 3 10 10,12.418
+3771,Point2Geo* 50x 3 10 20,12.649
+3772,Point2Geo* 50x 3 10 30,11.598
+3773,Point2Geo* 50x 3 20 10,12.249
+3774,Point2Geo* 50x 3 20 20,12.499
+3775,Point2Geo* 50x 3 20 30,14.278
+3776,Point2Geo* 50x 3 30 10,13.809
+3777,Point2Geo* 50x 3 30 20,14.22
+3778,Point2Geo* 50x 3 30 30,13.444
+3779,Point2Geo* 50x 4 10 10,12.432
+3780,Point2Geo* 50x 4 10 20,13.399
+3781,Point2Geo* 50x 4 10 30,13.582
+3782,Point2Geo* 50x 4 20 10,12.345
+3783,Point2Geo* 50x 4 20 20,13.474
+3784,Point2Geo* 50x 4 20 30,13.294
+3785,Point2Geo* 50x 4 30 10,12.534
+3786,Point2Geo* 50x 4 30 20,12.788
+3787,Point2Geo* 50x 4 30 30,14.625
+3788,Point2Geo* 50x 5 10 10,11.559
+3789,Point2Geo* 50x 5 10 20,14.674
+3790,Point2Geo* 50x 5 10 30,12.184
+3791,Point2Geo* 50x 5 20 10,11.951
+3792,Point2Geo* 50x 5 20 20,13.799
+3793,Point2Geo* 50x 5 20 30,12.39
+3794,Point2Geo* 50x 5 30 10,14.217
+3795,Point2Geo* 50x 5 30 20,14.237
+3796,Point2Geo* 50x 5 30 30,13.48
+3797,Point2Geo* 50x 6 10 10,12.982
+3798,Point2Geo* 50x 6 10 20,13.356
+3799,Point2Geo* 50x 6 10 30,12.288
+3800,Point2Geo* 50x 6 20 10,13.942
+3801,Point2Geo* 50x 6 20 20,13.016
+3802,Point2Geo* 50x 6 20 30,12.079
+3803,Point2Geo* 50x 6 30 10,13.726
+3804,Point2Geo* 50x 6 30 20,14.175
+3805,Point2Geo* 50x 6 30 30,11.417
+3806,Point2Geo* 50x 7 10 10,11.687
+3807,Point2Geo* 50x 7 10 20,12.701
+3808,Point2Geo* 50x 7 10 30,14.153
+3809,Point2Geo* 50x 7 20 10,12.748
+3810,Point2Geo* 50x 7 20 20,12.114
+3811,Point2Geo* 50x 7 20 30,12.558
+3812,Point2Geo* 50x 7 30 10,11.443
+3813,Point2Geo* 50x 7 30 20,14.121
+3814,Point2Geo* 50x 7 30 30,11.839
+3815,Point2Geo* 50x 8 10 10,13.415
+3816,Point2Geo* 50x 8 10 20,13.39
+3817,Point2Geo* 50x 8 10 30,12.648
+3818,Point2Geo* 50x 8 20 10,12.859
+3819,Point2Geo* 50x 8 20 20,13.866
+3820,Point2Geo* 50x 8 20 30,11.911
+3821,Point2Geo* 50x 8 30 10,13.473
+3822,Point2Geo* 50x 8 30 20,11.891
+3823,Point2Geo* 50x 8 30 30,13.381
+3824,Point2Geo* 50x 9 10 10,11.779
+3825,Point2Geo* 50x 9 10 20,12.06
+3826,Point2Geo* 50x 9 10 30,12.547
+3827,Point2Geo* 50x 9 20 10,11.394
+3828,Point2Geo* 50x 9 20 20,12.15
+3829,Point2Geo* 50x 9 20 30,11.942
+3830,Point2Geo* 50x 9 30 10,12.719
+3831,Point2Geo* 50x 9 30 20,13.028
+3832,Point2Geo* 50x 9 30 30,11.287
+3833,Point2Geo* 50x 10 10 10,11.832
+3834,Point2Geo* 50x 10 10 20,13.785
+3835,Point2Geo* 50x 10 10 30,12.227
+3836,Point2Geo* 50x 10 20 10,13.858
+3837,Point2Geo* 50x 10 20 20,13.621
+3838,Point2Geo* 50x 10 20 30,13.362
+3839,Point2Geo* 50x 10 30 10,11.736
+3840,Point2Geo* 50x 10 30 20,12.807
+3841,Point2Geo* 50x 10 30 30,12.997
+3842,Point2Geo* 50x 11 10 10,11.746
+3843,Point2Geo* 50x 11 10 20,12.03
+3844,Point2Geo* 50x 11 10 30,11.896
+3845,Point2Geo* 50x 11 20 10,11.31
+3846,Point2Geo* 50x 11 20 20,12.829
+3847,Point2Geo* 50x 11 20 30,13.822
+3848,Point2Geo* 50x 11 30 10,11.797
+3849,Point2Geo* 50x 11 30 20,11.786
+3850,Point2Geo* 50x 11 30 30,17.181
+3851,Point2Geo* 50x 12 10 10,11.775
+3852,Point2Geo* 50x 12 10 20,14.52
+3853,Point2Geo* 50x 12 10 30,11.123
+3854,Point2Geo* 50x 12 20 10,14.125
+3855,Point2Geo* 50x 12 20 20,14.137
+3856,Point2Geo* 50x 12 20 30,12.251
+3857,Point2Geo* 50x 12 30 10,14.462
+3858,Point2Geo* 50x 12 30 20,11.36
+3859,Point2Geo* 50x 12 30 30,12.674
+3860,Point2Geo* 50x 13 10 10,11.719
+3861,Point2Geo* 50x 13 10 20,19.694
+3862,Point2Geo* 50x 13 10 30,11.852
+3863,Point2Geo* 50x 13 20 10,11.856
+3864,Point2Geo* 50x 13 20 20,12.762
+3865,Point2Geo* 50x 13 20 30,14.036
+3866,Point2Geo* 50x 13 30 10,11.589
+3867,Point2Geo* 50x 13 30 20,13.957
+3868,Point2Geo* 50x 13 30 30,11.35
+3869,Point2Geo* 50x 14 10 10,14.165
+3870,Point2Geo* 50x 14 10 20,11.808
+3871,Point2Geo* 50x 14 10 30,13.642
+3872,Point2Geo* 50x 14 20 10,14.242
+3873,Point2Geo* 50x 14 20 20,13.559
+3874,Point2Geo* 50x 14 20 30,11.65
+3875,Point2Geo* 50x 14 30 10,12.855
+3876,Point2Geo* 50x 14 30 20,12.691
+3877,Point2Geo* 50x 14 30 30,11.782
+3878,Point2Geo* 50x 15 10 10,12.042
+3879,Point2Geo* 50x 15 10 20,12.936
+3880,Point2Geo* 50x 15 10 30,11.683
+3881,Point2Geo* 50x 15 20 10,11.46
+3882,Point2Geo* 50x 15 20 20,12.495
+3883,Point2Geo* 50x 15 20 30,12.831
+3884,Point2Geo* 50x 15 30 10,13.527
+3885,Point2Geo* 50x 15 30 20,12.367
+3886,Point2Geo* 50x 15 30 30,14.983
+3887,Point2Geo* 50x 16 10 10,14.455
+3888,Point2Geo* 50x 16 10 20,13.361
+3889,Point2Geo* 50x 16 10 30,13.667
+3890,Point2Geo* 50x 16 20 10,12.214
+3891,Point2Geo* 50x 16 20 20,12.649
+3892,Point2Geo* 50x 16 20 30,12.07
+3893,Point2Geo* 50x 16 30 10,14.467
+3894,Point2Geo* 50x 16 30 20,13.207
+3895,Point2Geo* 50x 16 30 30,13.667
+3896,Point2Geo* 50x 17 10 10,16.377
+3897,Point2Geo* 50x 17 10 20,13.477
+3898,Point2Geo* 50x 17 10 30,13.101
+3899,Point2Geo* 50x 17 20 10,12.285
+3900,Point2Geo* 50x 17 20 20,12.513
+3901,Point2Geo* 50x 17 20 30,12.645
+3902,Point2Geo* 50x 17 30 10,14.376
+3903,Point2Geo* 50x 17 30 20,12.358
+3904,Point2Geo* 50x 17 30 30,13.385
+3905,Point2Geo* 50x 18 10 10,13.68
+3906,Point2Geo* 50x 18 10 20,14.243
+3907,Point2Geo* 50x 18 10 30,13.128
+3908,Point2Geo* 50x 18 20 10,11.597
+3909,Point2Geo* 50x 18 20 20,12.135
+3910,Point2Geo* 50x 18 20 30,13.506
+3911,Point2Geo* 50x 18 30 10,14.255
+3912,Point2Geo* 50x 18 30 20,11.343
+3913,Point2Geo* 50x 18 30 30,12.381
+3914,Point2Geo* 100x 0 10 10,25.288
+3915,Point2Geo* 100x 0 10 20,23.174
+3916,Point2Geo* 100x 0 10 30,22.426
+3917,Point2Geo* 100x 0 20 10,23.677
+3918,Point2Geo* 100x 0 20 20,21.848
+3919,Point2Geo* 100x 0 20 30,25.919
+3920,Point2Geo* 100x 0 30 10,26.046
+3921,Point2Geo* 100x 0 30 20,23.503
+3922,Point2Geo* 100x 0 30 30,25.16
+3923,Point2Geo* 100x 1 10 10,25.85
+3924,Point2Geo* 100x 1 10 20,25.363
+3925,Point2Geo* 100x 1 10 30,24.941
+3926,Point2Geo* 100x 1 20 10,24.412
+3927,Point2Geo* 100x 1 20 20,24.866
+3928,Point2Geo* 100x 1 20 30,25.726
+3929,Point2Geo* 100x 1 30 10,25.356
+3930,Point2Geo* 100x 1 30 20,24.21
+3931,Point2Geo* 100x 1 30 30,24.779
+3932,Point2Geo* 100x 2 10 10,23.473
+3933,Point2Geo* 100x 2 10 20,26.317
+3934,Point2Geo* 100x 2 10 30,23.343
+3935,Point2Geo* 100x 2 20 10,24.94
+3936,Point2Geo* 100x 2 20 20,25.137
+3937,Point2Geo* 100x 2 20 30,23.591
+3938,Point2Geo* 100x 2 30 10,26.1
+3939,Point2Geo* 100x 2 30 20,24.05
+3940,Point2Geo* 100x 2 30 30,25.647
+3941,Point2Geo* 100x 3 10 10,26.863
+3942,Point2Geo* 100x 3 10 20,24.033
+3943,Point2Geo* 100x 3 10 30,21.418
+3944,Point2Geo* 100x 3 20 10,25.602
+3945,Point2Geo* 100x 3 20 20,21.82
+3946,Point2Geo* 100x 3 20 30,26.854
+3947,Point2Geo* 100x 3 30 10,23.148
+3948,Point2Geo* 100x 3 30 20,24.607
+3949,Point2Geo* 100x 3 30 30,27.503
+3950,Point2Geo* 100x 4 10 10,23.313
+3951,Point2Geo* 100x 4 10 20,25.469
+3952,Point2Geo* 100x 4 10 30,22.248
+3953,Point2Geo* 100x 4 20 10,26.78
+3954,Point2Geo* 100x 4 20 20,24.965
+3955,Point2Geo* 100x 4 20 30,24.471
+3956,Point2Geo* 100x 4 30 10,25.241
+3957,Point2Geo* 100x 4 30 20,25.618
+3958,Point2Geo* 100x 4 30 30,22.393
+3959,Point2Geo* 100x 5 10 10,23.899
+3960,Point2Geo* 100x 5 10 20,26.349
+3961,Point2Geo* 100x 5 10 30,23.775
+3962,Point2Geo* 100x 5 20 10,27.324
+3963,Point2Geo* 100x 5 20 20,27.87
+3964,Point2Geo* 100x 5 20 30,25.903
+3965,Point2Geo* 100x 5 30 10,26.112
+3966,Point2Geo* 100x 5 30 20,22.748
+3967,Point2Geo* 100x 5 30 30,22.746
+3968,Point2Geo* 100x 6 10 10,27.038
+3969,Point2Geo* 100x 6 10 20,23.249
+3970,Point2Geo* 100x 6 10 30,27.734
+3971,Point2Geo* 100x 6 20 10,25.908
+3972,Point2Geo* 100x 6 20 20,25.597
+3973,Point2Geo* 100x 6 20 30,24.726
+3974,Point2Geo* 100x 6 30 10,26.031
+3975,Point2Geo* 100x 6 30 20,24.241
+3976,Point2Geo* 100x 6 30 30,23.804
+3977,Point2Geo* 100x 7 10 10,24.848
+3978,Point2Geo* 100x 7 10 20,25.743
+3979,Point2Geo* 100x 7 10 30,23.315
+3980,Point2Geo* 100x 7 20 10,22.504
+3981,Point2Geo* 100x 7 20 20,22.534
+3982,Point2Geo* 100x 7 20 30,23.546
+3983,Point2Geo* 100x 7 30 10,23.109
+3984,Point2Geo* 100x 7 30 20,22.218
+3985,Point2Geo* 100x 7 30 30,22.411
+3986,Point2Geo* 100x 8 10 10,25.614
+3987,Point2Geo* 100x 8 10 20,24.157
+3988,Point2Geo* 100x 8 10 30,24.254
+3989,Point2Geo* 100x 8 20 10,26.174
+3990,Point2Geo* 100x 8 20 20,22.289
+3991,Point2Geo* 100x 8 20 30,25.395
+3992,Point2Geo* 100x 8 30 10,22.012
+3993,Point2Geo* 100x 8 30 20,25.687
+3994,Point2Geo* 100x 8 30 30,22.675
+3995,Point2Geo* 100x 9 10 10,23.895
+3996,Point2Geo* 100x 9 10 20,26.758
+3997,Point2Geo* 100x 9 10 30,25.617
+3998,Point2Geo* 100x 9 20 10,25.119
+3999,Point2Geo* 100x 9 20 20,22.55
+4000,Point2Geo* 100x 9 20 30,22.818
+4001,Point2Geo* 100x 9 30 10,26.012
+4002,Point2Geo* 100x 9 30 20,25.506
+4003,Point2Geo* 100x 9 30 30,22.587
+4004,Point2Geo* 100x 10 10 10,26.092
+4005,Point2Geo* 100x 10 10 20,22.696
+4006,Point2Geo* 100x 10 10 30,23.99
+4007,Point2Geo* 100x 10 20 10,24.545
+4008,Point2Geo* 100x 10 20 20,24.591
+4009,Point2Geo* 100x 10 20 30,25.61
+4010,Point2Geo* 100x 10 30 10,25.806
+4011,Point2Geo* 100x 10 30 20,24.049
+4012,Point2Geo* 100x 10 30 30,22.375
+4013,Point2Geo* 100x 11 10 10,23.279
+4014,Point2Geo* 100x 11 10 20,23.769
+4015,Point2Geo* 100x 11 10 30,22.205
+4016,Point2Geo* 100x 11 20 10,25.823
+4017,Point2Geo* 100x 11 20 20,25.929
+4018,Point2Geo* 100x 11 20 30,22.628
+4019,Point2Geo* 100x 11 30 10,23.989
+4020,Point2Geo* 100x 11 30 20,24.16
+4021,Point2Geo* 100x 11 30 30,23.715
+4022,Point2Geo* 100x 12 10 10,23.775
+4023,Point2Geo* 100x 12 10 20,22.636
+4024,Point2Geo* 100x 12 10 30,23.535
+4025,Point2Geo* 100x 12 20 10,25.989
+4026,Point2Geo* 100x 12 20 20,26.922
+4027,Point2Geo* 100x 12 20 30,23.622
+4028,Point2Geo* 100x 12 30 10,27.294
+4029,Point2Geo* 100x 12 30 20,23.001
+4030,Point2Geo* 100x 12 30 30,24.671
+4031,Point2Geo* 100x 13 10 10,26.83
+4032,Point2Geo* 100x 13 10 20,24.074
+4033,Point2Geo* 100x 13 10 30,22.664
+4034,Point2Geo* 100x 13 20 10,24.694
+4035,Point2Geo* 100x 13 20 20,23.286
+4036,Point2Geo* 100x 13 20 30,22.932
+4037,Point2Geo* 100x 13 30 10,23.742
+4038,Point2Geo* 100x 13 30 20,23.225
+4039,Point2Geo* 100x 13 30 30,24.098
+4040,Point2Geo* 100x 14 10 10,24.921
+4041,Point2Geo* 100x 14 10 20,23.445
+4042,Point2Geo* 100x 14 10 30,23.794
+4043,Point2Geo* 100x 14 20 10,23.521
+4044,Point2Geo* 100x 14 20 20,24.94
+4045,Point2Geo* 100x 14 20 30,21.796
+4046,Point2Geo* 100x 14 30 10,22.593
+4047,Point2Geo* 100x 14 30 20,23.546
+4048,Point2Geo* 100x 14 30 30,25.716
+4049,Point2Geo* 100x 15 10 10,22.454
+4050,Point2Geo* 100x 15 10 20,25.683
+4051,Point2Geo* 100x 15 10 30,22.949
+4052,Point2Geo* 100x 15 20 10,25.664
+4053,Point2Geo* 100x 15 20 20,22.806
+4054,Point2Geo* 100x 15 20 30,21.721
+4055,Point2Geo* 100x 15 30 10,24.636
+4056,Point2Geo* 100x 15 30 20,21.543
+4057,Point2Geo* 100x 15 30 30,21.991
+4058,Point2Geo* 100x 16 10 10,25.135
+4059,Point2Geo* 100x 16 10 20,23.429
+4060,Point2Geo* 100x 16 10 30,21.604
+4061,Point2Geo* 100x 16 20 10,23.659
+4062,Point2Geo* 100x 16 20 20,25.809
+4063,Point2Geo* 100x 16 20 30,26.284
+4064,Point2Geo* 100x 16 30 10,25.85
+4065,Point2Geo* 100x 16 30 20,26.094
+4066,Point2Geo* 100x 16 30 30,25.116
+4067,Point2Geo* 100x 17 10 10,23.849
+4068,Point2Geo* 100x 17 10 20,22.896
+4069,Point2Geo* 100x 17 10 30,23.574
+4070,Point2Geo* 100x 17 20 10,24.859
+4071,Point2Geo* 100x 17 20 20,24.102
+4072,Point2Geo* 100x 17 20 30,24.196
+4073,Point2Geo* 100x 17 30 10,23.096
+4074,Point2Geo* 100x 17 30 20,24.841
+4075,Point2Geo* 100x 17 30 30,23.06
+4076,Point2Geo* 100x 18 10 10,23.751
+4077,Point2Geo* 100x 18 10 20,23.305
+4078,Point2Geo* 100x 18 10 30,24.64
+4079,Point2Geo* 100x 18 20 10,24.089
+4080,Point2Geo* 100x 18 20 20,24.2
+4081,Point2Geo* 100x 18 20 30,24.316
+4082,Point2Geo* 100x 18 30 10,25.102
+4083,Point2Geo* 100x 18 30 20,23.467
+4084,Point2Geo* 100x 18 30 30,23.596
+4085,Point2Geo 0 10 10,1.12
+4086,Point2Geo 0 10 20,1.687
+4087,Point2Geo 0 10 30,1.134
+4088,Point2Geo 0 20 10,1.122
+4089,Point2Geo 0 20 20,1.127
+4090,Point2Geo 0 20 30,1.127
+4091,Point2Geo 0 30 10,1.134
+4092,Point2Geo 0 30 20,1.319
+4093,Point2Geo 0 30 30,1.139
+4094,Point2Geo 1 10 10,1.212
+4095,Point2Geo 1 10 20,1.374
+4096,Point2Geo 1 10 30,1.121
+4097,Point2Geo 1 20 10,1.359
+4098,Point2Geo 1 20 20,1.3
+4099,Point2Geo 1 20 30,1.129
+4100,Point2Geo 1 30 10,1.305
+4101,Point2Geo 1 30 20,1.491
+4102,Point2Geo 1 30 30,1.61
+4103,Point2Geo 2 10 10,1.383
+4104,Point2Geo 2 10 20,1.144
+4105,Point2Geo 2 10 30,1.122
+4106,Point2Geo 2 20 10,1.383
+4107,Point2Geo 2 20 20,1.231
+4108,Point2Geo 2 20 30,1.127
+4109,Point2Geo 2 30 10,1.321
+4110,Point2Geo 2 30 20,1.146
+4111,Point2Geo 2 30 30,1.137
+4112,Point2Geo 3 10 10,1.288
+4113,Point2Geo 3 10 20,2.3
+4114,Point2Geo 3 10 30,1.134
+4115,Point2Geo 3 20 10,1.163
+4116,Point2Geo 3 20 20,1.294
+4117,Point2Geo 3 20 30,1.382
+4118,Point2Geo 3 30 10,1.141
+4119,Point2Geo 3 30 20,1.13
+4120,Point2Geo 3 30 30,1.142
+4121,Point2Geo 4 10 10,1.12
+4122,Point2Geo 4 10 20,1.328
+4123,Point2Geo 4 10 30,1.714
+4124,Point2Geo 4 20 10,1.128
+4125,Point2Geo 4 20 20,1.145
+4126,Point2Geo 4 20 30,1.112
+4127,Point2Geo 4 30 10,1.46
+4128,Point2Geo 4 30 20,1.14
+4129,Point2Geo 4 30 30,1.133
+4130,Point2Geo 5 10 10,1.301
+4131,Point2Geo 5 10 20,1.134
+4132,Point2Geo 5 10 30,1.376
+4133,Point2Geo 5 20 10,1.126
+4134,Point2Geo 5 20 20,1.31
+4135,Point2Geo 5 20 30,1.341
+4136,Point2Geo 5 30 10,1.187
+4137,Point2Geo 5 30 20,1.435
+4138,Point2Geo 5 30 30,1.573
+4139,Point2Geo 6 10 10,1.135
+4140,Point2Geo 6 10 20,1.308
+4141,Point2Geo 6 10 30,1.149
+4142,Point2Geo 6 20 10,1.132
+4143,Point2Geo 6 20 20,1.277
+4144,Point2Geo 6 20 30,1.629
+4145,Point2Geo 6 30 10,1.303
+4146,Point2Geo 6 30 20,1.338
+4147,Point2Geo 6 30 30,1.274
+4148,Point2Geo 7 10 10,1.188
+4149,Point2Geo 7 10 20,1.323
+4150,Point2Geo 7 10 30,1.293
+4151,Point2Geo 7 20 10,1.269
+4152,Point2Geo 7 20 20,1.132
+4153,Point2Geo 7 20 30,1.116
+4154,Point2Geo 7 30 10,1.315
+4155,Point2Geo 7 30 20,1.136
+4156,Point2Geo 7 30 30,1.142
+4157,Point2Geo 8 10 10,1.527
+4158,Point2Geo 8 10 20,1.14
+4159,Point2Geo 8 10 30,1.311
+4160,Point2Geo 8 20 10,1.137
+4161,Point2Geo 8 20 20,1.122
+4162,Point2Geo 8 20 30,1.132
+4163,Point2Geo 8 30 10,1.143
+4164,Point2Geo 8 30 20,1.243
+4165,Point2Geo 8 30 30,1.122
+4166,Point2Geo 9 10 10,1.152
+4167,Point2Geo 9 10 20,1.126
+4168,Point2Geo 9 10 30,1.359
+4169,Point2Geo 9 20 10,1.193
+4170,Point2Geo 9 20 20,1.534
+4171,Point2Geo 9 20 30,1.135
+4172,Point2Geo 9 30 10,1.126
+4173,Point2Geo 9 30 20,1.385
+4174,Point2Geo 9 30 30,1.262
+4175,Point2Geo 10 10 10,1.132
+4176,Point2Geo 10 10 20,1.219
+4177,Point2Geo 10 10 30,1.137
+4178,Point2Geo 10 20 10,1.125
+4179,Point2Geo 10 20 20,1.156
+4180,Point2Geo 10 20 30,1.244
+4181,Point2Geo 10 30 10,1.718
+4182,Point2Geo 10 30 20,1.136
+4183,Point2Geo 10 30 30,1.149
+4184,Point2Geo 11 10 10,1.22
+4185,Point2Geo 11 10 20,1.146
+4186,Point2Geo 11 10 30,1.183
+4187,Point2Geo 11 20 10,1.146
+4188,Point2Geo 11 20 20,1.133
+4189,Point2Geo 11 20 30,1.147
+4190,Point2Geo 11 30 10,1.32
+4191,Point2Geo 11 30 20,1.146
+4192,Point2Geo 11 30 30,1.325
+4193,Point2Geo 12 10 10,1.132
+4194,Point2Geo 12 10 20,1.156
+4195,Point2Geo 12 10 30,1.117
+4196,Point2Geo 12 20 10,1.132
+4197,Point2Geo 12 20 20,1.208
+4198,Point2Geo 12 20 30,1.137
+4199,Point2Geo 12 30 10,1.159
+4200,Point2Geo 12 30 20,1.309
+4201,Point2Geo 12 30 30,1.146
+4202,Point2Geo 13 10 10,1.136
+4203,Point2Geo 13 10 20,1.144
+4204,Point2Geo 13 10 30,1.139
+4205,Point2Geo 13 20 10,1.127
+4206,Point2Geo 13 20 20,1.204
+4207,Point2Geo 13 20 30,1.144
+4208,Point2Geo 13 30 10,1.138
+4209,Point2Geo 13 30 20,1.326
+4210,Point2Geo 13 30 30,1.126
+4211,Point2Geo 14 10 10,1.135
+4212,Point2Geo 14 10 20,1.138
+4213,Point2Geo 14 10 30,1.151
+4214,Point2Geo 14 20 10,1.308
+4215,Point2Geo 14 20 20,1.136
+4216,Point2Geo 14 20 30,1.655
+4217,Point2Geo 14 30 10,1.135
+4218,Point2Geo 14 30 20,1.132
+4219,Point2Geo 14 30 30,1.13
+4220,Point2Geo 15 10 10,1.313
+4221,Point2Geo 15 10 20,1.21
+4222,Point2Geo 15 10 30,1.131
+4223,Point2Geo 15 20 10,1.123
+4224,Point2Geo 15 20 20,1.311
+4225,Point2Geo 15 20 30,1.131
+4226,Point2Geo 15 30 10,1.139
+4227,Point2Geo 15 30 20,1.161
+4228,Point2Geo 15 30 30,1.146
+4229,Point2Geo 16 10 10,1.155
+4230,Point2Geo 16 10 20,1.153
+4231,Point2Geo 16 10 30,1.132
+4232,Point2Geo 16 20 10,1.234
+4233,Point2Geo 16 20 20,1.287
+4234,Point2Geo 16 20 30,1.138
+4235,Point2Geo 16 30 10,1.189
+4236,Point2Geo 16 30 20,1.125
+4237,Point2Geo 16 30 30,1.136
+4238,Point2Geo 17 10 10,1.318
+4239,Point2Geo 17 10 20,1.372
+4240,Point2Geo 17 10 30,1.141
+4241,Point2Geo 17 20 10,1.311
+4242,Point2Geo 17 20 20,1.386
+4243,Point2Geo 17 20 30,1.133
+4244,Point2Geo 17 30 10,1.185
+4245,Point2Geo 17 30 20,1.143
+4246,Point2Geo 17 30 30,1.123
+4247,Point2Geo 18 10 10,1.148
+4248,Point2Geo 18 10 20,1.138
+4249,Point2Geo 18 10 30,1.141
+4250,Point2Geo 18 20 10,1.32
+4251,Point2Geo 18 20 20,1.344
+4252,Point2Geo 18 20 30,1.131
+4253,Point2Geo 18 30 10,1.151
+4254,Point2Geo 18 30 20,1.173
+4255,Point2Geo 18 30 30,1.316
+4256,Point2GeoList 1x 0 10 10,1.256
+4257,Point2GeoList 1x 0 10 20,1.456
+4258,Point2GeoList 1x 0 10 30,1.359
+4259,Point2GeoList 1x 0 20 10,1.246
+4260,Point2GeoList 1x 0 20 20,1.552
+4261,Point2GeoList 1x 0 20 30,1.572
+4262,Point2GeoList 1x 0 30 10,1.259
+4263,Point2GeoList 1x 0 30 20,1.245
+4264,Point2GeoList 1x 0 30 30,1.242
+4265,Point2GeoList 1x 1 10 10,1.613
+4266,Point2GeoList 1x 1 10 20,1.882
+4267,Point2GeoList 1x 1 10 30,1.249
+4268,Point2GeoList 1x 1 20 10,1.457
+4269,Point2GeoList 1x 1 20 20,1.459
+4270,Point2GeoList 1x 1 20 30,1.232
+4271,Point2GeoList 1x 1 30 10,1.294
+4272,Point2GeoList 1x 1 30 20,1.445
+4273,Point2GeoList 1x 1 30 30,1.53
+4274,Point2GeoList 1x 2 10 10,1.508
+4275,Point2GeoList 1x 2 10 20,1.806
+4276,Point2GeoList 1x 2 10 30,1.247
+4277,Point2GeoList 1x 2 20 10,1.519
+4278,Point2GeoList 1x 2 20 20,1.747
+4279,Point2GeoList 1x 2 20 30,1.255
+4280,Point2GeoList 1x 2 30 10,1.484
+4281,Point2GeoList 1x 2 30 20,1.256
+4282,Point2GeoList 1x 2 30 30,1.257
+4283,Point2GeoList 1x 3 10 10,1.297
+4284,Point2GeoList 1x 3 10 20,2.146
+4285,Point2GeoList 1x 3 10 30,1.256
+4286,Point2GeoList 1x 3 20 10,1.254
+4287,Point2GeoList 1x 3 20 20,1.455
+4288,Point2GeoList 1x 3 20 30,1.431
+4289,Point2GeoList 1x 3 30 10,1.595
+4290,Point2GeoList 1x 3 30 20,1.261
+4291,Point2GeoList 1x 3 30 30,1.246
+4292,Point2GeoList 1x 4 10 10,1.263
+4293,Point2GeoList 1x 4 10 20,1.465
+4294,Point2GeoList 1x 4 10 30,1.463
+4295,Point2GeoList 1x 4 20 10,1.274
+4296,Point2GeoList 1x 4 20 20,1.627
+4297,Point2GeoList 1x 4 20 30,1.253
+4298,Point2GeoList 1x 4 30 10,1.53
+4299,Point2GeoList 1x 4 30 20,1.51
+4300,Point2GeoList 1x 4 30 30,1.26
+4301,Point2GeoList 1x 5 10 10,1.463
+4302,Point2GeoList 1x 5 10 20,1.25
+4303,Point2GeoList 1x 5 10 30,1.552
+4304,Point2GeoList 1x 5 20 10,1.239
+4305,Point2GeoList 1x 5 20 20,1.478
+4306,Point2GeoList 1x 5 20 30,1.486
+4307,Point2GeoList 1x 5 30 10,1.492
+4308,Point2GeoList 1x 5 30 20,1.582
+4309,Point2GeoList 1x 5 30 30,1.473
+4310,Point2GeoList 1x 6 10 10,1.34
+4311,Point2GeoList 1x 6 10 20,1.606
+4312,Point2GeoList 1x 6 10 30,1.271
+4313,Point2GeoList 1x 6 20 10,1.297
+4314,Point2GeoList 1x 6 20 20,1.374
+4315,Point2GeoList 1x 6 20 30,1.541
+4316,Point2GeoList 1x 6 30 10,1.472
+4317,Point2GeoList 1x 6 30 20,1.46
+4318,Point2GeoList 1x 6 30 30,1.451
+4319,Point2GeoList 1x 7 10 10,1.339
+4320,Point2GeoList 1x 7 10 20,1.47
+4321,Point2GeoList 1x 7 10 30,1.248
+4322,Point2GeoList 1x 7 20 10,1.259
+4323,Point2GeoList 1x 7 20 20,1.271
+4324,Point2GeoList 1x 7 20 30,1.268
+4325,Point2GeoList 1x 7 30 10,1.267
+4326,Point2GeoList 1x 7 30 20,1.254
+4327,Point2GeoList 1x 7 30 30,1.443
+4328,Point2GeoList 1x 8 10 10,1.471
+4329,Point2GeoList 1x 8 10 20,1.407
+4330,Point2GeoList 1x 8 10 30,1.474
+4331,Point2GeoList 1x 8 20 10,1.252
+4332,Point2GeoList 1x 8 20 20,1.506
+4333,Point2GeoList 1x 8 20 30,1.248
+4334,Point2GeoList 1x 8 30 10,1.365
+4335,Point2GeoList 1x 8 30 20,1.481
+4336,Point2GeoList 1x 8 30 30,1.267
+4337,Point2GeoList 1x 9 10 10,1.458
+4338,Point2GeoList 1x 9 10 20,1.257
+4339,Point2GeoList 1x 9 10 30,1.452
+4340,Point2GeoList 1x 9 20 10,1.481
+4341,Point2GeoList 1x 9 20 20,1.459
+4342,Point2GeoList 1x 9 20 30,1.403
+4343,Point2GeoList 1x 9 30 10,1.266
+4344,Point2GeoList 1x 9 30 20,1.566
+4345,Point2GeoList 1x 9 30 30,1.255
+4346,Point2GeoList 1x 10 10 10,1.253
+4347,Point2GeoList 1x 10 10 20,1.261
+4348,Point2GeoList 1x 10 10 30,1.244
+4349,Point2GeoList 1x 10 20 10,1.734
+4350,Point2GeoList 1x 10 20 20,1.265
+4351,Point2GeoList 1x 10 20 30,1.495
+4352,Point2GeoList 1x 10 30 10,1.261
+4353,Point2GeoList 1x 10 30 20,1.435
+4354,Point2GeoList 1x 10 30 30,1.252
+4355,Point2GeoList 1x 11 10 10,1.26
+4356,Point2GeoList 1x 11 10 20,1.265
+4357,Point2GeoList 1x 11 10 30,1.269
+4358,Point2GeoList 1x 11 20 10,1.255
+4359,Point2GeoList 1x 11 20 20,1.24
+4360,Point2GeoList 1x 11 20 30,1.275
+4361,Point2GeoList 1x 11 30 10,1.459
+4362,Point2GeoList 1x 11 30 20,1.904
+4363,Point2GeoList 1x 11 30 30,1.455
+4364,Point2GeoList 1x 12 10 10,1.272
+4365,Point2GeoList 1x 12 10 20,1.258
+4366,Point2GeoList 1x 12 10 30,1.236
+4367,Point2GeoList 1x 12 20 10,1.448
+4368,Point2GeoList 1x 12 20 20,1.463
+4369,Point2GeoList 1x 12 20 30,1.245
+4370,Point2GeoList 1x 12 30 10,1.268
+4371,Point2GeoList 1x 12 30 20,1.456
+4372,Point2GeoList 1x 12 30 30,1.264
+4373,Point2GeoList 1x 13 10 10,1.269
+4374,Point2GeoList 1x 13 10 20,1.251
+4375,Point2GeoList 1x 13 10 30,1.338
+4376,Point2GeoList 1x 13 20 10,1.535
+4377,Point2GeoList 1x 13 20 20,1.253
+4378,Point2GeoList 1x 13 20 30,1.263
+4379,Point2GeoList 1x 13 30 10,1.452
+4380,Point2GeoList 1x 13 30 20,1.48
+4381,Point2GeoList 1x 13 30 30,1.269
+4382,Point2GeoList 1x 14 10 10,1.278
+4383,Point2GeoList 1x 14 10 20,1.287
+4384,Point2GeoList 1x 14 10 30,1.441
+4385,Point2GeoList 1x 14 20 10,1.26
+4386,Point2GeoList 1x 14 20 20,1.262
+4387,Point2GeoList 1x 14 20 30,1.266
+4388,Point2GeoList 1x 14 30 10,1.285
+4389,Point2GeoList 1x 14 30 20,1.269
+4390,Point2GeoList 1x 14 30 30,1.249
+4391,Point2GeoList 1x 15 10 10,1.458
+4392,Point2GeoList 1x 15 10 20,1.877
+4393,Point2GeoList 1x 15 10 30,1.256
+4394,Point2GeoList 1x 15 20 10,1.258
+4395,Point2GeoList 1x 15 20 20,1.33
+4396,Point2GeoList 1x 15 20 30,1.223
+4397,Point2GeoList 1x 15 30 10,1.257
+4398,Point2GeoList 1x 15 30 20,1.44
+4399,Point2GeoList 1x 15 30 30,1.816
+4400,Point2GeoList 1x 16 10 10,1.693
+4401,Point2GeoList 1x 16 10 20,1.263
+4402,Point2GeoList 1x 16 10 30,1.269
+4403,Point2GeoList 1x 16 20 10,1.477
+4404,Point2GeoList 1x 16 20 20,1.263
+4405,Point2GeoList 1x 16 20 30,1.263
+4406,Point2GeoList 1x 16 30 10,1.229
+4407,Point2GeoList 1x 16 30 20,1.354
+4408,Point2GeoList 1x 16 30 30,1.274
+4409,Point2GeoList 1x 17 10 10,1.387
+4410,Point2GeoList 1x 17 10 20,1.249
+4411,Point2GeoList 1x 17 10 30,1.779
+4412,Point2GeoList 1x 17 20 10,1.244
+4413,Point2GeoList 1x 17 20 20,1.47
+4414,Point2GeoList 1x 17 20 30,1.423
+4415,Point2GeoList 1x 17 30 10,1.819
+4416,Point2GeoList 1x 17 30 20,1.402
+4417,Point2GeoList 1x 17 30 30,1.418
+4418,Point2GeoList 1x 18 10 10,1.504
+4419,Point2GeoList 1x 18 10 20,1.818
+4420,Point2GeoList 1x 18 10 30,1.322
+4421,Point2GeoList 1x 18 20 10,1.251
+4422,Point2GeoList 1x 18 20 20,1.502
+4423,Point2GeoList 1x 18 20 30,1.545
+4424,Point2GeoList 1x 18 30 10,1.274
+4425,Point2GeoList 1x 18 30 20,1.25
+4426,Point2GeoList 1x 18 30 30,1.259
+4427,Point2GeoList 2x 0 10 10,2.221
+4428,Point2GeoList 2x 0 10 20,1.454
+4429,Point2GeoList 2x 0 10 30,1.739
+4430,Point2GeoList 2x 0 20 10,1.764
+4431,Point2GeoList 2x 0 20 20,1.749
+4432,Point2GeoList 2x 0 20 30,1.515
+4433,Point2GeoList 2x 0 30 10,1.892
+4434,Point2GeoList 2x 0 30 20,1.665
+4435,Point2GeoList 2x 0 30 30,1.517
+4436,Point2GeoList 2x 1 10 10,1.789
+4437,Point2GeoList 2x 1 10 20,1.461
+4438,Point2GeoList 2x 1 10 30,1.442
+4439,Point2GeoList 2x 1 20 10,1.712
+4440,Point2GeoList 2x 1 20 20,2.158
+4441,Point2GeoList 2x 1 20 30,1.857
+4442,Point2GeoList 2x 1 30 10,2.079
+4443,Point2GeoList 2x 1 30 20,1.61
+4444,Point2GeoList 2x 1 30 30,1.467
+4445,Point2GeoList 2x 2 10 10,1.719
+4446,Point2GeoList 2x 2 10 20,1.65
+4447,Point2GeoList 2x 2 10 30,2.256
+4448,Point2GeoList 2x 2 20 10,1.447
+4449,Point2GeoList 2x 2 20 20,1.762
+4450,Point2GeoList 2x 2 20 30,2.202
+4451,Point2GeoList 2x 2 30 10,1.447
+4452,Point2GeoList 2x 2 30 20,1.749
+4453,Point2GeoList 2x 2 30 30,1.649
+4454,Point2GeoList 2x 3 10 10,1.447
+4455,Point2GeoList 2x 3 10 20,1.464
+4456,Point2GeoList 2x 3 10 30,1.452
+4457,Point2GeoList 2x 3 20 10,1.635
+4458,Point2GeoList 2x 3 20 20,1.453
+4459,Point2GeoList 2x 3 20 30,1.7
+4460,Point2GeoList 2x 3 30 10,1.765
+4461,Point2GeoList 2x 3 30 20,1.477
+4462,Point2GeoList 2x 3 30 30,1.927
+4463,Point2GeoList 2x 4 10 10,2.249
+4464,Point2GeoList 2x 4 10 20,1.73
+4465,Point2GeoList 2x 4 10 30,1.713
+4466,Point2GeoList 2x 4 20 10,1.678
+4467,Point2GeoList 2x 4 20 20,1.458
+4468,Point2GeoList 2x 4 20 30,1.44
+4469,Point2GeoList 2x 4 30 10,1.732
+4470,Point2GeoList 2x 4 30 20,1.477
+4471,Point2GeoList 2x 4 30 30,1.926
+4472,Point2GeoList 2x 5 10 10,1.474
+4473,Point2GeoList 2x 5 10 20,2.289
+4474,Point2GeoList 2x 5 10 30,1.709
+4475,Point2GeoList 2x 5 20 10,2.01
+4476,Point2GeoList 2x 5 20 20,1.729
+4477,Point2GeoList 2x 5 20 30,1.766
+4478,Point2GeoList 2x 5 30 10,1.854
+4479,Point2GeoList 2x 5 30 20,1.858
+4480,Point2GeoList 2x 5 30 30,1.689
+4481,Point2GeoList 2x 6 10 10,1.721
+4482,Point2GeoList 2x 6 10 20,1.73
+4483,Point2GeoList 2x 6 10 30,1.722
+4484,Point2GeoList 2x 6 20 10,1.823
+4485,Point2GeoList 2x 6 20 20,1.467
+4486,Point2GeoList 2x 6 20 30,1.721
+4487,Point2GeoList 2x 6 30 10,1.746
+4488,Point2GeoList 2x 6 30 20,1.722
+4489,Point2GeoList 2x 6 30 30,1.477
+4490,Point2GeoList 2x 7 10 10,1.466
+4491,Point2GeoList 2x 7 10 20,1.492
+4492,Point2GeoList 2x 7 10 30,1.465
+4493,Point2GeoList 2x 7 20 10,1.463
+4494,Point2GeoList 2x 7 20 20,1.778
+4495,Point2GeoList 2x 7 20 30,1.487
+4496,Point2GeoList 2x 7 30 10,1.483
+4497,Point2GeoList 2x 7 30 20,1.472
+4498,Point2GeoList 2x 7 30 30,1.634
+4499,Point2GeoList 2x 8 10 10,1.727
+4500,Point2GeoList 2x 8 10 20,1.554
+4501,Point2GeoList 2x 8 10 30,1.713
+4502,Point2GeoList 2x 8 20 10,1.946
+4503,Point2GeoList 2x 8 20 20,2.096
+4504,Point2GeoList 2x 8 20 30,1.566
+4505,Point2GeoList 2x 8 30 10,1.739
+4506,Point2GeoList 2x 8 30 20,1.479
+4507,Point2GeoList 2x 8 30 30,2.249
+4508,Point2GeoList 2x 9 10 10,1.724
+4509,Point2GeoList 2x 9 10 20,1.711
+4510,Point2GeoList 2x 9 10 30,1.449
+4511,Point2GeoList 2x 9 20 10,1.486
+4512,Point2GeoList 2x 9 20 20,1.702
+4513,Point2GeoList 2x 9 20 30,1.727
+4514,Point2GeoList 2x 9 30 10,1.462
+4515,Point2GeoList 2x 9 30 20,1.756
+4516,Point2GeoList 2x 9 30 30,1.475
+4517,Point2GeoList 2x 10 10 10,1.908
+4518,Point2GeoList 2x 10 10 20,1.463
+4519,Point2GeoList 2x 10 10 30,1.454
+4520,Point2GeoList 2x 10 20 10,1.577
+4521,Point2GeoList 2x 10 20 20,2.069
+4522,Point2GeoList 2x 10 20 30,1.46
+4523,Point2GeoList 2x 10 30 10,1.472
+4524,Point2GeoList 2x 10 30 20,1.689
+4525,Point2GeoList 2x 10 30 30,1.459
+4526,Point2GeoList 2x 11 10 10,1.462
+4527,Point2GeoList 2x 11 10 20,1.709
+4528,Point2GeoList 2x 11 10 30,1.482
+4529,Point2GeoList 2x 11 20 10,1.471
+4530,Point2GeoList 2x 11 20 20,1.847
+4531,Point2GeoList 2x 11 20 30,1.467
+4532,Point2GeoList 2x 11 30 10,1.465
+4533,Point2GeoList 2x 11 30 20,1.683
+4534,Point2GeoList 2x 11 30 30,1.709
+4535,Point2GeoList 2x 12 10 10,2.054
+4536,Point2GeoList 2x 12 10 20,2.214
+4537,Point2GeoList 2x 12 10 30,1.469
+4538,Point2GeoList 2x 12 20 10,1.469
+4539,Point2GeoList 2x 12 20 20,1.471
+4540,Point2GeoList 2x 12 20 30,1.503
+4541,Point2GeoList 2x 12 30 10,1.485
+4542,Point2GeoList 2x 12 30 20,1.744
+4543,Point2GeoList 2x 12 30 30,1.844
+4544,Point2GeoList 2x 13 10 10,1.54
+4545,Point2GeoList 2x 13 10 20,2.063
+4546,Point2GeoList 2x 13 10 30,1.805
+4547,Point2GeoList 2x 13 20 10,1.506
+4548,Point2GeoList 2x 13 20 20,1.764
+4549,Point2GeoList 2x 13 20 30,1.483
+4550,Point2GeoList 2x 13 30 10,2.051
+4551,Point2GeoList 2x 13 30 20,1.475
+4552,Point2GeoList 2x 13 30 30,1.471
+4553,Point2GeoList 2x 14 10 10,1.48
+4554,Point2GeoList 2x 14 10 20,1.726
+4555,Point2GeoList 2x 14 10 30,1.672
+4556,Point2GeoList 2x 14 20 10,1.482
+4557,Point2GeoList 2x 14 20 20,1.463
+4558,Point2GeoList 2x 14 20 30,1.461
+4559,Point2GeoList 2x 14 30 10,1.722
+4560,Point2GeoList 2x 14 30 20,2.24
+4561,Point2GeoList 2x 14 30 30,1.717
+4562,Point2GeoList 2x 15 10 10,1.505
+4563,Point2GeoList 2x 15 10 20,1.549
+4564,Point2GeoList 2x 15 10 30,1.603
+4565,Point2GeoList 2x 15 20 10,1.474
+4566,Point2GeoList 2x 15 20 20,1.454
+4567,Point2GeoList 2x 15 20 30,1.584
+4568,Point2GeoList 2x 15 30 10,1.466
+4569,Point2GeoList 2x 15 30 20,1.47
+4570,Point2GeoList 2x 15 30 30,1.728
+4571,Point2GeoList 2x 16 10 10,1.486
+4572,Point2GeoList 2x 16 10 20,1.484
+4573,Point2GeoList 2x 16 10 30,1.486
+4574,Point2GeoList 2x 16 20 10,1.476
+4575,Point2GeoList 2x 16 20 20,1.504
+4576,Point2GeoList 2x 16 20 30,1.444
+4577,Point2GeoList 2x 16 30 10,1.443
+4578,Point2GeoList 2x 16 30 20,2.135
+4579,Point2GeoList 2x 16 30 30,1.469
+4580,Point2GeoList 2x 17 10 10,1.459
+4581,Point2GeoList 2x 17 10 20,1.456
+4582,Point2GeoList 2x 17 10 30,1.871
+4583,Point2GeoList 2x 17 20 10,1.496
+4584,Point2GeoList 2x 17 20 20,1.462
+4585,Point2GeoList 2x 17 20 30,1.673
+4586,Point2GeoList 2x 17 30 10,1.788
+4587,Point2GeoList 2x 17 30 20,1.604
+4588,Point2GeoList 2x 17 30 30,1.478
+4589,Point2GeoList 2x 18 10 10,1.535
+4590,Point2GeoList 2x 18 10 20,1.87
+4591,Point2GeoList 2x 18 10 30,2.139
+4592,Point2GeoList 2x 18 20 10,1.492
+4593,Point2GeoList 2x 18 20 20,1.489
+4594,Point2GeoList 2x 18 20 30,1.745
+4595,Point2GeoList 2x 18 30 10,1.466
+4596,Point2GeoList 2x 18 30 20,1.499
+4597,Point2GeoList 2x 18 30 30,1.48
+4598,Point2GeoList 5x 0 10 10,2.486
+4599,Point2GeoList 5x 0 10 20,2.009
+4600,Point2GeoList 5x 0 10 30,2.118
+4601,Point2GeoList 5x 0 20 10,2.417
+4602,Point2GeoList 5x 0 20 20,2.452
+4603,Point2GeoList 5x 0 20 30,2.037
+4604,Point2GeoList 5x 0 30 10,2.498
+4605,Point2GeoList 5x 0 30 20,2.101
+4606,Point2GeoList 5x 0 30 30,2.088
+4607,Point2GeoList 5x 1 10 10,2.512
+4608,Point2GeoList 5x 1 10 20,2.051
+4609,Point2GeoList 5x 1 10 30,2.518
+4610,Point2GeoList 5x 1 20 10,2.043
+4611,Point2GeoList 5x 1 20 20,2.455
+4612,Point2GeoList 5x 1 20 30,2.49
+4613,Point2GeoList 5x 1 30 10,2.501
+4614,Point2GeoList 5x 1 30 20,2.01
+4615,Point2GeoList 5x 1 30 30,2.039
+4616,Point2GeoList 5x 2 10 10,2.017
+4617,Point2GeoList 5x 2 10 20,2.019
+4618,Point2GeoList 5x 2 10 30,2.468
+4619,Point2GeoList 5x 2 20 10,2.021
+4620,Point2GeoList 5x 2 20 20,2.883
+4621,Point2GeoList 5x 2 20 30,2.465
+4622,Point2GeoList 5x 2 30 10,2.905
+4623,Point2GeoList 5x 2 30 20,2.011
+4624,Point2GeoList 5x 2 30 30,2.024
+4625,Point2GeoList 5x 3 10 10,2.474
+4626,Point2GeoList 5x 3 10 20,2.02
+4627,Point2GeoList 5x 3 10 30,2.026
+4628,Point2GeoList 5x 3 20 10,2.043
+4629,Point2GeoList 5x 3 20 20,2.039
+4630,Point2GeoList 5x 3 20 30,2.016
+4631,Point2GeoList 5x 3 30 10,2.432
+4632,Point2GeoList 5x 3 30 20,2.007
+4633,Point2GeoList 5x 3 30 30,2.46
+4634,Point2GeoList 5x 4 10 10,2.474
+4635,Point2GeoList 5x 4 10 20,2.689
+4636,Point2GeoList 5x 4 10 30,5.602
+4637,Point2GeoList 5x 4 20 10,2.035
+4638,Point2GeoList 5x 4 20 20,2.022
+4639,Point2GeoList 5x 4 20 30,2.707
+4640,Point2GeoList 5x 4 30 10,2.059
+4641,Point2GeoList 5x 4 30 20,2.002
+4642,Point2GeoList 5x 4 30 30,2.51
+4643,Point2GeoList 5x 5 10 10,2.526
+4644,Point2GeoList 5x 5 10 20,2.513
+4645,Point2GeoList 5x 5 10 30,2.864
+4646,Point2GeoList 5x 5 20 10,2.477
+4647,Point2GeoList 5x 5 20 20,2.251
+4648,Point2GeoList 5x 5 20 30,2.426
+4649,Point2GeoList 5x 5 30 10,2.622
+4650,Point2GeoList 5x 5 30 20,2.61
+4651,Point2GeoList 5x 5 30 30,2.066
+4652,Point2GeoList 5x 6 10 10,2.477
+4653,Point2GeoList 5x 6 10 20,2.454
+4654,Point2GeoList 5x 6 10 30,2.479
+4655,Point2GeoList 5x 6 20 10,2.461
+4656,Point2GeoList 5x 6 20 20,2.01
+4657,Point2GeoList 5x 6 20 30,2.023
+4658,Point2GeoList 5x 6 30 10,2.692
+4659,Point2GeoList 5x 6 30 20,2.561
+4660,Point2GeoList 5x 6 30 30,2.026
+4661,Point2GeoList 5x 7 10 10,2.049
+4662,Point2GeoList 5x 7 10 20,2.788
+4663,Point2GeoList 5x 7 10 30,2.478
+4664,Point2GeoList 5x 7 20 10,2.606
+4665,Point2GeoList 5x 7 20 20,2.041
+4666,Point2GeoList 5x 7 20 30,2.139
+4667,Point2GeoList 5x 7 30 10,2.2
+4668,Point2GeoList 5x 7 30 20,2.019
+4669,Point2GeoList 5x 7 30 30,1.967
+4670,Point2GeoList 5x 8 10 10,2.084
+4671,Point2GeoList 5x 8 10 20,2.211
+4672,Point2GeoList 5x 8 10 30,2.797
+4673,Point2GeoList 5x 8 20 10,2.487
+4674,Point2GeoList 5x 8 20 20,2.456
+4675,Point2GeoList 5x 8 20 30,2.399
+4676,Point2GeoList 5x 8 30 10,2.438
+4677,Point2GeoList 5x 8 30 20,2.025
+4678,Point2GeoList 5x 8 30 30,2.462
+4679,Point2GeoList 5x 9 10 10,2.497
+4680,Point2GeoList 5x 9 10 20,2.236
+4681,Point2GeoList 5x 9 10 30,2.407
+4682,Point2GeoList 5x 9 20 10,2.152
+4683,Point2GeoList 5x 9 20 20,2.029
+4684,Point2GeoList 5x 9 20 30,2.049
+4685,Point2GeoList 5x 9 30 10,2.552
+4686,Point2GeoList 5x 9 30 20,2.152
+4687,Point2GeoList 5x 9 30 30,2.157
+4688,Point2GeoList 5x 10 10 10,2.461
+4689,Point2GeoList 5x 10 10 20,2.616
+4690,Point2GeoList 5x 10 10 30,2.024
+4691,Point2GeoList 5x 10 20 10,2.035
+4692,Point2GeoList 5x 10 20 20,2.466
+4693,Point2GeoList 5x 10 20 30,2.04
+4694,Point2GeoList 5x 10 30 10,2.048
+4695,Point2GeoList 5x 10 30 20,2.476
+4696,Point2GeoList 5x 10 30 30,2.027
+4697,Point2GeoList 5x 11 10 10,2.465
+4698,Point2GeoList 5x 11 10 20,2.566
+4699,Point2GeoList 5x 11 10 30,2.032
+4700,Point2GeoList 5x 11 20 10,2.041
+4701,Point2GeoList 5x 11 20 20,2.495
+4702,Point2GeoList 5x 11 20 30,2.054
+4703,Point2GeoList 5x 11 30 10,2.654
+4704,Point2GeoList 5x 11 30 20,2.399
+4705,Point2GeoList 5x 11 30 30,2.019
+4706,Point2GeoList 5x 12 10 10,2.127
+4707,Point2GeoList 5x 12 10 20,2.477
+4708,Point2GeoList 5x 12 10 30,2.521
+4709,Point2GeoList 5x 12 20 10,3.248
+4710,Point2GeoList 5x 12 20 20,2.044
+4711,Point2GeoList 5x 12 20 30,2.834
+4712,Point2GeoList 5x 12 30 10,2.039
+4713,Point2GeoList 5x 12 30 20,2.603
+4714,Point2GeoList 5x 12 30 30,2.468
+4715,Point2GeoList 5x 13 10 10,2.312
+4716,Point2GeoList 5x 13 10 20,2.164
+4717,Point2GeoList 5x 13 10 30,2.689
+4718,Point2GeoList 5x 13 20 10,2.039
+4719,Point2GeoList 5x 13 20 20,2.018
+4720,Point2GeoList 5x 13 20 30,2.63
+4721,Point2GeoList 5x 13 30 10,2.018
+4722,Point2GeoList 5x 13 30 20,2.281
+4723,Point2GeoList 5x 13 30 30,2.49
+4724,Point2GeoList 5x 14 10 10,2.626
+4725,Point2GeoList 5x 14 10 20,2.38
+4726,Point2GeoList 5x 14 10 30,2.47
+4727,Point2GeoList 5x 14 20 10,2.623
+4728,Point2GeoList 5x 14 20 20,2.553
+4729,Point2GeoList 5x 14 20 30,2.026
+4730,Point2GeoList 5x 14 30 10,2.052
+4731,Point2GeoList 5x 14 30 20,2.022
+4732,Point2GeoList 5x 14 30 30,2.043
+4733,Point2GeoList 5x 15 10 10,2.461
+4734,Point2GeoList 5x 15 10 20,2.029
+4735,Point2GeoList 5x 15 10 30,2.0
+4736,Point2GeoList 5x 15 20 10,2.184
+4737,Point2GeoList 5x 15 20 20,2.031
+4738,Point2GeoList 5x 15 20 30,2.407
+4739,Point2GeoList 5x 15 30 10,2.506
+4740,Point2GeoList 5x 15 30 20,2.041
+4741,Point2GeoList 5x 15 30 30,2.021
+4742,Point2GeoList 5x 16 10 10,2.033
+4743,Point2GeoList 5x 16 10 20,2.59
+4744,Point2GeoList 5x 16 10 30,2.046
+4745,Point2GeoList 5x 16 20 10,2.053
+4746,Point2GeoList 5x 16 20 20,2.545
+4747,Point2GeoList 5x 16 20 30,2.038
+4748,Point2GeoList 5x 16 30 10,2.006
+4749,Point2GeoList 5x 16 30 20,2.429
+4750,Point2GeoList 5x 16 30 30,2.048
+4751,Point2GeoList 5x 17 10 10,2.018
+4752,Point2GeoList 5x 17 10 20,2.028
+4753,Point2GeoList 5x 17 10 30,2.127
+4754,Point2GeoList 5x 17 20 10,2.58
+4755,Point2GeoList 5x 17 20 20,2.037
+4756,Point2GeoList 5x 17 20 30,1.996
+4757,Point2GeoList 5x 17 30 10,2.474
+4758,Point2GeoList 5x 17 30 20,2.528
+4759,Point2GeoList 5x 17 30 30,2.307
+4760,Point2GeoList 5x 18 10 10,2.044
+4761,Point2GeoList 5x 18 10 20,2.475
+4762,Point2GeoList 5x 18 10 30,2.571
+4763,Point2GeoList 5x 18 20 10,2.354
+4764,Point2GeoList 5x 18 20 20,2.588
+4765,Point2GeoList 5x 18 20 30,2.016
+4766,Point2GeoList 5x 18 30 10,2.097
+4767,Point2GeoList 5x 18 30 20,2.442
+4768,Point2GeoList 5x 18 30 30,2.314
+4769,Point2GeoList 10x 0 10 10,2.942
+4770,Point2GeoList 10x 0 10 20,3.61
+4771,Point2GeoList 10x 0 10 30,3.378
+4772,Point2GeoList 10x 0 20 10,2.908
+4773,Point2GeoList 10x 0 20 20,3.244
+4774,Point2GeoList 10x 0 20 30,2.983
+4775,Point2GeoList 10x 0 30 10,3.325
+4776,Point2GeoList 10x 0 30 20,2.968
+4777,Point2GeoList 10x 0 30 30,3.426
+4778,Point2GeoList 10x 1 10 10,3.121
+4779,Point2GeoList 10x 1 10 20,3.681
+4780,Point2GeoList 10x 1 10 30,2.956
+4781,Point2GeoList 10x 1 20 10,3.92
+4782,Point2GeoList 10x 1 20 20,3.094
+4783,Point2GeoList 10x 1 20 30,3.183
+4784,Point2GeoList 10x 1 30 10,3.474
+4785,Point2GeoList 10x 1 30 20,3.834
+4786,Point2GeoList 10x 1 30 30,3.486
+4787,Point2GeoList 10x 2 10 10,3.554
+4788,Point2GeoList 10x 2 10 20,2.977
+4789,Point2GeoList 10x 2 10 30,2.967
+4790,Point2GeoList 10x 2 20 10,3.684
+4791,Point2GeoList 10x 2 20 20,5.594
+4792,Point2GeoList 10x 2 20 30,2.968
+4793,Point2GeoList 10x 2 30 10,3.659
+4794,Point2GeoList 10x 2 30 20,2.976
+4795,Point2GeoList 10x 2 30 30,2.96
+4796,Point2GeoList 10x 3 10 10,3.524
+4797,Point2GeoList 10x 3 10 20,3.297
+4798,Point2GeoList 10x 3 10 30,2.943
+4799,Point2GeoList 10x 3 20 10,2.966
+4800,Point2GeoList 10x 3 20 20,3.716
+4801,Point2GeoList 10x 3 20 30,4.01
+4802,Point2GeoList 10x 3 30 10,3.366
+4803,Point2GeoList 10x 3 30 20,2.962
+4804,Point2GeoList 10x 3 30 30,2.934
+4805,Point2GeoList 10x 4 10 10,2.995
+4806,Point2GeoList 10x 4 10 20,3.625
+4807,Point2GeoList 10x 4 10 30,4.525
+4808,Point2GeoList 10x 4 20 10,2.982
+4809,Point2GeoList 10x 4 20 20,2.975
+4810,Point2GeoList 10x 4 20 30,3.648
+4811,Point2GeoList 10x 4 30 10,3.776
+4812,Point2GeoList 10x 4 30 20,2.933
+4813,Point2GeoList 10x 4 30 30,2.928
+4814,Point2GeoList 10x 5 10 10,3.668
+4815,Point2GeoList 10x 5 10 20,3.68
+4816,Point2GeoList 10x 5 10 30,3.894
+4817,Point2GeoList 10x 5 20 10,3.362
+4818,Point2GeoList 10x 5 20 20,2.981
+4819,Point2GeoList 10x 5 20 30,2.909
+4820,Point2GeoList 10x 5 30 10,4.374
+4821,Point2GeoList 10x 5 30 20,3.469
+4822,Point2GeoList 10x 5 30 30,3.859
+4823,Point2GeoList 10x 6 10 10,2.972
+4824,Point2GeoList 10x 6 10 20,3.439
+4825,Point2GeoList 10x 6 10 30,3.614
+4826,Point2GeoList 10x 6 20 10,3.494
+4827,Point2GeoList 10x 6 20 20,3.673
+4828,Point2GeoList 10x 6 20 30,3.892
+4829,Point2GeoList 10x 6 30 10,3.259
+4830,Point2GeoList 10x 6 30 20,3.632
+4831,Point2GeoList 10x 6 30 30,3.984
+4832,Point2GeoList 10x 7 10 10,3.651
+4833,Point2GeoList 10x 7 10 20,3.705
+4834,Point2GeoList 10x 7 10 30,3.722
+4835,Point2GeoList 10x 7 20 10,3.672
+4836,Point2GeoList 10x 7 20 20,2.969
+4837,Point2GeoList 10x 7 20 30,2.907
+4838,Point2GeoList 10x 7 30 10,3.007
+4839,Point2GeoList 10x 7 30 20,3.131
+4840,Point2GeoList 10x 7 30 30,3.098
+4841,Point2GeoList 10x 8 10 10,3.668
+4842,Point2GeoList 10x 8 10 20,3.091
+4843,Point2GeoList 10x 8 10 30,3.636
+4844,Point2GeoList 10x 8 20 10,3.0
+4845,Point2GeoList 10x 8 20 20,2.958
+4846,Point2GeoList 10x 8 20 30,3.636
+4847,Point2GeoList 10x 8 30 10,3.756
+4848,Point2GeoList 10x 8 30 20,3.273
+4849,Point2GeoList 10x 8 30 30,3.237
+4850,Point2GeoList 10x 9 10 10,2.985
+4851,Point2GeoList 10x 9 10 20,2.951
+4852,Point2GeoList 10x 9 10 30,3.23
+4853,Point2GeoList 10x 9 20 10,2.956
+4854,Point2GeoList 10x 9 20 20,3.695
+4855,Point2GeoList 10x 9 20 30,2.974
+4856,Point2GeoList 10x 9 30 10,3.623
+4857,Point2GeoList 10x 9 30 20,3.792
+4858,Point2GeoList 10x 9 30 30,2.99
+4859,Point2GeoList 10x 10 10 10,3.627
+4860,Point2GeoList 10x 10 10 20,3.644
+4861,Point2GeoList 10x 10 10 30,2.969
+4862,Point2GeoList 10x 10 20 10,2.951
+4863,Point2GeoList 10x 10 20 20,2.969
+4864,Point2GeoList 10x 10 20 30,3.021
+4865,Point2GeoList 10x 10 30 10,4.454
+4866,Point2GeoList 10x 10 30 20,2.964
+4867,Point2GeoList 10x 10 30 30,4.276
+4868,Point2GeoList 10x 11 10 10,3.682
+4869,Point2GeoList 10x 11 10 20,3.354
+4870,Point2GeoList 10x 11 10 30,4.353
+4871,Point2GeoList 10x 11 20 10,2.949
+4872,Point2GeoList 10x 11 20 20,3.07
+4873,Point2GeoList 10x 11 20 30,3.5
+4874,Point2GeoList 10x 11 30 10,3.591
+4875,Point2GeoList 10x 11 30 20,3.602
+4876,Point2GeoList 10x 11 30 30,2.965
+4877,Point2GeoList 10x 12 10 10,2.97
+4878,Point2GeoList 10x 12 10 20,2.946
+4879,Point2GeoList 10x 12 10 30,3.34
+4880,Point2GeoList 10x 12 20 10,3.974
+4881,Point2GeoList 10x 12 20 20,3.614
+4882,Point2GeoList 10x 12 20 30,3.128
+4883,Point2GeoList 10x 12 30 10,2.96
+4884,Point2GeoList 10x 12 30 20,2.984
+4885,Point2GeoList 10x 12 30 30,2.967
+4886,Point2GeoList 10x 13 10 10,2.966
+4887,Point2GeoList 10x 13 10 20,2.957
+4888,Point2GeoList 10x 13 10 30,3.645
+4889,Point2GeoList 10x 13 20 10,2.971
+4890,Point2GeoList 10x 13 20 20,3.696
+4891,Point2GeoList 10x 13 20 30,2.984
+4892,Point2GeoList 10x 13 30 10,2.95
+4893,Point2GeoList 10x 13 30 20,2.986
+4894,Point2GeoList 10x 13 30 30,2.97
+4895,Point2GeoList 10x 14 10 10,2.943
+4896,Point2GeoList 10x 14 10 20,2.949
+4897,Point2GeoList 10x 14 10 30,2.968
+4898,Point2GeoList 10x 14 20 10,2.964
+4899,Point2GeoList 10x 14 20 20,3.608
+4900,Point2GeoList 10x 14 20 30,3.586
+4901,Point2GeoList 10x 14 30 10,2.937
+4902,Point2GeoList 10x 14 30 20,2.946
+4903,Point2GeoList 10x 14 30 30,2.971
+4904,Point2GeoList 10x 15 10 10,3.66
+4905,Point2GeoList 10x 15 10 20,3.574
+4906,Point2GeoList 10x 15 10 30,2.978
+4907,Point2GeoList 10x 15 20 10,2.948
+4908,Point2GeoList 10x 15 20 20,3.381
+4909,Point2GeoList 10x 15 20 30,3.659
+4910,Point2GeoList 10x 15 30 10,3.646
+4911,Point2GeoList 10x 15 30 20,3.723
+4912,Point2GeoList 10x 15 30 30,3.574
+4913,Point2GeoList 10x 16 10 10,2.965
+4914,Point2GeoList 10x 16 10 20,3.369
+4915,Point2GeoList 10x 16 10 30,3.135
+4916,Point2GeoList 10x 16 20 10,3.625
+4917,Point2GeoList 10x 16 20 20,3.2
+4918,Point2GeoList 10x 16 20 30,2.951
+4919,Point2GeoList 10x 16 30 10,4.472
+4920,Point2GeoList 10x 16 30 20,2.952
+4921,Point2GeoList 10x 16 30 30,4.15
+4922,Point2GeoList 10x 17 10 10,2.947
+4923,Point2GeoList 10x 17 10 20,3.441
+4924,Point2GeoList 10x 17 10 30,3.149
+4925,Point2GeoList 10x 17 20 10,3.302
+4926,Point2GeoList 10x 17 20 20,3.766
+4927,Point2GeoList 10x 17 20 30,3.275
+4928,Point2GeoList 10x 17 30 10,3.487
+4929,Point2GeoList 10x 17 30 20,2.967
+4930,Point2GeoList 10x 17 30 30,3.275
+4931,Point2GeoList 10x 18 10 10,3.844
+4932,Point2GeoList 10x 18 10 20,3.815
+4933,Point2GeoList 10x 18 10 30,2.93
+4934,Point2GeoList 10x 18 20 10,3.81
+4935,Point2GeoList 10x 18 20 20,3.687
+4936,Point2GeoList 10x 18 20 30,3.426
+4937,Point2GeoList 10x 18 30 10,3.953
+4938,Point2GeoList 10x 18 30 20,3.132
+4939,Point2GeoList 10x 18 30 30,3.654
+4940,Point2GeoList 20x 0 10 10,4.801
+4941,Point2GeoList 20x 0 10 20,4.764
+4942,Point2GeoList 20x 0 10 30,4.769
+4943,Point2GeoList 20x 0 20 10,5.435
+4944,Point2GeoList 20x 0 20 20,4.955
+4945,Point2GeoList 20x 0 20 30,4.883
+4946,Point2GeoList 20x 0 30 10,6.068
+4947,Point2GeoList 20x 0 30 20,6.05
+4948,Point2GeoList 20x 0 30 30,4.876
+4949,Point2GeoList 20x 1 10 10,4.759
+4950,Point2GeoList 20x 1 10 20,6.144
+4951,Point2GeoList 20x 1 10 30,6.129
+4952,Point2GeoList 20x 1 20 10,5.49
+4953,Point2GeoList 20x 1 20 20,6.1
+4954,Point2GeoList 20x 1 20 30,6.135
+4955,Point2GeoList 20x 1 30 10,6.039
+4956,Point2GeoList 20x 1 30 20,5.024
+4957,Point2GeoList 20x 1 30 30,5.276
+4958,Point2GeoList 20x 2 10 10,4.815
+4959,Point2GeoList 20x 2 10 20,4.837
+4960,Point2GeoList 20x 2 10 30,4.824
+4961,Point2GeoList 20x 2 20 10,4.81
+4962,Point2GeoList 20x 2 20 20,6.76
+4963,Point2GeoList 20x 2 20 30,4.824
+4964,Point2GeoList 20x 2 30 10,6.113
+4965,Point2GeoList 20x 2 30 20,4.864
+4966,Point2GeoList 20x 2 30 30,6.099
+4967,Point2GeoList 20x 3 10 10,5.519
+4968,Point2GeoList 20x 3 10 20,4.842
+4969,Point2GeoList 20x 3 10 30,4.856
+4970,Point2GeoList 20x 3 20 10,5.683
+4971,Point2GeoList 20x 3 20 20,5.606
+4972,Point2GeoList 20x 3 20 30,5.344
+4973,Point2GeoList 20x 3 30 10,4.87
+4974,Point2GeoList 20x 3 30 20,4.821
+4975,Point2GeoList 20x 3 30 30,6.065
+4976,Point2GeoList 20x 4 10 10,4.79
+4977,Point2GeoList 20x 4 10 20,6.063
+4978,Point2GeoList 20x 4 10 30,5.828
+4979,Point2GeoList 20x 4 20 10,5.384
+4980,Point2GeoList 20x 4 20 20,6.163
+4981,Point2GeoList 20x 4 20 30,5.919
+4982,Point2GeoList 20x 4 30 10,5.726
+4983,Point2GeoList 20x 4 30 20,4.825
+4984,Point2GeoList 20x 4 30 30,6.202
+4985,Point2GeoList 20x 5 10 10,5.24
+4986,Point2GeoList 20x 5 10 20,6.33
+4987,Point2GeoList 20x 5 10 30,6.065
+4988,Point2GeoList 20x 5 20 10,4.818
+4989,Point2GeoList 20x 5 20 20,6.325
+4990,Point2GeoList 20x 5 20 30,4.845
+4991,Point2GeoList 20x 5 30 10,5.023
+4992,Point2GeoList 20x 5 30 20,5.346
+4993,Point2GeoList 20x 5 30 30,5.057
+4994,Point2GeoList 20x 6 10 10,6.18
+4995,Point2GeoList 20x 6 10 20,6.082
+4996,Point2GeoList 20x 6 10 30,5.211
+4997,Point2GeoList 20x 6 20 10,6.019
+4998,Point2GeoList 20x 6 20 20,4.817
+4999,Point2GeoList 20x 6 20 30,4.843
+5000,Point2GeoList 20x 6 30 10,6.629
+5001,Point2GeoList 20x 6 30 20,6.157
+5002,Point2GeoList 20x 6 30 30,5.203
+5003,Point2GeoList 20x 7 10 10,5.849
+5004,Point2GeoList 20x 7 10 20,6.172
+5005,Point2GeoList 20x 7 10 30,6.313
+5006,Point2GeoList 20x 7 20 10,5.862
+5007,Point2GeoList 20x 7 20 20,5.154
+5008,Point2GeoList 20x 7 20 30,4.85
+5009,Point2GeoList 20x 7 30 10,5.235
+5010,Point2GeoList 20x 7 30 20,6.483
+5011,Point2GeoList 20x 7 30 30,4.757
+5012,Point2GeoList 20x 8 10 10,5.811
+5013,Point2GeoList 20x 8 10 20,6.099
+5014,Point2GeoList 20x 8 10 30,7.1
+5015,Point2GeoList 20x 8 20 10,5.231
+5016,Point2GeoList 20x 8 20 20,6.001
+5017,Point2GeoList 20x 8 20 30,5.645
+5018,Point2GeoList 20x 8 30 10,4.819
+5019,Point2GeoList 20x 8 30 20,4.838
+5020,Point2GeoList 20x 8 30 30,4.888
+5021,Point2GeoList 20x 9 10 10,6.166
+5022,Point2GeoList 20x 9 10 20,5.728
+5023,Point2GeoList 20x 9 10 30,5.878
+5024,Point2GeoList 20x 9 20 10,5.608
+5025,Point2GeoList 20x 9 20 20,5.007
+5026,Point2GeoList 20x 9 20 30,5.461
+5027,Point2GeoList 20x 9 30 10,5.659
+5028,Point2GeoList 20x 9 30 20,5.027
+5029,Point2GeoList 20x 9 30 30,5.842
+5030,Point2GeoList 20x 10 10 10,5.189
+5031,Point2GeoList 20x 10 10 20,5.982
+5032,Point2GeoList 20x 10 10 30,6.026
+5033,Point2GeoList 20x 10 20 10,6.101
+5034,Point2GeoList 20x 10 20 20,6.072
+5035,Point2GeoList 20x 10 20 30,5.085
+5036,Point2GeoList 20x 10 30 10,4.987
+5037,Point2GeoList 20x 10 30 20,4.883
+5038,Point2GeoList 20x 10 30 30,5.353
+5039,Point2GeoList 20x 11 10 10,5.571
+5040,Point2GeoList 20x 11 10 20,4.999
+5041,Point2GeoList 20x 11 10 30,5.878
+5042,Point2GeoList 20x 11 20 10,5.509
+5043,Point2GeoList 20x 11 20 20,6.022
+5044,Point2GeoList 20x 11 20 30,4.776
+5045,Point2GeoList 20x 11 30 10,4.835
+5046,Point2GeoList 20x 11 30 20,4.792
+5047,Point2GeoList 20x 11 30 30,4.972
+5048,Point2GeoList 20x 12 10 10,4.927
+5049,Point2GeoList 20x 12 10 20,6.015
+5050,Point2GeoList 20x 12 10 30,7.489
+5051,Point2GeoList 20x 12 20 10,6.658
+5052,Point2GeoList 20x 12 20 20,4.847
+5053,Point2GeoList 20x 12 20 30,5.154
+5054,Point2GeoList 20x 12 30 10,4.835
+5055,Point2GeoList 20x 12 30 20,6.07
+5056,Point2GeoList 20x 12 30 30,6.075
+5057,Point2GeoList 20x 13 10 10,5.833
+5058,Point2GeoList 20x 13 10 20,5.457
+5059,Point2GeoList 20x 13 10 30,4.853
+5060,Point2GeoList 20x 13 20 10,4.874
+5061,Point2GeoList 20x 13 20 20,5.628
+5062,Point2GeoList 20x 13 20 30,6.011
+5063,Point2GeoList 20x 13 30 10,4.864
+5064,Point2GeoList 20x 13 30 20,6.571
+5065,Point2GeoList 20x 13 30 30,5.247
+5066,Point2GeoList 20x 14 10 10,5.423
+5067,Point2GeoList 20x 14 10 20,6.379
+5068,Point2GeoList 20x 14 10 30,6.042
+5069,Point2GeoList 20x 14 20 10,6.245
+5070,Point2GeoList 20x 14 20 20,6.098
+5071,Point2GeoList 20x 14 20 30,4.941
+5072,Point2GeoList 20x 14 30 10,6.34
+5073,Point2GeoList 20x 14 30 20,4.957
+5074,Point2GeoList 20x 14 30 30,4.908
+5075,Point2GeoList 20x 15 10 10,5.628
+5076,Point2GeoList 20x 15 10 20,4.835
+5077,Point2GeoList 20x 15 10 30,5.351
+5078,Point2GeoList 20x 15 20 10,5.492
+5079,Point2GeoList 20x 15 20 20,5.291
+5080,Point2GeoList 20x 15 20 30,6.352
+5081,Point2GeoList 20x 15 30 10,6.072
+5082,Point2GeoList 20x 15 30 20,4.83
+5083,Point2GeoList 20x 15 30 30,6.038
+5084,Point2GeoList 20x 16 10 10,5.986
+5085,Point2GeoList 20x 16 10 20,5.675
+5086,Point2GeoList 20x 16 10 30,4.862
+5087,Point2GeoList 20x 16 20 10,4.837
+5088,Point2GeoList 20x 16 20 20,5.711
+5089,Point2GeoList 20x 16 20 30,6.062
+5090,Point2GeoList 20x 16 30 10,4.842
+5091,Point2GeoList 20x 16 30 20,4.826
+5092,Point2GeoList 20x 16 30 30,5.75
+5093,Point2GeoList 20x 17 10 10,10.72
+5094,Point2GeoList 20x 17 10 20,4.841
+5095,Point2GeoList 20x 17 10 30,5.061
+5096,Point2GeoList 20x 17 20 10,5.575
+5097,Point2GeoList 20x 17 20 20,5.49
+5098,Point2GeoList 20x 17 20 30,4.949
+5099,Point2GeoList 20x 17 30 10,5.852
+5100,Point2GeoList 20x 17 30 20,5.891
+5101,Point2GeoList 20x 17 30 30,5.028
+5102,Point2GeoList 20x 18 10 10,5.065
+5103,Point2GeoList 20x 18 10 20,6.04
+5104,Point2GeoList 20x 18 10 30,6.144
+5105,Point2GeoList 20x 18 20 10,6.285
+5106,Point2GeoList 20x 18 20 20,6.027
+5107,Point2GeoList 20x 18 20 30,5.702
+5108,Point2GeoList 20x 18 30 10,6.405
+5109,Point2GeoList 20x 18 30 20,5.767
+5110,Point2GeoList 20x 18 30 30,5.699
+5111,Point2GeoList 50x 0 10 10,10.515
+5112,Point2GeoList 50x 0 10 20,11.485
+5113,Point2GeoList 50x 0 10 30,11.139
+5114,Point2GeoList 50x 0 20 10,11.12
+5115,Point2GeoList 50x 0 20 20,10.821
+5116,Point2GeoList 50x 0 20 30,10.369
+5117,Point2GeoList 50x 0 30 10,11.038
+5118,Point2GeoList 50x 0 30 20,11.995
+5119,Point2GeoList 50x 0 30 30,11.985
+5120,Point2GeoList 50x 1 10 10,11.05
+5121,Point2GeoList 50x 1 10 20,11.7
+5122,Point2GeoList 50x 1 10 30,11.294
+5123,Point2GeoList 50x 1 20 10,13.23
+5124,Point2GeoList 50x 1 20 20,11.853
+5125,Point2GeoList 50x 1 20 30,12.701
+5126,Point2GeoList 50x 1 30 10,13.154
+5127,Point2GeoList 50x 1 30 20,12.27
+5128,Point2GeoList 50x 1 30 30,11.54
+5129,Point2GeoList 50x 2 10 10,11.667
+5130,Point2GeoList 50x 2 10 20,10.428
+5131,Point2GeoList 50x 2 10 30,11.243
+5132,Point2GeoList 50x 2 20 10,12.379
+5133,Point2GeoList 50x 2 20 20,13.132
+5134,Point2GeoList 50x 2 20 30,10.567
+5135,Point2GeoList 50x 2 30 10,12.138
+5136,Point2GeoList 50x 2 30 20,13.31
+5137,Point2GeoList 50x 2 30 30,11.841
+5138,Point2GeoList 50x 3 10 10,12.884
+5139,Point2GeoList 50x 3 10 20,11.59
+5140,Point2GeoList 50x 3 10 30,10.833
+5141,Point2GeoList 50x 3 20 10,11.847
+5142,Point2GeoList 50x 3 20 20,11.516
+5143,Point2GeoList 50x 3 20 30,12.772
+5144,Point2GeoList 50x 3 30 10,11.799
+5145,Point2GeoList 50x 3 30 20,12.419
+5146,Point2GeoList 50x 3 30 30,12.354
+5147,Point2GeoList 50x 4 10 10,11.421
+5148,Point2GeoList 50x 4 10 20,12.563
+5149,Point2GeoList 50x 4 10 30,12.056
+5150,Point2GeoList 50x 4 20 10,11.714
+5151,Point2GeoList 50x 4 20 20,11.141
+5152,Point2GeoList 50x 4 20 30,10.803
+5153,Point2GeoList 50x 4 30 10,11.6
+5154,Point2GeoList 50x 4 30 20,12.599
+5155,Point2GeoList 50x 4 30 30,10.88
+5156,Point2GeoList 50x 5 10 10,13.445
+5157,Point2GeoList 50x 5 10 20,12.505
+5158,Point2GeoList 50x 5 10 30,10.441
+5159,Point2GeoList 50x 5 20 10,10.825
+5160,Point2GeoList 50x 5 20 20,14.005
+5161,Point2GeoList 50x 5 20 30,11.383
+5162,Point2GeoList 50x 5 30 10,13.002
+5163,Point2GeoList 50x 5 30 20,11.43
+5164,Point2GeoList 50x 5 30 30,12.262
+5165,Point2GeoList 50x 6 10 10,12.062
+5166,Point2GeoList 50x 6 10 20,12.362
+5167,Point2GeoList 50x 6 10 30,11.281
+5168,Point2GeoList 50x 6 20 10,11.762
+5169,Point2GeoList 50x 6 20 20,12.375
+5170,Point2GeoList 50x 6 20 30,12.175
+5171,Point2GeoList 50x 6 30 10,12.803
+5172,Point2GeoList 50x 6 30 20,12.536
+5173,Point2GeoList 50x 6 30 30,11.933
+5174,Point2GeoList 50x 7 10 10,13.068
+5175,Point2GeoList 50x 7 10 20,12.93
+5176,Point2GeoList 50x 7 10 30,12.078
+5177,Point2GeoList 50x 7 20 10,11.636
+5178,Point2GeoList 50x 7 20 20,10.932
+5179,Point2GeoList 50x 7 20 30,11.981
+5180,Point2GeoList 50x 7 30 10,13.179
+5181,Point2GeoList 50x 7 30 20,10.99
+5182,Point2GeoList 50x 7 30 30,10.676
+5183,Point2GeoList 50x 8 10 10,12.828
+5184,Point2GeoList 50x 8 10 20,10.865
+5185,Point2GeoList 50x 8 10 30,11.579
+5186,Point2GeoList 50x 8 20 10,11.079
+5187,Point2GeoList 50x 8 20 20,11.899
+5188,Point2GeoList 50x 8 20 30,12.405
+5189,Point2GeoList 50x 8 30 10,11.131
+5190,Point2GeoList 50x 8 30 20,11.83
+5191,Point2GeoList 50x 8 30 30,12.836
+5192,Point2GeoList 50x 9 10 10,11.682
+5193,Point2GeoList 50x 9 10 20,12.694
+5194,Point2GeoList 50x 9 10 30,12.129
+5195,Point2GeoList 50x 9 20 10,10.993
+5196,Point2GeoList 50x 9 20 20,10.918
+5197,Point2GeoList 50x 9 20 30,10.55
+5198,Point2GeoList 50x 9 30 10,13.564
+5199,Point2GeoList 50x 9 30 20,11.637
+5200,Point2GeoList 50x 9 30 30,11.185
+5201,Point2GeoList 50x 10 10 10,11.646
+5202,Point2GeoList 50x 10 10 20,12.175
+5203,Point2GeoList 50x 10 10 30,10.941
+5204,Point2GeoList 50x 10 20 10,12.453
+5205,Point2GeoList 50x 10 20 20,10.701
+5206,Point2GeoList 50x 10 20 30,12.922
+5207,Point2GeoList 50x 10 30 10,11.393
+5208,Point2GeoList 50x 10 30 20,11.704
+5209,Point2GeoList 50x 10 30 30,12.417
+5210,Point2GeoList 50x 11 10 10,13.437
+5211,Point2GeoList 50x 11 10 20,12.793
+5212,Point2GeoList 50x 11 10 30,10.899
+5213,Point2GeoList 50x 11 20 10,11.184
+5214,Point2GeoList 50x 11 20 20,11.066
+5215,Point2GeoList 50x 11 20 30,12.779
+5216,Point2GeoList 50x 11 30 10,12.727
+5217,Point2GeoList 50x 11 30 20,11.188
+5218,Point2GeoList 50x 11 30 30,16.724
+5219,Point2GeoList 50x 12 10 10,11.519
+5220,Point2GeoList 50x 12 10 20,12.488
+5221,Point2GeoList 50x 12 10 30,13.528
+5222,Point2GeoList 50x 12 20 10,11.391
+5223,Point2GeoList 50x 12 20 20,11.994
+5224,Point2GeoList 50x 12 20 30,10.888
+5225,Point2GeoList 50x 12 30 10,12.556
+5226,Point2GeoList 50x 12 30 20,13.566
+5227,Point2GeoList 50x 12 30 30,10.665
+5228,Point2GeoList 50x 13 10 10,13.581
+5229,Point2GeoList 50x 13 10 20,12.741
+5230,Point2GeoList 50x 13 10 30,10.393
+5231,Point2GeoList 50x 13 20 10,10.464
+5232,Point2GeoList 50x 13 20 20,11.069
+5233,Point2GeoList 50x 13 20 30,10.774
+5234,Point2GeoList 50x 13 30 10,10.396
+5235,Point2GeoList 50x 13 30 20,10.619
+5236,Point2GeoList 50x 13 30 30,13.933
+5237,Point2GeoList 50x 14 10 10,10.915
+5238,Point2GeoList 50x 14 10 20,10.527
+5239,Point2GeoList 50x 14 10 30,11.506
+5240,Point2GeoList 50x 14 20 10,12.007
+5241,Point2GeoList 50x 14 20 20,11.118
+5242,Point2GeoList 50x 14 20 30,11.024
+5243,Point2GeoList 50x 14 30 10,10.441
+5244,Point2GeoList 50x 14 30 20,11.182
+5245,Point2GeoList 50x 14 30 30,12.283
+5246,Point2GeoList 50x 15 10 10,10.478
+5247,Point2GeoList 50x 15 10 20,11.594
+5248,Point2GeoList 50x 15 10 30,10.471
+5249,Point2GeoList 50x 15 20 10,11.205
+5250,Point2GeoList 50x 15 20 20,12.717
+5251,Point2GeoList 50x 15 20 30,11.406
+5252,Point2GeoList 50x 15 30 10,13.293
+5253,Point2GeoList 50x 15 30 20,11.118
+5254,Point2GeoList 50x 15 30 30,10.993
+5255,Point2GeoList 50x 16 10 10,12.683
+5256,Point2GeoList 50x 16 10 20,12.681
+5257,Point2GeoList 50x 16 10 30,11.039
+5258,Point2GeoList 50x 16 20 10,12.262
+5259,Point2GeoList 50x 16 20 20,10.714
+5260,Point2GeoList 50x 16 20 30,11.278
+5261,Point2GeoList 50x 16 30 10,12.32
+5262,Point2GeoList 50x 16 30 20,12.892
+5263,Point2GeoList 50x 16 30 30,13.405
+5264,Point2GeoList 50x 17 10 10,12.586
+5265,Point2GeoList 50x 17 10 20,12.125
+5266,Point2GeoList 50x 17 10 30,11.4
+5267,Point2GeoList 50x 17 20 10,13.231
+5268,Point2GeoList 50x 17 20 20,12.271
+5269,Point2GeoList 50x 17 20 30,11.167
+5270,Point2GeoList 50x 17 30 10,12.291
+5271,Point2GeoList 50x 17 30 20,13.168
+5272,Point2GeoList 50x 17 30 30,11.489
+5273,Point2GeoList 50x 18 10 10,12.51
+5274,Point2GeoList 50x 18 10 20,12.633
+5275,Point2GeoList 50x 18 10 30,11.854
+5276,Point2GeoList 50x 18 20 10,12.5
+5277,Point2GeoList 50x 18 20 20,12.179
+5278,Point2GeoList 50x 18 20 30,12.841
+5279,Point2GeoList 50x 18 30 10,10.853
+5280,Point2GeoList 50x 18 30 20,12.85
+5281,Point2GeoList 50x 18 30 30,11.977
+5282,Point2GeoList 100x 0 10 10,21.871
+5283,Point2GeoList 100x 0 10 20,21.965
+5284,Point2GeoList 100x 0 10 30,20.627
+5285,Point2GeoList 100x 0 20 10,22.119
+5286,Point2GeoList 100x 0 20 20,20.264
+5287,Point2GeoList 100x 0 20 30,20.804
+5288,Point2GeoList 100x 0 30 10,22.029
+5289,Point2GeoList 100x 0 30 20,22.366
+5290,Point2GeoList 100x 0 30 30,23.679
+5291,Point2GeoList 100x 1 10 10,24.664
+5292,Point2GeoList 100x 1 10 20,24.131
+5293,Point2GeoList 100x 1 10 30,22.533
+5294,Point2GeoList 100x 1 20 10,23.901
+5295,Point2GeoList 100x 1 20 20,24.027
+5296,Point2GeoList 100x 1 20 30,22.009
+5297,Point2GeoList 100x 1 30 10,24.4
+5298,Point2GeoList 100x 1 30 20,25.423
+5299,Point2GeoList 100x 1 30 30,23.774
+5300,Point2GeoList 100x 2 10 10,22.6
+5301,Point2GeoList 100x 2 10 20,21.374
+5302,Point2GeoList 100x 2 10 30,20.512
+5303,Point2GeoList 100x 2 20 10,23.811
+5304,Point2GeoList 100x 2 20 20,20.899
+5305,Point2GeoList 100x 2 20 30,21.939
+5306,Point2GeoList 100x 2 30 10,21.098
+5307,Point2GeoList 100x 2 30 20,20.384
+5308,Point2GeoList 100x 2 30 30,23.959
+5309,Point2GeoList 100x 3 10 10,21.439
+5310,Point2GeoList 100x 3 10 20,23.91
+5311,Point2GeoList 100x 3 10 30,24.274
+5312,Point2GeoList 100x 3 20 10,21.577
+5313,Point2GeoList 100x 3 20 20,21.997
+5314,Point2GeoList 100x 3 20 30,23.136
+5315,Point2GeoList 100x 3 30 10,22.851
+5316,Point2GeoList 100x 3 30 20,21.504
+5317,Point2GeoList 100x 3 30 30,23.492
+5318,Point2GeoList 100x 4 10 10,21.945
+5319,Point2GeoList 100x 4 10 20,23.012
+5320,Point2GeoList 100x 4 10 30,30.693
+5321,Point2GeoList 100x 4 20 10,23.149
+5322,Point2GeoList 100x 4 20 20,21.489
+5323,Point2GeoList 100x 4 20 30,23.224
+5324,Point2GeoList 100x 4 30 10,24.427
+5325,Point2GeoList 100x 4 30 20,22.312
+5326,Point2GeoList 100x 4 30 30,20.102
+5327,Point2GeoList 100x 5 10 10,24.293
+5328,Point2GeoList 100x 5 10 20,23.908
+5329,Point2GeoList 100x 5 10 30,22.837
+5330,Point2GeoList 100x 5 20 10,23.643
+5331,Point2GeoList 100x 5 20 20,24.362
+5332,Point2GeoList 100x 5 20 30,23.737
+5333,Point2GeoList 100x 5 30 10,24.548
+5334,Point2GeoList 100x 5 30 20,23.363
+5335,Point2GeoList 100x 5 30 30,22.723
+5336,Point2GeoList 100x 6 10 10,21.137
+5337,Point2GeoList 100x 6 10 20,21.49
+5338,Point2GeoList 100x 6 10 30,22.22
+5339,Point2GeoList 100x 6 20 10,24.534
+5340,Point2GeoList 100x 6 20 20,24.043
+5341,Point2GeoList 100x 6 20 30,23.956
+5342,Point2GeoList 100x 6 30 10,23.17
+5343,Point2GeoList 100x 6 30 20,20.473
+5344,Point2GeoList 100x 6 30 30,23.18
+5345,Point2GeoList 100x 7 10 10,20.739
+5346,Point2GeoList 100x 7 10 20,21.176
+5347,Point2GeoList 100x 7 10 30,24.195
+5348,Point2GeoList 100x 7 20 10,20.815
+5349,Point2GeoList 100x 7 20 20,21.029
+5350,Point2GeoList 100x 7 20 30,25.312
+5351,Point2GeoList 100x 7 30 10,24.046
+5352,Point2GeoList 100x 7 30 20,20.589
+5353,Point2GeoList 100x 7 30 30,21.313
+5354,Point2GeoList 100x 8 10 10,23.521
+5355,Point2GeoList 100x 8 10 20,20.177
+5356,Point2GeoList 100x 8 10 30,20.856
+5357,Point2GeoList 100x 8 20 10,21.885
+5358,Point2GeoList 100x 8 20 20,24.107
+5359,Point2GeoList 100x 8 20 30,21.521
+5360,Point2GeoList 100x 8 30 10,19.995
+5361,Point2GeoList 100x 8 30 20,25.787
+5362,Point2GeoList 100x 8 30 30,22.79
+5363,Point2GeoList 100x 9 10 10,20.734
+5364,Point2GeoList 100x 9 10 20,24.229
+5365,Point2GeoList 100x 9 10 30,24.173
+5366,Point2GeoList 100x 9 20 10,21.768
+5367,Point2GeoList 100x 9 20 20,23.094
+5368,Point2GeoList 100x 9 20 30,22.297
+5369,Point2GeoList 100x 9 30 10,21.401
+5370,Point2GeoList 100x 9 30 20,23.998
+5371,Point2GeoList 100x 9 30 30,21.173
+5372,Point2GeoList 100x 10 10 10,21.236
+5373,Point2GeoList 100x 10 10 20,24.064
+5374,Point2GeoList 100x 10 10 30,22.715
+5375,Point2GeoList 100x 10 20 10,22.537
+5376,Point2GeoList 100x 10 20 20,21.14
+5377,Point2GeoList 100x 10 20 30,21.643
+5378,Point2GeoList 100x 10 30 10,24.121
+5379,Point2GeoList 100x 10 30 20,22.363
+5380,Point2GeoList 100x 10 30 30,20.775
+5381,Point2GeoList 100x 11 10 10,20.421
+5382,Point2GeoList 100x 11 10 20,21.557
+5383,Point2GeoList 100x 11 10 30,23.216
+5384,Point2GeoList 100x 11 20 10,22.394
+5385,Point2GeoList 100x 11 20 20,21.084
+5386,Point2GeoList 100x 11 20 30,23.543
+5387,Point2GeoList 100x 11 30 10,21.302
+5388,Point2GeoList 100x 11 30 20,24.294
+5389,Point2GeoList 100x 11 30 30,21.307
+5390,Point2GeoList 100x 12 10 10,20.537
+5391,Point2GeoList 100x 12 10 20,21.209
+5392,Point2GeoList 100x 12 10 30,23.478
+5393,Point2GeoList 100x 12 20 10,25.275
+5394,Point2GeoList 100x 12 20 20,23.098
+5395,Point2GeoList 100x 12 20 30,21.773
+5396,Point2GeoList 100x 12 30 10,25.294
+5397,Point2GeoList 100x 12 30 20,21.038
+5398,Point2GeoList 100x 12 30 30,20.142
+5399,Point2GeoList 100x 13 10 10,22.538
+5400,Point2GeoList 100x 13 10 20,23.767
+5401,Point2GeoList 100x 13 10 30,20.842
+5402,Point2GeoList 100x 13 20 10,21.05
+5403,Point2GeoList 100x 13 20 20,23.946
+5404,Point2GeoList 100x 13 20 30,24.363
+5405,Point2GeoList 100x 13 30 10,23.715
+5406,Point2GeoList 100x 13 30 20,23.708
+5407,Point2GeoList 100x 13 30 30,24.16
+5408,Point2GeoList 100x 14 10 10,21.686
+5409,Point2GeoList 100x 14 10 20,22.194
+5410,Point2GeoList 100x 14 10 30,21.161
+5411,Point2GeoList 100x 14 20 10,22.302
+5412,Point2GeoList 100x 14 20 20,20.484
+5413,Point2GeoList 100x 14 20 30,21.096
+5414,Point2GeoList 100x 14 30 10,24.289
+5415,Point2GeoList 100x 14 30 20,23.232
+5416,Point2GeoList 100x 14 30 30,21.34
+5417,Point2GeoList 100x 15 10 10,21.908
+5418,Point2GeoList 100x 15 10 20,21.326
+5419,Point2GeoList 100x 15 10 30,22.581
+5420,Point2GeoList 100x 15 20 10,22.75
+5421,Point2GeoList 100x 15 20 20,20.874
+5422,Point2GeoList 100x 15 20 30,23.625
+5423,Point2GeoList 100x 15 30 10,22.004
+5424,Point2GeoList 100x 15 30 20,20.132
+5425,Point2GeoList 100x 15 30 30,20.441
+5426,Point2GeoList 100x 16 10 10,21.904
+5427,Point2GeoList 100x 16 10 20,22.632
+5428,Point2GeoList 100x 16 10 30,21.063
+5429,Point2GeoList 100x 16 20 10,20.819
+5430,Point2GeoList 100x 16 20 20,22.636
+5431,Point2GeoList 100x 16 20 30,24.38
+5432,Point2GeoList 100x 16 30 10,21.109
+5433,Point2GeoList 100x 16 30 20,23.317
+5434,Point2GeoList 100x 16 30 30,23.71
+5435,Point2GeoList 100x 17 10 10,23.045
+5436,Point2GeoList 100x 17 10 20,22.312
+5437,Point2GeoList 100x 17 10 30,21.223
+5438,Point2GeoList 100x 17 20 10,22.791
+5439,Point2GeoList 100x 17 20 20,24.445
+5440,Point2GeoList 100x 17 20 30,21.081
+5441,Point2GeoList 100x 17 30 10,23.292
+5442,Point2GeoList 100x 17 30 20,22.831
+5443,Point2GeoList 100x 17 30 30,23.157
+5444,Point2GeoList 100x 18 10 10,24.009
+5445,Point2GeoList 100x 18 10 20,23.586
+5446,Point2GeoList 100x 18 10 30,23.303
+5447,Point2GeoList 100x 18 20 10,21.218
+5448,Point2GeoList 100x 18 20 20,21.85
+5449,Point2GeoList 100x 18 20 30,24.864
+5450,Point2GeoList 100x 18 30 10,25.912
+5451,Point2GeoList 100x 18 30 20,23.549
+5452,Point2GeoList 100x 18 30 30,22.222
+5453,PrettyDistance 0,1.319
+5454,PrettyDistance 1,1.349
+5455,PrettyDistance 2,1.364
+5456,PrettyDistance 3,1.286
+5457,PrettyDistance 4,1.273
+5458,Tile Valid 0,1.004
+5459,Tile Valid 1,1.005
+5460,Tile Valid 2,0.941
+5461,Tile Valid 3,1.282
+5462,Tile Valid 4,0.986
+5463,Tile Valid 5,0.934
+5464,Tile Valid 6,1.011
+5465,Tile Valid 7,1.019
+5466,Tile Valid 8,0.985
+5467,Tile Valid 9,0.999
+5468,Tile Valid 10,1.088
+5469,Tile Valid 11,0.988
+5470,Tile Valid 12,0.991
+5471,Tile Valid 13,0.992
+5472,Tile Valid 14,0.875
+5473,Tile Valid 15,0.878
+5474,Tile Valid 16,0.887
+5475,Tile Valid 17,0.876
+5476,Tile Valid 18,0.886
+5477,Tiles 0,0.69
+5478,Tiles 1,0.912
+5479,Tiles 2,0.792
+5480,Tiles 3,0.681
+5481,Tiles 4,0.681
+5482,Tiles 5,0.691
+5483,Tiles 6,0.946
+5484,Tiles 7,0.701
+5485,Tiles 8,0.692
+5486,Tiles 9,0.994
+5487,Tiles 10,0.781
+5488,Tiles 11,1.057
+5489,Tiles 12,0.672
+5490,Tiles 13,0.673
+5491,Tiles 14,0.759
+5492,Tiles 15,0.689
+5493,Tiles 16,0.685
+5494,Tiles 17,0.757
+5495,Tiles 18,0.697
+5496,Valid 0 170,0.975
+5497,Valid 1 170,0.875
+5498,Valid 2 170,1.172
+5499,Valid 3 170,0.98
+5500,Valid 4 170,0.853
+5501,Valid 5 170,0.841
+5502,Valid 6 170,1.265
+5503,Valid 7 170,1.078
+5504,ValidLatitude 0 -100,0.885
+5505,ValidLatitude 1 100,1.206
+5506,ValidLatitude 2 -80,1.208
+5507,ValidLatitude 3 80,1.273
+5508,ValidList 0 170,0.976
+5509,ValidList 1 170,0.875
+5510,ValidList 2 170,1.022
+5511,ValidList 3 170,0.953
+5512,ValidList 4 170,0.936
+5513,ValidList 5 170,0.984
+5514,ValidList 6 170,1.024
+5515,ValidList 7 170,1.037
+5516,ValidLongitude 0 -200,1.111
+5517,ValidLongitude 1 200,0.951
+5518,ValidLongitude 2 -170,0.96
+5519,ValidLongitude 3 170,0.954

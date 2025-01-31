@@ -1,0 +1,47 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'wcswidth' package.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2022 Andreas Kupries <andreas.kupries@gmail.com>
+
+# We need at least version 8.5 for the package and thus the benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.5 9]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget textutil::wcswidth
+catch {namespace delete ::textutil::wcswidth}
+source [file join [file dirname [info script]] wcswidth.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks. Fixed, semi-random selection of codepoints across the range.
+
+## A better way may be to scan the entire range of codepoints and then chart the performance.
+
+## With the small set used here it looks as if there is some dependency on the codepoint, with
+## higher points taking longer.
+#
+## I had actually expected that the very low codepoints would do worse as they have to go through
+## the entire linear chain of if-commands until the `return 1`, i.e. the main fallback, is reached.
+
+foreach codepoint {
+    0 64 127 128 1000 10000 20000 100000 200000 262141 1114111
+} {
+    bench -desc "wcswidth type $codepoint" -body {
+	::textutil::wcswidth_type $codepoint
+    }
+
+    bench -desc "wcswidth char $codepoint" -body {
+	::textutil::wcswidth_char $codepoint
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete
+return

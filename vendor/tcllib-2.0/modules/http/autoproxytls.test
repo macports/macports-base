@@ -1,0 +1,237 @@
+source [file join \
+            [file dirname [file dirname [file join [pwd] [info script]]]] \
+            devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+# Constraints depending on package availability
+tcltest::testConstraint have_tls   [expr {![catch {package require tls}]}]
+tcltest::testConstraint have_twapi [expr {![catch {package require twapi}]}]
+
+puts "- have_tls   = [expr {![catch {package require tls}]}]"
+puts "- have_twapi = [expr {![catch {package require twapi}]}]"
+
+# uri and base64
+
+testing {
+    useLocal autoproxy.tcl autoproxy
+}
+
+package require tcl::chan::memchan
+package require http
+
+# a custom memchan that simulates the connection to the proxy
+# the channel records the tls options and the http request info
+# these options are later checked in the test suites
+oo::class create proxy-simu {
+    superclass ::tcl::chan::memchan::implementation
+
+    variable options response
+
+    constructor {args} {
+        array set options {
+            -tls-command {}
+            -http-request {}
+            -error {}
+            -connect-used 0
+        }
+        set response "hi there"
+        next
+    }
+
+    method read {c n} {
+        if {[regexp -nocase ^connect $options(-http-request)]} {
+            set response "HTTP/1.1 200 Connection established\r\nProxy-Agent: tcllib test proxy\r\n\r\n"
+            set options(-connect-used) 1
+            set options(-http-request) ""
+        }
+        set ans $response 
+        set response ""
+        return $ans
+    }
+
+    method write {c newbytes} {
+        foreach line [split $newbytes \n] {
+            if {[regexp -nocase {^(get|post|connect).*http/} $line]} {
+                set options(-http-request) [string trim $line]
+            }
+            if {[regexp -nocase {^([a-z_-]+):\s+(.*)} $line -> hdr val]} {
+                set options(-http-$hdr) [string trim $val]
+            }
+        }
+        set txt [array get options]
+        set response "HTTP/1.1 200 OK\r\nContent-Length: [string length $txt]\r\n\r\n$txt"
+        return [string length $newbytes]
+    }
+
+    method configure {ch opt value} {
+        set options($opt) $value
+    }
+
+    method cget {ch opt} {
+        return $options($opt)
+    }
+
+    method cgetall {ch} {
+        array get options
+    }
+}
+
+proc optiondict {arglist} {
+    set ans {}
+    foreach opt $arglist val [lrange $arglist 1 end] {
+        if {[string index $opt 0] eq "-"} {
+            lappend ans $opt $val
+        }
+    }
+    return $ans
+}
+
+tcltest::customMatch keyMatch keyMatch
+proc keyMatch {in out} {
+    foreach {k v} $in {
+        if {![dict exists $out {*}$k]} {
+            puts "missing key '$k'"
+            return false
+        } elseif {![regexp $v [dict get $out {*}$k]]} {
+            puts "bad value for key '$k'\n have >[dict get $out {*}$k]<\n must match $v"
+            return false
+        }
+    }
+    return true
+}
+
+proc extract-options {dict keys} {
+    set ans {}
+    foreach k $keys {}
+}
+
+if {![catch {package require tls}]} {
+    rename socket socket.orig
+    proc socket {args} {
+        set ans [::chan create {read write} [proxy-simu new $args]]
+        fconfigure $ans -socket-command $args
+        return $ans
+    }
+    rename tls::socket tls::socket.orig
+    proc tls::socket args {
+        set ans [::socket {*}$args]
+        fconfigure $ans -tls-command [list tls::socket {*}$args] 
+        foreach {opt val} [optiondict $args] {
+            fconfigure $ans -tls$opt $val
+        }
+        return $ans
+    }
+    rename tls::import tls::import.orig
+    proc tls::import {ch args} {
+        fconfigure $ch -tls-command [list tls::import {*}$args]
+        foreach {opt val} [optiondict $args] {
+            fconfigure $ch -tls$opt $val
+        }
+    }
+    rename tls::handshake tls::handshake.orig
+    proc tls::handshake {s} {}
+    rename tls::status tls::status.orig
+    proc tls::status {args} {}
+}
+
+# Clear the autoproxy package state for each test
+proc packageReset {} {
+    array set ::autoproxy::options {
+        authProc "" basic "" no_proxy "" proxy_host "" proxy_port ""
+        tls_package tls
+    }
+    package require http
+    http::config -proxyhost "" -proxyport ""
+}
+
+test autoproxy-tls-1.1.0 "autoproxy::tls_socket (tls) without proxy" -constraints {
+    have_tls
+} -setup {
+    packageReset
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://direct-connection.tcllib.test/bla]
+    http::data $tok
+} -cleanup {
+    http::cleanup $tok
+} -match keyMatch -result {
+    -tls-command ^tls::socket
+    -tls-servername direct-connection.tcllib.test
+    -http-Host direct-connection.tcllib.test
+    -http-request {^GET /bla HTTP/1.1}
+    -connect-used 0
+    -socket-command direct-connection.tcllib.test
+}
+
+test autoproxy-tls-1.1.1 "autoproxy::tls_socket (tls) with proxy" -constraints {
+    have_tls
+} -setup {
+    packageReset
+    autoproxy::configure -proxy_host proxy.tcllib.test -proxy_port 4319
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://proxied-connection.tcllib.test/bla]
+    http::data $tok
+} -cleanup {
+    http::cleanup $tok
+} -match keyMatch -result {
+    -tls-command ^tls::import
+    -tls-servername proxied-connection.tcllib.test
+    -http-Host proxied-connection.tcllib.test
+    -http-request {^GET /bla HTTP/1.1}
+    -connect-used 1
+    -socket-command {proxy.tcllib.test 4319}
+}
+
+test autoproxy-tls-1.1.1 "autoproxy::tls_socket (tls) with proxy and http proxy config" -constraints {
+    have_tls
+} -setup {
+    packageReset
+    autoproxy::configure -proxy_host proxy.tcllib.test -proxy_port 4319
+} -body {
+    # this test targets bug 
+    #   https://core.tcl-lang.org/tcl/tktview/2d9b31130be2084e206524536978a37c17d2f887
+    # if we add a regular http proxy it messes up the GET HTTP header (even though the
+    # pure HTTP proxy is not actually used).
+    http::config -proxyhost oxymoron.tcllib.test -proxyport 1943
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://proxied-connection.tcllib.test/bla]
+    http::data $tok
+} -cleanup {
+    http::cleanup $tok
+} -match keyMatch -result {
+    -tls-command ^tls::import
+    -tls-servername proxied-connection.tcllib.test
+    -http-Host proxied-connection.tcllib.test
+    -http-request {^GET /bla HTTP/1.1}
+    -connect-used 1
+    -socket-command {proxy.tcllib.test 4319}
+}
+
+test autoproxy-tls-1.1.3 "autoproxy::socket (no tls) with proxy" -constraints {
+    have_tls
+} -setup {
+    packageReset
+    http::config -proxyhost proxy.tcllib.test -proxyport 4319
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl http://proxied-connection.tcllib.test/bla]
+    http::data $tok
+} -cleanup {
+    http::cleanup $tok
+} -match keyMatch -result {
+    -tls-command ^$
+    -http-Host proxied-connection.tcllib.test
+    -http-request {^GET http://proxied-connection.tcllib.test/bla HTTP/1.1}
+    -connect-used 0
+    -socket-command {proxy.tcllib.test 4319}
+}
+
+testsuiteCleanup
+
+# Local variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

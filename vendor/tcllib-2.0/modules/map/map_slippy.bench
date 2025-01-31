@@ -1,0 +1,496 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'map' module to monitor/gauge/track package
+# performance over time.
+#
+# (c) 2022 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.6 for the package and thus the benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.6 9]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget map::slippy
+catch {namespace delete ::map::slippy}
+
+set self  [file join [pwd] [file dirname [info script]]]
+set index [file join [file dirname $self] tcllibc pkgIndex.tcl]
+
+if {[file exists $index]} {
+    set ::dir [file dirname $index]
+    uplevel #0 [list source $index]
+    unset ::dir
+    package require tcllibc
+}
+
+source [file join $self map_slippy.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+# ### ### ### ######### ######### ######### ###########################
+## Package setup
+
+map::slippy::SwitchTo {}
+foreach e [map::slippy::KnownImplementations] {
+    #bench_puts LOAD($e)=[::map::slippy::LoadAccelerator $e]
+    ::map::slippy::LoadAccelerator $e
+}
+
+# ### ### ### ######### ######### ######### ###########################
+
+foreach impl [map::slippy::Implementations] {
+    #bench_puts TRY/$impl
+    map::slippy::SwitchTo $impl
+    #bench_puts HAS/$impl
+
+    # ### ### ### ######### ######### ######### ###########################
+    # Tile Valid
+
+    foreach n {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18} {
+	bench -desc "Tile Valid/$impl $n" -body {
+	    map slippy tile valid $n 0 0 19
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Lat/Lon Validation
+
+    foreach {n x} {
+	0 -100
+	1  100
+	2  -80
+	3   80
+    } {
+	bench -desc "ValidLatitude/$impl $n $x" -body {
+	    map slippy valid latitude $x
+	}
+    }
+
+    foreach {n x} {
+	0 -200
+	1  200
+	2 -170
+	3  170
+    } {
+	bench -desc "ValidLongitude/$impl $n $x" -body {
+	    map slippy valid longitude $x
+	}
+    }
+
+    foreach {n p} {
+	0 {-100 0}
+	1 { 100 0}
+	2 { -80 0}
+	3 {  80 0}
+	4 {0 -200}
+	5 {0  200}
+	6 {0 -170}
+	7 {0  170}
+    } {
+	bench -desc "Valid/$impl $n $x" -body {
+	    map slippy geo valid $p
+	}
+
+	bench -desc "ValidList/$impl $n $x" -pre {
+	    set ps [list $p]
+	} -body {
+	    map slippy geo valid-list $ps
+	}
+
+    	bench -desc "BoxValid/$impl $n $x" -pre {
+	    set g [list {*}$p 0 0]
+	} -body {
+	    map slippy geo box valid $g
+	}
+
+	bench -desc "BoxValidList/$impl $n $x" -pre {
+	    set gs [list [list 0 0 {*}$p]]
+	} -body {
+	    map slippy geo box valid-list $gs
+	}
+    }
+    
+    # ### ### ### ######### ######### ######### ###########################
+    ## Formatting Distances
+
+    foreach {n x} {
+	0 1.777777777
+	1 100.7777777
+	2 1500
+	3 1500.777777
+	4 1
+    } {
+	bench -desc "PrettyDistance/$impl $n" -body {
+	    map slippy pretty-distance $x
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Limiting
+
+    foreach {n x} {
+	0 1
+	1 1.000
+	2 1.1
+	3 1.01
+	4 1.001
+	5 1.0001
+	6 1.777777777
+	7 0.777777777
+	8 1.0000001
+	9 1.00000001
+    } {
+	bench -desc "Limit6/$impl $n" -body {
+	    map slippy limit6 $x
+	}
+
+	bench -desc "Limit3/$impl $n" -body {
+	    map slippy limit3 $x
+	}
+
+	bench -desc "Limit2/$impl $n" -body {
+	    map slippy limit2 $x
+	}
+
+	bench -desc "GeoLimit/$impl $n" -pre {
+	    set g [list $x $x]
+	} -body {
+	    map slippy geo limit $g
+	}
+
+	bench -desc "GeoBoxLimit/$impl $n" -pre {
+	    set g [list $x $x $x $x]
+	} -body {
+	    map slippy geo box limit $g
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Box containment
+
+    foreach {n p inside} {
+	0 {60 50} 1
+	1 {40 50} 0
+	2 {90 50} 0
+	3 {60 10} 0
+	4 {60 80} 0
+    } {
+	bench -desc "BoxInside/$impl $n $p $inside" -body {
+	    map slippy geo box inside {50 20 80 70} $p
+	}
+
+	bench -desc "Point/BoxInside/$impl $n $p $inside" -body {
+	    map slippy geo box inside {50 20 80 70} $p
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Boxes
+
+    foreach {n canvas box} {
+	0 {380.0 267.0}  {49.300005 -123.158551 49.301624 -123.157253}
+	1 {380.0 267.0}  {49.292809 -123.1589   49.314037 -123.116543}
+	2 {1410.0 913.0} {49.300005 -123.158551 49.301624 -123.157253}
+	3 {1423.0 913.0} {49.292809 -123.1589   49.314037 -123.116543}
+    } {
+	bench -desc "BoxFit/$impl $n $canvas $box" -body {
+	    map slippy geo box fit $box $canvas 18
+	}
+
+	bench -desc "Box2Point/$impl $n $canvas" -body {
+	    map slippy geo box 2point 18 $box
+	}
+
+	bench -desc "BoxCorners/$impl $n $box" -body {
+	    map slippy geo box corners $box
+	}
+
+	bench -desc "BoxOpposites/$impl $n $box" -body {
+	    map slippy geo box opposites $box
+	}
+
+	bench -desc "Point/Box2Point/$impl $n $canvas" -body {
+	    map slippy point box 2geo 18 $box
+	}
+
+	bench -desc "Point/BoxCorners/$impl $n $box" -body {
+	    map slippy point box corners $box
+	}
+
+	bench -desc "Point/BoxOpposites/$impl $n $box" -body {
+	    map slippy point box opposites $box
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Simplification --- Radial
+
+    for {set i 0} {$i < 100} {incr i} {
+	lappend points [list 0 $i]
+    }
+    foreach {n threshold} {
+	0 0.5
+	1 1.5
+	2 2.5
+	3 3.5
+	4 4.5
+	5 5.5
+	6 6.5
+    } {
+    	bench -desc "Point/Simple/Radial/$impl $n $threshold" -body {
+	    map slippy point simplify radial $threshold 1 $points
+	}
+    }
+
+    foreach {n k} {
+	7 -1
+	8  0
+	9  1
+    } {
+	bench -desc "Point/Simple/Radial/$impl $n #$k" -pre {
+	    set part [lrange $points 0 $k]
+	} -body {
+	    map slippy point simplify radial 0.5 1 $part
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Simplification -- Ramer-Douglas-Peucker
+
+    foreach {n points} {
+	0 {}
+	1 {{0 0}}
+	2 {{0 0} {0 44}}
+	3 {{0 0} {0 11} {0 22} {0 33} {0 44}}
+	4 {{0 0} {1 0.1} {2 -0.1} {3 5} {4 6} {5 7} {6 8.1} {7 9} {8 9} {9 9}}
+	5 {{1.1 1.1} {2.5 2.1} {3.1 3.1} {4.9 1.1} {3.1 1.9}}
+	6 {{-43.0 8.0} {-24.0 19.0} {-13.0 23.0} {-8.0 36.0} {7.0 40.0} {24.0 12.0} {44.0 -6.0} {57.0 2.0} {70.0 7.0}}
+    } {
+	bench -desc "Point/Simple/RDP/$impl $n #[llength $points]" -body {
+	    map slippy point simplify rdp $points
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Derivatives --- Distance, Diameter, Center, Bounding Box
+
+    foreach {n a b} {
+	0  {51 6}     {51 7}
+	1  {51 6}     {50 6}
+	2  {0 0}      {0 1}
+	3  {0 0}      {1 0}
+	4  {50.777 6} {50.778 6}
+	5  {50.777 6} {50.778 6.001}
+	6  {50 6}     {-50 174}
+    } {
+    	bench -desc "BBox/$impl $n $a $b" -body {
+	    map slippy geo bbox $a $b
+	}
+
+    	bench -desc "BBoxList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy geo bbox-list $ps
+	}
+
+	bench -desc "BoxDiameter/$impl $n $a $b" -pre {
+	    set box [map slippy geo bbox $a $b]
+	} -body {
+	    map slippy geo box diameter $box
+	}
+
+	bench -desc "BoxPerimeter/$impl $n $a $b" -pre {
+	    set box [map slippy geo bbox $a $b]
+	} -body {
+	    map slippy geo box perimeter $box
+	}
+
+	bench -desc "BoxDimensions/$impl $n $a $b" -pre {
+	    set box [map slippy geo bbox $a $b]
+	} -body {
+	    map slippy geo box dimensions $box
+	}
+
+	bench -desc "BoxCenter/$impl $n $a $b" -pre {
+	    set box [map slippy geo bbox $a $b]
+	} -body {
+	    map slippy geo box center $box
+	}
+
+	bench -desc "Center/$impl $n $a $b" -body {
+	    map slippy geo center $a $b
+	}
+
+	bench -desc "CenterList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy geo center-list $ps
+	}
+
+	bench -desc "Diameter/$impl $n $a $b" -body {
+	    map slippy geo diameter $a $b
+	}
+
+	bench -desc "DiameterList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy geo diameter-list $ps
+	}
+
+	bench -desc "Distance/$impl $n $a $b" -body {
+	    map slippy geo distance $a $b
+	}
+
+	bench -desc "Distance*/$impl $n $a $b" -body {
+	    map slippy geo distance* 0 $a $b
+	}
+
+	bench -desc "DistanceList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy geo distance-list 0 $ps
+	}
+
+	bench -desc "Point/BBox/$impl $n $a $b" -body {
+	    map slippy point bbox $a $b
+	}
+
+	bench -desc "Point/BBoxList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy point bbox-list $ps
+	}
+
+	bench -desc "Point/BoxDiameter/$impl $n $a $b" -pre {
+	    set box [map slippy point bbox $a $b]
+	} -body {
+	    map slippy point box diameter $box
+	}
+
+	bench -desc "Point/BoxPerimeter/$impl $n $a $b" -pre {
+	    set box [map slippy point bbox $a $b]
+	} -body {
+	    map slippy point box perimeter $box
+	}
+
+	bench -desc "Point/BoxDimensions/$impl $n $a $b" -pre {
+	    set box [map slippy point bbox $a $b]
+	} -body {
+	    map slippy point box dimensions $box
+	}
+
+	bench -desc "Point/BoxCenter/$impl $n $a $b" -pre {
+	    set box [map slippy point bbox $a $b]
+	} -body {
+	    map slippy point box center $box
+	}
+
+	bench -desc "Point/Center/$impl $n $a $b" -body {
+	    map slippy point center $a $b
+	}
+
+	bench -desc "Point/CenterList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy point center-list $ps
+	}
+
+	bench -desc "Point/Diameter/$impl $n $a $b" -body {
+	    map slippy point diameter $a $b
+	}
+
+	bench -desc "Point/DiameterList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy point diameter-list $ps
+	}
+
+	bench -desc "Point/Distance/$impl $n $a $b" -body {
+	    map slippy point distance $a $b
+	}
+
+	bench -desc "Point/Distance*/$impl $n $a $b" -body {
+	    map slippy point distance* 0 $a $b
+	}
+
+	bench -desc "Point/DistanceList/$impl $n $a $b" -pre {
+	    set ps [list $a $b]
+	} -body {
+	    map slippy point distance-list 0 $ps
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## Conversions
+
+    foreach n {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18} {
+	bench -desc "Length/$impl $n" -body {
+	    map slippy length $n
+	}
+	bench -desc "Tiles/$impl $n" -body {
+	    map slippy tiles $n
+	}
+	bench -desc "Tile Size/$impl" -body {
+	    map slippy tile size
+	}
+
+	# geo 2point
+	for {set lat -10} {$lat <= 10} {incr lat 10} {
+	    for {set lon -10} {$lon <= 10} {incr lon 10} {
+		bench -desc "Geo2Point/$impl $n $lat $lon" -pre {
+		    set p [list $lat $lon]
+		} -body {
+		    map slippy geo 2point $n $p
+		}
+
+		foreach k {1 2 5 10 20 50 100} {
+		    bench -desc "Geo2Point*/$impl ${k}x $n $lat $lon" -pre {
+			set ps [lrepeat $k [list $lat $lon]]
+		    } -body {
+			map slippy geo 2point* $n {*}$ps
+		    }
+
+		    bench -desc "Geo2PointList/$impl ${k}x $n $lat $lon" -pre {
+			set ps [lrepeat $k [list $lat $lon]]
+		    } -body {
+			map slippy geo 2point-list $n $ps
+		    }
+		}
+	    }
+	}
+
+	# point 2xxx
+	for {set y 10} {$y <= 30} {incr y 10} {
+	    for {set x 10} {$x <= 30} {incr x 10} {
+		bench -desc "Point2Geo/$impl $n $x $y" -pre {
+		    set t [list $x $y]
+		} -body {
+		    map slippy point 2geo $n $t
+		}
+
+		foreach k {1 2 5 10 20 50 100} {
+		    bench -desc "Point2Geo*/$impl ${k}x $n $x $y" -pre {
+			set ps [lrepeat $k [list $x $y]]
+		    } -body {
+			map slippy point 2geo* $n {*}$ps
+		    }
+
+		    bench -desc "Point2GeoList/$impl ${k}x $n $x $y" -pre {
+			set ps [lrepeat $k [list $x $y]]
+		    } -body {
+			map slippy point 2geo-list $n $ps
+		    }
+		}
+	    }
+	}
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

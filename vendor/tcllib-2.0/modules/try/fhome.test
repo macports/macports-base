@@ -1,0 +1,67 @@
+# fhome.test - Copyright (c) 2024 Andreas Kupries
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+testing {
+    useLocal fhome.tcl file::home
+}
+
+# -------------------------------------------------------------------------
+
+test fhome-1.0 {file home, wrong # args} -body {
+    file home a b
+} -returnCodes error -result {wrong # args: should be "file home ?user?"}
+
+test fhome-1.1.0 {file home, no argument} -constraints tcl8 -body {
+    file home
+} -result ~
+
+test fhome-1.1.1 {file home, no argument} -constraints tcl9plus -body {
+    file home
+} -result $::env(HOME)
+
+test fhome-1.2.0 {file home, user} -constraints tcl8 -body {
+    file home a
+} -result ~a
+
+test fhome-1.2.1 {file home, user} -constraints tcl9plus -body {
+    file home a
+} -returnCodes error -result {user "a" doesn't exist}
+
+# -------------------------------------------------------------------------
+
+test fhome-2.0 {file tildeexpand, wrong # args} -body {
+    file tildeexpand
+} -returnCodes error -result {wrong # args: should be "file tildeexpand path"}
+
+test fhome-2.1 {file tildeexpand, wrong # args} -body {
+    file tildeexpand a b
+} -returnCodes error -result {wrong # args: should be "file tildeexpand path"}
+
+test fhome-2.2 {file tildeexpand, path without tilde} -body {
+    file tildeexpand path
+} -result path
+
+test fhome-2.3.0 {file tildeexpand, path with tilde} -constraints tcl8 -body {
+    file tildeexpand ~/path
+} -result ~/path
+
+test fhome-2.3.1 {file tildeexpand, path with tilde} -constraints tcl9plus -body {
+    file tildeexpand ~/path
+} -result $::env(HOME)/path
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

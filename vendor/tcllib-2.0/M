@@ -1,0 +1,4 @@
+tar - Ticket [65767447de] - EF - Added gzip support based on patch by Christian Werner, with thanks.
+Internal refactoring to be more clear wrt semantics. Docs added.
+Docs regenerated.
+Bumped to version 0.13.
