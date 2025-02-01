@@ -128,13 +128,8 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
         return 0;
     }
     if (sqlite3_open(NULL, &reg->db) == SQLITE_OK) {
-        /* Enable extended result codes, requires SQLite >= 3.3.8
-         * Check added for compatibility with Tiger. */
-#if SQLITE_VERSION_NUMBER >= 3003008
-        if (sqlite3_libversion_number() >= 3003008) {
-            sqlite3_extended_result_codes(reg->db, 1);
-        }
-#endif
+        /* Enable extended result codes, requires SQLite >= 3.3.8 */
+        sqlite3_extended_result_codes(reg->db, 1);
 
         sqlite3_busy_timeout(reg->db, 25);
 

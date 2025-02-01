@@ -6605,11 +6605,6 @@ proc macports::get_parallel_jobs {{mem_restrict yes}} {
 proc macports::get_compatible_xcode_versions {} {
     variable macos_version_major
     switch $macos_version_major {
-        10.4 {
-            set min 2.0
-            set ok 2.4.1
-            set rec 2.5
-        }
         10.5 {
             set min 3.0
             set ok 3.1

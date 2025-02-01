@@ -28,11 +28,10 @@ if test "x$SW_VERS" != "x"; then
 fi
 
 case "$MACOSX_VERSION" in
-  10.0|10.0.*|10.1|10.1.*|10.2|10.2.*|10.3|10.3.*)
-    AC_MSG_ERROR([This version of Mac OS X is not supported
-                  Please upgrade at http://store.apple.com/])
+  10.[[0-4]]|10.[[0-4]].*)
+    AC_MSG_ERROR([MacPorts requires Mac OS X 10.5 or later.])
     ;;
-  10.4|10.4.[[1-9]]|10.4.10|10.5|10.5.[[1-7]]|10.6|10.6.[[1-7]]|10.7|10.7.[[1-4]])
+  10.5|10.5.[[1-7]]|10.6|10.6.[[1-7]]|10.7|10.7.[[1-4]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
@@ -259,7 +258,7 @@ AC_SUBST(HAVE_DECL_RPP_STDIN, $ac_cv_have_decl_RPP_STDIN)
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
 	OSAtomicCompareAndSwapPtr __getdirentries64 arc4random_buf clearenv \
-	clonefile copyfile _dyld_shared_cache_contains_path flock fls \
+	clonefile copyfile _dyld_shared_cache_contains_path flock \
 	getentropy kqueue posix_spawn setmode sysctlbyname timingsafe_bcmp])
 
 # For vendor/signify

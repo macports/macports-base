@@ -480,11 +480,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
     puts ${plist} "</array>"
 
     puts ${plist} "<key>Disabled</key><true/>"
-    if {$macosx_deployment_target ne "10.4"} {
-        puts ${plist} "<key>KeepAlive</key><true/>"
-    } else {
-        puts ${plist} "<key>OnDemand</key><false/>"
-    }
+    puts ${plist} "<key>KeepAlive</key><true/>"
 
     if {$username ne ""} {
         puts ${plist} "<key>UserName</key><string>$username</string>"
@@ -563,12 +559,8 @@ proc portstartupitem::loaded {} {
             if {![catch {exec -ignorestderr $launchctl_path print ${domain}/${si_uniquename} >&/dev/null}]} {
                 lappend ret $si_name
             }
-        } elseif {${os.major} >= 9} {
-            if {![catch {exec_as_uid $uid {system "$launchctl_path list ${si_uniquename} > /dev/null"}}]} {
-                lappend ret $si_name
-            }
         } else {
-            if {![catch {exec_as_uid $uid {system "$launchctl_path list | grep -F ${si_uniquename} > /dev/null"}}]} {
+            if {![catch {exec_as_uid $uid {system "$launchctl_path list ${si_uniquename} > /dev/null"}}]} {
                 lappend ret $si_name
             }
         }

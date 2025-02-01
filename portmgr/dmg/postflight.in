@@ -206,14 +206,6 @@ function create_run_user {
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
         ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false
     fi
-    if [[ "${OS_MAJOR}" -eq 8 ]]; then
-        GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
-        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
-            echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
-            ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
-            ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
-        fi
-    fi
     if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
         echo "Updating home directory location for user \"${RUNUSR}\""
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
@@ -305,13 +297,6 @@ if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" > /dev/null; then
     else
         write_setting MANPATH "\"${MANPAGES}:\$MANPATH\""
     fi
-fi
-
-# Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
-if [[ "${OS_MAJOR}" -ge 9 ]] || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null; then
-    echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
-else
-    write_setting DISPLAY ":0"
 fi
 
 # Postflight script is done with its job, update MacPorts and exit gracefully!

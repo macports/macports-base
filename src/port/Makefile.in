@@ -41,7 +41,5 @@ install: all mkdirs
 	$(LN_S) -f port "${DESTDIR}${bindir}/portf"
 	$(LN_S) -f "${TCLSH}" "${DESTDIR}${bindir}/port-tclsh"
 ifeq (darwin,@OS_PLATFORM@)
-ifneq (8,@OS_MAJOR@)
 	chmod -h 555 "${DESTDIR}${bindir}/portf" "${DESTDIR}${bindir}/port-tclsh"
-endif
 endif

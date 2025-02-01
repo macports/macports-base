@@ -3112,11 +3112,10 @@ printf "%s\n" "$MACOSX_VERSION" >&6; }
 fi
 
 case "$MACOSX_VERSION" in
-  10.0|10.0.*|10.1|10.1.*|10.2|10.2.*|10.3|10.3.*)
-    as_fn_error $? "This version of Mac OS X is not supported
-                  Please upgrade at http://store.apple.com/" "$LINENO" 5
+  10.[0-4]|10.[0-4].*)
+    as_fn_error $? "MacPorts requires Mac OS X 10.5 or later." "$LINENO" 5
     ;;
-  10.4|10.4.[1-9]|10.4.10|10.5|10.5.[1-7]|10.6|10.6.[1-7]|10.7|10.7.[1-4])
+  10.5|10.5.[1-7]|10.6|10.6.[1-7]|10.7|10.7.[1-4])
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: This version of Mac OS X is out of date" >&5
 printf "%s\n" "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
@@ -7676,12 +7675,6 @@ ac_fn_c_check_func "$LINENO" "flock" "ac_cv_func_flock"
 if test "x$ac_cv_func_flock" = xyes
 then :
   printf "%s\n" "#define HAVE_FLOCK 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "fls" "ac_cv_func_fls"
-if test "x$ac_cv_func_fls" = xyes
-then :
-  printf "%s\n" "#define HAVE_FLS 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "getentropy" "ac_cv_func_getentropy"
