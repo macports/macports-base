@@ -1,0 +1,1803 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl_package - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_package.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl_package.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl_package(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl_package - CriTcl Package Reference</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Embedded C Code</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Stubs Table Management</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Package Meta Data</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Control &amp; Interface</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Introspection</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Build Management</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Result Cache Management</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Build Configuration</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Tool API</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Advanced: Embedded C Code</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Custom Build Configuration</a></li>
+<li class="doctools_subsection"><a href="#subsection12">Advanced: Location management</a></li>
+<li class="doctools_subsection"><a href="#subsection13">Advanced: Diversions</a></li>
+<li class="doctools_subsection"><a href="#subsection14">Advanced: File Generation</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Concepts</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection15">Modes Of Operation/Use</a></li>
+<li class="doctools_subsection"><a href="#subsection16">Runtime Behaviour</a></li>
+<li class="doctools_subsection"><a href="#subsection17">File Mapping</a></li>
+<li class="doctools_subsection"><a href="#subsection18">Result Cache</a></li>
+<li class="doctools_subsection"><a href="#subsection19">Preloading functionality</a></li>
+<li class="doctools_subsection"><a href="#subsection20">Configuration Internals</a></li>
+<li class="doctools_subsection"><a href="#subsection21">Stubs Tables</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Examples</a></li>
+<li class="doctools_section"><a href="#section5">Authors</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.3.1?</span></b></li>
+<li>package require <b class="pkgname">platform <span class="opt">?1.0.2?</span></b></li>
+<li>package require <b class="pkgname">md5 <span class="opt">?2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::ccode</b> <i class="arg">fragment</i></a></li>
+<li><a href="#2"><b class="cmd">::critcl::ccommand</b> <i class="arg">tclname</i> <i class="arg">cname</i></a></li>
+<li><a href="#3"><b class="cmd">::critcl::ccommand</b> <i class="arg">tclname</i> <i class="arg">arguments</i> <i class="arg">body</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></li>
+<li><a href="#4"><b class="cmd">::critcl::cdata</b> <i class="arg">tclname</i> <i class="arg">data</i></a></li>
+<li><a href="#5"><b class="cmd">::critcl::cconst</b> <i class="arg">tclname</i> <i class="arg">resulttype</i> <i class="arg">value</i></a></li>
+<li><a href="#6"><b class="cmd">::critcl::cdefines</b> <i class="arg">list of glob patterns</i> <span class="opt">?<i class="arg">namespace</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::critcl::cproc</b> <i class="arg">name</i> <i class="arg">arguments</i> <i class="arg">resulttype</i> <i class="arg">body</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></li>
+<li><a href="#8"><b class="cmd">::critcl::cproc</b> <i class="arg">name</i> <i class="arg">arguments</i> <i class="arg">resulttype</i></a></li>
+<li><a href="#9"><b class="cmd">::critcl::cinit</b> <i class="arg">text</i> <i class="arg">externals</i></a></li>
+<li><a href="#10"><b class="cmd">::critcl::include</b> <i class="arg">path</i></a></li>
+<li><a href="#11"><b class="cmd">::critcl::api</b> <b class="method">import</b> <i class="arg">name</i> <i class="arg">version</i></a></li>
+<li><a href="#12"><b class="cmd">::critcl::api</b> <b class="method">function</b> <i class="arg">resulttype</i> <i class="arg">name</i> <i class="arg">arguments</i></a></li>
+<li><a href="#13"><b class="cmd">::critcl::api</b> <b class="method">header</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></li>
+<li><a href="#14"><b class="cmd">::critcl::api</b> <b class="method">extheader</b> <span class="opt">?<i class="arg">file</i>...?</span></a></li>
+<li><a href="#15"><b class="cmd">::critcl::license</b> <i class="arg">author</i> <span class="opt">?<i class="arg">text</i>...?</span></a></li>
+<li><a href="#16"><b class="cmd">::critcl::summary</b> <i class="arg">text</i></a></li>
+<li><a href="#17"><b class="cmd">::critcl::description</b> <i class="arg">text</i></a></li>
+<li><a href="#18"><b class="cmd">::critcl::subject</b> <span class="opt">?<i class="arg">key</i>...?</span></a></li>
+<li><a href="#19"><b class="cmd">::critcl::meta</b> <i class="arg">key</i> <span class="opt">?<i class="arg">word</i>...?</span></a></li>
+<li><a href="#20"><b class="cmd">::critcl::meta?</b> <i class="arg">key</i></a></li>
+<li><a href="#21"><b class="cmd">::critcl::buildrequirement</b> <i class="arg">script</i></a></li>
+<li><a href="#22"><b class="cmd">::critcl::cheaders</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#23"><b class="cmd">::critcl::csources</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></li>
+<li><a href="#24"><b class="cmd">::critcl::clibraries</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></li>
+<li><a href="#25"><b class="cmd">::critcl::source</b> <i class="arg">glob pattern</i></a></li>
+<li><a href="#26"><b class="cmd">::critcl::tsources</b> <i class="arg">glob pattern</i>...</a></li>
+<li><a href="#27"><b class="cmd">::critcl::owns</b> <i class="arg">glob pattern</i>...</a></li>
+<li><a href="#28"><b class="cmd">::critcl::cflags</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#29"><b class="cmd">::critcl::ldflags</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#30"><b class="cmd">::critcl::framework</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#31"><b class="cmd">::critcl::tcl</b> <i class="arg">version</i></a></li>
+<li><a href="#32"><b class="cmd">::critcl::tk</b></a></li>
+<li><a href="#33"><b class="cmd">::critcl::preload</b> <i class="arg">lib</i>...</a></li>
+<li><a href="#34"><b class="cmd">::critcl::debug</b> <i class="arg">area</i>...</a></li>
+<li><a href="#35"><b class="cmd">::critcl::check</b> <span class="opt">?<i class="arg">label</i>?</span> <i class="arg">text</i></a></li>
+<li><a href="#36"><b class="cmd">::critcl::checklink</b> <span class="opt">?<i class="arg">label</i>?</span> <i class="arg">text</i></a></li>
+<li><a href="#37"><b class="cmd">::critcl::msg</b> <span class="opt">?<b class="option">-nonewline</b>?</span> <i class="arg">msg</i></a></li>
+<li><a href="#38"><b class="cmd">::critcl::print</b> <span class="opt">?<b class="option">-nonewline</b>?</span> <span class="opt">?<i class="arg">chan</i>?</span> <i class="arg">msg</i></a></li>
+<li><a href="#39"><b class="cmd">::critcl::compiled</b></a></li>
+<li><a href="#40"><b class="cmd">::critcl::compiling</b></a></li>
+<li><a href="#41"><b class="cmd">::critcl::done</b></a></li>
+<li><a href="#42"><b class="cmd">::critcl::failed</b></a></li>
+<li><a href="#43"><b class="cmd">::critcl::load</b></a></li>
+<li><a href="#44"><b class="cmd">::critcl::config</b> <i class="arg">option</i> <span class="opt">?<i class="arg">val</i>?</span></a></li>
+<li><a href="#45"><b class="cmd">::critcl::cache</b> <span class="opt">?path?</span></a></li>
+<li><a href="#46"><b class="cmd">::critcl::clean_cache</b> <span class="opt">?<i class="arg">pattern</i>...?</span></a></li>
+<li><a href="#47"><b class="cmd">::critcl::readconfig</b> <i class="arg">path</i></a></li>
+<li><a href="#48"><b class="cmd">::critcl::showconfig</b> <span class="opt">?<i class="arg">chan</i>?</span></a></li>
+<li><a href="#49"><b class="cmd">::critcl::showallconfig</b> <span class="opt">?<i class="arg">chan</i>?</span></a></li>
+<li><a href="#50"><b class="cmd">::critcl::chooseconfig</b> <i class="arg">target</i> <span class="opt">?<i class="arg">nomatcherr</i>?</span></a></li>
+<li><a href="#51"><b class="cmd">::critcl::setconfig</b> <i class="arg">target</i></a></li>
+<li><a href="#52"><b class="cmd">::critcl::actualtarget</b></a></li>
+<li><a href="#53"><b class="cmd">::critcl::buildforpackage</b> <span class="opt">?<i class="arg">flag</i>?</span></a></li>
+<li><a href="#54"><b class="cmd">::critcl::cnothingtodo</b> <i class="arg">file</i></a></li>
+<li><a href="#55"><b class="cmd">::critcl::cresults</b> <span class="opt">?<i class="arg">file</i>?</span></a></li>
+<li><a href="#56"><b class="cmd">::critcl::crosscheck</b></a></li>
+<li><a href="#57"><b class="cmd">::critcl::error</b> <i class="arg">msg</i></a></li>
+<li><a href="#58"><b class="cmd">::critcl::knowntargets</b></a></li>
+<li><a href="#59"><b class="cmd">::critcl::sharedlibext</b></a></li>
+<li><a href="#60"><b class="cmd">::critcl::targetconfig</b></a></li>
+<li><a href="#61"><b class="cmd">::critcl::buildplatform</b></a></li>
+<li><a href="#62"><b class="cmd">::critcl::targetplatform</b></a></li>
+<li><a href="#63"><b class="cmd">::critcl::cobjects</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></li>
+<li><a href="#64"><b class="cmd">::critcl::scan</b> <i class="arg">path</i></a></li>
+<li><a href="#65"><b class="cmd">::critcl::name2c</b> <i class="arg">name</i></a></li>
+<li><a href="#66"><b class="cmd">::critcl::argnames</b> <i class="arg">arguments</i></a></li>
+<li><a href="#67"><b class="cmd">::critcl::argcnames</b> <i class="arg">arguments</i></a></li>
+<li><a href="#68"><b class="cmd">::critcl::argcsignature</b> <i class="arg">arguments</i></a></li>
+<li><a href="#69"><b class="cmd">::critcl::argvardecls</b> <i class="arg">arguments</i></a></li>
+<li><a href="#70"><b class="cmd">::critcl::argconversion</b> <i class="arg">arguments</i> <span class="opt">?<i class="arg">n</i>?</span></a></li>
+<li><a href="#71"><b class="cmd">::critcl::argoptional</b> <i class="arg">arguments</i></a></li>
+<li><a href="#72"><b class="cmd">::critcl::argdefaults</b> <i class="arg">arguments</i></a></li>
+<li><a href="#73"><b class="cmd">::critcl::argsupport</b> <i class="arg">arguments</i></a></li>
+<li><a href="#74"><b class="cmd">::critcl::userconfig</b> <b class="method">define</b> <i class="arg">name</i> <i class="arg">description</i> <i class="arg">type</i> <span class="opt">?<i class="arg">default</i>?</span></a></li>
+<li><a href="#75"><b class="cmd">::critcl::userconfig</b> <b class="method">query</b> <i class="arg">name</i></a></li>
+<li><a href="#76"><b class="cmd">::critcl::userconfig</b> <b class="method">set</b> <i class="arg">name</i> <i class="arg">value</i></a></li>
+<li><a href="#77"><b class="cmd">::critcl::at::caller</b></a></li>
+<li><a href="#78"><b class="cmd">::critcl::at::caller</b> <i class="arg">offset</i></a></li>
+<li><a href="#79"><b class="cmd">::critcl::at::caller</b> <i class="arg">offset</i> <i class="arg">level</i></a></li>
+<li><a href="#80"><b class="cmd">::critcl::at::here</b></a></li>
+<li><a href="#81"><b class="cmd">::critcl::at::get*</b></a></li>
+<li><a href="#82"><b class="cmd">::critcl::at::get</b></a></li>
+<li><a href="#83"><b class="cmd">::critcl::at::=</b> <i class="arg">file</i> <i class="arg">line</i></a></li>
+<li><a href="#84"><b class="cmd">::critcl::at::incr</b> <i class="arg">n</i>...</a></li>
+<li><a href="#85"><b class="cmd">::critcl::at::incrt</b> <i class="arg">str</i>...</a></li>
+<li><a href="#86"><b class="cmd">::critcl::at::caller!</b></a></li>
+<li><a href="#87"><b class="cmd">::critcl::at::caller!</b> <i class="arg">offset</i></a></li>
+<li><a href="#88"><b class="cmd">::critcl::at::caller!</b> <i class="arg">offset</i> <i class="arg">level</i></a></li>
+<li><a href="#89"><b class="cmd">::critcl::at::here!</b></a></li>
+<li><a href="#90"><b class="cmd">::critcl::collect_begin</b></a></li>
+<li><a href="#91"><b class="cmd">::critcl::collect_end</b></a></li>
+<li><a href="#92"><b class="cmd">::critcl::collect</b> <i class="arg">script</i></a></li>
+<li><a href="#93"><b class="cmd">::critcl::make</b> <i class="arg">path</i> <i class="arg">contents</i></a></li>
+<li><a href="#94"><b class="cmd">::preload</b> <i class="arg">library</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>The <b class="package"><a href="critcl.html">critcl</a></b> package is the core of the system.  For an overview of the
+complete system, see <i class="term"><a href="critcl.html">Introduction To CriTcl</a></i>.  For the usage of the
+standalone <b class="cmd"><a href="critcl.html">critcl</a></b> program, see <i class="term">CriTcl Application</i>.
+This core package maybe be used to embed C code into Tcl scripts.  It also
+provides access to the internals that other parts of the core use and which
+are of interest to those wishing to understand the internal workings of the
+core and of the API it provides to the <i class="term">CriTcl Application</i>.  These
+advanced sections are marked as such so that those simply wishing to use the
+package can skip them.</p>
+<p>This package resides in the Core Package Layer of CriTcl.</p>
+<p><img alt="arch_core" src="../image/arch_core.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>A short note ahead of the documentation: Instead of repeatedly talking
+about
+&quot;a Tcl script with embbedded C code&quot;, or
+&quot;a Tcl script containing CriTcl commands&quot;,
+we call such a script a <i class="term">CriTcl script</i>.  A file containing a
+<i class="term">CriTcl script</i> usually has the extension <b class="const">.tcl</b> or
+<b class="const">.critcl</b>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Embedded C Code</a></h3>
+<p>The following commands append C code fragments to the current module.  Fragments
+appear in the module in the order they are appended, so the earlier fragments
+(variables, functions, macros, etc.) are visible to later fragments.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::ccode</b> <i class="arg">fragment</i></a></dt>
+<dd><p>Appends the C code in <i class="arg">fragment</i> to the current module and returns the
+empty string.
+See <span class="sectref"><a href="#subsection16">Runtime Behaviour</a></span>.</p></dd>
+<dt><a name="2"><b class="cmd">::critcl::ccommand</b> <i class="arg">tclname</i> <i class="arg">cname</i></a></dt>
+<dd><p>As documented below, except that <i class="arg">cname</i> is the name of a C function
+that already exists.</p></dd>
+<dt><a name="3"><b class="cmd">::critcl::ccommand</b> <i class="arg">tclname</i> <i class="arg">arguments</i> <i class="arg">body</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></dt>
+<dd><p>Appends the code to create a Tcl command named <i class="arg">tclname</i> and a
+corresponding C function whose body is <i class="arg">body</i> and which behaves as
+documented for Tcl's own
+<a href="https://www.tcl-lang.org/man/tcl/TclLib/CrtObjCmd.htm">Tcl_CreateObjCommand</a>.</p>
+<p><i class="arg">aguments</i> is a list of zero to four names for the standard arguments
+<b class="const">clientdata</b>, <b class="const">interp</b>, <b class="const">objc</b>, and <b class="const">objv</b>.  The
+standard default names are used in place of any missing names.
+This is a more low-level way than <b class="cmd">critcl::cproc</b> to define a command, as
+processing of the items in <b class="const">objv</b> is left to the author, affording
+complete control over the handling of the arguments to the command.
+See section <span class="sectref"><a href="#subsection16">Runtime Behaviour</a></span>.</p>
+<p>Returns the empty string.</p>
+<p>Each <i class="arg">option</i> may be one of:</p>
+<dl class="doctools_options">
+<dt><b class="option">-clientdata</b> <i class="arg">c-expression</i></dt>
+<dd><p>Provides the client data for the new command.  <b class="const">NULL</b> by default.</p></dd>
+<dt><b class="option">-delproc</b> <i class="arg">c-expression</i></dt>
+<dd><p>Provides a function pointer of type <a href="https://www.tcl-lang.org/man/tcl/TclLib/CrtObjCmd.htm">Tcl_CmdDeleteProc</a> as the deletion function for the new command.  <b class="const">NULL</b> by default.</p></dd>
+<dt><b class="option">-cname</b> <i class="arg">boolean</i></dt>
+<dd><p>If <b class="const">false</b> (the default), a name for the corresponding C function is
+automatically derived from the fully-qualified <i class="arg">tclname</i>.  Otherwise, name
+of the C function is the last component of <i class="arg">tclname</i>.</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::critcl::cdata</b> <i class="arg">tclname</i> <i class="arg">data</i></a></dt>
+<dd><p>Appends the code to create a new Tcl command named <i class="arg">tclname</i> which returns
+<i class="arg">data</i> as a <b class="const">ByteArray</b> result.</p>
+<p>Returns the empty string.</p></dd>
+<dt><a name="5"><b class="cmd">::critcl::cconst</b> <i class="arg">tclname</i> <i class="arg">resulttype</i> <i class="arg">value</i></a></dt>
+<dd><p>Appends the code to create a new Tcl command named <i class="arg">tclname</i> which returns
+the constant <i class="arg">value</i> having the Tcl type <i class="arg">resulttype</i>.  <i class="arg">value</i> can
+be a C macro or a function <em>call</em> (including the parentheses) to any
+visible C function that does not take arguments.
+Unlike <b class="cmd">critcl::cdata</b>, <i class="arg">resulttype</i> can be any type known to
+<b class="cmd">critcl::cproc</b>.
+Its semantics are equivalent to:</p>
+<pre class="doctools_example">
+    cproc $tclname {} $resulttype &quot;return $value ;&quot;
+</pre>
+<p>This is more efficient than <b class="cmd">critcl::cproc</b> since there is no
+C function generated.</p>
+<p>Returns the empty string.</p></dd>
+<dt><a name="6"><b class="cmd">::critcl::cdefines</b> <i class="arg">list of glob patterns</i> <span class="opt">?<i class="arg">namespace</i>?</span></a></dt>
+<dd><p>Arranges for <i class="term">C enum</i> and <i class="term">#define</i> values that match one of the
+patterns in <i class="term">glob patterns</i> to be created in the namespace
+<i class="arg">namespace</i>, each variable having the same as the corresponding C item.
+The default namespace is the global namespace.  A pattern that matches nothing
+is ignored.</p>
+<p>The Tcl variables are created when the module is compiled, using the
+preprocessor in order to properly find all matching C definitions.</p>
+<p>Produces no C code.  The desired C definitions must already exist.</p></dd>
+<dt><a name="7"><b class="cmd">::critcl::cproc</b> <i class="arg">name</i> <i class="arg">arguments</i> <i class="arg">resulttype</i> <i class="arg">body</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></dt>
+<dd><p>Appends a function having <i class="arg">body</i> as its body, another shim function to
+perform the needed conversions, and the code to create a corresponding Tcl
+command named <i class="arg">tclname</i>.  Unlike <b class="cmd">critcl::ccommand</b> the arguments and
+result are typed, and CriTcl generates the code to convert between Tcl_Obj
+values and C data types.
+See also <span class="sectref"><a href="#subsection16">Runtime Behaviour</a></span>.</p>
+<p>Returns the empty string.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">option</i></dt>
+<dd><p>Each may be one of:</p>
+<dl class="doctools_options">
+<dt><b class="option">-cname</b> <i class="arg">boolean</i></dt>
+<dd><p>If <b class="const">false</b> (the default), a name for the corresponding C function is
+automatically derived from the fully-qualified <i class="arg">tclname</i>.  Otherwise, name
+of the C function is the last component of <i class="arg">tclname</i>.</p></dd>
+<dt><b class="option">-pass-cdata</b> <i class="arg">boolean</i></dt>
+<dd><p>If <b class="const">false</b> (the default), the shim function performing the conversion to
+and from Tcl level does not pass the ClientData as the first argument to
+the function.</p></dd>
+<dt><b class="option">-arg-offset</b> <i class="arg">int</i></dt>
+<dd><p>A non-negative integer, <b class="const">0</b> by default, indicating the number of hidden
+arguments preceding the actual procedure arguments.  Used by higher-order code
+generators where there are prefix arguments which are not directly seen by the
+function but which influence argument counting and extraction.</p></dd>
+</dl></dd>
+<dt>string <i class="arg">resulttype</i></dt>
+<dd><p>May be a predefined or a custom type.
+See <i class="term"><a href="critcl_cproc.html">CriTcl cproc Type Reference</a></i> for the full list of predefined types and how to
+extend them.
+Unless otherwise noted, the Tcl return code is always <b class="const">TCL_OK</b>.</p></dd>
+<dt>list <i class="arg">arguments</i></dt>
+<dd><p>Is a multi-dictionary where each key is an
+argument type and its value is the argument name.
+For example:</p>
+<pre class="doctools_example"> int x int y </pre>
+<p>Each argument name must be a valid C identifier.</p>
+<p>If the name is a list containing two items, the first item is the name
+and the second item is the default value.  A limited form of variadic arguments
+can be accomplished using such default values.
+For example:</p>
+<pre class="doctools_example"> int {x 1} </pre>
+<p>Here <i class="arg">x</i> is an optional argument of type <b class="type">int</b> with a default
+value of <b class="const">1</b>.</p>
+<p>Argument conversion is completely bypassed when the argument is not
+provided, so a custom converter doing validation does not get the chance to
+validate the default value.  In this case, the value should be checked in the
+body of the function.</p>
+<p>Each argument type may be a predefined or custom type.
+See <i class="term"><a href="critcl_cproc.html">CriTcl cproc Type Reference</a></i> for the full list of predefined types and how to
+extend them.</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">::critcl::cproc</b> <i class="arg">name</i> <i class="arg">arguments</i> <i class="arg">resulttype</i></a></dt>
+<dd><p>As documented below, but used when the C function named <i class="arg">name</i> already
+exists.</p></dd>
+<dt><a name="9"><b class="cmd">::critcl::cinit</b> <i class="arg">text</i> <i class="arg">externals</i></a></dt>
+<dd><p>Appends the C code in <i class="arg">text</i> and <i class="arg">externals</i>, but only after all the
+other fragments appended by the previously-listed commands regardless of their
+placement in the <i class="term">CriTcl script</i> relative to this command.  Thus, all
+their content is visible.  See also <span class="sectref"><a href="#subsection16">Runtime Behaviour</a></span>.</p>
+<p>The C code in <i class="arg">text</i> is placed into the body of the initialization
+function of the shared library backing the <i class="term">CriTcl script</i>, and is
+executed when this library is loaded into the interpreter.  It has access to
+the variable <b class="variable">Tcl_Interp* interp</b> referencing the Tcl interpreter currently
+being initialized.</p>
+<p><i class="arg">externals</i> is placed outside and just before the initialization
+function, making it a good place for any external symbols required by
+initialization function, but which should not be accessible by any other parts
+of the C code.</p>
+<p>Calls to this command are cumulative.</p>
+<p>Returns the empty string.</p></dd>
+<dt><a name="10"><b class="cmd">::critcl::include</b> <i class="arg">path</i></a></dt>
+<dd><p>This command is a convenient shorthand for</p>
+<pre class="doctools_example">
+critcl::code {
+  #include &lt;${path}&gt;
+}
+</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Stubs Table Management</a></h3>
+<p>CriTcl versions 3 and later provide <b class="cmd">critcl::api</b> to create and manipulate
+stubs tables, Tcl's dynamic linking mechanism handling the resolution of
+symbols between C extensions.
+See <a href="http://wiki.tcl-lang.org/285">http://wiki.tcl-lang.org/285</a>
+for an introduction, and section <span class="sectref"><a href="#subsection21">Stubs Tables</a></span>
+for the details of CriTcl's particular variant.</p>
+<p>Importing stubs tables, i.e. APIs, from another extension:</p>
+<dl class="doctools_definitions">
+<dt><a name="11"><b class="cmd">::critcl::api</b> <b class="method">import</b> <i class="arg">name</i> <i class="arg">version</i></a></dt>
+<dd><p>Adds the following include directives into the <i class="term">CriTcl script</i>
+<em>and</em> each of its companion &quot;<b class="file">.c</b>&quot; files:</p>
+<ol class="doctools_enumerated">
+<li><p>#include &lt;<b class="variable">name</b>/<b class="variable">name</b>Decls.h&gt;</p></li>
+<li><p>#include &lt;<b class="variable">name</b>/<b class="variable">name</b>StubLib.h&gt;</p></li>
+</ol>
+<p>Returns an error if &quot;<b class="file"><b class="variable">name</b></b>&quot; isn't in the search path for the
+compiler.  See <b class="cmd">critcl::cheaders</b> and the critcl application's <b class="option">-I</b>
+and <b class="option">-includedir</b> options.</p>
+<p><em>Important:</em> If <b class="variable">name</b> is a fully-qualified name in a
+non-global namespace, e.g.
+&quot;c::stack&quot;, the namespace separators &quot;::&quot; are converted into underscores
+(&quot;_&quot;) in path names, C code, etc.</p>
+<p><b class="variable">name</b>/<b class="variable">name</b>Decls.h contains the stubs table type declarations,
+mapping macros, etc., and may include package-specific headers.  See
+<b class="cmd">critcl::api header</b>, below.  An <i class="term">#include</i> directive is added at
+the beginning of the generated code for <i class="term">CriTcl script</i> and at the
+beginning of each of its companion &quot;<b class="file">.c</b>&quot; files.</p>
+<p><b class="variable">name</b>/<b class="variable">name</b>StubLib.h contains the stubs table variable
+definition and the function to initialize it.  An <i class="term">#include</i> directive
+for it is added to the initialization code for the <i class="term">CriTcl script</i> ,
+along with a call to the initializer function.</p>
+<p>If &quot;<b class="file"><b class="variable">name</b>/<b class="variable">name</b>.decls</b>&quot; accompanies
+<b class="variable">name</b>/<b class="variable">name</b>Decls.h, it should contain the external representation of
+the stubs table used to generate the headers. The file is read and the internal
+representation of the stubs table returned for use by the importing package.
+Otherwise, the empy string is returned.</p>
+<p>One possible use would be the automatic generation of C code
+calling on the functions listed in the imported API.</p>
+<p>When generating a TEA package the names of the imported APIs
+are used to declare <b class="syscmd">configure</b> options with which the user can
+declare a non-standard directory for the headers of the API. Any API
+<b class="variable">name</b> is translated into a single configure option
+<b class="option">--with-<b class="variable">name</b>-include</b>.</p></dd>
+</dl>
+<p>Declaration and export of a stubs table, i.e. API, for
+the <i class="term">CriTcl script</i>:</p>
+<dl class="doctools_definitions">
+<dt><a name="12"><b class="cmd">::critcl::api</b> <b class="method">function</b> <i class="arg">resulttype</i> <i class="arg">name</i> <i class="arg">arguments</i></a></dt>
+<dd><p>Adds to the public API of the <i class="term">CriTcl script</i> the signature
+for the function named <i class="arg">name</i> and having the signature specified by
+<i class="arg">arguments</i> and <i class="arg">resulttype</i>.  Code is generated for a &quot;<b class="file">.decls</b>&quot;
+file, the corresponding public headers, and a stubs table usable by
+<b class="cmd">critcl::api import</b>.</p>
+<p><i class="arg">arguments</i> is a multidict where each key is an argument type and its
+value is the argument name, and <i class="arg">resulttype</i> is a C type.</p></dd>
+<dt><a name="13"><b class="cmd">::critcl::api</b> <b class="method">header</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></dt>
+<dd><p>Each file matching a <i class="arg">glob pattern</i> is copied into the directory
+containing the generated headers, and an <i class="term">#include</i> directive for it is
+added to &quot;<b class="file">Decls.h</b>&quot; for the <i class="term">CriTcl script</i>.
+Returns an error if a <i class="arg">glob pattern</i> matches nothing.</p>
+<p>A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p></dd>
+<dt><a name="14"><b class="cmd">::critcl::api</b> <b class="method">extheader</b> <span class="opt">?<i class="arg">file</i>...?</span></a></dt>
+<dd><p>Like <b class="cmd">::critcl::api header</b>, but each <i class="arg">file</i> should exist in the
+external development environment.  An <i class="term">#include</i> directive is added to
+&quot;<b class="file"><b class="variable">foo</b>Decls.h</b>&quot;, but <i class="arg">file</i> is not copied to the package header
+directory. <i class="arg">file</i> is not a glob pattern as CriTcl has no context,
+i.e directory, in which to expand such patterns.</p></dd>
+</dl>
+<p>As with the headers for an imported API, an <i class="term">#include</i> directive is
+added to the generated code for the <i class="term">CriTcl script</i> and to
+each companion &quot;<b class="file">.c</b>&quot; file.</p>
+<p>In &quot;compile &amp; run&quot; mode the generated header files and any companion
+headers are placed in the <span class="sectref"><a href="#subsection18">Result Cache</a></span> subdirectory for the
+<i class="term">CriTcl script</i>. This directory is added to the include search path of
+any other package importing this API and and building in mode &quot;compile &amp; run&quot;.</p>
+<p>In &quot;generate package&quot; mode <b class="option">-includedir</b> specifies the
+subdirectory in the package to place the generated headers in. This
+directory is added to the search paths for header files, ensuring that a
+package importing an API finds it if the package exporting that API used the
+same setting for <b class="option">-includedir</b>.</p>
+<p>In &quot;generate TEA&quot; mode the static scanner recognizes
+<b class="cmd">critcl::api header</b> as a source of companion files.
+It also uses data from calls to <b class="cmd">critcl::api import</b> to
+add support for <b class="option">--with-<b class="variable">foo</b>-include</b> options into the
+generated &quot;<b class="file">configure(.in)</b>&quot; so that a user may specify custom
+locations for the headers of any imported API.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Package Meta Data</a></h3>
+<p>CriTcl versions 3 and later can create TEApot meta-data to be placed into
+&quot;<b class="file">teapot.txt</b>&quot; in a format suitable for use by the
+<a href="http://docs.activestate.com/activetcl/8.5/tpm/toc.html">TEApot tools</a>.</p>
+<p>In version 2, some meta data support was already present through
+<b class="cmd">::critcl::license</b>, but this was only used to generate &quot;<b class="file">license.txt</b>&quot;.</p>
+<dl class="doctools_definitions">
+<dt><a name="15"><b class="cmd">::critcl::license</b> <i class="arg">author</i> <span class="opt">?<i class="arg">text</i>...?</span></a></dt>
+<dd><p>Ignored in &quot;compile &amp; run&quot; mode.</p>
+<p>In &quot;generate package&quot; mode provides information about the author of the
+package and the license for the package.</p>
+<p><i class="arg">text</i> arguments are concatenated to form the text of the license, which is
+written to &quot;<b class="file">license.terms</b>&quot; in the same directory as &quot;<b class="file">pkgIndex.tcl</b>&quot;.
+If no <i class="arg">text</i> is provided the license is read from &quot;<b class="file">license.terms</b>&quot;
+in the same directory as the <i class="term">CriTcl script</i>.</p>
+<p>This information takes precedence over any information specified through
+the generic API <b class="cmd">::critcl::meta</b>.  It is additionally placed
+into the meta data file &quot;<b class="file">teapot.txt</b>&quot; under the keys <i class="term">as::author</i> and
+<i class="term">license</i>.</p></dd>
+<dt><a name="16"><b class="cmd">::critcl::summary</b> <i class="arg">text</i></a></dt>
+<dd><p>Ignored in &quot;compile &amp; run&quot; mode.</p>
+<p>In &quot;generate package&quot; mode places a short, preferably one-line description of
+the package into the meta data file &quot;<b class="file">teapot.txt</b>&quot; under the key
+<i class="term">summary</i>.  This information takes precedence over information specified
+through the generic API <b class="cmd">::critcl::meta</b>.</p></dd>
+<dt><a name="17"><b class="cmd">::critcl::description</b> <i class="arg">text</i></a></dt>
+<dd><p>Ignored in &quot;compile &amp; run&quot; mode.</p>
+<p>In &quot;generate package&quot; mode places a longer description of the package into the
+meta data file &quot;<b class="file">teapot.txt</b>&quot;, under the key <i class="term">description</i>.  The data
+specified by this command takes precedence over any information specified
+through the generic API <b class="cmd">::critcl::meta</b>.</p></dd>
+<dt><a name="18"><b class="cmd">::critcl::subject</b> <span class="opt">?<i class="arg">key</i>...?</span></a></dt>
+<dd><p>Ignored in &quot;compile &amp; run&quot; mode.</p>
+<p>In &quot;generate package&quot; mode places each <i class="arg">key</i> into the meta data file
+&quot;<b class="file">teapot.txt</b>&quot;, under the key <i class="term">subject</i>.  This information takes
+precedence over any information specified through the generic API
+<b class="cmd">::critcl::meta</b>.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="19"><b class="cmd">::critcl::meta</b> <i class="arg">key</i> <span class="opt">?<i class="arg">word</i>...?</span></a></dt>
+<dd><p>Provides arbitrary meta data outside of the following reserved keys:
+<i class="term">as::author</i>,
+<i class="term">as::build::date</i>,
+<i class="term">description</i>,
+<i class="term">license</i>,
+<i class="term">name</i>,
+<i class="term">platform</i>,
+<i class="term">require</i>
+<i class="term">subject</i>,
+<i class="term">summary</i>, and
+<i class="term">version</i>,
+Its behaviour is like <b class="cmd">::critcl::subject</b> in that it treats all
+keys as list of words, with each call providing one or more words for
+the key, and multiple calls extending the data for an existing key, if
+not reserved.</p>
+<p>While it is possible to declare information for one of the
+reserved keys with this command such data is ignored when the final
+meta data is assembled and written.</p>
+<p>Use the commands
+<b class="cmd">::critcl::license</b>,
+<b class="cmd">::critcl::summary</b>,
+<b class="cmd">::critcl::description</b>
+<b class="cmd">::critcl::subject</b>,
+<b class="cmd">package require</b>, and
+<b class="cmd">package provide</b>
+to declare data for the reserved keys.</p>
+<p>The information for the reserved keys
+<i class="term">as::build::date</i> and
+<i class="term">platform</i>
+is automatically generated by <b class="package"><a href="critcl.html">critcl</a></b> itself.</p></dd>
+<dt><a name="20"><b class="cmd">::critcl::meta?</b> <i class="arg">key</i></a></dt>
+<dd><p>Returns the value in the metadata associated with <i class="arg">key</i>.</p>
+<p>Used primarily to retrieve the name of the package
+from within utility packages having to adapt C code templates to their
+environment. For example, <b class="package"><a href="critcl_class.html">critcl::class</a></b> uses does this.</p></dd>
+<dt><a name="21"><b class="cmd">::critcl::buildrequirement</b> <i class="arg">script</i></a></dt>
+<dd><p>Provides control over the capturing of dependencies declared via
+<b class="cmd">package require</b>. <i class="arg">script</i> is evaluated and any dependencies
+declared within are ignored, i.e. not recorded in the meta data.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Control &amp; Interface</a></h3>
+<p>These commands control the details of compilation and linking a
+<i class="term">CriTcl script</i>.  The information is used only to compile/link the
+object for the <i class="term">CriTcl script</i>.  For example, information for
+&quot;<b class="file">FOO.tcl</b>&quot; is kept separate from information for &quot;<b class="file">BAR.tcl</b>&quot;.</p>
+<dl class="doctools_definitions">
+<dt><a name="22"><b class="cmd">::critcl::cheaders</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>Provides additional header locations.</p>
+<p>Each argument is a glob pattern.  If an argument begins with <b class="const">-</b>
+it is an argument to the compiler.  Otherwise the parent directory of each
+matching path is a directory to be searched for header files.  Returns an
+error if a pattern matches no files.
+A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p>
+<p><b class="const">#include</b> lines are not automatically generated for matching
+header files.  Use <b class="cmd">critcl::include</b> or <b class="cmd">critcl::ccode</b> as necessary to
+add them.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="23"><b class="cmd">::critcl::csources</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></dt>
+<dd><p>Matching paths become inputs to the compilation of the current object
+along with the sources for the current <i class="term">CriTcl script</i>.  Returns an
+error if no paths match a pattern.
+A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="24"><b class="cmd">::critcl::clibraries</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></dt>
+<dd><p>provides the link step with additional libraries and library locations.
+A <i class="arg">glob pattern</i> that begins with <b class="const">-</b> is added as an argument to
+the linker.  Otherwise matching files are linked into the shared library.
+Returns an error if no paths match a pattern.
+A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="25"><b class="cmd">::critcl::source</b> <i class="arg">glob pattern</i></a></dt>
+<dd><p>Evaluates as scripts the files matching each <i class="arg">glob pattern</i>.  Returns an
+error if there are no matching files.
+A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p></dd>
+<dt><a name="26"><b class="cmd">::critcl::tsources</b> <i class="arg">glob pattern</i>...</a></dt>
+<dd><p>Provides the information about additional Tcl script files to source when the
+shared library is loaded.</p>
+<p>Matching paths are made available to the generated shared library when
+it is loaded for the current <i class="term">CriTcl script</i>.  Returns an error if a
+pattern matches no files.
+A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p>
+<p>Calls to this command are cumulative.</p>
+<p>After the shared library has been loaded, the declared files are sourced
+in the same order that they were provided as arguments.</p></dd>
+<dt><a name="27"><b class="cmd">::critcl::owns</b> <i class="arg">glob pattern</i>...</a></dt>
+<dd><p>Ignored in &quot;compile and run&quot; and &quot;generate package&quot; modes.
+In &quot;generate TEA&quot; mode each file matching a <i class="arg">glob pattern</i> is a file to
+be included in the TEA extension but that could not be ascertained as such from
+previous commands like <b class="cmd">critcl::csources</b> and <b class="cmd">critcl::tsources</b>,
+either because of they were specified dynamically or because they were directly
+sourced.</p></dd>
+<dt><a name="28"><b class="cmd">::critcl::cflags</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>Each <i class="arg">arg</i> is an argument to the compiler.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="29"><b class="cmd">::critcl::ldflags</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>Each <i class="arg">arg</i> is an argument to the linker.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="30"><b class="cmd">::critcl::framework</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>Each <i class="arg">arg</i> is the name of a framework to link on MacOS X.  This command is
+ignored if OS X is not the target so that frameworks can be specified
+unconditionally.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="31"><b class="cmd">::critcl::tcl</b> <i class="arg">version</i></a></dt>
+<dd><p>Specifies the minimum version of the Tcl runtime
+to compile and link the package for.  The default is <b class="const">8.4</b>.</p></dd>
+<dt><a name="32"><b class="cmd">::critcl::tk</b></a></dt>
+<dd><p>Arranges to include the Tk headers and link to the Tk stubs.</p></dd>
+<dt><a name="33"><b class="cmd">::critcl::preload</b> <i class="arg">lib</i>...</a></dt>
+<dd><p>Arranges for the external shared library <i class="arg">lib</i> to be loaded
+before the shared library for the <i class="term">CriTcl script</i> is loaded.</p>
+<p>Calls to this command are cumulative.</p>
+<p>Each library <i class="arg">FOO</i> is searched for in the directories listed below, in the order
+listed.  The search stops at the first existing path.
+Additional notes:</p>
+<ul class="doctools_itemized">
+<li><p><b class="variable">platform</b> is the placeholder for the target platform of the package.</p></li>
+<li><p>The extension &quot;<b class="file">.so</b>&quot; is the placeholder for whatever actual extension is used by the target platform for its shared libraries.</p></li>
+<li><p>The search is relative to the current working directory.</p></li>
+</ul>
+<p>And now the paths, depending on the exact form of the library name:</p>
+<dl class="doctools_definitions">
+<dt>FOO</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>FOO.so</p></li>
+<li><p>FOO/FOO.so</p></li>
+<li><p>FOO/<b class="variable">platform</b>/FOO.so</p></li>
+</ol></dd>
+<dt>PATH/FOO</dt>
+<dd><p>The exact set searched depends on the existence of
+directory &quot;<b class="file">PATH/FOO</b>&quot;. If it exists, critcl searches</p>
+<ol class="doctools_enumerated">
+<li><p>FOO.so</p></li>
+<li><p>PATH/FOO/FOO.so</p></li>
+<li><p>PATH/FOO/<b class="variable">platform</b>/FOO.so</p></li>
+</ol>
+<p>Otherwise it searches</p>
+<ol class="doctools_enumerated">
+<li><p>FOO.so</p></li>
+<li><p>PATH/FOO.so</p></li>
+<li><p>PATH/<b class="variable">platform</b>/FOO.so</p></li>
+</ol>
+<p>instead.</p></dd>
+<dt>/PATH/FOO</dt>
+<dd><p>Even when specifying FOO with an absolute path the first path searched
+is relative to the current working directory.</p>
+<ol class="doctools_enumerated">
+<li><p>FOO.so</p></li>
+<li><p>/PATH/FOO.so</p></li>
+<li><p>/PATH/<b class="variable">platform</b>/FOO.so</p></li>
+</ol></dd>
+</dl>
+<p>For developers who want to understand or modify the internals of the
+<b class="package"><a href="critcl.html">critcl</a></b> package, <span class="sectref"><a href="#subsection19">Preloading functionality</a></span> explains how
+preloading is implemented.</p></dd>
+<dt><a name="34"><b class="cmd">::critcl::debug</b> <i class="arg">area</i>...</a></dt>
+<dd><p>Specifies what debugging features to activate. Internally each area is translated into
+area-specific flags for the compiler which are then handed over to
+<b class="cmd">critcl::cflags</b>.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">memory</b></dt>
+<dd><p>Specifies Tcl memory debugging.</p></dd>
+<dt><b class="const">symbols</b></dt>
+<dd><p>Specifies compilation and linking with debugging symbols for use by a debugger
+or other tool.</p></dd>
+<dt><b class="const">all</b></dt>
+<dd><p>Specifies all available debugging.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Introspection</a></h3>
+<p>The following commands control compilation and linking.</p>
+<dl class="doctools_definitions">
+<dt><a name="35"><b class="cmd">::critcl::check</b> <span class="opt">?<i class="arg">label</i>?</span> <i class="arg">text</i></a></dt>
+<dd><p>Returns a <b class="const">true</b> if the C code in <i class="arg">text</i> compiles sucessfully, and
+<b class="const">false</b> otherwise.  Used to check for availability of features in the
+build environment.
+If provided, <i class="arg">label</i> is used to uniquely mark the results in the generated
+log.</p></dd>
+<dt><a name="36"><b class="cmd">::critcl::checklink</b> <span class="opt">?<i class="arg">label</i>?</span> <i class="arg">text</i></a></dt>
+<dd><p>Like <b class="cmd">critcl::check</b> but also links the compiled objects, returning
+<b class="const">true</b> if the link is successful and <b class="const">false</b> otherwise.
+If specified, <i class="arg">label</i> is used to uniquely mark the results in the generated
+log.</p></dd>
+<dt><a name="37"><b class="cmd">::critcl::msg</b> <span class="opt">?<b class="option">-nonewline</b>?</span> <i class="arg">msg</i></a></dt>
+<dd><p>Scripts using <b class="cmd">critcl::check</b> and <b class="cmd">critcl::checklink</b> can use this
+command to report results.  Does nothing in <i class="term"><a href="../index.html#compile_run">compile &amp; run</a></i> mode.  Tools
+like the <i class="term">CriTcl Aplication</i> may redefine this command to implement
+their own message reporting. For example, <b class="package">critcl::app</b> and any
+packages built on it print messages to <i class="term">stdout</i>.</p></dd>
+<dt><a name="38"><b class="cmd">::critcl::print</b> <span class="opt">?<b class="option">-nonewline</b>?</span> <span class="opt">?<i class="arg">chan</i>?</span> <i class="arg">msg</i></a></dt>
+<dd><p>Used by the CriTcl internals to report activity.  By default, effectively the
+same thing as <b class="cmd">::puts</b>.  Tools directly using either the CriTcl package or
+the CriTcl application package may redefine this procedure to implement their
+own output functionality.</p>
+<p>For example, the newest revisions of
+<a href="https://chiselapp.com/user/andreas_kupries/repository/Kettle/index">Kettle</a>
+use this to highlight build warnings.</p></dd>
+<dt><a name="39"><b class="cmd">::critcl::compiled</b></a></dt>
+<dd><p>Returns <b class="const">true</b> if the current <i class="term">CriTcl script</i> is already compiled
+and <b class="const">false</b> otherwise.</p>
+<p>Enables a <i class="term">CriTcl script</i> used as its own Tcl companion file (see
+<b class="cmd">critcl::tsources</b>) to distinguish between being sourced for compilation in
+<i class="term"><a href="../index.html#compile_run">compile &amp; run</a></i> mode and being sourced from either the result of
+<i class="term"><a href="../index.html#generate_package">generate package</a></i> mode or during the load phase of
+<i class="term"><a href="../index.html#compile_run">compile &amp; run</a></i> mode.
+The result is <b class="const">false</b> in the first case and <b class="const">true</b> in the later two
+cases.</p></dd>
+<dt><a name="40"><b class="cmd">::critcl::compiling</b></a></dt>
+<dd><p>Returns <b class="const">true</b> if a working C compiler is available and <b class="const">false</b>
+otherwise.</p></dd>
+<dt><a name="41"><b class="cmd">::critcl::done</b></a></dt>
+<dd><p>Returns <b class="const">true</b> when <i class="term">CriTcl script</i> has been built and
+<b class="const">false</b> otherwise.  Only useful from within a <i class="term">CriTcl script</i>.
+Enables the Tcl parts of a <i class="term">CriTcl script</i> to distinguish between
+<i class="term">prebuilt package</i> mode and <i class="term"><a href="../index.html#compile_run">compile &amp; run</a></i> mode.</p>
+<p>See also <span class="sectref"><a href="#subsection15">Modes Of Operation/Use</a></span>.</p></dd>
+<dt><a name="42"><b class="cmd">::critcl::failed</b></a></dt>
+<dd><p>Returns <b class="const">true</b> if the <i class="term">CriTcl script</i> could not be built, and
+<b class="const">false</b> otherwise.  Forces the building of the package if it hasn't
+already been done, but not its loading.  Thus, a <i class="term">CriTcl script</i> can
+check itself for availability of the compiled components.  Only useful from
+within a <i class="term">CriTcl script</i>.</p></dd>
+<dt><a name="43"><b class="cmd">::critcl::load</b></a></dt>
+<dd><p>Like <b class="cmd">critcl::failed</b> except that it also forces the loading of the
+generated shared library, and that it returns <b class="const">true</b> on success and
+<b class="const">false</b> on failure.  Thus, a <i class="term">CriTcl script</i> can check itself for
+availability of the compiled components.  Only useful from within a
+<i class="term">CriTcl script</i>.</p></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Build Management</a></h3>
+<p>The following command manages global settings, i.e. configuration options which
+are independent of any <i class="term">CriTcl script</i>.</p>
+<p>This command should not be needed to write a <i class="term">CriTcl script</i>. It is
+a management command which is only useful to the <i class="term">CriTcl Application</i>
+or similar tools.</p>
+<dl class="doctools_definitions">
+<dt><a name="44"><b class="cmd">::critcl::config</b> <i class="arg">option</i> <span class="opt">?<i class="arg">val</i>?</span></a></dt>
+<dd><p>Sets and returns the following global configuration options:</p>
+<dl class="doctools_options">
+<dt><b class="option">force</b> bool</dt>
+<dd><p>When <b class="const">false</b> (the default), the C files are not built if there is a
+cached shared library.</p></dd>
+<dt><b class="option">lines</b> bool</dt>
+<dd><p>When <b class="const">true</b> (the default), #line directives are embedded into the
+generated C code.</p>
+<p>This facility requires the use of a tclsh that provides
+<b class="cmd">info frame</b>.  Otherwise, no <i class="term">#line</i> directives are emitted. The
+command is supported by Tcl 8.5 and higher. It is also supported by
+Tcl 8.4 provided that it was compiled with the define
+<b class="option">-DTCL_TIP280</b>. An example of such is ActiveState's ActiveTcl.</p>
+<p>Developers of higher-level packages generating their own C
+code, either directly or indirectly through critcl, should
+also read section <span class="sectref"><a href="#subsection12">Advanced: Location management</a></span> to see how
+critcl helps them in generating their directives.
+Examples of such packages come with critcl itself. See
+<b class="package"><a href="critcl_iassoc.html">critcl::iassoc</a></b> and <b class="package"><a href="critcl_class.html">critcl::class</a></b>.</p></dd>
+<dt><b class="option">trace</b> bool</dt>
+<dd><p>When <b class="const">false</b> (the default), no code tracing the entry and exit of
+CriTcl-backed commands in the <i class="term">CriTcl script</i> is inserted.  Insertion of
+such code implicitly activates the tracing facility in general.  See
+<b class="package"><a href="critcl_cutil.html">critcl::cutil</a></b>.</p></dd>
+<dt><b class="option">I</b> path</dt>
+<dd><p>A single global include path to use for all files. Not set by default.</p></dd>
+<dt><b class="option">combine</b> enum</dt>
+<dd><dl class="doctools_definitions">
+<dt><b class="const">dynamic</b> (the default)</dt>
+<dd><p>Object files have the suffix <b class="const">_pic</b>.</p></dd>
+<dt><b class="const">static</b></dt>
+<dd><p>Object files have the suffix <b class="const">_stub</b>.</p></dd>
+<dt><b class="const">standalone</b></dt>
+<dd><p>Object files have no suffix, and the generated C files are compiled
+without using Tcl/Tk stubs. The result are object files usable for
+static linking into a <i class="term">big shell</i>.</p></dd>
+</dl></dd>
+<dt><b class="option">language</b> string</dt>
+<dd></dd>
+<dt><b class="option">keepsrc</b> bool</dt>
+<dd><p>When <b class="const">false</b> (the default), the generated &quot;<b class="file">.c</b>&quot;
+files are deleted after the &quot;<b class="file">.o</b>&quot; files have been built.</p></dd>
+<dt><b class="option">outdir</b> directory</dt>
+<dd><p>The directory where to place a generated shared library. By default, it is
+placed into the <span class="sectref"><a href="#subsection18">Result Cache</a></span>.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Result Cache Management</a></h3>
+<p>The following commands control the <span class="sectref"><a href="#subsection18">Result Cache</a></span>.
+These commands are not needed to simply write a <i class="term">CriTcl script</i>.</p>
+<dl class="doctools_definitions">
+<dt><a name="45"><b class="cmd">::critcl::cache</b> <span class="opt">?path?</span></a></dt>
+<dd><p>Sets and returns the path to the directory for the package's result cache.</p>
+<p>The default location is
+&quot;<b class="file">~/.critcl/[platform::generic]</b>&quot; and usually does not
+require any changes.</p></dd>
+<dt><a name="46"><b class="cmd">::critcl::clean_cache</b> <span class="opt">?<i class="arg">pattern</i>...?</span></a></dt>
+<dd><p>Cleans the result cache, i.e. removes any and all files
+and directories in it. If one or more patterns are specified then only
+the files and directories matching them are removed.</p></dd>
+</dl>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Build Configuration</a></h3>
+<p>The following commands manage the build configuration, i.e. the per-platform
+information about compilers, linkers, and their commandline options.
+These commands are not needed to simply write a <i class="term">CriTcl script</i>.</p>
+<dl class="doctools_definitions">
+<dt><a name="47"><b class="cmd">::critcl::readconfig</b> <i class="arg">path</i></a></dt>
+<dd><p>Reads the build configuration file at <i class="arg">path</i> and configures the package
+using the information for the target platform.</p></dd>
+<dt><a name="48"><b class="cmd">::critcl::showconfig</b> <span class="opt">?<i class="arg">chan</i>?</span></a></dt>
+<dd><p>Converts the active build configuration into a human-readable string and
+returns it, or if <i class="arg">chan</i> is provided prints the result to that channel.</p></dd>
+<dt><a name="49"><b class="cmd">::critcl::showallconfig</b> <span class="opt">?<i class="arg">chan</i>?</span></a></dt>
+<dd><p>Converts the set of all known build configurations from the currently active
+build configuration file last set with <b class="cmd">critcl::readconfig</b> into a string
+and returns it, or if <i class="arg">chan</i> is provided, prints it to that channel.</p></dd>
+<dt><a name="50"><b class="cmd">::critcl::chooseconfig</b> <i class="arg">target</i> <span class="opt">?<i class="arg">nomatcherr</i>?</span></a></dt>
+<dd><p>Matches <i class="arg">target</i> against all known targets, returning a list containing
+all the matching ones. This search is first done on an exact basis, and then
+via glob matching. If no known target matches the argument the default is to
+return an empty list. However, if the boolean <i class="arg">nomatcherr</i> is specified and
+set an error is thrown using <b class="cmd">critcl::error</b> instead.</p></dd>
+<dt><a name="51"><b class="cmd">::critcl::setconfig</b> <i class="arg">target</i></a></dt>
+<dd><p>Configures the package to use the settings of <i class="arg">target</i>.</p></dd>
+</dl>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Tool API</a></h3>
+<p>The following commands provide tools like
+<i class="term">CriTcl Application</i> or similar with
+deeper access to the package's internals.
+These commands are not needed to simply write a <i class="term">CriTcl script</i>.</p>
+<dl class="doctools_definitions">
+<dt><a name="52"><b class="cmd">::critcl::actualtarget</b></a></dt>
+<dd><p>Returns the platform identifier for the target platform, i.e. the platform to
+build for. Unlike <b class="cmd">::critcl::targetplatform</b> this is the true target, with
+any cross-compilation information resolved.</p></dd>
+<dt><a name="53"><b class="cmd">::critcl::buildforpackage</b> <span class="opt">?<i class="arg">flag</i>?</span></a></dt>
+<dd><p>Signals whether the next file is to be built for inclusion into a package. If
+not specified the <i class="arg">flag</i> defaults to <b class="const">true</b>, i.e. building for a
+package. This disables a number of things in the backend, namely the linking of
+that file into a shared library and the loading of that library. It is expected
+that the build results are later wrapped into a larger collection.</p></dd>
+<dt><a name="54"><b class="cmd">::critcl::cnothingtodo</b> <i class="arg">file</i></a></dt>
+<dd><p>Checks whether there is anything to build for <i class="arg">file</i>.</p></dd>
+<dt><a name="55"><b class="cmd">::critcl::cresults</b> <span class="opt">?<i class="arg">file</i>?</span></a></dt>
+<dd><p>Returns information about building <i class="arg">file</i>, or <b class="cmd">info script</b> If
+<i class="arg">file</i> is not provided.
+The result in question is a dictionary containing the following items:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">clibraries</b></dt>
+<dd><p>A list of external shared libraries and/or directories needed to link
+<i class="arg">file</i>.</p></dd>
+<dt><b class="const">ldflags</b></dt>
+<dd><p>A list of linker flags needed to link <i class="arg">file</i>.</p></dd>
+<dt><b class="const">license</b></dt>
+<dd><p>The text of the license for the package <i class="arg">file</i> is located in.</p></dd>
+<dt><b class="const">mintcl</b></dt>
+<dd><p>The minimum version of Tcl required by the package <i class="arg">file</i>
+is in to run successfully. A proper Tcl version number.</p></dd>
+<dt><b class="const">objects</b></dt>
+<dd><p>A list of object files to link into <i class="arg">file</i>.</p></dd>
+<dt><b class="const">preload</b></dt>
+<dd><p>A list of libraries to be preloaded in order to sucessfully load and use
+<i class="arg">file</i>.</p></dd>
+<dt><b class="const">tk</b></dt>
+<dd><p><b class="const">true</b> if <i class="arg">file</i> requires Tk and <b class="const">false</b> otherwise.</p></dd>
+<dt><b class="const">tsources</b></dt>
+<dd><p>A list of companion &quot;<b class="file">.tcl</b>&quot; files to source in order to load and use the
+<i class="term">CriTcl script</i> <i class="arg">file</i>.</p></dd>
+<dt><b class="const">log</b></dt>
+<dd><p>The full build log generated by the compiler/linker, including command
+line data from critcl, and other things.</p></dd>
+<dt><b class="const">exl</b></dt>
+<dd><p>The raw build log generated by the compiler/linker. Contains the output
+generated by the invoked applications.</p></dd>
+</dl></dd>
+<dt><a name="56"><b class="cmd">::critcl::crosscheck</b></a></dt>
+<dd><p>Determines whether the package is configured for cross-compilation and prints a
+message to the standard error channel if so.</p></dd>
+<dt><a name="57"><b class="cmd">::critcl::error</b> <i class="arg">msg</i></a></dt>
+<dd><p>Used to report internal errors. The default implementation simply returns the
+error.  Tools like the <i class="term">CriTcl Application</i> are allowed to redefine
+this procedure to perform their own way of error reporting. There is
+one constraint they are not allowed to change: The procedure must
+<em>not return</em> to the caller.</p></dd>
+<dt><a name="58"><b class="cmd">::critcl::knowntargets</b></a></dt>
+<dd><p>Returns a list of the identifiers of all targets
+found during the last invocation of <b class="cmd">critcl::readconfig</b>.</p></dd>
+<dt><a name="59"><b class="cmd">::critcl::sharedlibext</b></a></dt>
+<dd><p>Returns the file extension for shared libraries on the target platform.</p></dd>
+<dt><a name="60"><b class="cmd">::critcl::targetconfig</b></a></dt>
+<dd><p>Returns the identifier of the target to build for, as specified by either the
+user or the system.</p></dd>
+<dt><a name="61"><b class="cmd">::critcl::buildplatform</b></a></dt>
+<dd><p>Returns the identifier of the build platform, i.e. where the package is running
+on.</p></dd>
+<dt><a name="62"><b class="cmd">::critcl::targetplatform</b></a></dt>
+<dd><p>Returns the identifier of the target platform,
+i.e. the platform to compile for. In contrast to
+<b class="cmd">::critcl::actualtarget</b> this may be the name of a
+cross-compilation target.</p></dd>
+<dt><a name="63"><b class="cmd">::critcl::cobjects</b> <span class="opt">?<i class="arg">glob pattern</i>...?</span></a></dt>
+<dd><p>Like <b class="cmd">::critcl::clibraries</b>, but instead of matching libraries, each
+<i class="arg">glob pattern</i> matches object files to be linked into the
+shared object (at compile time, not runtime). If a <i class="arg">glob pattern</i> matches
+nothing an error is returned.
+Not listed in <span class="sectref"><a href="#subsection4">Control &amp; Interface</a></span> because it is of no use to
+package writers. Only tools like the <i class="term">CriTcl Application</i> need it.</p>
+<p>A pattern for a relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p>
+<p>Calls to this command are cumulative.</p></dd>
+<dt><a name="64"><b class="cmd">::critcl::scan</b> <i class="arg">path</i></a></dt>
+<dd><p>The main entry point to CriTcl's static code scanner.  Used by tools to
+implement processing modes like the assembly of a directory hierarchy
+containing a TEA-lookalike buildystem, etc.</p>
+<p>Scans <i class="arg">path</i> and returns a dictionary containing the following items:</p>
+<dl class="doctools_definitions">
+<dt>version</dt>
+<dd><p>Package version.</p></dd>
+<dt>org</dt>
+<dd><p>Author(ing organization).</p></dd>
+<dt>files</dt>
+<dd><p>List of the companion files, relative to the directory of the input
+file.</p></dd>
+</dl></dd>
+<dt><a name="65"><b class="cmd">::critcl::name2c</b> <i class="arg">name</i></a></dt>
+<dd><p>Given the Tcl-level identifier <i class="arg">name</i>, returns a list containing the
+following details of its conversion to C:</p>
+<ul class="doctools_itemized">
+<li><p>Tcl namespace prefix</p></li>
+<li><p>C namespace prefix</p></li>
+<li><p>Tcl base name</p></li>
+<li><p>C base name</p></li>
+</ul>
+<p>For use by utilities that provide Tcl commands without going through
+standard commands like <b class="cmd">critcl::ccommand</b> or <b class="cmd">critcl::cproc</b>.
+<b class="package"><a href="critcl_class.html">critcl::class</a></b> does this.</p></dd>
+</dl>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Advanced: Embedded C Code</a></h3>
+<p>For advanced use, the following commands used by <b class="cmd">critcl::cproc</b> itself are
+exposed.</p>
+<dl class="doctools_definitions">
+<dt><a name="66"><b class="cmd">::critcl::argnames</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of the corresponding user-visible names.</p></dd>
+<dt><a name="67"><b class="cmd">::critcl::argcnames</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of the corresponding C variable names for the
+user-visible names. The names returned here match the names used in the
+declarations and code returned by <b class="cmd">::critcl::argvardecls</b> and
+<b class="cmd">::critcl::argconversion</b>.</p></dd>
+<dt><a name="68"><b class="cmd">::critcl::argcsignature</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of the corresponding C parameter declarations.</p></dd>
+<dt><a name="69"><b class="cmd">::critcl::argvardecls</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of the corresponding C variable declarations.
+The names used in these declarations match the names returned by
+<b class="cmd">::critcl::argcnames</b>.</p></dd>
+<dt><a name="70"><b class="cmd">::critcl::argconversion</b> <i class="arg">arguments</i> <span class="opt">?<i class="arg">n</i>?</span></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of C code fragments converting the user visible
+arguments found in the declaration from Tcl_Obj* to C types. The names used in
+these statements match the names returned by <b class="cmd">::critcl::argcnames</b>.</p>
+<p>The generated code assumes that the procedure arguments start
+at index <i class="arg">n</i> of the <b class="variable">objv</b> array.  The default is <b class="const">1</b>.</p></dd>
+<dt><a name="71"><b class="cmd">::critcl::argoptional</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of boolean values indicating which arguments
+are optional (<b class="const">true</b>), and which are not (<b class="const">false</b>).</p></dd>
+<dt><a name="72"><b class="cmd">::critcl::argdefaults</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list containing the default values for all optional
+arguments.</p></dd>
+<dt><a name="73"><b class="cmd">::critcl::argsupport</b> <i class="arg">arguments</i></a></dt>
+<dd><p>Given an argument declaration as documented for <b class="cmd">critcl::cproc</b>, returns a list of C code fragments needed to define the
+necessary supporting types.</p></dd>
+</dl>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Custom Build Configuration</a></h3>
+<p>This package provides one command for the management of
+package-specific, i.e. developer-specified custom build configuration
+options.</p>
+<dl class="doctools_definitions">
+<dt><a name="74"><b class="cmd">::critcl::userconfig</b> <b class="method">define</b> <i class="arg">name</i> <i class="arg">description</i> <i class="arg">type</i> <span class="opt">?<i class="arg">default</i>?</span></a></dt>
+<dd><p>This command defines custom build configuration option, with
+<i class="arg">description</i>, <i class="arg">type</i> and optional <i class="arg">default</i> value.</p>
+<p>The type can be either <b class="const">bool</b>, or a list of values.</p>
+<ol class="doctools_enumerated">
+<li><p>For <b class="const">bool</b> the default value, if specified, must be a
+boolean. If it is not specified it defaults to <b class="const">true</b>.</p></li>
+<li><p>For a list of values the default value, if specified, must be a
+value found in this list. If it is not specified it defaults to the
+first value of the list.</p></li>
+</ol>
+<p>The <i class="arg">description</i> serves as in-code documentation of the
+meaning of the option and is otherwise ignored. When generating a TEA
+wrapper the description is used for the <b class="syscmd">configure</b> option
+derived from the option declared by the command.</p>
+<p>A boolean option <b class="variable">FOO</b> are translated into a pair of
+configure options, <b class="option">--enable-<b class="variable">FOO</b></b> and
+<b class="option">--disable-<b class="variable">FOO</b></b>, whereas an option whose <i class="arg">type</i> is a
+list of values is translated into a single configure option
+<b class="option">--with-<b class="variable">FOO</b></b>.</p></dd>
+<dt><a name="75"><b class="cmd">::critcl::userconfig</b> <b class="method">query</b> <i class="arg">name</i></a></dt>
+<dd><p>This command queries the database of custom build configuration option
+for the current &quot;<b class="file">.critcl</b>&quot; file and returns the chosen value.
+This may be the default if no value was set via
+<b class="cmd">::critcl::userconfig set</b>.</p>
+<p>It is at this point that definitions and set values are brought
+together, with the latter validated against the definition.</p></dd>
+<dt><a name="76"><b class="cmd">::critcl::userconfig</b> <b class="method">set</b> <i class="arg">name</i> <i class="arg">value</i></a></dt>
+<dd><p>This command is for use by a tool, like the <b class="syscmd"><a href="critcl.html">critcl</a></b> application,
+to specify values for custom build configuration options.</p>
+<p>At the time this command is used only the association between
+option name and value is recorded, and nothing else is done. This
+behaviour is necessary as the system may not know if an option of the
+specified name exists when the command is invoked, nor its type.</p>
+<p>Any and all validation is defered to when the value of an
+option is asked for via <b class="cmd">::critcl::userconfig query</b>.</p>
+<p>This means that it is possible to set values for any option we
+like, and the value will take effect only if such an option is both
+defined and used later on.</p></dd>
+</dl>
+</div>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">Advanced: Location management</a></h3>
+<p>First a small introduction for whose asking themselves
+'what is location management' ?</p>
+<p>By default critcl embeds <i class="term">#line</i> directives into the
+generated C code so that any errors, warnings and notes found by the C
+compiler during compilation will refer to the &quot;<b class="file">.critcl</b>&quot; file the
+faulty code comes from, instead of the generated &quot;<b class="file">.c</b>&quot; file.</p>
+<p>This facility requires the use of a tclsh that provides
+<b class="cmd">info frame</b>.  Otherwise, no <i class="term">#line</i> directives are emitted. The
+command is supported by Tcl 8.5 and higher. It is also supported by
+Tcl 8.4 provided that it was compiled with the define
+<b class="option">-DTCL_TIP280</b>. An example of such is ActiveState's ActiveTcl.</p>
+<p>Most users will not care about this feature beyond simply
+wanting it to work and getting proper code references when reading
+compiler output.</p>
+<p>Developers of higher-level packages generating their own C code
+however should care about this, to ensure that their generated code
+contains proper references as well. Especially as this is key to
+separating bugs concerning code generated by the package itself and
+bug in the user's code going into the package, if any.</p>
+<p>Examples of such packages come with critcl itself, see the
+implementation of packages <b class="package"><a href="critcl_iassoc.html">critcl::iassoc</a></b> and
+<b class="package"><a href="critcl_class.html">critcl::class</a></b>.</p>
+<p>To help such developers eight commands are provided to manage
+such <i class="term">location</i> information. These are listed below.</p>
+<p>A main concept is that they all operate on a single
+<i class="term">stored location</i>, setting, returning and clearing it.
+Note that this location information is completely independent of the
+generation of <i class="term">#line</i> directives within critcl itself.</p>
+<dl class="doctools_definitions">
+<dt><a name="77"><b class="cmd">::critcl::at::caller</b></a></dt>
+<dd><p>This command stores the location of the caller of the current
+procedure as a tuple of file name and linenumber. Any previously
+stored location is overwritten.
+The result of the command is the empty string.</p></dd>
+<dt><a name="78"><b class="cmd">::critcl::at::caller</b> <i class="arg">offset</i></a></dt>
+<dd><p>As above, the stored line number is modified by the specified
+offset. In essence an implicit call of <b class="cmd">critcl::at::incr</b>.</p></dd>
+<dt><a name="79"><b class="cmd">::critcl::at::caller</b> <i class="arg">offset</i> <i class="arg">level</i></a></dt>
+<dd><p>As above, but the level the location information is taken from is
+modified as well. Level <b class="const">0</b> is the caller, <b class="const">-1</b> its
+caller, etc.</p></dd>
+<dt><a name="80"><b class="cmd">::critcl::at::here</b></a></dt>
+<dd><p>This command stores the current location in the current procedure as a
+tuple of file name and linenumber. Any previously stored location is
+overwritten.
+The result of the command is the empty string.</p>
+<p>In terms of <b class="cmd">::critcl::at::caller</b> this is equivalent to</p>
+<pre class="doctools_example">
+	critcl::at::caller 0 1
+</pre>
+</dd>
+<dt><a name="81"><b class="cmd">::critcl::at::get*</b></a></dt>
+<dd><p>This command takes the stored location and returns a formatted
+<i class="term">#line</i> directive ready for embedding into some C code. The
+stored location is left untouched.
+Note that the directive contains its own closing newline.</p>
+<p>For proper nesting and use it is recommended that such
+directives are always added to the beginning of a code fragment. This
+way, should deeper layers add their own directives these will come
+before ours and thus be inactive. End result is that the outermost
+layer generating a directive will 'win', i.e. have its directive
+used. As it should be.</p></dd>
+<dt><a name="82"><b class="cmd">::critcl::at::get</b></a></dt>
+<dd><p>This command is like the above, except that it also clears the stored
+location.</p></dd>
+<dt><a name="83"><b class="cmd">::critcl::at::=</b> <i class="arg">file</i> <i class="arg">line</i></a></dt>
+<dd><p>This command allows the caller to set the stored location to anything
+they want, outside of critcl's control.
+The result of the command is the empty string.</p></dd>
+<dt><a name="84"><b class="cmd">::critcl::at::incr</b> <i class="arg">n</i>...</a></dt>
+<dd></dd>
+<dt><a name="85"><b class="cmd">::critcl::at::incrt</b> <i class="arg">str</i>...</a></dt>
+<dd><p>These commands allow the user to modify the line number of the stored
+location, changing it incrementally. The increment is specified as
+either a series of integer numbers (<b class="cmd">incr</b>), or a series of
+strings to consider (<b class="cmd">incrt</b>). In case of the latter the delta is
+the number of lines endings found in the strings.</p></dd>
+<dt><a name="86"><b class="cmd">::critcl::at::caller!</b></a></dt>
+<dd></dd>
+<dt><a name="87"><b class="cmd">::critcl::at::caller!</b> <i class="arg">offset</i></a></dt>
+<dd></dd>
+<dt><a name="88"><b class="cmd">::critcl::at::caller!</b> <i class="arg">offset</i> <i class="arg">level</i></a></dt>
+<dd></dd>
+<dt><a name="89"><b class="cmd">::critcl::at::here!</b></a></dt>
+<dd><p>These are convenience commands combining <b class="cmd">caller</b> and <b class="cmd">here</b>
+with <b class="cmd">get</b>. I.e. they store the location and immediately return it
+formatted as proper <i class="term">#line</i> directive. Also note that after their
+use the stored location is cleared.</p></dd>
+</dl>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">Advanced: Diversions</a></h3>
+<p>Diversions are for higher-level packages generating their own C code,
+to make their use of critcl's commands generating
+<span class="sectref"><a href="#subsection1">Embedded C Code</a></span> easier.</p>
+<p>These commands normally generate all of their C code for the
+current &quot;<b class="file">.critcl</b>&quot; file, which may not be what is wanted by a
+higher-level package.</p>
+<p>With a diversion the generator output can be redirected into
+memory and from there on then handled and processed as the caller
+desires before it is committed to an actual &quot;<b class="file">.c</b>&quot; file.</p>
+<p>An example of such a package comes with critcl itself, see the
+implementation of package <b class="package"><a href="critcl_class.html">critcl::class</a></b>.</p>
+<p>To help such developers three commands are provided to manage
+diversions and the collection of C code in memory. These are:</p>
+<dl class="doctools_definitions">
+<dt><a name="90"><b class="cmd">::critcl::collect_begin</b></a></dt>
+<dd><p>This command starts the diversion of C code collection into memory.</p>
+<p>The result of the command is the empty string.</p>
+<p>Multiple calls are allowed, with each call opening a new
+nesting level of diversion.</p></dd>
+<dt><a name="91"><b class="cmd">::critcl::collect_end</b></a></dt>
+<dd><p>This command end the diversion of C code collection into memory and
+returns the collected C code.</p>
+<p>If multiple levels of diversion are open the call only closes
+and returns the data from the last level.</p>
+<p>The command will throw an error if no diversion is active,
+indicating a mismatch in the pairing of <b class="cmd">collect_begin</b> and
+<b class="cmd">collect_end</b>.</p></dd>
+<dt><a name="92"><b class="cmd">::critcl::collect</b> <i class="arg">script</i></a></dt>
+<dd><p>This is a convenience command which runs the <i class="arg">script</i> under
+diversion and returns the collected C code, ensuring the correct
+pairing of <b class="cmd">collect_begin</b> and <b class="cmd">collect_end</b>.</p></dd>
+</dl>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">Advanced: File Generation</a></h3>
+<p>While file generation is related to the diversions explained in the
+previous section they are not the same.
+Even so, like diversions this feature is for higher-level packages
+generating their own C code.</p>
+<p>Three examples of utility packages using this facility comes
+with critcl itself.
+See the implementations of packages <b class="package"><a href="critcl_literals.html">critcl::literals</a></b>,
+<b class="package"><a href="critcl_bitmap.html">critcl::bitmap</a></b>, and <b class="package"><a href="critcl_enum.html">critcl::enum</a></b>.</p>
+<p>When splitting a package implementation into pieces it is often
+sensible to have a number of pure C companion files containing
+low-level code, yet these files may require information about the code
+in the main &quot;<b class="file">.critcl</b>&quot; file. Such declarations are normally not
+exportable and using the stub table support does not make sense, as
+this is completely internal to the package.</p>
+<p>With the file generation command below the main &quot;<b class="file">.critcl</b>&quot;
+file can generate any number of header files for the C companions to
+pick up.</p>
+<dl class="doctools_definitions">
+<dt><a name="93"><b class="cmd">::critcl::make</b> <i class="arg">path</i> <i class="arg">contents</i></a></dt>
+<dd><p>This command creates the file <i class="arg">path</i> in a location where the C
+companion files of the package are able to pick it up by simple
+inclusion of <i class="arg">path</i> during their compilation, without interfering
+with the outer system at all.</p>
+<p>The generated file will contain the specified <i class="arg">contents</i>.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Concepts</a></h2>
+<div id="subsection15" class="doctools_subsection"><h3><a name="subsection15">Modes Of Operation/Use</a></h3>
+<p>CriTcl can be used in three different modes of operation, called</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="../index.html#compile_run">Compile &amp; Run</a></i>, and</p></li>
+<li><p><i class="term"><a href="../index.html#generate_package">Generate Package</a></i></p></li>
+<li><p><i class="term">Generate TEA Package</i></p></li>
+</ol>
+<p><i class="term"><a href="../index.html#compile_run">Compile &amp; Run</a></i> was the original mode and is the default for
+<i class="term">critcl_pkg</i>.  Collects the C fragments from the
+<i class="term">CriTcl script</i>, builds them as needed, and caches the results to
+improve load times later.</p>
+<p>The second mode, <i class="term"><a href="../index.html#generate_package">Generate Package</a></i>, was introduced to enable
+the creation of (prebuilt) deliverable packages which do not depend on
+the existence of a build system, i.e. C compiler, on the target
+machine.
+This was originally done through the experimental <b class="cmd">Critbind</b> tool,
+and is now handled by the <i class="term">CriTcl Application</i>, also named
+<b class="cmd"><a href="critcl.html">critcl</a></b>.</p>
+<p>Newly introduced with CriTcl version 3 is
+<i class="term">Generate TEA Package</i>. This mode constructs a directory
+hierarchy from the package which can later be built like a regular TEA
+package, i.e. using</p>
+<pre class="doctools_example">
+	.../configure --prefix ...
+	make all isntall
+</pre>
+<p>Regarding the caching of results please read the section about
+the <span class="sectref"><a href="#subsection18">Result Cache</a></span> fore more details.</p>
+</div>
+<div id="subsection16" class="doctools_subsection"><h3><a name="subsection16">Runtime Behaviour</a></h3>
+<p>The default behaviour of critcl, the package is to defer the
+compilation, linking, and loading of any C code as much as possible,
+given that this is an expensive operation, mainly in the time
+required.
+In other words, the C code embedded into a &quot;<b class="file">.critcl</b>&quot; file is
+built only when the first C command or procedure it provides is
+invoked.
+This part of the system uses standard functionality built into the Tcl
+core, i.e. the <b class="variable">auto_index</b> variable to map from commands to
+scripts providing them and the <b class="cmd">unknown</b> command using this
+information when the command is needed.</p>
+<p>A <em>limitation</em> of this behaviour is that it is not
+possible to just use <b class="cmd">info commands</b> check for the existence of
+a critcl defined command. It is also necessary to search in the
+<b class="variable">auto_index</b> array, in case it has not been build yet.</p>
+<p>This behaviour can be changed by using the control command
+<b class="cmd">critcl::load</b>. When invoked, the building, including loading of
+the result, is forced. After this command has been invoked for a
+&quot;<b class="file">.critcl</b>&quot; file further definition of C code in this file is not
+allowed any longer.</p>
+</div>
+<div id="subsection17" class="doctools_subsection"><h3><a name="subsection17">File Mapping</a></h3>
+<p>Each &quot;<b class="file">.critcl</b>&quot; file is backed by a single private &quot;<b class="file">.c</b>&quot; file
+containing that code, plus the boilerplate necessary for its
+compilation and linking as a single shared library.</p>
+<p>The <span class="sectref"><a href="#subsection10">Embedded C Code</a></span>
+fragments appear in that file in the exact same order they were
+defined in the &quot;<b class="file">.critcl</b>&quot; file, with one exception. The C code
+provided via <b class="cmd">critcl::cinit</b> is put after all other fragments.
+In other words all fragments have access to the symbols defined by
+earlier fragments, and the <b class="cmd">critcl::cinit</b> fragment has access to
+all, regardless of its placement in the &quot;<b class="file">.critcl</b>&quot; file.</p>
+<p>Note: A <em>limitation</em> of the current system is the near
+impossibility of C level access between different critcl-based
+packages. The issue is not the necessity of writing and sharing the
+proper <b class="syscmd">extern</b> statements, but that the management (export and
+import) of package-specific stubs-tables is not supported. This means
+that dependent parts have to be forcibly loaded before their user,
+with all that entails. See section <span class="sectref"><a href="#subsection16">Runtime Behaviour</a></span> for
+the relevant critcl limitation, and remember that many older platforms
+do not support the necessary resolution of symbols, the reason why
+stubs were invented for Tcl in the first place.</p>
+</div>
+<div id="subsection18" class="doctools_subsection"><h3><a name="subsection18">Result Cache</a></h3>
+<p>The compilation of C code is time-consuming <b class="package"><a href="critcl.html">critcl</a></b> not only
+defers it as much as possible, as described in section
+<span class="sectref"><a href="#subsection16">Runtime Behaviour</a></span>, but also caches the results.</p>
+<p>This means that on the first use of a &quot;<b class="file">.critcl</b>&quot; file
+&quot;<b class="file">FOO.tcl</b>&quot; the resulting object file and shared library are saved
+into the cache, and on future uses of the same file reused,
+i.e. loaded directly without requiring compilation, provided that the
+contents of &quot;<b class="file">FOO.tcl</b>&quot; did not change.</p>
+<p>The change detection is based MD5 hashes. A single hash is
+computed for each &quot;<b class="file">.critcl</b>&quot; file, based on hashes for all C code
+fragments and configuration options, i.e. everything which affects the
+resulting binary.</p>
+<p>As long as the input file doesn't change as per the hash a
+previously built shared library found in the cache is reused,
+bypassing the compilation and link stages.</p>
+<p>The command to manage the cache are found in section
+<span class="sectref"><a href="#subsection7">Result Cache Management</a></span>.
+Note however that they are useful only to tools based on the package,
+like the <i class="term">CriTcl Application</i>. Package writers have no need
+of them.</p>
+<p>As a last note, the default directory for the cache is chosen
+based on the chosen build target. This means that the cache can be put
+on a shared (network) filesystem without having to fear interference
+between machines of different architectures.</p>
+</div>
+<div id="subsection19" class="doctools_subsection"><h3><a name="subsection19">Preloading functionality</a></h3>
+<p>The audience of this section are developers wishing to understand
+and possibly modify the internals of critcl package and application.
+Package writers can skip this section.</p>
+<p>It explains how the preloading of external libraries is realized.</p>
+<p>Whenever a package declares libraries for preloading critcl will build
+a supporting shared library providing a Tcl package named &quot;preload&quot;.
+This package is not distributed separately, but as part of the package
+requiring the preload functionality.
+This support package exports a single Tcl command</p>
+<dl class="doctools_definitions">
+<dt><a name="94"><b class="cmd">::preload</b> <i class="arg">library</i></a></dt>
+<dd><p>which is invoked once per libraries to preload, with the absolute path
+of that <i class="arg">library</i>. The command then loads the <i class="arg">library</i>.</p>
+<p>On windows the command will further use the Tcl command
+<b class="cmd">::critcl::runtime::precopy</b> to copy the <i class="arg">library</i> to the
+disk, should its path be in a virtual filesystem which doesn't
+directly support the loading of a shared library from it.</p></dd>
+</dl>
+<p>The command <b class="cmd">::critcl::runtime::precopy</b> is provided by the file
+&quot;<b class="file">critcl-rt.tcl</b>&quot; in the generated package, as is the command
+<b class="cmd">::critcl::runtime::loadlib</b> which generates the
+<i class="term">ifneeded script</i> expected by Tcl's package management. This
+generated ifneeded script contains the invocations of <b class="cmd">::preload</b>.</p>
+<p>The C code for the supporting library is found in the file
+&quot;<b class="file">critcl_c/preload.c</b>&quot;, which is part of the <b class="package"><a href="critcl.html">critcl</a></b>
+package.</p>
+<p>The Tcl code for the supporting runtime &quot;<b class="file">critcl-rt.tcl</b>&quot; is found
+in the file &quot;<b class="file">runtime.tcl</b>&quot;, which is part of the
+<b class="package">critcl::app</b> package.</p>
+</div>
+<div id="subsection20" class="doctools_subsection"><h3><a name="subsection20">Configuration Internals</a></h3>
+<p>The audience of this section are developers wishing to understand
+and possibly modify the internals of critcl package and application.
+Package writers can skip this section.</p>
+<p>It explains the syntax of configuration files and the configuration
+keys used by <b class="package"><a href="critcl.html">critcl</a></b> to configure its build backend, i.e. how
+this part of the system accesses compiler, linker, etc.</p>
+<p>It is recommended to open the file containing the standard
+configurations (&quot;<b class="file">path/to/critcl/Config</b>&quot;) in the editor of your
+choice when reading this section of the documentation, using it as an
+extended set of examples going beyond the simple defaults shown here.</p>
+<p>First, the keys and the meaning of their values, plus examples drawn
+from the standard configurations distributed with the package.
+Note that when writing a custom configuration it is not necessary to
+specify all the keys listed below, but only those whose default values
+are wrong or insufficient for the platform in question.</p>
+<dl class="doctools_definitions">
+<dt>version</dt>
+<dd><p>The command to print the compiler version number.
+Defaults to</p>
+<pre class="doctools_example"> gcc -v </pre>
+</dd>
+<dt>compile</dt>
+<dd><p>The command to compile a single C source file to an object file.
+Defaults to</p>
+<pre class="doctools_example"> gcc -c -fPIC </pre>
+</dd>
+<dt>debug_memory</dt>
+<dd><p>The list of flags for the compiler to enable memory debugging in
+Tcl.
+Defaults to</p>
+<pre class="doctools_example"> -DTCL_MEM_DEBUG </pre>
+</dd>
+<dt>debug_symbols</dt>
+<dd><p>The list of flags for the compiler to add symbols to the object files
+and the resulting library.
+Defaults to</p>
+<pre class="doctools_example"> -g </pre>
+</dd>
+<dt>include</dt>
+<dd><p>The compiler flag to add an include directory.
+Defaults to</p>
+<pre class="doctools_example"> -I </pre>
+</dd>
+<dt>tclstubs</dt>
+<dd><p>The compiler flag to set USE_TCL_STUBS.
+Defaults to</p>
+<pre class="doctools_example"> -DUSE_TCL_STUBS </pre>
+</dd>
+<dt>tkstubs</dt>
+<dd><p>The compiler flag to set USE_TK_STUBS.
+Defaults to</p>
+<pre class="doctools_example"> -DUSE_TK_STUBS </pre>
+</dd>
+<dt>threadflags</dt>
+<dd><p>The list of compiler flags to enable a threaded build.
+Defaults to</p>
+<pre class="doctools_example">
+    -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1
+    -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1
+    -DTCL_THREADS=1
+</pre>
+<p>.</p></dd>
+<dt>noassert</dt>
+<dd><p>The compiler flag to turn off assertions in Tcl code.
+Defaults to</p>
+<pre class="doctools_example"> -DNDEBUG </pre>
+</dd>
+<dt>optimize</dt>
+<dd><p>The compiler flag to specify optimization level.
+Defaults to</p>
+<pre class="doctools_example"> -O2 </pre>
+</dd>
+<dt>output</dt>
+<dd><p>The compiler flags to set the output file of a compilation.
+Defaults to</p>
+<pre class="doctools_example"> -o [list $outfile] </pre>
+<p><em>NOTE</em> the use of Tcl commands and variables here.  At the
+time <b class="package"><a href="critcl.html">critcl</a></b> uses the value of this key the value of the
+referenced variable is substituted into it. The named variable is the
+only variable whose value is defined for this substitution.</p></dd>
+<dt>object</dt>
+<dd><p>The file extension for object files on the platform.
+Defaults to</p>
+<pre class="doctools_example"> .o </pre>
+</dd>
+<dt>preproc_define</dt>
+<dd><p>The command to preprocess a C source file without compiling it, but
+leaving #define's in the output. Defaults to</p>
+<pre class="doctools_example"> gcc -E -dM </pre>
+</dd>
+<dt>preproc_enum</dt>
+<dd><p>See <b class="const">preproc_define</b>, except that #define's are not left in the
+output. Defaults to</p>
+<pre class="doctools_example"> gcc -E </pre>
+</dd>
+<dt>link</dt>
+<dd><p>The command to link one or more object files and create a shared
+library. Defaults to</p>
+<pre class="doctools_example"> gcc -shared </pre>
+</dd>
+<dt>link_preload</dt>
+<dd><p>The list of linker flags to use when dependent libraries are
+pre-loaded. Defaults to</p>
+<pre class="doctools_example"> --unresolved-symbols=ignore-in-shared-libs </pre>
+</dd>
+<dt>strip</dt>
+<dd><p>The flag to tell the linker to strip symbols from the shared library.
+Defaults to</p>
+<pre class="doctools_example"> -Wl,-s </pre>
+</dd>
+<dt>ldoutput</dt>
+<dd><p>Like <b class="const">output</b>, but for the linker.
+Defaults to the value of <b class="const">output</b>.</p></dd>
+<dt>link_debug</dt>
+<dd><p>The list of linker flags needed to build a shared library with
+symbols. Defaults to the empty string.
+One platform requiring this are all variants of Windows, which uses</p>
+<pre class="doctools_example"> -debug:full -debugtype:cv </pre>
+</dd>
+<dt>link_release</dt>
+<dd><p>The list of linker flags needed to build a shared library without
+symbols, i.e. a regular build. Defaults to the empty string.
+One platform requiring this are all variants of Windows, which uses</p>
+<pre class="doctools_example"> -release -opt:ref -opt:icf,3 -ws:aggressive </pre>
+</dd>
+<dt>sharedlibext</dt>
+<dd><p>The file extension for shared library files on the platform.
+Defaults to</p>
+<pre class="doctools_example"> [info sharedlibextension] </pre>
+</dd>
+<dt>platform</dt>
+<dd><p>The identifier of the platform used in generated packages.
+Defaults to</p>
+<pre class="doctools_example"> [platform::generic] </pre>
+</dd>
+<dt>target</dt>
+<dd><p>The presence of this key marks the configuration as a
+cross-compilation target and the value is the actual platform
+identifier of the target.  No default.</p></dd>
+</dl>
+<p>The syntax expected from configuration files is governed by the rules below.
+Again, it is recommended to open the file containing the standard
+configurations (&quot;<b class="file">path/to/critcl/Config</b>&quot;) in the editor of your
+choice when reading this section of the documentation, using it as an
+extended set of examples for the syntax&gt;</p>
+<ol class="doctools_enumerated">
+<li><p>Each logical line of the configuration file consists of one or
+more physical lines. In case of the latter the physical lines have to
+follow each other and all but the first must be marked by a trailing
+backslash. This is the same marker for <i class="term">continuation lines</i> as
+used by Tcl itself.</p></li>
+<li><p>A (logical) line starting with the character &quot;#&quot; (modulo
+whitespace) is a comment which runs until the end of the line, and is
+otherwise ignored.</p></li>
+<li><p>A (logical) line starting with the word &quot;if&quot; (modulo
+whitespace) is interpreted as Tcl's <b class="cmd">if</b> command and executed as
+such. I.e. this command has to follow Tcl's syntax for the command,
+which may stretch across multiple logical lines. The command will be
+run in a save interpreter.</p></li>
+<li><p>A (logical) line starting with the word &quot;set&quot; (modulo
+whitespace) is interpreted as Tcl's <b class="cmd">set</b> command and executed as
+such. I.e. this command has to follow Tcl's syntax for the command,
+which may stretch across multiple logical lines. The command will be
+run in a save interpreter.</p></li>
+<li><p>A line of the form &quot;<i class="arg">platform</i> <b class="variable">variable</b> <i class="arg">value</i>&quot;
+defines a platform specific configuration variable and value.
+The <b class="variable">variable</b> has to be the name of one of the configuration keys
+listed earlier in this section, and the <i class="arg">platform</i> string
+identifies the platform the setting is for. All settings with the same
+identification string form the <i class="term">configuration block</i> for this
+platform.</p></li>
+<li><p>A line of the special form
+&quot;<i class="arg">platform</i> <b class="const">when</b> <i class="arg">expression</i>&quot;
+marks the <i class="arg">platform</i> and all the settings in its
+<i class="term">configuration block</i> as conditional on the <i class="arg">expression</i>.</p>
+<p>If the build platform is not a prefix of <i class="arg">platform</i>,
+nor vice versa the whole block is ignored.
+Otherwise the <i class="arg">expression</i> is evaluated via <b class="cmd">expr</b>, in the
+same safe interpreter used to run any <b class="cmd">set</b> and <b class="cmd">if</b> commands
+found in the configuration file (see above).</p>
+<p>If the expression evaluates to <b class="const">true</b> this configuration block
+is considered to be the build platform fo the host and chosen as the
+default configuration.
+An large example of of this feature is the handling of OS X found in
+the standard configuration file, where it selects the architectures to
+build based on the version of the operating system, the available SDK,
+etc. I.e. it chooses whether the output is universal or not, and
+whether it is old-style (ix86 + ppc) versus new-style (ix86 32+64) of
+universality.</p></li>
+<li><p>A line of the special form
+&quot;<i class="arg">platform</i> <b class="const">copy</b> <i class="arg">sourceplatform</i>&quot;
+copies the configuration variables and values currently defined in the
+<i class="term">configuration block</i> for <i class="arg">sourceplatform</i> to that of
+<i class="arg">platform</i>, overwriting existing values, and creating missing
+ones. Variables of <i class="arg">platform</i> not defined by by <i class="arg">sourceplatform</i>
+are not touched.</p>
+<p>The copied values can be overridden later in the configuration
+file. Multiple <b class="const">copy</b> lines may exist for a platform and be
+intermixed with normal configuration definitions. Only the last definition of a
+variable is used.</p></li>
+<li><p>At last, a line of the form &quot;<b class="variable">variable</b> <i class="arg">value</i>&quot;
+defines a default configuration variable and value.</p></li>
+</ol>
+</div>
+<div id="subsection21" class="doctools_subsection"><h3><a name="subsection21">Stubs Tables</a></h3>
+<p>This section is for developers of extensions not based on critcl, yet
+also wishing to interface with stubs as they are understood and used
+by critcl, either by exporting their own stubs table to a
+critcl-based extension, or importing a stubs table of a critcl-based
+extension into their own.</p>
+<p>To this end we describe the stubs table information of a
+package <b class="package">foo</b>.</p>
+<ol class="doctools_enumerated">
+<li><p>Note that the differences in the capitalization of &quot;foo&quot;,
+&quot;Foo&quot;, &quot;FOO&quot;, etc. below demonstrate how to capitalize the actual
+package name in each context.</p></li>
+<li><p>All relevant files must be available in a sub-directory
+&quot;<b class="file">foo</b>&quot; which can be found on the include search paths.</p></li>
+<li><p>The above directory may contain a file &quot;<b class="file">foo.decls</b>&quot;. If
+	present it is assumed to contain the external representation
+	of the stubs table the headers mentioned in the following
+	items are based on.</p>
+<p>critcl is able to use such a file to give the importing package
+	programmatic access to the imported API, for automatic code
+	generation and the like.</p></li>
+<li><p>The above directory must contain a header file
+&quot;<b class="file">fooDecls.h</b>&quot;. This file <em>declares</em> the exported API.
+It is used by both exporting and importing packages. It is usually
+generated and must contain (in the order specified):</p>
+<ol class="doctools_enumerated">
+<li><p>the declarations of the exported, i.e. public, functions of
+	<b class="package">foo</b>,</p></li>
+<li><p>the declaration of structure &quot;FooStubs&quot; for the stub table,</p></li>
+<li><p>the C preprocessor macros which route the invocations of the
+	public functions through the stubs table.</p>
+<p>These macros must be defined if, and only if, the C preprocessor
+	macro USE_FOO_STUBS is defined. Package <b class="package">foo</b> does not
+	define this macro, as it is allowed to use the exported
+	functions directly. All importing packages however must define
+	this macro, to ensure that they do <em>not</em> use any of the
+	exported functions directly, but only through the stubs table.</p></li>
+<li><p>If the exported functions need additional types for their proper
+	declaration then these types should be put into a separate
+	header file (of arbitrary name) and &quot;<b class="file">fooDecls.h</b>&quot; should
+	contain an #include directive to this header at the top.</p></li>
+</ol>
+<p>A very reduced, yet also complete example, from a package for
+low-level random number generator functions can be found at the end of
+this section.</p></li>
+<li><p>The above directory must contain a header file
+&quot;<b class="file">fooStubLib.h</b>&quot;. This file <em>defines</em> everything needed to use
+the API of <b class="package">foo</b>. Consequently it is used only by importing
+packages. It is usually generated and must contain (in the order
+specified):</p>
+<ol class="doctools_enumerated">
+<li><p>An #include directive for &quot;<b class="file">tcl.h</b>&quot;, with USE_TCL_STUBS
+	surely defined.</p></li>
+<li><p>An #include directive for &quot;<b class="file">fooDecls.h</b>&quot;, with USE_FOO_STUBS
+	surely defined.</p></li>
+<li><p>A <em>definition</em> of the stubs table variable, i.e.</p>
+<pre class="doctools_example">const FooStubs* fooStubsPtr;</pre>
+</li>
+<li><p>A <em>definition</em> of the stubs initializer function, like</p>
+<pre class="doctools_example">char *
+Foo_InitStubs(Tcl_Interp *interp, CONST char *version, int exact)
+{
+    /*
+     * Boiler plate C code initalizing the stubs table variable,
+     * i.e. &quot;fooStubsPtr&quot;.
+     */
+    CONST char *actualVersion;
+    actualVersion = Tcl_PkgRequireEx(interp, &quot;foo&quot;, version,
+				     exact, (ClientData *) &amp;fooStubsPtr);
+    if (!actualVersion) {
+	return NULL;
+    }
+    if (!fooStubsPtr) {
+	Tcl_SetResult(interp,
+		      &quot;This implementation of Foo does not support stubs&quot;,
+		      TCL_STATIC);
+	return NULL;
+    }
+    return (char*) actualVersion;
+}</pre>
+</li>
+</ol>
+<p>This header file must be included by an importing package
+<em>exactly once</em>, so that it contains only one definition of both
+stubs table and stubs initializer function.</p>
+<p>The importing package's initialization function must further
+contain a statement like</p>
+<pre class="doctools_example">if (!Foo_InitStubs (ip, &quot;1&quot;, 0)) {
+    return TCL_ERROR;
+}</pre>
+<p>which invokes <b class="package">foo</b>'s stubs initializer function to set the
+local stub table up.</p>
+<p>For a complete example of such a header file see below, at the
+end of this section.</p></li>
+<li><p>The last item above, about &quot;<b class="file">fooStubLib.h</b>&quot; <em>differs</em>
+	from the regular stub stable system used by Tcl. The regular
+	system assumes that a static library &quot;<b class="file">libfoostub.a</b>&quot; was
+	installed by package <b class="package">foo</b>, and links it.</p>
+<p>IMVHO critcl's approach is simpler, using <em>only</em> header
+	files found in a single location, vs. header files and static
+	library found in multiple, different locations.</p>
+<p>A second simplification is that we avoid having to extend
+	critcl's compiler backend with settings for the creation of
+	static libraries.</p></li>
+</ol>
+<p>Below is a complete set of example header files, reduced, yet still
+complete, from a package for low-level random number generator
+functions:</p>
+<dl class="doctools_definitions">
+<dt>&quot;<b class="file">rngDecls.h</b>&quot;:</dt>
+<dd>
+<pre class="doctools_example">
+#ifndef rng_DECLS_H
+#define rng_DECLS_H
+#include &lt;tcl.h&gt;
+/*
+ * Exported function declarations:
+ */
+/* 0 */
+EXTERN void rng_bernoulli(double p, int*v);
+typedef struct RngStubs {
+    int magic;
+    const struct RngStubHooks *hooks;
+    void (*rng_bernoulli) (double p, int*v); /* 0 */
+} RngStubs;
+#ifdef __cplusplus
+extern &quot;C&quot; {
+#endif
+extern const RngStubs *rngStubsPtr;
+#ifdef __cplusplus
+}
+#endif
+#if defined(USE_RNG_STUBS)
+/*
+ * Inline function declarations:
+ */
+#define rng_bernoulli  (rngStubsPtr-&gt;rng_bernoulli) /* 0 */
+#endif /* defined(USE_RNG_STUBS) */
+#endif /* rng_DECLS_H */
+</pre>
+</dd>
+<dt>&quot;<b class="file">rngStubLib.h</b>&quot;:</dt>
+<dd>
+<pre class="doctools_example">
+/*
+ * rngStubLib.c --
+ *
+ * Stub object that will be statically linked into extensions that wish
+ * to access rng.
+ */
+#ifndef USE_TCL_STUBS
+#define USE_TCL_STUBS
+#endif
+#undef  USE_TCL_STUB_PROCS
+#include &lt;tcl.h&gt;
+#ifndef USE_RNG_STUBS
+#define USE_RNG_STUBS
+#endif
+#undef  USE_RNG_STUB_PROCS
+#include &quot;rngDecls.h&quot;
+/*
+ * Ensure that Rng_InitStubs is built as an exported symbol.  The other stub
+ * functions should be built as non-exported symbols.
+ */
+#undef  TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS DLLEXPORT
+const RngStubs* rngStubsPtr;
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rng_InitStubs --
+ *
+ * Checks that the correct version of Rng is loaded and that it
+ * supports stubs. It then initialises the stub table pointers.
+ *
+ * Results:
+ *  The actual version of Rng that satisfies the request, or
+ *  NULL to indicate that an error occurred.
+ *
+ * Side effects:
+ *  Sets the stub table pointers.
+ *
+ *----------------------------------------------------------------------
+ */
+#ifdef Rng_InitStubs
+#undef Rng_InitStubs
+#endif
+char *
+Rng_InitStubs(Tcl_Interp *interp, CONST char *version, int exact)
+{
+    CONST char *actualVersion;
+    actualVersion = Tcl_PkgRequireEx(interp, &quot;rng&quot;, version,
+				     exact, (ClientData *) &amp;rngStubsPtr);
+    if (!actualVersion) {
+	return NULL;
+    }
+    if (!rngStubsPtr) {
+	Tcl_SetResult(interp,
+		      &quot;This implementation of Rng does not support stubs&quot;,
+		      TCL_STATIC);
+	return NULL;
+    }
+    return (char*) actualVersion;
+}
+</pre>
+</dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Examples</a></h2>
+<p>See section &quot;Embedding C&quot; in <i class="term">Using CriTcl</i>.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

@@ -1,0 +1,95 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+
+#ifndef CRITCL_variadic_int
+#define CRITCL_variadic_int
+
+	    /* NOTE: Array 'v' is allocated on the heap. The argument
+	    // release code is used to free it after the worker
+	    // function returned. Depending on type and what is done
+	    // by the worker it may have to make copies of the data.
+	    */
+
+	    typedef struct critcl_variadic_int {
+		Tcl_Obj** o; /* Original object array */
+		int       c; /* Element count */
+		int*   v; /* Allocated array of the elements */
+	    } critcl_variadic_int;
+
+	    static int
+	    _critcl_variadic_int_item (Tcl_Interp* interp, Tcl_Obj* src, int* dst) {
+			{
+	if (Tcl_GetIntFromObj(interp, src, dst) != TCL_OK) return TCL_ERROR; }
+		return TCL_OK;
+	    }
+	
+#endif /* CRITCL_variadic_int _________ */
+
+static void c__aproc0(int has_x, int x, int y, critcl_variadic_int args)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  int _has_x = 0;
+  int _x;
+  int _y;
+  critcl_variadic_int _args;
+  int idx_;
+  int argc_;
+
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if (oc < 2) {
+    Tcl_WrongNumArgs(interp, 1, ov, "?x? y ?args...?");
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  idx_  = 1;
+  argc_ = oc - 1;
+
+  /* (int x, optional, default -1) - - -- --- ----- -------- */
+  if (argc_ > 2) {
+	{
+	if (Tcl_GetIntFromObj(interp, ov[idx_], &_x) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp); }
+    idx_++;
+    argc_--;
+    _has_x = 1;
+  } else {
+    _x = -1;
+  }
+
+
+  /* (int y) - - -- --- ----- -------- */
+	{
+	if (Tcl_GetIntFromObj(interp, ov[idx_], &_y) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp); }
+
+  idx_++;
+  argc_--;
+
+
+  /* (int args, ...) - - -- --- ----- -------- */
+	{
+	int src, dst, leftovers = argc_;
+	    _args.c = leftovers;
+	    _args.v = (int*) ((!leftovers) ? 0 : ckalloc (leftovers * sizeof (int)));
+	    _args.o = (Tcl_Obj**) &ov[idx_];
+	    for (src = idx_, dst = 0; leftovers > 0; dst++, src++, leftovers--) {
+	       if (_critcl_variadic_int_item (interp, ov[src], &(_args.v[dst])) != TCL_OK) {
+		   ckfree ((char*) _args.v); /* Cleanup partial work */
+		   return critcl_trace_cmd_result (TCL_ERROR, interp);
+	       }
+	    } }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_has_x, _x, _y, _args);
+
+  /* (Release: int args, ...) - - -- --- ----- -------- */
+	    if (_args.c) { ckfree ((char*) _args.v); }
+	
+  /* (void return) - - -- --- ----- -------- */
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

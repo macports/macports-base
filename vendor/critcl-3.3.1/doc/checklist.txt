@@ -1,0 +1,20 @@
+When releasing:
+
+  - Run the test suite.
+
+  - Run the examples.
+
+  - Bump version in `doc/version.inc`.
+
+  - If necessary, further bump:
+      - The versions of `package provide/ifneeded` in files:
+          - `lib/critcl-app/pkgindex.tcl`
+          - `lib/critcl/pkgindex.tcl`
+          - `lib/critcl/critcl.tcl`
+      - The version in `doc/pkg_version.inc`.
+
+  - Regenerate the embedded documentation.
+
+  - Commit
+
+  - Push

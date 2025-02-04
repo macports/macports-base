@@ -1,0 +1,267 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl_tcl9 - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_tcl9.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl_tcl9.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl_tcl9(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl_tcl9 - How To Adapt Critcl Packages for Tcl 9</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Additional References</a></li>
+<li class="doctools_section"><a href="#section3">Authors</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This guide contains notes and actions to take by writers of <i class="term"><a href="critcl.html">CriTcl</a></i>-based
+packages to make their code workable for both Tcl 8.6 and 9.</p>
+<ol class="doctools_enumerated">
+<li><p>Generally, if there is no interest in moving to Tcl 9, i.e. Tcl 8.[456]
+       are the only supported runtimes, then just keep using <i class="term"><a href="critcl.html">CriTcl</a></i> <b class="const">3.2</b>.</p>
+<p>The remainder of this document can be ignored.</p></li>
+<li><p>Use <i class="term"><a href="critcl.html">CriTcl</a></i> version 3.3.1 <em>if, and only if</em>
+       Tcl 9 support is wanted.</p>
+<p>With some work this will then also provide backward compatibility with Tcl 8.6.</p></li>
+<li><p>Header &quot;<b class="file">tcl.h</b>&quot;</p>
+<p>Replace any inclusion of Tcl's public &quot;<b class="file">tcl.h</b>&quot; header file in the package's
+       C code with the inclusion of <i class="term"><a href="critcl.html">CriTcl</a></i>'s new header file &quot;<b class="file">tclpre9compat.h</b>&quot;.</p>
+<p>This includes &quot;<b class="file">tcl.h</b>&quot; and further provides a set of compatibility definitions
+       which make supporting both Tcl 8.6 and Tcl 9 in a single code base easier.</p>
+<p>The following notes assume that this compatibility layer is in place.</p></li>
+<li><p><b class="cmd">critcl::tcl</b></p>
+<p>Before <i class="term"><a href="critcl.html">CriTcl</a></i> 3.3.1 a single default (<b class="const">8.4</b>) was used for
+       the minimum Tcl version, to be overriden by an explicit <b class="cmd">critcl::tcl</b> in the
+       package code.</p>
+<p>Now the default is dynamic, based on the <em>runtime</em> version, i.e.
+       <b class="cmd">package provide Tcl</b>, <i class="term"><a href="critcl.html">CriTcl</a></i> is run with/on.</p>
+<p>When running on Tcl 9 the new default is version <b class="const">9</b>, and <b class="const">8.6</b> else.
+       <em>Note</em> how this other default was bumped up from <b class="const">8.4</b>.</p>
+<p>As a consequence it is possible to</p>
+<ol class="doctools_enumerated">
+<li><p>Support just Tcl 8.4+, 8.5+, by having an explicit <b class="cmd">critcl::tcl 8.x</b> in
+       the package code.</p>
+<p><em>Remember however</em>, it is better to simply stick with
+       <i class="term"><a href="critcl.html">CriTcl</a></i> <b class="const">3.2</b> for this.</p></li>
+<li><p>Support just Tcl 9 by having an explicit <b class="cmd">critcl::tcl 9</b> in the package code.</p></li>
+<li><p>Support both Tcl 8.6 and Tcl 9 (but not 8.4/8.5) by leaving <b class="cmd">critcl::tcl</b> out of the code
+       and using the proper <b class="syscmd">tclsh</b> version to run <i class="term"><a href="critcl.html">CriTcl</a></i> with.</p></li>
+</ol>
+</li>
+<li><p>Code checking</p>
+<p><i class="term"><a href="critcl.html">CriTcl</a></i> 3.3.1 comes with a very basic set of code checks pointing
+       out places where compatibility might or will be an issue.</p>
+<p>The implementation checks all inlined C code declared by <b class="cmd">critcl::ccode</b>,
+       <b class="cmd">critcl::ccommand</b>, <b class="cmd">critcl::cproc</b> (and related/derived commands), as well
+       as the C companion files declared with <b class="cmd">critcl::csources</b>.</p>
+<p>It is very basic because it simply greps the code line by line for a number
+       of patterns and reports on their presence. The C code is not fully parsed.
+       The check can and will report pattern found in C code comments, for example.</p>
+<p>The main patterns deal with functions affected by the change to <b class="type">Tcl_Size</b>,
+       the removal of old-style interpreter state handling, and command creation.</p>
+<p>A warning message is printed for all detections.</p>
+<p>This is disabled for the <b class="const">Tcl_Size</b>-related pattern if the line also matches
+       the pattern <b class="const">*OK tcl9*</b>.</p>
+<p>In this way all places in the code already handled can be marked and excluded
+       from the warnings.</p>
+<ol class="doctools_enumerated">
+<li><p>Interpreter State handling</p>
+<p>Tcl 9 removed the type <b class="type">Tcl_SavedResult</b> and its associated functions
+       <b class="function">Tcl_SaveResult</b>, <b class="function">Tcl_RestoreResult</b>, and <b class="function">Tcl_DiscardResult</b>.</p>
+<p>When a package uses this type and the related functions a rewrite is necessary.</p>
+<p>With Tcl 9 use of type <b class="type">Tcl_InterpState</b> and its functions
+       <b class="function">Tcl_SaveInterpState</b>, <b class="function">Tcl_RestoreInterpState</b>, and
+       <b class="function">Tcl_DiscardInterpState</b> is now required.</p>
+<p>As these were introduced with Tcl 8.5 the rewrite gives us compatibility with
+       Tcl 8.6 for free.</p></li>
+<li><p><b class="type">Tcl_Size</b></p>
+<p>One of the main changes introduced with Tcl 9 is the breaking of the 2G barrier
+       for the number of bytes in a string, elements in a list, etc.
+       In a lot of interfaces <b class="type">int</b> was replaced with <b class="type">Tcl_Size</b>, which is
+       effectively <b class="type">ptrdiff_t</b> behind the scenes.</p>
+<p>The &quot;<b class="file">tclpre9compat.h</b>&quot; header mentioned above provides a suitable definition
+       of <b class="type">Tcl_Size</b> for <b class="const">8.6</b>, i.e. maps it to <b class="type">int</b>.
+       This enables the package code to use <b class="type">Tcl_Size</b> everywhere and still have it
+       work for both Tcl 8.6 and 9.</p>
+<p>It is of course necessary to rewrite the package code to use <b class="type">Tcl_Size</b>.</p>
+<p>The checker reports all lines in the C code using a function whose signature
+       was changed to use <b class="type">Tcl_Size</b> over <b class="type">int</b>.</p>
+<p>Note that it is necessary to manually check the package code for places where
+       a <b class="const">%d</b> text formatting specification should be replaced with
+       <b class="const">TCL_SIZE_FMT</b>.</p>
+<p>I.e. all places where <b class="type">Tcl_Size</b> values are formatted with <b class="function">printf</b>-style
+       functions a formatting string</p>
+<pre class="doctools_example">&quot;... %d ...&quot;</pre>
+<p>has to be replaced with</p>
+<pre class="doctools_example">&quot;... &quot; TCL_SIZE_FMT &quot; ...&quot;</pre>
+<p>The macro <b class="cmd">TCL_SIZE_FMT</b> is defined by Critcl's compatibility layer, as an
+       extension of the <b class="cmd">TCL_SIZE_MODIFIER</b> macro which only contains the
+       formatting modifier to insert into a plain <b class="const">%d</b> to handle <b class="type">Tcl_Size</b>
+       values.</p>
+<p><em>Note</em> how the original formatting string is split into multiple strings.
+       The C compiler will fuse these back together into a single string.</p></li>
+<li><p>Command creation.</p>
+<p>This is technically a part of the <b class="type">Tcl_Size</b> changes.</p>
+<p>All places using <b class="function">Tcl_CreateObjCommand</b> have to be rewritten to use
+       <b class="function">Tcl_CreateObjCommand2</b> instead, and the registered command functions
+       to use <b class="type">Tcl_Size</b> for their <i class="arg">objc</i> argument.</p>
+<p>The &quot;<b class="file">tclpre9compat.h</b>&quot; header maps this back to the old function
+       when compilation is done against Tcl 8.6.</p>
+<p><i class="term"><a href="critcl.html">CriTcl</a></i> does this itself for the commands created via <b class="cmd">critcl::ccommand</b>,
+       <b class="cmd">critcl::cproc</b>, and derived places (<b class="package"><a href="critcl_class.html">critcl::class</a></b>).</p></li>
+<li><p>TIP 494. This TIP adds three semantic constants wrapping <b class="const">-1</b> to Tcl 9 to
+       make the meaning of code clearer. As part of this it also casts the constant to the
+       proper type. They are:</p>
+<ul class="doctools_itemized">
+<li><p><b class="const">TCL_IO_FAILURE</b></p></li>
+<li><p><b class="const">TCL_AUTO_LENGTH</b></p></li>
+<li><p><b class="const">TCL_INDEX_NONE</b></p></li>
+</ul>
+<p>Critcl's compatibility layer provides the same constants to Tcl 8.6.</p>
+<p>Critcl's new checker highlights places where <b class="const">TCL_AUTO_LENGTH</b> is suitable.</p>
+<p>Doing this for the other two constants looks to require deeper and proper parsing
+       of C code, which the checker does not do.</p></li>
+</ol>
+</li>
+</ol>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Additional References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="https://wiki.tcl-lang.org/page/Porting+extensions+to+Tcl+9">https://wiki.tcl-lang.org/page/Porting+extensions+to+Tcl+9</a></p></li>
+<li><p><a href="https://wiki.tcl-lang.org/page/Tcl+9+functions+using+Tcl%5FSize">https://wiki.tcl-lang.org/page/Tcl+9+functions+using+Tcl%5FSize</a></p></li>
+<li><p><a href="https://core.tcl-lang.org/tcl/wiki?name=Migrating%20scripts%20to%20Tcl%209">https://core.tcl-lang.org/tcl/wiki?name=Migrating%20scripts%20to%20Tcl%209</a></p></li>
+<li><p><a href="https://core.tcl-lang.org/tcl/wiki?name=Migrating%20C%20extensions%20to%20Tcl%209">https://core.tcl-lang.org/tcl/wiki?name=Migrating%20C%20extensions%20to%20Tcl%209</a></p></li>
+</ol>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

@@ -1,0 +1,172 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset enum_version 1.2]
+[manpage_begin critcl::enum n [vset enum_version]]
+[include include/module2.inc]
+[keywords singleton {Tcl Interp Association}]
+[keywords {string pool} {literal pool}]
+[keywords {string to int mapping} conversion]
+[keywords {int to string mapping}]
+[titledesc {CriTcl - Wrap Support - String/Integer mapping}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::enum [opt [vset enum_version]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the
+[package critcl::enum] package. This package provides convenience
+commands for advanced functionality built on top of both critcl core
+and package [package critcl::literals].
+
+[para] It is an extended form of string pool which not only converts
+integer values into Tcl-level strings, but also handles the reverse
+direction, converting from strings to the associated integer values.
+
+[para] It essentially provides a bi-directional mapping between a C
+enumeration type and a set of strings, one per enumeration value.
+
+[emph Note] that the C enumeration in question is created by the
+definition. It is not possible to use the symbols of an existing
+enumeration type.
+
+[para] This package was written to make the declaration and management
+of such mappings easy. It uses a string pool for one of the directions,
+using its ability to return shared literals and conserve memory.
+
+[para] Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.
+
+[para] This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::critcl::enum::def] [arg name] [arg definition] [opt [arg mode]]]
+
+This command defines two C functions for the conversion between
+C values and Tcl_Obj'ects, with named derived from [arg name].
+
+[para] The [arg definition] dictionary provides the mapping from the
+specified C-level symbolic names to the strings themselves.
+
+[para]
+The [arg mode]-list configures the output somewhat.
+The two allowed modes are [const +list] and [const tcl].
+All modes can be used together.
+The default mode is [const tcl].
+Using mode [const +list] implies [const tcl] as well.
+
+[para] For mode [const tcl] the new function has two arguments, a
+[type Tcl_Interp*] pointer refering to the interpreter holding the
+string pool, and a code of type "[arg name]_pool_names" (see below),
+the symbolic name of the string to return. The result of the function
+is a [type Tcl_Obj*] pointer to the requested string constant.
+
+[para] For mode [const +list] all of [const tcl] applies, plus an
+additional function is generated which takes three arguments, in
+order: a [type Tcl_Interp*] pointer refering to the interpreter
+holding the string pool, an [type int] holding the size of the last
+argument, and an array of type "[arg name]_pool_names" holding the
+codes (see below), the symbolic names of the strings to return. The
+result of the function is a [type Tcl_Obj*] pointer to a Tcl list
+holding the requested string constants.
+
+[para] The underlying string pool is automatically initialized on
+first access, and finalized on interpreter destruction.
+
+[para] The package generates multiple things (declarations and
+definitions) with names derived from [arg name], which has to be a
+proper C identifier.
+
+[list_begin definitions]
+[def [arg name]_pool_names]
+The C enumeration type containing the specified symbolic names.
+
+[def [arg name]_ToObj]
+The function converting from integer value to Tcl string.
+
+Its signature is
+[para][example_begin]
+Tcl_Obj* [arg name]_ToObj (Tcl_Interp* interp, [arg name]_names literal);
+[example_end]
+
+[def [arg name]_ToObjList]
+The mode [const +list] function converting from integer array to Tcl
+list of strings.
+
+Its signature is
+[para][example_begin]
+Tcl_Obj* [arg name]_ToObjList (Tcl_Interp* interp, int c, [arg name]_names* literal);
+[example_end]
+
+[def [arg name]_GetFromObj]
+The function converting from Tcl string to integer value.
+
+Its signature is
+[para][example_begin]
+int [arg name]_GetFromObj (Tcl_Interp* interp, Tcl_Obj* obj, int flags, int* literal);
+[example_end]
+
+The [arg flags] are like for [fun Tcl_GetIndexFromObj].
+
+[def [arg name].h]
+
+A header file containing the declarations for the converter functions,
+for use by other parts of the system, if necessary.
+
+[para] The generated file is stored in a place where it will not
+interfere with the overall system outside of the package, yet also be
+available for easy inclusion by package files ([cmd csources]).
+
+[def [arg name]]
+At the level of critcl itself the command registers a new result-type
+for [cmd critcl::cproc], which takes an integer result from the function
+and converts it to the equivalent string in the pool for the script.
+
+[def [arg name]]
+At the level of critcl itself the command registers a new argument-type
+for [cmd critcl::cproc], which takes a Tcl string and converts it to the
+equivalent integer for delivery to the function.
+
+[list_end]
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Example]
+
+The example shown below is the specification for a set of actions, methods,
+and the like, a function may take as argument.
+
+[example {
+package require Tcl 8.6
+package require critcl 3.2
+
+critcl::buildrequirement {
+    package require critcl::enum
+}
+
+critcl::enum::def action {
+    w_create	"create"
+    w_directory	"directory"
+    w_events	"events"
+    w_file	"file"
+    w_handler	"handler"
+    w_remove	"remove"
+}
+
+# Declarations: action.h
+# Type:         action_names
+# Accessor:     Tcl_Obj* action_ToObj (Tcl_Interp* interp, int literal);
+# Accessor:     int action_GetFromObj (Tcl_Interp* interp, Tcl_Obj* o, int flags, int* literal);
+# ResultType:   action
+# ArgType:      action
+}]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

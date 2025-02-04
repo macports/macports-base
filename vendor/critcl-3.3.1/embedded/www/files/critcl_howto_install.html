@@ -1,0 +1,348 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl_howto_install - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_howto_install.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl_howto_install.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl_howto_install(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl_howto_install - How To Install CriTcl</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Install The Requisites</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Install A Working C Compiler</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Install A Working Tcl Shell</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Install Supporting Tcl Packages</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Install The CriTcl Packages</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection4">Install On Unix</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Install On Windows</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Test The Installation</a></li>
+<li class="doctools_section"><a href="#section5">Authors</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p><i class="term"><a href="critcl.html">CriTcl</a></i> is installed in four major steps:</p>
+<ol class="doctools_enumerated">
+<li><p><span class="sectref"><a href="#section2">Install The Requisites</a></span></p></li>
+<li><p>Follow the instructions on <i class="term"><a href="critcl_howto_sources.html">How To Get The CriTcl Sources</a></i></p></li>
+<li><p><span class="sectref"><a href="#section3">Install The CriTcl Packages</a></span></p></li>
+<li><p><span class="sectref"><a href="#section4">Test The Installation</a></span></p></li>
+</ol>
+<p>It is now possible to follow the instructions on <i class="term"><a href="critcl_howto_use.html">How To Use CriTcl</a></i>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Install The Requisites</a></h2>
+<p>This major step breaks down into three minor steps:</p>
+<ol class="doctools_enumerated">
+<li><p><span class="sectref"><a href="#subsection1">Install A Working C Compiler</a></span> and development environment.</p></li>
+<li><p><span class="sectref"><a href="#subsection2">Install A Working Tcl Shell</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection3">Install Supporting Tcl Packages</a></span></p></li>
+</ol>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Install A Working C Compiler</a></h3>
+<p>While <i class="term"><a href="critcl.html">CriTcl</a></i> requires a working C compiler to both install itself, and to process
+<i class="term"><a href="critcl.html">CriTcl</a></i>-based packages installing such is very much out of scope for this document.</p>
+<p>Please follow the instructions for the platform and system <i class="term"><a href="critcl.html">CriTcl</a></i> is to be
+installed on.</p>
+<p>The important pieces of information are this:</p>
+<ol class="doctools_enumerated">
+<li><p>The path to the directory containing the C compiler binary has to be listed in the
+       environment variable <b class="variable">PATH</b>, for <i class="term"><a href="critcl.html">CriTcl</a></i> to find it.</p></li>
+<li><p>On Windows(tm) the environment variable <b class="variable">LIB</b> has to be present and contain the
+       paths of the directories holding Microsoft's libraries. The standard <i class="term"><a href="critcl.html">CriTcl</a></i>
+       configuration for this platform searches these paths to fine-tune its settings
+       based on available libraries and compiler version.</p></li>
+</ol>
+<p>Links of interest:</p>
+<dl class="doctools_definitions">
+<dt><a href="http://www.tldp.org/HOWTO/HOWTO-INDEX/programming.html">http://www.tldp.org/HOWTO/HOWTO-INDEX/programming.html</a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Install A Working Tcl Shell</a></h3>
+<p>That a working installation of <i class="term"><a href="critcl.html">CriTcl</a></i> will require a working installation of
+<a href="http://core.tcl-lang.org/tcl">Tcl</a> should be obvious.</p>
+<p>Installing Tcl however is out of scope here, same as for installing a working C
+compiler.</p>
+<p>There are too many options, starting from
+<a href="http://core.tcl-lang.org/tcl">building it from scratch</a>, installing what is provided
+by the platform's package manager (<a href="https://en.opensuse.org/Portal:Zypper">zypper</a>, <a href="https://access.redhat.com/solutions/9934">yum</a>, <a href="https://help.ubuntu.com/community/AptGet/Howto">apt-get</a>, and more),
+to using some vendor's <a href="https://core.tcl-lang.org/dist.html">distribution</a>.</p>
+<p>A single piece of advice however.</p>
+<p>While <i class="term"><a href="critcl.html">CriTcl</a></i> currently supports running on Tcl 8.4 and higher, and the
+creation of packages for the same, the last release for this version was in 2013 (9 years
+ago at the time of writing). Similarly, the last release for Tcl 8.5 was in 2016 (6 years
+ago). Both are official end of life.</p>
+<p>Given this I recommend to install and use Tcl 8.6.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Install Supporting Tcl Packages</a></h3>
+<p>The implementation of <i class="term"><a href="critcl.html">CriTcl</a></i> uses and depends on</p>
+<ol class="doctools_enumerated">
+<li><p><b class="package">cmdline</b></p></li>
+</ol>
+<p>Depending on how Tcl was installed this package may be available already without
+action, or not.
+Invoke the command</p>
+<pre class="doctools_example">
+    echo 'puts [package require cmdline]' | tclsh
+</pre>
+<p>to check if the package is present or not. If it is present then its version number will
+be printed, else the error message <b class="const">can't find package cmdline</b> or similar.</p>
+<p>If it is not present install the package as per the instructions for the chosen Tcl
+installation.</p>
+<p><em>Note</em>, the package <b class="package">cmdline</b> may not exist as its own installable
+package. In such a case check if the chosen Tcl installation provides a <b class="package">tcllib</b>
+package and install that. This should install all the packages in the Tcllib bundle,
+including <b class="package">cmdline</b>.</p>
+<p>As a last fallback, go to <a href="http://core.tcl-lang.org/tcllib">Tclib</a> and follow the instructions to install
+the bundle from scratch.</p>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Install The CriTcl Packages</a></h2>
+<p>Note that this step has different instructions dependent on the platform <i class="term"><a href="critcl.html">CriTcl</a></i> is
+to be installed on. In other words, only one of the sub sections applies, the other can be
+ignored.</p>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Install On Unix</a></h3>
+<p>This section offers instructions for installing <i class="term"><a href="critcl.html">CriTcl</a></i> on various kinds of Unix and
+Unix-related systems, i.e. <i class="term">Linux</i>, the various <i class="term">BSD</i>s, etc. It especially
+covers <i class="term">Mac OS X</i> as well.</p>
+<p>Use the instructions in section <span class="sectref"><a href="#subsection5">Install On Windows</a></span> when installing on a
+Windows platform and not using a unix-like environment as provided by tools like
+<a href="https://www.mingw-w64.org">MinGW</a>, <a href="https://www.cygwin.com/">CygWin</a>, <a href="https://gitforwindows.org">Git For Windows</a>, <a href="https://docs.microsoft.com/en-us/windows/wsl/faq">WSL</a>, etc.</p>
+<ol class="doctools_enumerated">
+<li><p>Change the working directory to the top level directory of the <i class="term"><a href="critcl.html">CriTcl</a></i>
+checkout obtained by following the instructions of <i class="term"><a href="critcl_howto_sources.html">How To Get The CriTcl Sources</a></i>.</p></li>
+<li><p>Verify that the file &quot;<b class="file">build.tcl</b>&quot; is marked executable. Make it executable if
+it is not.</p></li>
+<li><p>Invoke</p>
+<pre class="doctools_example"> ./build.tcl install </pre>
+<p>to perform the installation.</p>
+<p><em>Attention</em> This command uses default locations for the placement of the
+<b class="cmd"><a href="critcl.html">critcl</a></b> application, the various packages, and header files.</p></li>
+<li><p>Invoke</p>
+<pre class="doctools_example"> ./build.tcl dirs </pre>
+<p>to see the chosens paths before actually
+performing the installation.</p></li>
+<li><p>Use the options listed below to change the paths used for installation as desired. This is
+the same method as with <b class="cmd">configure</b> based packages.</p>
+<dl class="doctools_options">
+<dt><b class="option">--prefix</b> <i class="arg">path</i></dt>
+<dd><p>Base path for non-package files.</p></dd>
+<dt><b class="option">--include-dir</b> <i class="arg">path</i></dt>
+<dd><p>Destination path for header files.</p></dd>
+<dt><b class="option">--exec-prefix</b> <i class="arg">path</i></dt>
+<dd><p>Base path for applications and packages.</p></dd>
+<dt><b class="option">--bin-dir</b> <i class="arg">path</i></dt>
+<dd><p>Destination path for applications.</p></dd>
+<dt><b class="option">--lib-dir</b> <i class="arg">path</i></dt>
+<dd><p>Destination path for packages.</p></dd>
+</dl>
+<p>These options are especially necessary in all environments not using the semi-standard
+&quot;<b class="file">bin</b>&quot;, &quot;<b class="file">lib</b>&quot;, &quot;<b class="file">include</b>&quot; locations from <b class="syscmd">configure</b>.</p>
+<p>As an example of such environments, Ubuntu (and possibly Debian) expect Tcl
+packages to be installed into the &quot;<b class="file">/usr/share/tcltk</b>&quot; directory, therefore requiring
+the use of</p>
+<pre class="doctools_example">--lib-dir /usr/share/tcltk</pre>
+<p>for proper installation.</p></li>
+</ol>
+<p><em>Note</em> that this guide neither covers the details of the <b class="method">install</b>
+method, nor does it cover any of the other methods available through the <b class="cmd">build.tcl</b>
+tool of <i class="term"><a href="critcl.html">CriTcl</a></i>.
+These can be found in the <i class="term"><a href="critcl_build.html">CriTcl build.tcl Tool Reference</a></i>.</p>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Install On Windows</a></h3>
+<p>This section offers instructions for installing <i class="term"><a href="critcl.html">CriTcl</a></i> on a Windows (tm) host.
+<em>Note</em> that environments as provided by tools like <a href="https://www.mingw-w64.org">MinGW</a>, <a href="https://www.cygwin.com/">CygWin</a>,
+<a href="https://gitforwindows.org">Git For Windows</a>, <a href="https://docs.microsoft.com/en-us/windows/wsl/faq">WSL</a>, etc. are classed as Unix-like, and the instructions in section
+<span class="sectref"><a href="#subsection4">Install On Unix</a></span> apply.</p>
+<ol class="doctools_enumerated">
+<li><p>In a DOS box, change the working directory to the top level directory of the
+<i class="term"><a href="critcl.html">CriTcl</a></i> checkout obtained by following the instructions of
+<i class="term"><a href="critcl_howto_sources.html">How To Get The CriTcl Sources</a></i>.</p></li>
+<li><p>In the same DOS box, invoke</p>
+<pre class="doctools_example"> tclsh.exe ./build.tcl install </pre>
+<p>to perform
+the installation.</p>
+<p><em>Attention</em> This command uses default locations for the placement of the
+<b class="cmd"><a href="critcl.html">critcl</a></b> application, the various packages, and header files.</p></li>
+<li><p>Invoke</p>
+<pre class="doctools_example"> tclsh.exe ./build.tcl dirs </pre>
+<p>to see the chosens paths before
+actually performing the installation.</p></li>
+<li><p>Use the options listed below to change the paths used for installation as desired. This is
+the same method as with <b class="cmd">configure</b> based packages.</p>
+<dl class="doctools_options">
+<dt><b class="option">--prefix</b> <i class="arg">path</i></dt>
+<dd><p>Base path for non-package files.</p></dd>
+<dt><b class="option">--include-dir</b> <i class="arg">path</i></dt>
+<dd><p>Destination path for header files.</p></dd>
+<dt><b class="option">--exec-prefix</b> <i class="arg">path</i></dt>
+<dd><p>Base path for applications and packages.</p></dd>
+<dt><b class="option">--bin-dir</b> <i class="arg">path</i></dt>
+<dd><p>Destination path for applications.</p></dd>
+<dt><b class="option">--lib-dir</b> <i class="arg">path</i></dt>
+<dd><p>Destination path for packages.</p></dd>
+</dl>
+</li>
+</ol>
+<p><em>Attention!</em> The current installer does not put an extension on the
+<b class="syscmd"><a href="critcl.html">critcl</a></b> application. This forces users to either explicitly choose the
+<b class="syscmd">tclsh</b> to run the application, or manually rename the installed file to
+&quot;<b class="file">critcl.tcl</b>&quot;. The latter assumes that an association for &quot;<b class="file">.tcl</b>&quot; is available, to
+either <b class="syscmd">tclsh</b>, or <b class="syscmd">wish</b>.</p>
+<p><em>Note</em> that this guide neither covers the details of the <b class="method">install</b>
+method, nor does it cover any of the other methods available through the <b class="cmd">build.tcl</b>
+tool of <i class="term"><a href="critcl.html">CriTcl</a></i>.
+These can be found in the <i class="term"><a href="critcl_build.html">CriTcl build.tcl Tool Reference</a></i>.</p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Test The Installation</a></h2>
+<p>Installing <i class="term"><a href="critcl.html">CriTcl</a></i> contains an implicit test of its functionality.</p>
+<p>One of its operation modes uses the MD5 hash internally to generate unique ids for
+sources, as a means of detecting changes. To make generation of such hashes fast a
+<i class="term"><a href="critcl.html">CriTcl</a></i>-based package for MD5 is installed as part of the main installation process.</p>
+<p>In other words, after installing the core packages of <i class="term"><a href="critcl.html">CriTcl</a></i> this partial
+installation is used to build the rest.</p>
+<p>This is possible because building a package from <i class="term"><a href="critcl.html">CriTcl</a></i>-based sources is the
+operation mode not using MD5, therefore there is no circular dependency.</p>
+<p>For our purposes this however is also a self-test of the system, verifying that the
+core of <i class="term"><a href="critcl.html">CriTcl</a></i> works, as well as the C compiler.</p>
+<p>For additional testing simply move on to section <b class="sectref">The First Package</b> of
+the guide on <i class="term"><a href="critcl_howto_use.html">How To Use CriTcl</a></i>.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

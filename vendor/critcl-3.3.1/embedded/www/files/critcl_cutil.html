@@ -1,0 +1,484 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl::cutil - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_cutil.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl::cutil.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl::cutil(n) 0.3 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl::cutil - CriTcl - C-level Utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Allocation</a></li>
+<li class="doctools_section"><a href="#section4">Assertions</a></li>
+<li class="doctools_section"><a href="#section5">Tracing</a></li>
+<li class="doctools_section"><a href="#section6">Authors</a></li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.2?</span></b></li>
+<li>package require <b class="pkgname">critcl::cutil <span class="opt">?0.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::cutil::alloc</b></a></li>
+<li><a href="#2"><b class="cmd">::critcl::cutil::assertions</b> <span class="opt">?<i class="arg">enable</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::critcl::cutil::tracer</b> <span class="opt">?<i class="arg">enable</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">type* ALLOC (type)</b></a></li>
+<li><a href="#5"><b class="cmd">type* ALLOC_PLUS (type, int n)</b></a></li>
+<li><a href="#6"><b class="cmd">type* NALLOC (type, int n)</b></a></li>
+<li><a href="#7"><b class="cmd">type* REALLOC (type* var, type, int n)</b></a></li>
+<li><a href="#8"><b class="cmd">void FREE (type* var)</b></a></li>
+<li><a href="#9"><b class="cmd">void STREP (Tcl_Obj* o, char* s, int len)</b></a></li>
+<li><a href="#10"><b class="cmd">void STREP_DS (Tcl_Obj* o, Tcl_DString* ds)</b></a></li>
+<li><a href="#11"><b class="cmd">void STRDUP (varname, char* str)</b></a></li>
+<li><a href="#12"><b class="cmd">void ASSERT (expression, char* message</b></a></li>
+<li><a href="#13"><b class="cmd">void ASSERT_BOUNDS (int index, int size)</b></a></li>
+<li><a href="#14"><b class="cmd">void STOPAFTER(n)</b></a></li>
+<li><a href="#15"><b class="cmd">TRACE_ON</b></a></li>
+<li><a href="#16"><b class="cmd">TRACE_OFF</b></a></li>
+<li><a href="#17"><b class="cmd">TRACE_TAG_ON  (identifier)</b></a></li>
+<li><a href="#18"><b class="cmd">TRACE_TAG_OFF (identifier)</b></a></li>
+<li><a href="#19"><b class="cmd">void TRACE_FUNC</b></a></li>
+<li><a href="#20"><b class="cmd">void TRACE_TAG_FUNC (tag)</b></a></li>
+<li><a href="#21"><b class="cmd">void TRACE_FUNC_VOID</b></a></li>
+<li><a href="#22"><b class="cmd">void TRACE_TAG_FUNC_VOID (tag)</b></a></li>
+<li><a href="#23"><b class="cmd">void TRACE_RETURN_VOID</b></a></li>
+<li><a href="#24"><b class="cmd">void TRACE_TAG_RETURN_VOID (tag)</b></a></li>
+<li><a href="#25"><b class="cmd">any TRACE_RETURN     (     char* format, any x)</b></a></li>
+<li><a href="#26"><b class="cmd">any TRACE_TAG_RETURN (tag, char* format, any x)</b></a></li>
+<li><a href="#27"><b class="cmd">void TRACE     (     char* format, ...)</b></a></li>
+<li><a href="#28"><b class="cmd">void TRACE_TAG (tag, char* format, ...)</b></a></li>
+<li><a href="#29"><b class="cmd">void TRACE_HEADER (int indent)</b></a></li>
+<li><a href="#30"><b class="cmd">void TRACE_TAG_HEADER (tag, int indent)</b></a></li>
+<li><a href="#31"><b class="cmd">void TRACE_CLOSER</b></a></li>
+<li><a href="#32"><b class="cmd">void TRACE_TAG_CLOSER (tag)</b></a></li>
+<li><a href="#33"><b class="cmd">void TRACE_ADD          (const char* format, ...)</b></a></li>
+<li><a href="#34"><b class="cmd">void TRACE_TAG_ADD (tag, const char* format, ...)</b></a></li>
+<li><a href="#35"><b class="cmd">void TRACE_PUSH_SCOPE (const char* name)</b></a></li>
+<li><a href="#36"><b class="cmd">void TRACE_PUSH_FUNC</b></a></li>
+<li><a href="#37"><b class="cmd">void TRACE_PUSH_POP</b></a></li>
+<li><a href="#38"><b class="cmd">TRACE_TAG_VAR (tag)</b></a></li>
+<li><a href="#39"><b class="cmd">TRACE_RUN (code);</b></a></li>
+<li><a href="#40"><b class="cmd">TRACE_DO (code);</b></a></li>
+<li><a href="#41"><b class="cmd">TRACE_TAG_DO (tag, code);</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is the reference manpage for the <b class="package">critcl::cutil</b>
+package. This package encapsulates a number of C-level utilites for
+easier writing of memory allocations, assertions, and narrative tracing
+and provides convenience commands to make these utilities accessible
+to critcl projects.
+Its intended audience are mainly developers wishing to write Tcl
+packages with embedded C code.</p>
+<p>This package resides in the Core Package Layer of CriTcl.</p>
+<p><img alt="arch_core" src="../image/arch_core.png"></p>
+<p>The reason for this is that the main <b class="package"><a href="critcl.html">critcl</a></b> package makes
+use of the facilities for narrative tracing when
+<b class="cmd">critcl::config trace</b> is set, to instrument commands and
+procedures.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::cutil::alloc</b></a></dt>
+<dd><p>This command provides a number C-preprocessor macros which make the
+writing of memory allocations for structures and arrays of structures
+easier.</p>
+<p>When run the header file &quot;<b class="file">critcl_alloc.h</b>&quot; is directly made
+available to the &quot;<b class="file">.critcl</b>&quot; file containing the command, and
+becomes available for use in <b class="cmd">#include</b> directives of companion
+C code declared via <b class="cmd">critcl::csources</b>.</p>
+<p>The macros definitions and their signatures are:</p>
+<pre class="doctools_example">
+    type* ALLOC (type)
+    type* ALLOC_PLUS (type, int n)
+    type* NALLOC (type, int n)
+    type* REALLOC (type* var, type, int n)
+    void  FREE (type* var)
+    void STREP    (Tcl_Obj* o, char* s, int len);
+    void STREP_DS (Tcl_Obj* o, Tcl_DString* ds);
+    void STRDUP   (varname, char* str);
+</pre>
+<p>The details of the semantics are explained in section
+<span class="sectref"><a href="#section3">Allocation</a></span>.</p>
+<p>The result of the command is an empty string.</p></dd>
+<dt><a name="2"><b class="cmd">::critcl::cutil::assertions</b> <span class="opt">?<i class="arg">enable</i>?</span></a></dt>
+<dd><p>This command provides a number C-preprocessor macros for the writing
+of assertions in C code.</p>
+<p>When invoked the header file &quot;<b class="file">critcl_assert.h</b>&quot; is directly
+made available to the &quot;<b class="file">.critcl</b>&quot; file containing the command, and
+becomes available for use in <b class="cmd">#include</b> directives of companion
+C code declared via <b class="cmd">critcl::csources</b>.</p>
+<p>The macro definitions and their signatures are</p>
+<pre class="doctools_example">
+    void ASSERT (expression, char* message);
+    void ASSERT_BOUNDS (int index, int size);
+    void STOPAFTER (int n);
+</pre>
+<p>Note that these definitions are conditional on the existence of
+the macro <b class="const">CRITCL_ASSERT</b>. 
+Without a <b class="cmd">critcl::cflags -DCRITCL_ASSERT</b> all assertions in the
+C code are quiescent and not compiled into the object file. In other
+words, assertions can be (de)activated at will during build time, as
+needed by the user.</p>
+<p>For convenience this is controlled by <i class="arg">enable</i>. By default
+(<b class="const">false</b>) the facility available, but not active.
+Using <b class="const">true</b> not only makes it available, but activates it as
+well.</p>
+<p>The details of the semantics are explained in section
+<span class="sectref"><a href="#section4">Assertions</a></span>.</p>
+<p>The result of the command is an empty string.</p></dd>
+<dt><a name="3"><b class="cmd">::critcl::cutil::tracer</b> <span class="opt">?<i class="arg">enable</i>?</span></a></dt>
+<dd><p>This command provides a number C-preprocessor macros for tracing
+C-level internals.</p>
+<p>When invoked the header file &quot;<b class="file">critcl_trace.h</b>&quot; is directly
+made available to the &quot;<b class="file">.critcl</b>&quot; file containing the command, and
+becomes available for use in <b class="cmd">#include</b> directives of companion
+C code declared via <b class="cmd">critcl::csources</b>. Furthermore the &quot;<b class="file">.c</b>&quot;
+file containing the runtime support is added to the set of C companion
+files</p>
+<p>The macro definitions and their signatures are</p>
+<pre class="doctools_example">
+    /* (de)activation of named logical streams.
+     * These are declarators, not statements.
+     */
+    TRACE_ON;
+    TRACE_OFF;
+    TRACE_TAG_ON  (tag_identifier);
+    TRACE_TAG_OFF (tag_identifier);
+    /*
+     * Higher level trace statements (convenience commands)
+     */
+    void TRACE_FUNC   (const char* format, ...);
+    void TRACE_FUNC_VOID;
+    any  TRACE_RETURN (const char* format, any x);
+    void TRACE_RETURN_VOID;
+    void TRACE (const char* format, ...);
+    /*
+     * Low-level trace statements the higher level ones above
+     * are composed from. Scope management and output management.
+     */
+    void TRACE_PUSH_SCOPE (const char* scope);
+    void TRACE_PUSH_FUNC;
+    void TRACE_POP;
+    void TRACE_HEADER (int indent);
+    void TRACE_ADD (const char* format, ...);
+    void TRACE_CLOSER;
+    /*
+     * Convert tag to the underlying status variable.
+     */
+    TRACE_TAG_VAR (tag)
+    /*
+     * Conditional use of arbitrary code.
+     */
+    TRACE_RUN (code);
+    TRACE_DO (code);
+    TRACE_TAG_DO (code);
+</pre>
+<p>Note that these definitions are conditional on the existence of
+the macro <b class="const">CRITCL_TRACER</b>. 
+Without a <b class="cmd">critcl::cflags -DCRITCL_TRACER</b> all trace
+functionality in the C code is quiescent and not compiled into the
+object file. In other words, tracing can be (de)activated at will
+during build time, as needed by the user.</p>
+<p>For convenience this is controlled by <i class="arg">enable</i>. By default
+(<b class="const">false</b>) the facility available, but not active.
+Using <b class="const">true</b> not only makes it available, but activates it as
+well.
+Further note that the command <b class="cmd">critcl::config</b> now accepts a
+boolean option <b class="const">trace</b>. Setting it activates enter/exit tracing
+in all commands based on <b class="cmd">critcl::cproc</b>, with proper printing of
+arguments and results. This implicitly activates the tracing facility
+in general.</p>
+<p>The details of the semantics are explained in section
+<span class="sectref"><a href="#section5">Tracing</a></span></p>
+<p>The result of the command is an empty string.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Allocation</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">type* ALLOC (type)</b></a></dt>
+<dd><p>This macro allocates a single element of the given <i class="arg">type</i> and
+returns a pointer to that memory.</p></dd>
+<dt><a name="5"><b class="cmd">type* ALLOC_PLUS (type, int n)</b></a></dt>
+<dd><p>This macro allocates a single element of the given <i class="arg">type</i>, plus an
+additional <i class="arg">n</i> bytes after the structure and returns a pointer to
+that memory.</p>
+<p>This is for variable-sized structures of. An example of such
+could be a generic list element structure which stores management
+information in the structure itself, and the value/payload immediately
+after, in the same memory block.</p></dd>
+<dt><a name="6"><b class="cmd">type* NALLOC (type, int n)</b></a></dt>
+<dd><p>This macro allocates <i class="arg">n</i> elements of the given <i class="arg">type</i> and
+returns a pointer to that memory.</p></dd>
+<dt><a name="7"><b class="cmd">type* REALLOC (type* var, type, int n)</b></a></dt>
+<dd><p>This macro expands or shrinks the memory associated with the C
+variable <i class="arg">var</i> of type <i class="arg">type</i> to hold <i class="arg">n</i> elements of the
+type. It returns a pointer to that memory.
+Remember, a reallocation may move the data to a new location in memory
+to satisfy the request. Returning a pointer instead of immediately
+assigning it to the <i class="arg">var</i> allows the user to validate the new
+pointer before trying to use it.</p></dd>
+<dt><a name="8"><b class="cmd">void FREE (type* var)</b></a></dt>
+<dd><p>This macro releases the memory referenced by the pointer variable
+<i class="arg">var</i>.</p></dd>
+<dt><a name="9"><b class="cmd">void STREP (Tcl_Obj* o, char* s, int len)</b></a></dt>
+<dd><p>This macro properly sets the string representation of the Tcl object
+<i class="arg">o</i> to a copy of the string <i class="arg">s</i>, expected to be of length
+<i class="arg">len</i>.</p></dd>
+<dt><a name="10"><b class="cmd">void STREP_DS (Tcl_Obj* o, Tcl_DString* ds)</b></a></dt>
+<dd><p>This macro properly sets the string representation of the Tcl object
+<i class="arg">o</i> to a copy of the string held by the <b class="type">DString</b> <i class="arg">ds</i>.</p></dd>
+<dt><a name="11"><b class="cmd">void STRDUP (varname, char* str)</b></a></dt>
+<dd><p>This macro duplicates the string <i class="arg">str</i> into the heap and stores
+the result into the named <b class="type">char*</b> variable <i class="arg">var</i>.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Assertions</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="12"><b class="cmd">void ASSERT (expression, char* message</b></a></dt>
+<dd><p>This macro tests the <i class="arg">expression</i> and panics if it does not hold.
+The specified <i class="arg">message</i> is used as part of the panic.
+The <i class="arg">message</i> has to be a static string, it cannot be a variable.</p></dd>
+<dt><a name="13"><b class="cmd">void ASSERT_BOUNDS (int index, int size)</b></a></dt>
+<dd><p>This macro ensures that the <i class="arg">index</i> is in the
+range <b class="const">0</b> to <b class="const">size-1</b>.</p></dd>
+<dt><a name="14"><b class="cmd">void STOPAFTER(n)</b></a></dt>
+<dd><p>This macro throws a panic after it is called <i class="arg">n</i> times.
+Note, each separate instance of the macro has its own counter.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Tracing</a></h2>
+<p>All output is printed to <b class="const">stdout</b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="15"><b class="cmd">TRACE_ON</b></a></dt>
+<dd></dd>
+<dt><a name="16"><b class="cmd">TRACE_OFF</b></a></dt>
+<dd></dd>
+<dt><a name="17"><b class="cmd">TRACE_TAG_ON  (identifier)</b></a></dt>
+<dd></dd>
+<dt><a name="18"><b class="cmd">TRACE_TAG_OFF (identifier)</b></a></dt>
+<dd><p>These &quot;commands&quot; are actually declarators, for use outside of
+functions. They (de)activate specific logical streams, named either
+explicitly by the user, or implicitly, refering to the current file.</p>
+<p>For example:</p>
+<pre class="doctools_example">
+    TRACE_TAG_ON (lexer_in);
+</pre>
+<p>All high- and low-level trace commands producing output have
+the controlling tag as an implicit argument. The scope management
+commands do not take tags.</p></dd>
+<dt><a name="19"><b class="cmd">void TRACE_FUNC</b></a></dt>
+<dd></dd>
+<dt><a name="20"><b class="cmd">void TRACE_TAG_FUNC (tag)</b></a></dt>
+<dd></dd>
+<dt><a name="21"><b class="cmd">void TRACE_FUNC_VOID</b></a></dt>
+<dd></dd>
+<dt><a name="22"><b class="cmd">void TRACE_TAG_FUNC_VOID (tag)</b></a></dt>
+<dd><p>Use these macros at the beginning of a C function to record entry into
+it. The name of the entered function is an implicit argument
+(<b class="variable">__func__</b>), forcing users to have a C99 compiler..</p>
+<p>The tracer's runtime maintains a stack of active functions and
+expects that function return is signaled by either <b class="function">TRACE_RETURN</b>,
+<b class="function">TRACE_RETURN_VOID</b>, or the equivalent forms taking a tag.</p></dd>
+<dt><a name="23"><b class="cmd">void TRACE_RETURN_VOID</b></a></dt>
+<dd></dd>
+<dt><a name="24"><b class="cmd">void TRACE_TAG_RETURN_VOID (tag)</b></a></dt>
+<dd><p>Use these macros instead of</p>
+<pre class="doctools_example">return</pre>
+<p>to return from a void
+function. Beyond returning from the function this also signals the
+same to the tracer's runtime, popping the last entered function from
+its stack of active functions.</p></dd>
+<dt><a name="25"><b class="cmd">any TRACE_RETURN     (     char* format, any x)</b></a></dt>
+<dd></dd>
+<dt><a name="26"><b class="cmd">any TRACE_TAG_RETURN (tag, char* format, any x)</b></a></dt>
+<dd><p>Use this macro instead of</p>
+<pre class="doctools_example">return x</pre>
+<p>to return from a
+non-void function.
+Beyond returning from the function with value <i class="arg">x</i> this also
+signals the same to the tracer's runtime, popping the last entered
+function from its stack of active functions.
+The <i class="arg">format</i> is expected to be a proper formatting string for
+<b class="function">printf</b> and analogues, able to stringify <i class="arg">x</i>.</p></dd>
+<dt><a name="27"><b class="cmd">void TRACE     (     char* format, ...)</b></a></dt>
+<dd></dd>
+<dt><a name="28"><b class="cmd">void TRACE_TAG (tag, char* format, ...)</b></a></dt>
+<dd><p>This macro is the trace facilities' equivalent of <b class="function">printf</b>,
+printing arbitrary data under the control of the <i class="arg">format</i>.</p>
+<p>The printed text is closed with a newline, and indented as per
+the stack of active functions.</p></dd>
+<dt><a name="29"><b class="cmd">void TRACE_HEADER (int indent)</b></a></dt>
+<dd></dd>
+<dt><a name="30"><b class="cmd">void TRACE_TAG_HEADER (tag, int indent)</b></a></dt>
+<dd><p>This is the low-level macro which prints the beginning of a trace
+line. This prefix consists of physical location (file name and line
+number), if available, indentation as per the stack of active scopes
+(if activated), and the name of the active scope.</p></dd>
+<dt><a name="31"><b class="cmd">void TRACE_CLOSER</b></a></dt>
+<dd></dd>
+<dt><a name="32"><b class="cmd">void TRACE_TAG_CLOSER (tag)</b></a></dt>
+<dd><p>This is the low-level macro which prints the end of a trace
+line.</p></dd>
+<dt><a name="33"><b class="cmd">void TRACE_ADD          (const char* format, ...)</b></a></dt>
+<dd></dd>
+<dt><a name="34"><b class="cmd">void TRACE_TAG_ADD (tag, const char* format, ...)</b></a></dt>
+<dd><p>This is the low-level macro which adds formatted data to the line.</p></dd>
+<dt><a name="35"><b class="cmd">void TRACE_PUSH_SCOPE (const char* name)</b></a></dt>
+<dd></dd>
+<dt><a name="36"><b class="cmd">void TRACE_PUSH_FUNC</b></a></dt>
+<dd></dd>
+<dt><a name="37"><b class="cmd">void TRACE_PUSH_POP</b></a></dt>
+<dd><p>These are the low-level macros for scope management. The first two
+forms push a new scope on the stack of active scopes, and the last
+forms pops the last scope pushed.</p></dd>
+<dt><a name="38"><b class="cmd">TRACE_TAG_VAR (tag)</b></a></dt>
+<dd><p>Helper macro converting from a tag identifier to the name of the
+underlying status variable.</p></dd>
+<dt><a name="39"><b class="cmd">TRACE_RUN (code);</b></a></dt>
+<dd><p>Conditionally insert the <i class="arg">code</i> at compile time when the tracing
+facility is activated.</p></dd>
+<dt><a name="40"><b class="cmd">TRACE_DO (code);</b></a></dt>
+<dd></dd>
+<dt><a name="41"><b class="cmd">TRACE_TAG_DO (tag, code);</b></a></dt>
+<dd><p>Insert the <i class="arg">code</i> at compile time when the tracing facility is
+activated, and execute the same when either the implicit tag for the
+file or the user-specified tag is active.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Authors</a></h2>
+<p>Andreas Kupries</p>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such at <a href="https://github.com/andreas-kupries/critcl">https://github.com/andreas-kupries/critcl</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

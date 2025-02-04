@@ -1,6 +1,7 @@
 TCL_SUBDIR=			@VENDOR_TCL_SUBDIR@
 TCLX_SUBDIR=		@VENDOR_TCLX_SUBDIR@
 TCLLIB_SUBDIR=		@VENDOR_TCLLIB_SUBDIR@
+CRITCL_SUBDIR=      critcl
 SIGNIFY_SUBDIR=		signify-osx
 INSTALL_SUBDIR=		install
 
@@ -39,7 +40,7 @@ all-tclx: all-tcl
 	@echo ===\> making $(@:%-install=%) in ${DIRPRFX}${INSTALL_SUBDIR}
 	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} $(@:%-install=%)
 
-DESTROOT_TARGETS=   destroot-tcl destroot-tclx destroot-tcllib
+DESTROOT_TARGETS=   destroot-tcl destroot-tclx destroot-tcllib destroot-tcllibc
 CLEAN_TARGETS= clean-tcl clean-tcllib clean-tclx clean-signify
 DISTCLEAN_TARGETS= distclean-tcl distclean-tcllib distclean-tclx distclean-signify
 ifneq (@OS_PLATFORM@,linux)
@@ -51,6 +52,9 @@ DESTROOT_TARGETS+=   destroot-install
 CLEAN_TARGETS+= clean-install
 DISTCLEAN_TARGETS+= distclean-install
 endif
+endif
+ifeq (@OS_PLATFORM@,darwin)
+CRITCL_TARGET=  -target macosx-macports
 endif
 
 destroot: $(DESTROOT_TARGETS)
@@ -68,6 +72,16 @@ destroot-tcllib: all-tcl
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=${DESTROOT}" TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
 
+destroot-critcl: all-tcl
+	@echo ===\> staging to destroot in ${DIRPRFX}${CRITCL_SUBDIR}
+	@umask 0022; cd ${CRITCL_SUBDIR} && "@INTREE_TCLSH@" ./build.tcl install --prefix "${PREFIX}/libexec/macports" --dest-dir "${DESTROOT}" $(CRITCL_TARGET)
+	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/critcl*
+
+destroot-tcllibc: all-tcl destroot-critcl
+	@echo ===\> staging tcllibc to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
+	@umask 0022; /usr/bin/env "PATH=${DESTROOT}${PREFIX}/libexec/macports/bin:$$PATH" $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=${DESTROOT}" "CRITCL_TARGET=$(CRITCL_TARGET)" TCLSH_PROG=@INTREE_TCLSH@ install-binaries
+	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
+
 destroot-signify:
 	@echo ===\> staging to destroot in ${DIRPRFX}${SIGNIFY_SUBDIR}
 	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} install "PREFIX=${DESTROOT}${PREFIX}/libexec/macports"
@@ -76,7 +90,7 @@ destroot-install: all-install
 	@echo ===\> staging to destroot in ${DIRPRFX}${INSTALL_SUBDIR}
 	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} install "DESTDIR=${DESTROOT}"
 
-INSTALL_TARGETS=    install-tcl install-tclx install-tcllib
+INSTALL_TARGETS=    install-tcl install-tclx install-tcllib install-tcllibc
 ifneq (@OS_PLATFORM@,linux)
 INSTALL_TARGETS+=   install-signify
 endif
@@ -125,6 +139,11 @@ install-tcllib:
 	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tcllib1.*
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
+	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
+
+install-tcllibc: install-tcllib
+	@echo ===\> making $(@:%-tcllibc=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
+	@umask 0022; /usr/bin/env "PATH=${DESTROOT}${PREFIX}/libexec/macports/bin:$$PATH" $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ install-binaries
 	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
 
 install-signify:

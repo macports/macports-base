@@ -1,0 +1,698 @@
+'\"
+'\" Generated from file 'critcl_application\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) Jean-Claude Wippler
+'\" Copyright (c) Steve Landers
+'\" Copyright (c) 2011-2024 Andreas Kupries
+'\"
+.TH "critcl_application" n 3\&.3\&.1 doc "C Runtime In Tcl (CriTcl)"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+critcl_application \- CriTcl Application Reference
+.SH SYNOPSIS
+\fBcritcl\fR ?\fIoption\fR\&.\&.\&.? ?\fIfile\fR\&.\&.\&.?
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+Be welcome to the \fIC Runtime In Tcl\fR (short: \fICriTcl\fR), a system for embedding and using C
+code from within \fITcl\fR [http://core\&.tcl-lang\&.org/tcl] scripts\&.
+.PP
+This document is the reference manpage for the \fBcritcl\fR command\&.
+Its intended audience are people having to build packages using
+\fBcritcl\fR for deployment\&. Writers of packages with embedded C
+code can ignore this document\&.
+If you are in need of an overview of the whole system instead, please
+go and read the \fIIntroduction To CriTcl\fR\&.
+.PP
+This application resides in the Application Layer of CriTcl\&.
+.PP
+.PS
+.nf
+*================*
+|Applications    |
+| critcl         |
+| critcl::app    |
+*================*
+
++----------------+
+|Core Packages   |
+| critcl         |
+| critcl::util   |
++----------------+
+
++----------------+
+|Support Packages|
+| stubs::*       |
+| md5, platform  |
+|  \&.\&.\&.           |
++----------------+
+
+.fi
+.PE
+.PP
+\&.
+The application supports the following general command line:
+.TP
+\fBcritcl\fR ?\fIoption\fR\&.\&.\&.? ?\fIfile\fR\&.\&.\&.?
+The exact set of options supported, their meaning, and interaction is
+detailed in section \fBApplication Options\fR below\&.
+For a larger set of examples please see section "Building CriTcl Packages"
+in the document about \fIUsing CriTcl\fR\&.
+.PP
+.SH "APPLICATION OPTIONS"
+The following options are understood:
+.TP
+\fB-v\fR
+.TP
+\fB--version\fR
+Print the version to \fBstdout\fR and exit\&.
+.TP
+\fB-I\fR path
+Arranges for the compiler to search \fIpath\fR for headers\&.
+Uses of this option are cumulative\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-L\fR path
+Arranges for the linker to search \fIpath\fR\&.
+Uses of this option are cumulative\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-cache\fR path
+Sets \fIpath\fR as the directory to use as the result cache\&. The default is
+"\fI~/\&.critcl/<platform>\fR", or "\fI~/\&.critcl/<pid>\&.<epoch>\fR" when generating
+a package\&.  See option \fB-pkg\fR, below\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-clean\fR
+Arranges for all files and directories in the result cache to be deleted before
+compilation begins\&.
+.sp
+Ignored when generating a package because this mode starts out with a
+unique and empty result cache\&.  See option \fB-pkg\fR, below\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-config\fR path
+Provides a custom configuration file\&.  By default a configuration included in
+the system core is used\&.
+When specified multiple times the last value is used\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-debug\fR mode
+Activates one of the following debugging modes:
+.RS
+.TP
+\fBmemory\fR
+Track and report memory allocations made by the Tcl core\&.
+.TP
+\fBsymbols\fR
+Compile all "\fI\&.c\fR" files with debugging symbols\&.
+.TP
+\fBall\fR
+Both \fBmemory\fR and \fBsymbols\fR\&.
+.RE
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+Uses of this option are cumulative\&.
+.TP
+\fB-disable\fR name
+Sets the value of the custom build configuration option
+\fIname\fR to \fBfalse\fR\&. It is equivalent to "-with-\fIname\fR 0"\&.
+.PP
+Validated only if one of the input files for the \fICriTcl script\fR
+actually defines and uses a custom build configuration option with that
+\fIname\fR\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-enable\fR name
+Sets the value of the custom build configuration option
+\fIname\fR to \fBtrue\fR\&. It is equivalent to "-with-\fIname\fR 1"\&.
+.PP
+Validated only if one of the input files for the \fICriTcl script\fR
+actually defines and uses a custom build configuration option with that
+\fIname\fR\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-force\fR
+Forces compilation even if a shared library for the file already exists\&.
+Unlike cleaning the cache, this is lazy in the destruction of files and only
+affects relevant files\&.
+.sp
+Ignored when generating a package (see option \fB-pkg\fR, below),
+which starts out with a unique and empty result cache\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-help\fR
+Prints a short description of command line syntax and options and then exits
+the application\&.
+.TP
+\fB-keep\fR
+Causes the system to cache compiled "\fI\&.c\fR" files\&.
+Also prevents the deletion of the unique result cache used by the run when
+generating a package (see option \fB-pkg\fR below),
+Intended for debugging of \fBcritcl\fR itself, where it may be necessary to
+inspect the generated C code\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-libdir\fR directory
+Adds \fIdirectory\fR to the list of directories the linker searches for
+libraries in (like \fB-L\fR)\&.  With \fB-pkg\fR, generated packages are
+saved in \fIdirectory\fR\&.
+When specified multiple times the last value is used\&.
+The default is "\fIlib\fR", resolved relative to the current working directory\&.
+.TP
+\fB-includedir\fR directory
+Adds \fIdirectory\fR to the list of directories the compiler searches for
+headers in\&. With \fB-pkg\fR, generated header files are saved in
+\fIdirectory\fR\&.
+Uses of this option are cumulative\&.
+The last value is used as the destination for generated header files\&.
+The default is the relative directory "\fIinclude\fR", resolved relative to the
+current working directory\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-pkg\fR
+Generates a package from the \fICriTcl script\fR files\&.  Input files are
+processed first as usual, but are then bundled into a single library, with
+additional generated files to form the library into a standard Tcl package\&.
+.sp
+generation\&. If both options, i\&.e\&. \fB-pkg\fR and \fB-tea\fR are
+specified the last one specified wins\&.
+.sp
+Options \fB-clean\fR and \fB-force\fR are ignored\&. \fB-libdir\fR is
+relevant in both this and \fB-tea\fR mode\&.
+.sp
+The basename of the first file is the name of the package to generate\&. If
+its file extension indicates a shared library ("\fI\&.so\fR", "\fI\&.sl\fR",
+"\fI\&.dylib\fR", and "\fI\&.dll\fR") it is also removed from the set of input
+files\&. Each \fICriTcl script\fR file is kept as part of the input\&. A single
+file without a suffix is assumed to be a \fICriTcl script\fR\&. A file without
+a suffix, but other input files following is treated like the name of a
+shared library proper, and removed from the set of input files\&.
+.sp
+Examples:
+.CS
+
+
+	\&.\&.\&. -pkg \&.\&.\&. foo
+
+	=> Package name is: foo
+	=> Input file is:   foo\&.tcl
+
+.CE
+.CS
+
+
+	\&.\&.\&. -pkg \&.\&.\&. foo bar\&.tcl
+
+	=> Package name is: foo
+	=> Input file is:   bar\&.tcl
+
+.CE
+.CS
+
+
+	\&.\&.\&. -pkg \&.\&.\&. foo\&.tcl
+
+	=> Package name is: foo
+	=> Input file is:   foo\&.tcl
+
+.CE
+.CS
+
+
+	\&.\&.\&. -pkg \&.\&.\&. foo\&.so bar\&.tcl
+
+	=> Package name is: foo
+	=> Input file is:   bar\&.tcl
+
+.CE
+.TP
+\fB-show\fR
+Prints the configuration of the chosen target to \fBstdout\fR and then exits\&.
+Set \fB-target\fR, below\&.
+.TP
+\fB-showall\fR
+Prints the whole chosen configuration file to \fBstdout\fR and then exits\&.
+See \fB-config\fR, above\&.
+.TP
+\fB-target\fR name
+Overrides the default choice of build target\&.
+Only the last occurrence of this option is used\&.
+The named target must exist in the chosen configuration file\&.
+Use \fB-targets\fR (see below) to get a list of the
+acceptable targets\&.
+Use \fB-config\fR to select the configuration file\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.TP
+\fB-targets\fR
+Prints the list of all known targets from the chosen configuration file to
+\fBstdout\fR and then exits\&.
+Use \fB-config\fR to select the configuration file\&.
+.TP
+\fB-tea\fR
+Like \fB-pkg\fR, except no binaries are generated\&. Creates a directory
+hierarchy containing the \fICriTcl script\fR, its companion files, and a
+TEA-conformant build system with most of the needed support code, including
+copies of the critcl packages\&.
+.sp
+If both \fB-pkg\fR and \fB-tea\fR are specified the last occurrence wins\&.
+.sp
+\fB-I\fR, \fB-L\fR, \fB-clean\fR,
+\fB-force\fR, \fB-cache\fR, \fB-includedir\fR, \fB-enable\fR,
+\fB-disable\fR, and \fB-with-\fBFOO\fR\fR are
+ignored\&. In contrast, the option \fB-libdir\fR is relevant in both
+this and \fB-pkg\fR mode\&.
+.sp
+The basename of the first file is the name of the package to generate\&. If
+its file extension indicates a shared library ("\fI\&.so\fR", "\fI\&.sl\fR",
+"\fI\&.dylib\fR", and "\fI\&.dll\fR") it is also removed from the set of input
+files\&. Each \fICriTcl script\fR file is kept as part of the input\&. A single
+file without a suffix is assumed to be a \fICriTcl script\fR\&. A file without
+a suffix, but other input files following is treated like the name of a
+shared library proper, and removed from the set of input files\&.
+.sp
+Examples:
+.CS
+
+
+	\&.\&.\&. -tea \&.\&.\&. foo
+
+	=> Package name is: foo
+	=> Input file is:   foo\&.tcl
+
+.CE
+.CS
+
+
+	\&.\&.\&. -tea \&.\&.\&. foo bar\&.tcl
+
+	=> Package name is: foo
+	=> Input file is:   bar\&.tcl
+
+.CE
+.CS
+
+
+	\&.\&.\&. -tea \&.\&.\&. foo\&.tcl
+
+	=> Package name is: foo
+	=> Input file is:   foo\&.tcl
+
+.CE
+.CS
+
+
+	\&.\&.\&. -tea \&.\&.\&. foo\&.so bar\&.tcl
+
+	=> Package name is: foo
+	=> Input file is:   bar\&.tcl
+
+.CE
+.TP
+\fB-with-\fBname\fR\fR value
+This option sets the value of the custom build configuration option
+\fIname\fR to \fIvalue\fR\&.
+.sp
+The information is validated only if one of the "\fI\&.critcl\fR"
+input files actually defines and uses a custom build configuration
+option with that \fIname\fR\&.
+.PP
+Ignored when generating a TEA package
+(see option \fB-tea\fR below)\&.
+.PP
+.SH "PACKAGE STRUCTURE"
+Packages generated by critcl have the following basic structure:
+.CS
+
+
+<TOP>
++- pkgIndex\&.tcl
++- critcl-rt\&.tcl
++- license\&.terms (optional)
+|
++- tcl (optional)
+|  +- <tsources files>
+|
++- <platform>
+   +- <shared library>
+
+.CE
+.PP
+\fINotes\fR
+.IP [1]
+The file "\fIpkgIndex\&.tcl\fR" is the standard package index file
+expected by Tcl's package management\&. It is sourced during a search
+for packages, and declares the package to Tcl with its files, and how
+to handle them\&.
+.IP [2]
+The file "\fIcritcl-rt\&.tcl\fR" is a helper file containing the
+common code used by "\fIpkgIndex\&.tcl\fR" to perform its tasks\&.
+.IP [3]
+The file "\fIlicense\&.terms\fR" is optional and appears only if
+the "\fI\&.critcl\fR" file the package is generated from used the command
+\fBcritcl::license\fR to declare package author and license\&.
+.IP [4]
+All files declared with the command \fBcritcl::tsources\fR are
+put into the sub-directory "\fItcl\fR"\&.
+.IP [5]
+The shared library generated by critcl is put into a
+platform-specific sub-directory\&.
+.PP
+.PP
+The whole structure, and especially the last point, enable us
+to later merge the results (for the same package, and version) for
+multiple target platforms into a single directory structure without
+conflict, by simply copying the top directories over each other\&. The
+only files which can conflict are in the <TOP> and "\fItcl\fR"
+directories, and for these we know that they are identical across
+targets\&. The result of such a merge would look like:
+.CS
+
+
+<TOP>
++- pkgIndex\&.tcl
++- critcl-rt\&.tcl
++- license\&.terms (optional)
+|
++- tcl (optional)
+|  +- <tsources files>
+|
++- <platform1>
+|  +- <shared library1>
++- <platform2>
+|  +- <shared library2>
+\&.\&.\&.
++- <platformN>
+   +- <shared libraryN>
+
+.CE
+.SH AUTHORS
+Jean Claude Wippler, Steve Landers, Andreas Kupries
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report them at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR\&.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR as well\&.
+.SH KEYWORDS
+C code, Embedded C Code, calling C code from Tcl, code generator, compile & run, compiler, dynamic code generation, dynamic compilation, generate package, linker, on demand compilation, on-the-fly compilation
+.SH CATEGORY
+Glueing/Embedded C code
+.SH COPYRIGHT
+.nf
+Copyright (c) Jean-Claude Wippler
+Copyright (c) Steve Landers
+Copyright (c) 2011-2024 Andreas Kupries
+
+.fi

@@ -1,0 +1,124 @@
+--- lib/critcl/Config.in.orig	2025-02-03 21:23:53
++++ lib/critcl/Config.in	2025-02-05 01:31:39
+@@ -50,13 +50,13 @@
+ # the "copy" option and then specifically setting the config bits that
+ # you want to change. See win32-x86_64-cl for an example.
+ 
+-compile         gcc -c -fPIC
+-version         gcc -v
+-link            gcc -shared
++compile         @CC@ -c -fPIC
++version         @CC@ -v
++link            @CC@ -shared
+ include         -I
+ libinclude      -L
+-preproc_define  gcc -E -dM
+-preproc_enum    gcc -E
++preproc_define  @CC@ -E -dM
++preproc_enum    @CC@ -E
+ tclstubs        -DUSE_TCL_STUBS
+ tkstubs         -DUSE_TK_STUBS
+ debug_memory    -DTCL_MEM_DEBUG
+@@ -70,7 +70,7 @@
+ link_preload    --unresolved-symbols=ignore-in-shared-libs
+ link_rpath      -Wl,-rpath,@
+ strip           -Wl,-s
+-optimize        -O2
++optimize        -Os
+ noassert        -DNDEBUG
+ threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
+                 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1   \
+@@ -83,12 +83,15 @@
+ if {[string match macosx-* $platform]} {
+     if {[info exists ::env(SDKROOT)] && $::env(SDKROOT) ne ""} {
+         set SDKROOT $::env(SDKROOT)
++    } elseif {![catch {exec xcrun --show-sdk-path} sdkpath] && $sdkpath ne {} && [file exists $sdkpath]} {
++        set SDKROOT $sdkpath
+     } else {
+         # look for an SDK supporting universal binaries
+         set pos [string length MacOSX]
+ 	set sdklist {}
+-	set base /Developer
+-	catch {set base [exec xcode-select -print-path]}
++	set bases {/Library/Developer/CommandLineTools /Developer}
++	catch {lappend bases [exec xcode-select -print-path]}
++    foreach base $bases {
+         foreach dir [glob -nocomplain -tails \
+ 			    -directory $base/SDKs MacOSX*] {
+             set ver [string trimright \
+@@ -99,6 +102,7 @@
+                 lappend sdklist $ver
+             }
+         }
++    }
+         if {[llength $sdklist]} {
+             set ver [lindex [lsort -command "package vcompare" $sdklist] 0]
+             set SDKROOT $base/SDKs/$path($ver)
+@@ -106,12 +110,19 @@
+             set SDKROOT  ""
+         }
+     }
+-    if {$SDKROOT ne ""} {
++    if {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
++        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
++    } elseif {0 && $SDKROOT ne ""} {
+         # get the SDKsettings for the min OSX value supported
+ 	set info ""
+-        if [catch {
++	    if {[catch {
++	            set osxmin [exec plutil -extract DefaultProperties.MACOSX_DEPLOYMENT_TARGET \
++	                              raw $SDKROOT/SDKSettings.plist]
++	    }]} {
++
++        if {[catch {
+                 set info [exec defaults read $SDKROOT/SDKSettings buildSettings]
+-        }] {
++        }]} {
+             catch {
+                 set info [exec defaults read $SDKROOT/SDKSettings DefaultProperties \
+ 			      -dict MACOSX_DEPLOYMENT_TARGET]
+@@ -126,6 +137,7 @@
+         regsub -all {[\n"\;=\{\}]+} $info "" info ;#" help emacs hilighting
+         regsub -all {\s+} $info " " info
+         set osxmin [lindex $info 1]
++        }
+     } else {
+         # use the current platform
+         foreach {v1 v2 v3} [split $::tcl_platform(osVersion) .] break
+@@ -161,6 +173,21 @@
+ 
+ # Note 2: The platform declarations are required to set up a proper
+ # mapping in pkgIndex.tcl of a -pkg.
++
++# macports configured build
++macosx-macports when            {@CRITCL_PLATFORMS@} ne {}
++macosx-macports compile         @CC@ -c \
++    -isysroot $SDKROOT \
++    -mmacosx-version-min=$osxmin \
++    @CFLAGS@
++macosx-macports link            @CC@ -bundle \
++    -isysroot $SDKROOT \
++    -mmacosx-version-min=$osxmin \
++    @CFLAGS@
++macosx-macports link_preload    -undefined dynamic_lookup
++macosx-macports strip
++macosx-macports platform        macosx-macports $osxmin \
++	    @CRITCL_PLATFORMS@
+ 
+ # default on OSX ppc is universal containing ppc and x86 32 bit
+ macosx-powerpc when         $ppc
+@@ -286,6 +313,14 @@
+ macosx-arm64 strip
+ macosx-arm64 platform       macosx-arm64
+ 
++macosx-aarch64 when         $arm64
++macosx-aarch64 copy         macosx-arm64
++macosx-aarch64 platform     macosx-aarch64
++
++macosx-arm when             $arm64
++macosx-arm copy             macosx-arm64
++macosx-arm platform         macosx-arm
++
+ # Linux - 32 bit or 64 bit build - select using "-target" if you don't
+ #         want the platform default (32 on 32, 64 on 64). This requires
+ #         some work to detect the cpu class in use and then set a platform

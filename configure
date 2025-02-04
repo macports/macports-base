@@ -667,6 +667,7 @@ TCL_BIN_DIR
 TCL_VERSION
 VENDOR_TCLLIB_INSTALL
 VENDOR_TCLLIB_SUBDIR
+CRITCL_PLATFORMS
 VENDOR_TCLX_INSTALL
 VENDOR_TCLX_SUBDIR
 VENDOR_DESTROOT
@@ -9317,6 +9318,18 @@ VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 
 
 
+## critcl package
+CRITCL_PLATFORMS="$(echo "$CFLAGS" | awk '{for (I=1;I<NF;I++) if ($I == "-arch") print "macosx-"$(I+1)}')"
+if test "$CRITCL_PLATFORMS" = "" -a "$OS_PLATFORM" = darwin; then
+    CRITCL_PLATFORMS=macosx-$host_cpu
+fi
+CRITCL_PLATFORMS="$(echo "$CRITCL_PLATFORMS" | \
+    sed -E -e 's/macosx-a(rm|arch)64/macosx-aarch64 macosx-arm macosx-arm64/' \
+        -e 's/macosx-i3-686/macosx-ix86/' \
+        -e 's/macosx-ppc/macosx-powerpc/' \
+        | tr '\n' ' ')"
+
+
 ## Tcllib package
 # Note that Tcllib needs a Tcl interpreter during installation; it will *not*
 # be the one we configure above, because that one isn't built yet. That's not
@@ -9770,7 +9783,7 @@ printf "%s\n" "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/portlist1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile vendor/signify-osx/autoconf.mk"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/portlist1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile vendor/critcl/lib/critcl/Config vendor/signify-osx/autoconf.mk"
 
 
 ac_config_files="$ac_config_files vendor/tclsh"
@@ -10515,6 +10528,7 @@ do
     "tests/test/library.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/library.tcl" ;;
     "tests/test/trace/test.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/trace/test.tcl" ;;
     "vendor/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/Makefile" ;;
+    "vendor/critcl/lib/critcl/Config") CONFIG_FILES="$CONFIG_FILES vendor/critcl/lib/critcl/Config" ;;
     "vendor/signify-osx/autoconf.mk") CONFIG_FILES="$CONFIG_FILES vendor/signify-osx/autoconf.mk" ;;
     "vendor/tclsh") CONFIG_FILES="$CONFIG_FILES vendor/tclsh" ;;
     "src/cxx_stdlib_overridden.tcl") CONFIG_FILES="$CONFIG_FILES src/cxx_stdlib_overridden.tcl" ;;

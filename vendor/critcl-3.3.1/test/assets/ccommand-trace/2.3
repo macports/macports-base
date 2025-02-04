@@ -1,0 +1,17 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__the_command_max0 "::the::command+max"
+static int
+tcl__the_command_max0_actual(ClientData clientdata, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *CONST objv[])
+{
+return TCL_OK;
+}
+
+static int
+tcl__the_command_max0(ClientData clientdata, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *CONST objv[])
+{
+  int _rv;
+  critcl_trace_cmd_args (ns__the_command_max0, objc, objv);
+  _rv = tcl__the_command_max0_actual (clientdata, interp, objc, objv);
+  return critcl_trace_cmd_result (_rv, interp);
+}

@@ -1,0 +1,232 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# cproc-rt.test
+##
+# cproc examples to verify actual execution.
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+}
+testing {
+    useLocal lib/critcl/critcl.tcl            critcl
+    localcache-setup
+}
+
+# -------------------------------------------------------------------------
+## Basic cproc test
+
+test cproc-rt-1.0 {critcl, cproc, runtime} -setup {
+    make-demo TL {
+        critcl::ccode {
+            static void plus (Tcl_Interp* ip, int x) {
+                int r; char buf [60];
+                sprintf(buf, "::lappend ::result %d", x);
+                r = Tcl_Eval (ip, buf);
+                /* fprintf (stdout, "plus = %d, '%s'\n", r, buf);fflush(stdout); */
+            }
+            #define PLUS plus (ip, a); plus (ip, b); plus (ip, c); plus (ip, d)
+        }
+        critcl::cproc oargs_head   {Tcl_Interp* ip  int {a 1} int {b 2} int c     int d}     void { PLUS; }
+        critcl::cproc oargs_tail   {Tcl_Interp* ip  int a     int b     int {c 1} int {d 2}} void { PLUS; }
+        critcl::cproc oargs_middle {Tcl_Interp* ip  int a     int {b 1} int {c 2} int d}     void { PLUS; }
+    }
+} -body {
+    res!
+    foreach a {
+        {6 7}
+        {6 7 8}
+        {6 7 8 9}
+    } {
+        oargs_head   {*}$a
+        oargs_middle {*}$a
+        oargs_tail   {*}$a
+    }
+    res?
+} -result {1 2 6 7 6 1 2 7 6 7 1 2 6 2 7 8 6 7 2 8 6 7 8 2 6 7 8 9 6 7 8 9 6 7 8 9}
+
+# -------------------------------------------------------------------------
+## Tests over most argument and result types.
+## Ignoring: int*, double*, float* (all deprecated), bytearray (to be deprecated)
+
+set n 0
+foreach {type rtype good goodres body bad errmsg} {
+    int       -             0      -      -                      x     {expected integer but got "x"}
+    {int > 0} int           1      -      -                      0     {expected int > 0, but got "0"}
+    bool      -             true   1      -                      x     {expected boolean value but got "x"}
+    long      -             0      -      -                      x     {expected integer but got "x"}
+    wideint   -             0      -      -                      x     {expected integer but got "x"}
+    double    -             0      0.0    -                      x     {expected floating-point number but got "x"}
+    float     -             0      0.0    -                      x     {expected floating-point number but got "x"}
+    char*     -             x      -      -                      -     n/a
+    pstring   char*         x      -      {return x.s}           -     n/a
+    pstring   object        x      -      {I (x.o); return x.o}  -     n/a
+    bytes     object        \x01   -      {I (x.o); return x.o}  -     n/a
+    list      object        {x y}  -      {I (x.o); return x.o}  {{}a} {list element in braces followed by "a" instead of space}
+    object    -             x      -      {I (x);   return x}    -     n/a
+    pstring   object0       x      -      {return x.o}           -     n/a
+    bytes     object0       \x01   -      {return x.o}           -     n/a
+    list      object0       {x y}  -      {return x.o}           {{}a} {list element in braces followed by "a" instead of space}
+    object    object0       x      -      -                      -     n/a
+    channel   known-channel stdin serial0 -                      x     {can not find channel named "x"}
+} {
+    # Note how the object results have to incr the refcount of the
+    # argument so that the result converter can decr it safely. And
+    # for object0 we must not, as the result converter doesn't decr.
+    #
+    # Bad combinations
+    if 0 {
+        # No string terminator in BA char* return allows random bytes into Tcl result.
+        bytes     char*         \x01   -     -    {return x.s}
+        # rtype `string` considers result dynamic, pstring's field `.s` is really not.
+        pstring   string        x      -     -    {return x.s}
+    }
+
+    if {$goodres eq "-"} { set goodres $good }
+    if {$rtype   eq "-"} { set rtype   $type }
+    if {$body    eq "-"} { set body    {return x} }
+
+    #puts _____________________$type/$rtype/_good/$good/$goodres ; flush stdout
+    test cproc-rt-2.$n.0-$type "critcl, cproc, runtime, $type/$rtype, good input" -setup {
+        #puts ______________________________//setup/$type/$rtype/$body ; flush stdout
+        make-demo TL [string map [list @a $type @r $rtype @b $body] {
+            critcl::ccode {
+                #define I(o) Tcl_IncrRefCount (o)
+                /* #define RC(o) { fprintf (stdout, "RC %p ~ %d\n", o, o->refCount); fflush (stdout); } */
+            }
+            critcl::cproc pass {{@a} x} @r { @b; }
+        }]
+        #puts ______________________________//setup/done/$good/$goodres ; flush stdout
+    } -body {
+        #puts ______________________________//run/$good/$goodres ; flush stdout
+        pass $good
+    } -result $goodres
+    #puts ______________________________//ran/$good/$goodres ; flush stdout
+
+    if {$bad eq "-"} continue
+
+    #puts _____________________$type/_bad/$bad ; flush stdout
+
+    # argument validation, trigger error paths
+    test cproc-rt-2.$n.1-$type "critcl, cproc, runtime, $type, bad input" -setup {
+        #puts ______________________________//setup/$type ; flush stdout
+        make-demo TL [string map [list @a $type @r $rtype @b $body] {
+            critcl::cproc pass {{@a} x} void { }
+        }]
+        #puts ______________________________//setup/done ; flush stdout
+    } -body {
+        #puts ______________________________//run ; flush stdout
+        pass $bad
+    } -returnCodes error -result $errmsg
+
+    incr n
+}
+unset n
+
+# -------------------------------------------------------------------------
+# Special return types: void, ok, new-channel
+
+test cproc-rt-3.0-void "critcl, cproc, runtime, void result" -setup {
+    make-demo TL {
+        critcl::cproc pass {} void { }
+    }
+} -body {
+    pass
+} -result {}
+
+test cproc-rt-3.1.0-ok-pass "critcl, cproc, runtime, ok pass result" -setup {
+    make-demo TL {
+        critcl::cproc pass {} ok { return TCL_OK; }
+    }
+} -body {
+    pass
+} -result {}
+
+test cproc-rt-3.1.1-ok-fail "critcl, cproc, runtime, ok fail result" -setup {
+    make-demo TL {
+        critcl::cproc pass {} ok { return TCL_ERROR; }
+    }
+} -body {
+    pass
+} -returnCodes error -result {}
+
+test cproc-rt-3.2-new-channel "critcl, cproc, runtime, channel result" -setup {
+    make-demo TL {
+        critcl::cproc pass {} new-channel { return Tcl_OpenFileChannel (0, "cproc-new-channel", "a", 0); }
+    }
+} -cleanup {
+    close $c
+    unset c
+    file delete cproc-new-channel
+} -body {
+    set c [pass]
+} -result {file*} -match glob
+
+# -------------------------------------------------------------------------
+# Special argument and return types II: unshared-channel, take-channel, return-channel
+
+test cproc-rt-3.3.0-unshared-channel "critcl, cproc, runtime, unshared channel ok" -setup {
+    make-demo TL {
+        critcl::cproc pass {unshared-channel x} known-channel { return x; }
+    }
+} -cleanup {
+    close $c
+    unset c
+    file delete cproc-new-channel
+} -body {
+    set c [pass [open cproc-new-channel w]]
+} -result {file*} -match glob
+
+test cproc-rt-3.3.1-unshared-channel "critcl, cproc, runtime, unshared channel fail" -setup {
+    make-demo TL {
+        critcl::cproc pass {unshared-channel x} known-channel { return x; }
+    }
+} -body {
+    pass stdin
+} -returnCodes error -result {channel is shared}
+
+test cproc-rt-3.4-take-channel "critcl, cproc, runtime, take & return channel" -setup {
+    make-demo TL {
+        critcl::cproc pass {take-channel x} return-channel { return x; }
+    }
+} -cleanup {
+    close $c
+    unset c
+    file delete cproc-new-channel
+} -body {
+    set c [pass [open cproc-new-channel w]]
+} -result {file*} -match glob
+
+# -------------------------------------------------------------------------
+# Generated argument types: variadics.
+
+test cproc-rt-4.0.0-vint "critcl, cproc, runtime, variadic int, ok" -setup {
+    make-demo TL {
+        critcl::cproc pass {int args} int { return args.c; }
+    }
+} -body {
+    pass 1 2 3 4 5
+} -result 5
+
+test cproc-rt-4.0.1-vint "critcl, cproc, runtime, variadic int, fail" -setup {
+    make-demo TL {
+        critcl::cproc pass {int args} int { return args.c; }
+    }
+} -body {
+    pass 1 2 a 4 5
+} -returnCodes error -result {expected integer but got "a"}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

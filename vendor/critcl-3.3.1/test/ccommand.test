@@ -1,0 +1,19 @@
+# critcl::ccommand -- Regular tests
+# -------------------------------------------------------------------------
+# Setup
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+useLocalFile test/support/crit_utils.tcl
+
+# -------------------------------------------------------------------------
+
+do ccommand
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

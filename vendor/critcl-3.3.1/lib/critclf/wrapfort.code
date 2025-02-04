@@ -1,0 +1,325 @@
+# Nog te doen:
+# error-handling (onerror)
+# meerdere interpreters
+
+
+# wrapfort.code --
+#     Code fragments (templates) for generating a wrapper
+#
+array set ctype {void void real float double double integer long logical long string "char *"
+                 integer-array  long real-array  float double-array  double
+                 integer-vector long real-vector float double-vector double
+                 integer-matrix long real-matrix float double-matrix double}
+
+set header "
+/* Wrapper for ROUTINE - Tcl-command CMDNAME */
+#ifdef FTN_UNDERSCORE
+#   define ROUTINE ROUTINE_
+#endif
+#ifdef FTN_ALL_CAPS
+#   define ROUTINE ALLCAPS
+#endif
+void __stdcall ROUTINE(); /* Important! */
+static int c__ROUTINE( ClientData client_data, Tcl_Interp *interp,
+                       Tcl_Size objc, struct Tcl_Obj * CONST objv\[\] ) {
+    int _rc_ = TCL_OK ;"
+
+set declaration(integer)        {    long NAME;}
+set declaration(real)           {    float NAME;}
+set declaration(double)         {    double NAME;}
+set declaration(string)         {    char NAME[80]; int length__NAME;}
+set declaration(logical)        {    long NAME;}
+set declaration(integer-vector) {    long *NAME; int size__NAME;}
+set declaration(integer-array)  {    long *NAME; int size__NAME;}
+set declaration(integer-matrix) {    long *NAME; int size_inner__NAME, size_outer__NAME;}
+set declaration(real-vector)    {    float *NAME; int size__NAME;}
+set declaration(real-array)     {    float *NAME; int size__NAME;}
+set declaration(real-matrix)    {    float *NAME; int size_inner__NAME, size_outer__NAME;}
+set declaration(double-vector)  {    double *NAME; int size__NAME;}
+set declaration(double-array)   {    double *NAME; int size__NAME;}
+set declaration(double-matrix)  {    double *NAME; int size_inner__NAME, size_outer__NAME;}
+
+set initialisation(check)     {
+    if ( objc != COUNT ) {
+        Tcl_SetResult( interp, "Wrong number of arguments", NULL );
+        return TCL_ERROR;
+    }}
+
+set initialisation(integer)     {
+    if ( Tcl_GetLongFromObj( interp, objv[COUNT], &NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT must be integer", NULL );
+        return TCL_ERROR;
+    }}
+
+set initialisation(integer-array)     {
+    if ( WrapCopyIntListToArray( interp, objv[COUNT], &NAME, &size__NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT must be a list of integers", NULL );
+        return TCL_ERROR;
+    }}
+
+set initialisation(real)     {
+    {
+        double value;
+        if ( Tcl_GetDoubleFromObj( interp, objv[COUNT], &value ) != TCL_OK ) {
+            Tcl_SetResult( interp, "Argument COUNT must be a double precision real", NULL );
+            return TCL_ERROR;
+        } else {
+            NAME = (float) value;
+        }
+    }}
+
+set initialisation(real-array)     {
+    if ( WrapCopyDoubleListToRealArray( interp, objv[COUNT], &NAME, &size__NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT must be a list of double precision reals", NULL );
+        return TCL_ERROR;
+    }}
+
+set initialisation(double)     {
+    if ( Tcl_GetDoubleFromObj( interp, objv[COUNT], &NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT must be a double precision real", NULL );
+        return TCL_ERROR;
+    }}
+
+set initialisation(double-array)     {
+    if ( WrapCopyDoubleListToArray( interp, objv[COUNT], &NAME, &size__NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT must be a list of double precision reals", NULL );
+        return TCL_ERROR;
+    }}
+
+set initialisation(external)   {
+    saved_interp = interp ;
+    if ( NAME_tclprocs == NULL ) {
+        NAME_tclprocs = Tcl_NewListObj( 0, NULL );
+        Tcl_IncrRefCount(NAME_tclprocs);
+    }
+    if ( Tcl_ListObjAppendElement( interp, NAME_tclprocs, objv[COUNT]) != TCL_OK ) {
+        Tcl_SetResult( interp, "Name of Tcl command could not be stored for later use", NULL );
+        return TCL_ERROR;
+    }}
+
+#
+# TODO!
+#
+set initialisation(string)     {
+    if ( Tcl_GetDoubleFromObj( interp, objv[COUNT], &NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT must be a double precision real", NULL );
+        return TCL_ERROR;
+    }}
+
+set cleanup(close)   "    return _rc_;
+}"
+
+set cleanup(integer)        "/* Nothing to be done for: NAME */"
+set cleanup(integer-array)  "    free(NAME);"
+set cleanup(integer-vector) "    free(NAME);"
+set cleanup(integer-matrix) "    free(NAME);"
+set cleanup(real)           "/* Nothing to be done for: NAME */"
+set cleanup(real-array)     "    free(NAME);"
+set cleanup(real-vector)    "    free(NAME);"
+set cleanup(real-matrix)    "    free(NAME);"
+set cleanup(double)         "/* Nothing to be done for: NAME */"
+set cleanup(double-array)   "    free(NAME);"
+set cleanup(double-vector)  "    free(NAME);"
+set cleanup(double-matrix)  "    free(NAME);"
+
+set cleanup(external)       {
+   {int length ;
+    if ( Tcl_ListObjLength( interp, NAME_tclprocs, &length ) != TCL_OK ||
+         Tcl_ListObjReplace( interp, NAME_tclprocs, length-1, length-1, 0, NULL ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Argument COUNT could not be cleaned up", NULL );
+        return TCL_ERROR;
+    }
+   }
+}
+
+set result(integer)  {
+    Tcl_SetObjResult( interp, Tcl_NewLongObj(NAME) ) ;
+}
+set result(real)  {
+    Tcl_SetObjResult( interp, Tcl_NewDoubleObj((double)NAME) ) ;
+}
+set result(double)  {
+    Tcl_SetObjResult( interp, Tcl_NewDoubleObj(NAME) ) ;
+}
+set result(integer-array)  {
+    {
+        Tcl_Obj *result;
+        if ( WrapCopyIntArrayToList( interp, NAME, size__NAME, &result ) != TCL_OK ) {
+            Tcl_SetResult( interp, "Can not copy array to Tcl result", NULL );
+            return TCL_ERROR;
+        } else {
+            Tcl_SetObjResult( interp, result ) ;
+        }
+    }}
+set result(real-array)  {
+    {
+        Tcl_Obj *result;
+        if ( WrapCopyRealArrayToDoubleList( interp, NAME, size__NAME, &result ) != TCL_OK ) {
+            Tcl_SetResult( interp, "Can not copy array to Tcl result", NULL );
+            return TCL_ERROR;
+        } else {
+            Tcl_SetObjResult( interp, result ) ;
+        }
+    }}
+set result(double-array)  {
+    {
+        Tcl_Obj *result;
+        if ( WrapCopyDoubleArrayToList( interp, NAME, size__NAME, &result ) != TCL_OK ) {
+            Tcl_SetResult( interp, "Can not copy array to Tcl result", NULL );
+            return TCL_ERROR;
+        } else {
+            Tcl_SetObjResult( interp, result ) ;
+        }
+    }}
+
+#
+# Second part: Fortran calling Tcl
+#
+
+set fheader(start) {
+/* Wrapper for the NAME interface */
+#ifdef FTN_UNDERSCORE
+#   define NAME NAME_
+#endif
+#ifdef FTN_ALL_CAPS
+#   define NAME ALLCAPS
+#endif
+static Tcl_Obj *NAME_tclprocs ;
+TYPE __stdcall NAME (}
+
+set fheader(end)   ") \{"
+
+set fdeclaration(integer)             {    long *NAME}
+set fdeclaration(real)                {    float *NAME}
+set fdeclaration(double)              {    double *NAME}
+set fdeclaration(integer-array)       {    long *NAME}
+set fdeclaration(real-array)          {    float *NAME}
+set fdeclaration(double-array)        {    double *NAME}
+set fdeclaration(integer-vector)      {    long *NAME}
+set fdeclaration(real-vector)         {    float *NAME}
+set fdeclaration(double-vector)       {    double *NAME}
+set fdeclaration(integer-matrix)      {    long *NAME}
+set fdeclaration(real-matrix)         {    float *NAME}
+set fdeclaration(double-matrix)       {    double *NAME}
+
+set fdeclaration(length)              {    int size__NAME = *SIZE;}
+
+set fdecl_result(integer)             {    long NAME;}
+set fdecl_result(real)                {    float NAME;}
+set fdecl_result(double)              {    double NAME;}
+
+set finitialisation(start)             {
+    Tcl_Obj    *objv[NOARGS]    ;
+    Tcl_Size    objc   = NOARGS ;
+    int         error           ;
+    Tcl_Size    length          ;
+    Tcl_Interp *interp = saved_interp ;
+
+    if ( Tcl_ListObjLength( interp, NAME_tclprocs, &length ) != TCL_OK ||
+         Tcl_ListObjIndex( interp, NAME_tclprocs, length-1, &objv[0] ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Could not retrieve proc name", NULL );
+        return DUMMY;
+    }
+}
+set finitialisation(integer)           {    objv[IDX] = Tcl_NewLongObj(*NAME);
+    Tcl_IncrRefCount(objv[IDX]);}
+set finitialisation(real)              {    objv[IDX] = Tcl_NewDoubleObj((double)*NAME);
+    Tcl_IncrRefCount(objv[IDX]);}
+set finitialisation(double)            {    objv[IDX] = Tcl_NewDoubleObj(*NAME);
+    Tcl_IncrRefCount(objv[IDX]);}
+
+set finitialisation(integer-array)  {
+    if ( WrapCopyIntArrayToList( interp, NAME, size__NAME, &objv[IDX] ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Can not copy array to argument IDX", NULL );
+        /* TODO: clean-up! */
+        return TCL_ERROR;
+    }
+    Tcl_IncrRefCount(objv[IDX]);}
+
+set finitialisation(real-array)  {
+    if ( WrapCopyRealArrayToDoubleList( interp, NAME, size__NAME, &objv[IDX] ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Can not copy array to argument IDX", NULL );
+        /* TODO: clean-up! */
+        return TCL_ERROR;
+    }
+    Tcl_IncrRefCount(objv[IDX]);}
+
+set finitialisation(double-array)  {
+    if ( WrapCopyDoubleArrayToList( interp, NAME, size__NAME, &objv[IDX] ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Can not copy array to argument IDX", NULL );
+        /* TODO: clean-up! */
+        return TCL_ERROR;
+    }
+    Tcl_IncrRefCount(objv[IDX]);}
+
+set finitialisation(integer-vector) $finitialisation(integer-array)
+set finitialisation(real-vector)    $finitialisation(real-array)
+set finitialisation(double-vector)  $finitialisation(double-array)
+
+set frunproc {
+    {int _i_;
+    for ( _i_ = 0; _i_ < objc; _i_ ++ ) {
+        Tcl_IncrRefCount(objv[_i_]);
+    }
+    error = 0 ;
+    if ( Tcl_EvalObjv( interp, objc, objv, 0 ) != TCL_OK ) {
+        error = 1 ;
+    }
+    for ( _i_ = 0; _i_ < objc; _i_ ++ ) {
+        Tcl_DecrRefCount(objv[_i_]);
+    }}
+}
+set fresult(integer)        {
+   if ( Tcl_GetLongFromObj( interp, Tcl_GetObjResult(interp), &NAME ) != TCL_OK ) {
+        Tcl_AppendResult( interp, "Could not retrieve integer result", NULL ) ;
+   }
+}
+set fresult(real)           {
+  {double dbl ;
+   if ( Tcl_GetDoubleFromObj( interp, Tcl_GetObjResult(interp), &dbl ) != TCL_OK ) {
+        Tcl_AppendResult( interp, "Could not retrieve real result", NULL ) ;
+       NAME = 0.0f ;
+   } else {
+       NAME = (float) dbl ;
+   }
+  }
+}
+set fresult(double)         {
+   if ( Tcl_GetDoubleFromObj( interp, Tcl_GetObjResult(interp), &NAME ) != TCL_OK ) {
+        Tcl_AppendResult( interp, "Could not retrieve double result", NULL ) ;
+   }
+}
+
+set fresult(integer-array)     {
+    if ( WrapCopyIntListIntoExistingArray( interp, Tcl_GetObjResult(interp), NAME, size__NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Result of Tcl proc must be a list of integers", NULL );
+        return TCL_ERROR;
+    }}
+
+set fresult(real-array)     {
+    if ( WrapCopyDoubleListIntoExistingRealArray( interp, Tcl_GetObjResult(interp), NAME, size__NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Result of Tcl proc must be a list of double precision reals", NULL );
+        return TCL_ERROR;
+    }}
+
+set fresult(double-array)     {
+    if ( WrapCopyDoubleListIntoExistingArray( interp, Tcl_GetObjResult(interp), NAME, size__NAME ) != TCL_OK ) {
+        Tcl_SetResult( interp, "Result of Tcl proc must be a list of double precision reals", NULL );
+        return TCL_ERROR;
+    }}
+
+set ferror {
+    if ( error != 0 ) {
+        ERROR
+    }}
+
+set fcleanup(integer)       {    Tcl_DecrRefCount(objv[IDX]);}
+set fcleanup(real)          {    Tcl_DecrRefCount(objv[IDX]);}
+set fcleanup(double)        {    Tcl_DecrRefCount(objv[IDX]);}
+set fcleanup(integer-array) {    Tcl_DecrRefCount(objv[IDX]);}
+set fcleanup(real-array)    {    Tcl_DecrRefCount(objv[IDX]);}
+set fcleanup(double-array)  {    Tcl_DecrRefCount(objv[IDX]);}
+
+set freturn(integer)        {    return NAME;}
+set freturn(real)           {    return NAME;}
+set freturn(double)         {    return NAME;}

@@ -1,0 +1,585 @@
+'\"
+'\" Generated from file 'critcl_devguide\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) Jean-Claude Wippler
+'\" Copyright (c) Steve Landers
+'\" Copyright (c) 2011-2024 Andreas Kupries
+'\"
+.TH "critcl_devguide" n 3\&.3\&.1 doc "C Runtime In Tcl (CriTcl)"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+critcl_devguide \- Guide To The CriTcl Internals
+.SH DESCRIPTION
+Be welcome to the \fIC Runtime In Tcl\fR (short: \fICriTcl\fR), a system for embedding and using C
+code from within \fITcl\fR [http://core\&.tcl-lang\&.org/tcl] scripts\&.
+.SH AUDIENCE
+.PP
+This document is a guide for developers working on CriTcl, i\&.e\&. maintainers fixing
+bugs, extending the package's functionality, etc\&.
+.PP
+Please read
+.IP [1]
+\fICriTcl - License\fR,
+.IP [2]
+\fICriTcl - How To Get The Sources\fR, and
+.IP [3]
+\fICriTcl - The Installer's Guide\fR
+.PP
+first, if that was not done already\&.
+.PP
+Here we assume that the sources are already available in a directory of the readers
+choice, and that the reader not only know how to build and install them, but also has all
+the necessary requisites to actually do so\&. The guide to the sources in particular also
+explains which source code management system is used, where to find it, how to set it up,
+etc\&.
+.SH "PLAYING WITH CRITCL"
+.PP
+\fINote\fR that the sources of CriTcl, should the reader have gotten them, also
+contain several examples show-casing various aspects of the system\&. These demonstration
+packages can all be found in the sub-directory "\fIexamples/\fR" of the sources\&.
+.PP
+Lots of smaller examples can be found in the document
+\fIUsing CriTcl\fR, an introduction to CriTcl by way of a of
+examples\&. These focus more on specific critcl commands than the
+overall picture shown by the large examples mentioned in the previous
+paragraph\&.
+.SH "DEVELOPING FOR CRITCL"
+.SS "ARCHITECTURE & CONCEPTS"
+The system consists of two main layers, as seen in the figure below,
+plus a support layer containing general packages the system uses during
+operation\&.
+.PP
+.PS
+.nf
++----------------+
+|Applications    |
+| critcl         |
+| critcl::app    |
++----------------+
+
++----------------+
+|Core Packages   |
+| critcl         |
+| critcl::util   |
++----------------+
+
++----------------+
+|Support Packages|
+| stubs::*       |
+| md5, platform  |
+|  \&.\&.\&.           |
++----------------+
+
+.fi
+.PE
+.PP
+.IP [1]
+At the top we have an application built on top of the core packages,
+providing command line access to the second and third usage modes,
+i\&.e\&. \fIGenerate Package\fR and \fIGenerate TEA Package\fR\&.
+.RS
+.TP
+\fBcritcl\fR
+.TP
+\fBcritcl::app\fR
+.RE
+.IP [2]
+Below that is the core package providing the essential functionality
+of the system, plus various utility packages which make common tasks
+more convenient\&.
+.RS
+.TP
+\fBcritcl\fR
+.TP
+\fBcritcl::util\fR
+.RE
+.IP [3]
+Lastly a layer of supporting packages, mostly external to critcl\&.
+.RS
+.TP
+\fBmd5\fR
+For this pure-Tcl package to be fast users should get one of several
+possible accelerator packages:
+.RS
+.IP [1]
+\fBtcllibc\fR
+.IP [2]
+\fBTrf\fR
+.IP [3]
+\fBmd5c\fR
+.RE
+.TP
+\fBcmdline\fR
+.TP
+\fBplatform\fR
+.TP
+\fBstubs::container\fR
+.TP
+\fBstubs::reader\fR
+.TP
+\fBstubs::writer\fR
+.TP
+\fBstubs::gen\fR
+.TP
+\fBstubs::gen::init\fR
+.TP
+\fBstubs::gen::header\fR
+.TP
+\fBstubs::gen::decl\fR
+.TP
+\fBstubs::gen::macro\fR
+.TP
+\fBstubs::gen::slot\fR
+.TP
+\fBstubs::gen::lib\fR
+.RE
+.PP
+.SS REQUIREMENTS
+To develop for critcl the following packages and applications must be available in the
+environment\&. These are all used by the \fBbuild\&.tcl\fR helper application\&.
+.TP
+\fBdtplite\fR
+A Tcl application provided by Tcllib, for the validation and conversion of
+\fIdoctools\fR-formatted text\&.
+.TP
+\fBdia\fR
+A Tcl application provided by Tklib, for the validation and conversion
+of \fBdiagram\fR-formatted figures into raster images\&.
+.sp
+Do not confuse this with the Gnome \fBdia\fR application, which is a graphical
+editor for figures and diagrams, and completely unrelated\&.
+.TP
+\fBfileutil\fR
+A Tcl package provided by Tcllib, providing file system utilities\&.
+.TP
+\fBvfs::mk4\fR, \fBvfs\fR
+Tcl packages written in C providing access to Tcl's VFS facilities, required for the
+generation of critcl starkits and starpacks\&.
+.PP
+.SS "DIRECTORY STRUCTURE"
+.TP
+Helpers
+.RS
+.TP
+"\fIbuild\&.tcl\fR"
+This helper application provides various operations needed by a developer for critcl, like
+regenerating the documentation, the figures, building and installing critcl, etc\&.
+.sp
+Running the command like
+.CS
+
+
+	\&./build\&.tcl help
+
+.CE
+.IP
+will provide more details about the available operations and their arguments\&.
+.RE
+.TP
+Documentation
+.RS
+.TP
+"\fIdoc/\fR"
+This directory contains the documentation sources, for both the text, and the figures\&.
+The texts are written in \fIdoctools\fR format, whereas the figures are written for
+tklib's \fBdia\fR(gram) package and application\&.
+.TP
+"\fIembedded/\fR"
+This directory contains the documentation converted to regular manpages (nroff) and HTML\&.
+It is called embedded because these files, while derived, are part of the git repository,
+i\&.e\&. embedded into it\&. This enables us to place these files where they are visible when
+serving the prject's web interface\&.
+.RE
+.TP
+Testsuite
+.RS
+.TP
+"\fItest/all\&.tcl\fR"
+.TP
+"\fItest/testutilities\&.tcl\fR"
+.TP
+"\fItest/*\&.test\fR"
+These files are a standard testsuite based on Tcl's \fBtcltest\fR package, with some
+utility code snarfed from \fBTcllib\fR\&.
+.sp
+This currently tests only some of the \fBstubs::*\fR packages\&.
+.TP
+"\fItest/*\&.tcl\fR"
+These files (except for "\fIall\&.tcl\fR" and "\fItestutilities\&.tcl\fR") are example files
+(Tcl with embedded C) which can be run through critcl for testing\&.
+.sp
+\fITODO\fR for a maintainers: These should be converted into a proper test suite\&.
+.RE
+.TP
+Package Code, General structure
+.RS
+.RE
+.TP
+Package Code, Per Package
+.RS
+.TP
+\fBcritcl\fR
+.RS
+.TP
+"\fIlib/critcl/critcl\&.tcl\fR"
+The Tcl code implementing the package\&.
+.TP
+"\fIlib/critcl/Config\fR"
+The configuration file for the standard targets and their settings\&.
+.TP
+"\fIlib/critcl/critcl_c/\fR"
+Various C code snippets used by the package\&.
+This directory also contains the copies of the Tcl header files used to compile the
+assembled C code, for the major brnaches of Tcl, i\&.e\&. 8\&.4, 8\&.5, and 8\&.6\&.
+.RE
+.TP
+\fBcritcl::util\fR
+.RS
+.TP
+"\fIlib/critcl-util/util\&.tcl\fR"
+The Tcl code implementing the package\&.
+.RE
+.TP
+\fBcritcl::app\fR
+.RS
+.TP
+"\fIlib/app-critcl/critcl\&.tcl\fR"
+The Tcl code implementing the package\&.
+.RE
+.TP
+\fBcritcl::iassoc\fR
+.RS
+.TP
+"\fIlib/critcl-iassoc/iassoc\&.tcl\fR"
+The Tcl code implementing the package\&.
+.TP
+"\fIlib/critcl-iassoc/iassoc\&.h\fR"
+C code template used by the package\&.
+.RE
+.TP
+\fBcritcl::class\fR
+.RS
+.TP
+"\fIlib/critcl-class/class\&.tcl\fR"
+The Tcl code implementing the package\&.
+.TP
+"\fIlib/critcl-class/class\&.h\fR"
+C code template used by the package\&.
+.RE
+.TP
+\fBstubs::*\fR
+.RS
+.TP
+"\fIlib/stubs/*\fR"
+A set of non-public (still) packages which provide read and write access to and represent
+Tcl stubs tables\&. These were created by taking the "\fIgenStubs\&.tcl\fR" helper application
+coming with the Tcl core sources apart along its internal logical lines\&.
+.RE
+.TP
+\fBcritclf\fR
+.RS
+.TP
+"\fIlib/critclf/\fR"
+Arjen Markus' work on a critcl/Fortran\&. The code is outdated and has not been adapted to
+the changes in critcl version 3 yet\&.
+.RE
+.TP
+\fBmd5\fR
+.TP
+\fBmd5c\fR
+.TP
+\fBplatform\fR
+These are all external packages whose code has been inlined in the repository for easier
+development (less dependencies to pull), and quicker deployment from the repository
+(generation of starkit and -pack)\&.
+.sp
+\fITODO\fR for maintainers: These should all be checked against their origin for
+updates and changes since they were inlined\&.
+.RE
+.PP
+.SH AUTHORS
+Jean Claude Wippler, Steve Landers, Andreas Kupries
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report them at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR\&.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR as well\&.
+.SH KEYWORDS
+C code, Embedded C Code, calling C code from Tcl, code generator, compile & run, compiler, dynamic code generation, dynamic compilation, generate package, linker, on demand compilation, on-the-fly compilation
+.SH CATEGORY
+Glueing/Embedded C code
+.SH COPYRIGHT
+.nf
+Copyright (c) Jean-Claude Wippler
+Copyright (c) Steve Landers
+Copyright (c) 2011-2024 Andreas Kupries
+
+.fi

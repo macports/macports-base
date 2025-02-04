@@ -1,0 +1,85 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# critcl_callback.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl  stubs::container
+    useLocal lib/stubs_reader/reader.tcl        stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl    stubs::gen
+
+    useLocal lib/critcl/critcl.tcl critcl
+}
+
+# -------------------------------------------------------------------------
+## The critcl::callback package provides only stubs.
+## To test this we create some basic commands linking the functions
+## into the Tcl level.
+
+testing {
+    # Must be installed
+    package require critcl::callback
+
+    puts *\t[join [info loaded] \n*\t]
+    puts -\t[critcl::This]
+    puts -\t[file dirname [file dirname [info library]]]/include/*
+    puts -\t[file dirname [file dirname [info nameofexecutable]]]/include/*
+
+    # Access to the stubs include files
+    critcl::cheaders [file dirname [file dirname [info library]]]/include/*
+    critcl::cheaders [file dirname [file dirname [info nameofexecutable]]]/include/*
+
+    critcl::api import critcl::callback 1
+
+    critcl::ccode {
+        static critcl_callback_p cb = 0;
+    }
+
+    critcl::cproc cb-make {Tcl_Interp* interp Tcl_Obj* args} void {
+        cb = critcl_callback_new (interp, args.c, args.v, 2);
+        critcl_callback_extend (cb, Tcl_NewStringObj("xyz", -1));
+    }
+
+    critcl::cproc cb-call {Tcl_Obj* value} void {
+        critcl_callback_invoke (cb, 1, &value);
+    }
+
+    critcl::cproc cb-done {} void {
+        critcl_callback_destroy (cb);
+    }
+
+    puts -\tLoaded=[critcl::load]
+    puts *\t[join [info loaded] \n*\t]
+}
+
+# -------------------------------------------------------------------------
+## 
+
+test critcl-callback-1.0.0 {callback} -setup {
+    proc ::record {args} { lappend ::trace $args }
+    cb-make record
+} -cleanup {
+    cb-done
+    unset ::trace
+} -body {
+    cb-call 1
+    cb-call a
+    cb-call 22
+    cb-call bbb
+    set ::trace
+} -result {{xyz 1} {xyz a} {xyz 22} {xyz bbb}}
+
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

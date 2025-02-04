@@ -1,0 +1,11 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*-}]
+
+[list_begin itemized]
+[item] [uri https://core.tcl-lang.org/akupries/ankh			  AnKH]
+[item] [uri https://core.tcl.tk/akupries/tclyaml			  TclYAML]
+[item] [uri https://github.com/andreas-kupries/tcl-linenoise		  Linenoise]
+[item] [uri https://core.tcl.tk/akupries/kinetcl			  KineTcl]
+[item] [uri https://chiselapp.com/user/andreas_kupries/repository/inotify Inotify]
+[item] [uri https://core.tcl.tk/akupries/marpa 				  TclMarpa]
+[item] [uri https://core.tcl.tk/akupries/crimp 				  CRIMP]
+[list_end]

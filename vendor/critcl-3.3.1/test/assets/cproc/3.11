@@ -1,0 +1,26 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static Tcl_Obj* c__aproc0()
+{
+return Tcl_NewIntObj(0);
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  Tcl_Obj* rv;
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return TCL_ERROR;
+  }
+
+  /* Call - - -- --- ----- -------- */
+  rv = c__aproc0();
+
+  /* (object return) - - -- --- ----- -------- */
+	if (rv == NULL) { return TCL_ERROR; }
+	Tcl_SetObjResult(interp, rv);
+	Tcl_DecrRefCount(rv);
+	return TCL_OK;
+}

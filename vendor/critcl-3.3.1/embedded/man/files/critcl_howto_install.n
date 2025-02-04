@@ -1,0 +1,544 @@
+'\"
+'\" Generated from file 'critcl_howto_install\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) Jean-Claude Wippler
+'\" Copyright (c) Steve Landers
+'\" Copyright (c) 2011-2024 Andreas Kupries
+'\"
+.TH "critcl_howto_install" n 3\&.3\&.1 doc "C Runtime In Tcl (CriTcl)"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+critcl_howto_install \- How To Install CriTcl
+.SH DESCRIPTION
+Be welcome to the \fIC Runtime In Tcl\fR (short: \fICriTcl\fR), a system for embedding and using C
+code from within \fITcl\fR [http://core\&.tcl-lang\&.org/tcl] scripts\&.
+.PP
+\fICriTcl\fR is installed in four major steps:
+.IP [1]
+\fBInstall The Requisites\fR
+.IP [2]
+Follow the instructions on \fIHow To Get The CriTcl Sources\fR
+.IP [3]
+\fBInstall The CriTcl Packages\fR
+.IP [4]
+\fBTest The Installation\fR
+.PP
+It is now possible to follow the instructions on \fIHow To Use CriTcl\fR\&.
+.SH "INSTALL THE REQUISITES"
+This major step breaks down into three minor steps:
+.IP [1]
+\fBInstall A Working C Compiler\fR and development environment\&.
+.IP [2]
+\fBInstall A Working Tcl Shell\fR
+.IP [3]
+\fBInstall Supporting Tcl Packages\fR
+.PP
+.SS "INSTALL A WORKING C COMPILER"
+While \fICriTcl\fR requires a working C compiler to both install itself, and to process
+\fICriTcl\fR-based packages installing such is very much out of scope for this document\&.
+.PP
+Please follow the instructions for the platform and system \fICriTcl\fR is to be
+installed on\&.
+.PP
+The important pieces of information are this:
+.IP [1]
+The path to the directory containing the C compiler binary has to be listed in the
+environment variable \fBPATH\fR, for \fICriTcl\fR to find it\&.
+.IP [2]
+On Windows(tm) the environment variable \fBLIB\fR has to be present and contain the
+paths of the directories holding Microsoft's libraries\&. The standard \fICriTcl\fR
+configuration for this platform searches these paths to fine-tune its settings
+based on available libraries and compiler version\&.
+.PP
+.PP
+Links of interest:
+.TP
+\fIhttp://www\&.tldp\&.org/HOWTO/HOWTO-INDEX/programming\&.html\fR
+.PP
+.SS "INSTALL A WORKING TCL SHELL"
+.PP
+That a working installation of \fICriTcl\fR will require a working installation of
+\fITcl\fR [http://core\&.tcl-lang\&.org/tcl] should be obvious\&.
+.PP
+Installing Tcl however is out of scope here, same as for installing a working C
+compiler\&.
+.PP
+There are too many options, starting from
+\fIbuilding it from scratch\fR [http://core\&.tcl-lang\&.org/tcl], installing what is provided
+by the platform's package manager (\fIzypper\fR [https://en\&.opensuse\&.org/Portal:Zypper], \fIyum\fR [https://access\&.redhat\&.com/solutions/9934], \fIapt-get\fR [https://help\&.ubuntu\&.com/community/AptGet/Howto], and more),
+to using some vendor's \fIdistribution\fR [https://core\&.tcl-lang\&.org/dist\&.html]\&.
+.PP
+A single piece of advice however\&.
+.PP
+While \fICriTcl\fR currently supports running on Tcl 8\&.4 and higher, and the
+creation of packages for the same, the last release for this version was in 2013 (9 years
+ago at the time of writing)\&. Similarly, the last release for Tcl 8\&.5 was in 2016 (6 years
+ago)\&. Both are official end of life\&.
+.PP
+Given this I recommend to install and use Tcl 8\&.6\&.
+.SS "INSTALL SUPPORTING TCL PACKAGES"
+The implementation of \fICriTcl\fR uses and depends on
+.IP [1]
+\fBcmdline\fR
+.PP
+.PP
+Depending on how Tcl was installed this package may be available already without
+action, or not\&.
+Invoke the command
+.CS
+
+
+    echo 'puts [package require cmdline]' | tclsh
+
+.CE
+to check if the package is present or not\&. If it is present then its version number will
+be printed, else the error message \fBcan't find package cmdline\fR or similar\&.
+.PP
+If it is not present install the package as per the instructions for the chosen Tcl
+installation\&.
+.PP
+\fINote\fR, the package \fBcmdline\fR may not exist as its own installable
+package\&. In such a case check if the chosen Tcl installation provides a \fBtcllib\fR
+package and install that\&. This should install all the packages in the Tcllib bundle,
+including \fBcmdline\fR\&.
+.PP
+As a last fallback, go to \fITclib\fR [http://core\&.tcl-lang\&.org/tcllib] and follow the instructions to install
+the bundle from scratch\&.
+.SH "INSTALL THE CRITCL PACKAGES"
+Note that this step has different instructions dependent on the platform \fICriTcl\fR is
+to be installed on\&. In other words, only one of the sub sections applies, the other can be
+ignored\&.
+.SS "INSTALL ON UNIX"
+This section offers instructions for installing \fICriTcl\fR on various kinds of Unix and
+Unix-related systems, i\&.e\&. \fILinux\fR, the various \fIBSD\fRs, etc\&. It especially
+covers \fIMac OS X\fR as well\&.
+.PP
+Use the instructions in section \fBInstall On Windows\fR when installing on a
+Windows platform and not using a unix-like environment as provided by tools like
+\fIMinGW\fR [https://www\&.mingw-w64\&.org], \fICygWin\fR [https://www\&.cygwin\&.com/], \fIGit For Windows\fR [https://gitforwindows\&.org], \fIWSL\fR [https://docs\&.microsoft\&.com/en-us/windows/wsl/faq], etc\&.
+.IP [1]
+Change the working directory to the top level directory of the \fICriTcl\fR
+checkout obtained by following the instructions of \fIHow To Get The CriTcl Sources\fR\&.
+.IP [2]
+Verify that the file "\fIbuild\&.tcl\fR" is marked executable\&. Make it executable if
+it is not\&.
+.IP [3]
+Invoke
+.CS
+
+ \&./build\&.tcl install
+.CE
+.IP to perform the installation\&.
+.sp
+\fIAttention\fR This command uses default locations for the placement of the
+\fBcritcl\fR application, the various packages, and header files\&.
+.IP [4]
+Invoke
+.CS
+
+ \&./build\&.tcl dirs
+.CE
+.IP to see the chosens paths before actually
+performing the installation\&.
+.IP [5]
+Use the options listed below to change the paths used for installation as desired\&. This is
+the same method as with \fBconfigure\fR based packages\&.
+.RS
+.TP
+\fB--prefix\fR \fIpath\fR
+Base path for non-package files\&.
+.TP
+\fB--include-dir\fR \fIpath\fR
+Destination path for header files\&.
+.TP
+\fB--exec-prefix\fR \fIpath\fR
+Base path for applications and packages\&.
+.TP
+\fB--bin-dir\fR \fIpath\fR
+Destination path for applications\&.
+.TP
+\fB--lib-dir\fR \fIpath\fR
+Destination path for packages\&.
+.RE
+.IP
+These options are especially necessary in all environments not using the semi-standard
+"\fIbin\fR", "\fIlib\fR", "\fIinclude\fR" locations from \fBconfigure\fR\&.
+.sp
+As an example of such environments, Ubuntu (and possibly Debian) expect Tcl
+packages to be installed into the "\fI/usr/share/tcltk\fR" directory, therefore requiring
+the use of
+.CS
+
+--lib-dir /usr/share/tcltk
+.CE
+.IP for proper installation\&.
+.PP
+.PP
+\fINote\fR that this guide neither covers the details of the \fBinstall\fR
+method, nor does it cover any of the other methods available through the \fBbuild\&.tcl\fR
+tool of \fICriTcl\fR\&.
+These can be found in the \fICriTcl build\&.tcl Tool Reference\fR\&.
+.SS "INSTALL ON WINDOWS"
+This section offers instructions for installing \fICriTcl\fR on a Windows (tm) host\&.
+\fINote\fR that environments as provided by tools like \fIMinGW\fR [https://www\&.mingw-w64\&.org], \fICygWin\fR [https://www\&.cygwin\&.com/],
+\fIGit For Windows\fR [https://gitforwindows\&.org], \fIWSL\fR [https://docs\&.microsoft\&.com/en-us/windows/wsl/faq], etc\&. are classed as Unix-like, and the instructions in section
+\fBInstall On Unix\fR apply\&.
+.IP [1]
+In a DOS box, change the working directory to the top level directory of the
+\fICriTcl\fR checkout obtained by following the instructions of
+\fIHow To Get The CriTcl Sources\fR\&.
+.IP [2]
+In the same DOS box, invoke
+.CS
+
+ tclsh\&.exe \&./build\&.tcl install
+.CE
+.IP to perform
+the installation\&.
+.sp
+\fIAttention\fR This command uses default locations for the placement of the
+\fBcritcl\fR application, the various packages, and header files\&.
+.IP [3]
+Invoke
+.CS
+
+ tclsh\&.exe \&./build\&.tcl dirs
+.CE
+.IP to see the chosens paths before
+actually performing the installation\&.
+.IP [4]
+Use the options listed below to change the paths used for installation as desired\&. This is
+the same method as with \fBconfigure\fR based packages\&.
+.RS
+.TP
+\fB--prefix\fR \fIpath\fR
+Base path for non-package files\&.
+.TP
+\fB--include-dir\fR \fIpath\fR
+Destination path for header files\&.
+.TP
+\fB--exec-prefix\fR \fIpath\fR
+Base path for applications and packages\&.
+.TP
+\fB--bin-dir\fR \fIpath\fR
+Destination path for applications\&.
+.TP
+\fB--lib-dir\fR \fIpath\fR
+Destination path for packages\&.
+.RE
+.PP
+.PP
+\fIAttention!\fR The current installer does not put an extension on the
+\fBcritcl\fR application\&. This forces users to either explicitly choose the
+\fBtclsh\fR to run the application, or manually rename the installed file to
+"\fIcritcl\&.tcl\fR"\&. The latter assumes that an association for "\fI\&.tcl\fR" is available, to
+either \fBtclsh\fR, or \fBwish\fR\&.
+.PP
+\fINote\fR that this guide neither covers the details of the \fBinstall\fR
+method, nor does it cover any of the other methods available through the \fBbuild\&.tcl\fR
+tool of \fICriTcl\fR\&.
+These can be found in the \fICriTcl build\&.tcl Tool Reference\fR\&.
+.SH "TEST THE INSTALLATION"
+Installing \fICriTcl\fR contains an implicit test of its functionality\&.
+.PP
+One of its operation modes uses the MD5 hash internally to generate unique ids for
+sources, as a means of detecting changes\&. To make generation of such hashes fast a
+\fICriTcl\fR-based package for MD5 is installed as part of the main installation process\&.
+.PP
+In other words, after installing the core packages of \fICriTcl\fR this partial
+installation is used to build the rest\&.
+.PP
+This is possible because building a package from \fICriTcl\fR-based sources is the
+operation mode not using MD5, therefore there is no circular dependency\&.
+.PP
+For our purposes this however is also a self-test of the system, verifying that the
+core of \fICriTcl\fR works, as well as the C compiler\&.
+.PP
+For additional testing simply move on to section \fBThe First Package\fR of
+the guide on \fIHow To Use CriTcl\fR\&.
+.SH AUTHORS
+Jean Claude Wippler, Steve Landers, Andreas Kupries
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report them at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR\&.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR as well\&.
+.SH KEYWORDS
+C code, Embedded C Code, calling C code from Tcl, code generator, compile & run, compiler, dynamic code generation, dynamic compilation, generate package, linker, on demand compilation, on-the-fly compilation
+.SH CATEGORY
+Glueing/Embedded C code
+.SH COPYRIGHT
+.nf
+Copyright (c) Jean-Claude Wippler
+Copyright (c) Steve Landers
+Copyright (c) 2011-2024 Andreas Kupries
+
+.fi

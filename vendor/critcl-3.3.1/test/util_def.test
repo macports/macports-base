@@ -1,0 +1,100 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# critcl_util_def.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+
+    useLocal lib/critcl/critcl.tcl critcl
+
+    # Helper procedures
+    useLocalFile test/support/crit_utils.tcl
+}
+testing {
+    useLocal lib/critcl-util/util.tcl critcl::util
+}
+
+overrides
+
+# -------------------------------------------------------------------------
+## util::def syntax
+
+test critcl-util-def-1.0.7 {util-def, wrong\#args, not enough} -constraints tcl9 -body {
+    critcl::util::def
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.0.6 {util-def, wrong\#args, not enough} -constraints tcl8.6plus -body {
+    critcl::util::def
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.0.5 {util-def, wrong\#args, not enough} -constraints tcl8.5 -body {
+    critcl::util::def
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.0.4 {util-def, wrong\#args, not enough} -constraints tcl8.4 -body {
+    critcl::util::def
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.1.7 {util-def, wrong\#args, not enough} -constraints tcl9 -body {
+    critcl::util::def C
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.1.6 {util-def, wrong\#args, not enough} -constraints tcl8.6plus -body {
+    critcl::util::def C
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.1.5 {util-def, wrong\#args, not enough} -constraints tcl8.5 -body {
+    critcl::util::def C
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.1.4 {util-def, wrong\#args, not enough} -constraints tcl8.4 -body {
+    critcl::util::def C
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.2.7 {util-def, wrong\#args, too many} -constraints tcl9 -body {
+    critcl::util::def C D V X
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.2.6 {util-def, wrong\#args, too many} -constraints tcl8.6plus -body {
+    critcl::util::def C D V X
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.2.5 {util-def, wrong\#args, too many} -constraints tcl8.5 -body {
+    critcl::util::def C D V X
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+test critcl-util-def-1.2.4 {util-def, wrong\#args, too many} -constraints tcl8.4 -body {
+    critcl::util::def C D V X
+} -returnCodes error -result {wrong # args: should be "critcl::util::def configfile define ?value?"}
+
+# -------------------------------------------------------------------------
+##
+
+test critcl-util-def-2.0 {util-def} -setup {
+    set here [critcl::cache]
+    file mkdir    $env(HOME)/.critcl-tests-[pid]
+    critcl::cache $env(HOME)/.critcl-tests-[pid]
+} -body {
+    critcl::util::def C foo 333
+    inspect C
+} -cleanup {
+    critcl::cache $here
+    unset here
+    file delete -force $env(HOME)/.critcl-tests-[pid]
+} -result [viewFile [localPath test/assets/def-2.0]]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

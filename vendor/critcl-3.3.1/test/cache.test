@@ -1,0 +1,67 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# cache.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+
+    # Helper procedures
+    useLocalFile test/support/crit_utils.tcl
+}
+testing {
+    useLocal lib/critcl/critcl.tcl critcl
+}
+
+overrides
+
+# -------------------------------------------------------------------------
+## cache syntax
+
+test critcl-cache-1.0.7 {cache, wrong\#args, too many} -constraints tcl9 -body {
+    critcl::cache C X
+} -returnCodes error -result {wrong # args: should be "critcl::cache ?dir?"}
+
+test critcl-cache-1.0.6 {cache, wrong\#args, too many} -constraints tcl8.6plus -body {
+    critcl::cache C X
+} -returnCodes error -result {wrong # args: should be "critcl::cache ?dir?"}
+
+test critcl-cache-1.0.5 {cache, wrong\#args, too many} -constraints tcl8.5 -body {
+    critcl::cache C X
+} -returnCodes error -result {wrong # args: should be "critcl::cache ?dir?"}
+
+test critcl-cache-1.0.4 {cache, wrong\#args, too many} -constraints tcl8.4 -body {
+    critcl::cache C X
+} -returnCodes error -result {wrong # args: should be "critcl::cache ?dir?"}
+
+# -------------------------------------------------------------------------
+##
+
+test critcl-cache-2.0 {cache, default, home directory} -body {
+    # Note file join below is to not fail because of \ vs / separators
+    critcl::cache
+} -match glob -result [file dirname [file normalize [file join $::env(HOME) .critcl * _dummy_]]]
+
+test critcl-cache-2.1 {cache, redirecting cache} -setup {
+    set here [critcl::cache]
+} -body {
+    critcl::cache $env(HOME)/FOO
+} -cleanup {
+    critcl::cache $here
+    unset here
+} -match glob -result [file dirname [file normalize [file join $::env(HOME) FOO _dummy_]]]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

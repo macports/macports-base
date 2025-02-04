@@ -1,0 +1,57 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static void c__aproc0(Tcl_Channel x)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  Tcl_Channel _x;
+
+  if (oc != 2) {
+    Tcl_WrongNumArgs(interp, 1, ov, "x");
+    return TCL_ERROR;
+  }
+
+  /* (take-channel x) - - -- --- ----- -------- */
+	{
+	int mode;
+	_x = Tcl_GetChannel(interp, Tcl_GetString (ov[1]), &mode);
+	if (_x == NULL) return TCL_ERROR;
+	if (Tcl_IsChannelShared (_x)) {
+	    Tcl_SetObjResult(interp, Tcl_NewStringObj("channel is shared", -1));
+	    return TCL_ERROR;
+	}
+	{
+	    /* Disable event processing for the channel, both by
+	     * removing any registered handler, and forcing interest
+	     * to none. This also disables the processing of pending
+	     * events which are ready to fire for the given
+	     * channel. If we do not do this, events will hit the
+	     * detached channel and potentially wreck havoc on our
+	     * memory and eventually badly hurt us...
+	     */
+	    Tcl_DriverWatchProc *watchProc;
+	    Tcl_ClearChannelHandlers(_x);
+	    watchProc = Tcl_ChannelWatchProc(Tcl_GetChannelType(_x));
+	    if (watchProc) {
+		(*watchProc)(Tcl_GetChannelInstanceData(_x), 0);
+	    }
+	    /* Next some fiddling with the reference count to prevent
+	     * the unregistration from killing it. We basically record
+	     * it as globally known before removing it from the
+	     * current interpreter
+	     */
+	    Tcl_RegisterChannel((Tcl_Interp *) NULL, _x);
+	    Tcl_UnregisterChannel(interp, _x);
+	} }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_x);
+
+  /* (void return) - - -- --- ----- -------- */
+	return TCL_OK;
+}

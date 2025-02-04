@@ -1,0 +1,69 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+#ifndef CRITCL_list_int
+#define CRITCL_list_int
+
+	/* NOTE: Array 'v' is allocated on the heap. The argument
+	// release code is used to free it after the worker
+	// function returned. Depending on type and what is done
+	// by the worker it may have to make copies of the data.
+	*/
+
+	typedef struct critcl_list_int {
+	    Tcl_Obj* o; /* Original list object, for pass-through cases */
+	    Tcl_Size c; /* Element count */
+	    int*  v; /* Allocated array of the elements */
+	} critcl_list_int;
+
+	static int
+	_critcl_list_int_item (Tcl_Interp* interp, Tcl_Obj* src, int* dst) {
+	    	{
+	if (Tcl_GetIntFromObj(interp, src, dst) != TCL_OK) return TCL_ERROR; }
+	    return TCL_OK;
+	}
+    
+#endif /* CRITCL_list_int _________ */
+
+static void c__aproc0(critcl_list_int a)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  critcl_list_int _a;
+
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if (oc != 2) {
+    Tcl_WrongNumArgs(interp, 1, ov, "a");
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  /* (list_int_any a) - - -- --- ----- -------- */
+	{
+	int k;
+	    Tcl_Obj** el;
+	    if (Tcl_ListObjGetElements (interp, ov[1], /* OK tcl9 */
+			&(_a.c), &el) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp);
+	    _a.o = ov[1];
+	
+	_a.v = (int*) ((!_a.c) ? 0 : ckalloc (_a.c * sizeof (int)));
+	for (k = 0; k < _a.c; k++) {
+	    if (_critcl_list_int_item (interp, el[k], &(_a.v[k])) != TCL_OK) {
+		ckfree ((char*) _a.v); /* Cleanup partial work */
+		return critcl_trace_cmd_result (TCL_ERROR, interp);
+	    }
+	} }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_a);
+
+  /* (Release: list_int_any a) - - -- --- ----- -------- */
+	if (_a.c) { ckfree ((char*) _a.v); }
+    
+  /* (void return) - - -- --- ----- -------- */
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

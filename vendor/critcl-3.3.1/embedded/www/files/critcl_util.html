@@ -1,0 +1,204 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl::util - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_util.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl::util.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl::util(n) 1.2 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl::util - CriTcl - Utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Authors</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.2?</span></b></li>
+<li>package require <b class="pkgname">critcl::util <span class="opt">?1.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::util::checkfun</b> <i class="arg">name</i> <span class="opt">?<i class="arg">label</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::critcl::util::def</b> <i class="arg">path</i> <i class="arg">define</i> <span class="opt">?<i class="arg">value</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::critcl::util::undef</b> <i class="arg">path</i> <i class="arg">define</i></a></li>
+<li><a href="#4"><b class="cmd">::critcl::util::locate</b> <i class="arg">label</i> <i class="arg">paths</i> <span class="opt">?<i class="arg">cmd</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is the reference manpage for the <b class="package">critcl::util</b>
+package. This package provides convenience commands for advanced
+functionality built on top of the core.
+Its intended audience are mainly developers wishing to write Tcl
+packages with embedded C code.</p>
+<p>This package resides in the Core Package Layer of CriTcl.</p>
+<p><img alt="arch_core" src="../image/arch_core.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::util::checkfun</b> <i class="arg">name</i> <span class="opt">?<i class="arg">label</i>?</span></a></dt>
+<dd><p>This command checks the build-time environment for the existence of
+the C function <i class="arg">name</i>.
+It returns <b class="const">true</b> on success, and <b class="const">false</b> otherwise.</p></dd>
+<dt><a name="2"><b class="cmd">::critcl::util::def</b> <i class="arg">path</i> <i class="arg">define</i> <span class="opt">?<i class="arg">value</i>?</span></a></dt>
+<dd><p>This command extends the specified configuration file <i class="arg">path</i> with a
+<b class="const">#define</b> directive for the named <i class="arg">define</i>. If the <i class="arg">value</i>
+is not specified it will default to <b class="const">1</b>.</p>
+<p>The result of the command is an empty string.</p>
+<p>Note that the configuration file is maintained in the <b class="cmd">critcl::cache</b>
+directory.</p></dd>
+<dt><a name="3"><b class="cmd">::critcl::util::undef</b> <i class="arg">path</i> <i class="arg">define</i></a></dt>
+<dd><p>This command extends the specified configuration file <i class="arg">path</i> with an
+<b class="const">#undef</b> directive for the named <i class="arg">define</i>.</p>
+<p>The result of the command is an empty string.</p>
+<p>Note that the configuration file is maintained in the <b class="cmd">critcl::cache</b>
+directory.</p></dd>
+<dt><a name="4"><b class="cmd">::critcl::util::locate</b> <i class="arg">label</i> <i class="arg">paths</i> <span class="opt">?<i class="arg">cmd</i>?</span></a></dt>
+<dd><p>This command checks the build-time environment for the existence of a file
+in a set of possible <i class="arg">paths</i>.</p>
+<p>If the option <i class="arg">cmd</i> prefix is specified it will be called with
+the full path of a found file as its only argument to perform further checks.
+A return value of <b class="const">false</b> will reject the path and continue the search.</p>
+<p>The return value of the command is the found path, as listed in
+<i class="arg">paths</i>. As a side effect the command will also print the found path,
+prefixed with the <i class="arg">label</i>, using <b class="cmd">critcl::msg</b>.</p>
+<p>Failure to find the path is reported via <b class="cmd">critcl::error</b>, and a
+possible empty string as the result, if <b class="cmd">critcl::error</b> does not
+terminate execution.
+A relative path is resolved relative to the directory
+containing the <i class="term">CriTcl script</i>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Authors</a></h2>
+<p>Andreas Kupries</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such at <a href="https://github.com/andreas-kupries/critcl">https://github.com/andreas-kupries/critcl</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

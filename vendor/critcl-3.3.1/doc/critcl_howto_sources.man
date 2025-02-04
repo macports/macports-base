@@ -1,0 +1,48 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: how-to}]
+[include version.inc]
+[manpage_begin critcl_howto_sources n [vset VERSION]]
+[include include/module.inc]
+[titledesc {How To Get The CriTcl Sources}]
+[description]
+[include include/welcome.inc]
+
+[para] The sources for [vset critcl] are retrieved in two easy steps:
+
+[list_begin enumerated]
+[enum] [sectref {Install the Git Source Code Manager}]
+[enum] [sectref {Retrieve The Sources}]
+[list_end]
+
+It is now possible to follow the instructions on [term {How To Install CriTcl}].
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Install the Git Source Code Manager}]
+
+[vset critcl]'s sources are managed by the popular [vset git_home].
+
+[para] Binaries of clients for popular platforms can be found at the [vset git_binaries].
+
+[para] See also if your operating system's package manager provides clients and associated
+tools for installation. If so, follow the instructions for the installation of such
+packages on your system.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Retrieve The Sources}]
+
+[list_begin enumerated]
+[enum] Choose a directory for the sources, and make it the working directory.
+
+[enum] Invoke the command
+[example_begin]
+git clone [vset project_home]
+[example_end]
+
+[enum] The working directory now contains a sub-directory [file critcl] holding the
+sources of [vset critcl].
+
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]
+

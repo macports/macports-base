@@ -1,0 +1,36 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+
+#ifndef CRITCL_variadic_object
+#define CRITCL_variadic_object
+
+	typedef struct critcl_variadic_object {
+	    int             c;
+	    Tcl_Obj* const* v;
+	} critcl_variadic_object;
+    
+#endif /* CRITCL_variadic_object _________ */
+
+static void c__aproc0(critcl_variadic_object args)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  critcl_variadic_object _args;
+
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+  /* (object args, ...) - - -- --- ----- -------- */
+	{
+	_args.c = (oc-1);
+	_args.v = &ov[1]; }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_args);
+
+  /* (void return) - - -- --- ----- -------- */
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

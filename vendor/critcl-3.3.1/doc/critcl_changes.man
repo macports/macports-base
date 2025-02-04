@@ -1,0 +1,16 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include version.inc]
+[manpage_begin critcl_changes n [vset VERSION]]
+[include include/module.inc]
+[titledesc {CriTcl Releases & Changes}]
+[description]
+[include include/welcome.inc]
+[include include/advert.inc]
+
+See the changes done in each release of [vset critcl], from the latest at the top to the
+beginning of the project.
+
+[include include/changes.inc]
+[include include/feedback.inc]
+[manpage_end]

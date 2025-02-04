@@ -1,0 +1,187 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include pkg_version.inc]
+[manpage_begin critcl_tcl9 n [vset VERSION]]
+[include include/module.inc]
+[titledesc {How To Adapt Critcl Packages for Tcl 9}]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This guide contains notes and actions to take by writers of [vset critcl]-based
+packages to make their code workable for both Tcl 8.6 and 9.
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[list_begin enumerated]
+
+[enum] Generally, if there is no interest in moving to Tcl 9, i.e. Tcl 8.[lb]456[rb]
+       are the only supported runtimes, then just keep using [vset critcl] [const 3.2].
+
+[para] The remainder of this document can be ignored.
+
+[enum] Use [vset critcl] version [vset VERSION] [strong {if, and only if}]
+       Tcl 9 support is wanted.
+
+[para] With some work this will then also provide backward compatibility with Tcl 8.6.
+
+[enum] Header [file tcl.h]
+
+[para] Replace any inclusion of Tcl's public [file tcl.h] header file in the package's
+       C code with the inclusion of [vset critcl]'s new header file [file tclpre9compat.h].
+
+[para] This includes [file tcl.h] and further provides a set of compatibility definitions
+       which make supporting both Tcl 8.6 and Tcl 9 in a single code base easier.
+
+[para] The following notes assume that this compatibility layer is in place.
+
+[enum] [cmd critcl::tcl]
+
+[para] Before [vset critcl] [vset VERSION] a single default ([const 8.4]) was used for
+       the minimum Tcl version, to be overriden by an explicit [cmd critcl::tcl] in the
+       package code.
+
+[para] Now the default is dynamic, based on the [strong runtime] version, i.e.
+       [cmd {package provide Tcl}], [vset critcl] is run with/on.
+
+[para] When running on Tcl 9 the new default is version [const 9], and [const 8.6] else.
+       [strong Note] how this other default was bumped up from [const 8.4].
+
+[para] As a consequence it is possible to
+
+[list_begin enumerated]
+
+[enum] Support just Tcl 8.4+, 8.5+, by having an explicit [cmd {critcl::tcl 8.x}] in
+       the package code.
+
+[para] [strong {Remember however}], it is better to simply stick with
+       [vset critcl] [const 3.2] for this.
+
+[enum] Support just Tcl 9 by having an explicit [cmd {critcl::tcl 9}] in the package code.
+
+[enum] Support both Tcl 8.6 and Tcl 9 (but not 8.4/8.5) by leaving [cmd critcl::tcl] out of the code
+       and using the proper [syscmd tclsh] version to run [vset critcl] with.
+[list_end]
+
+[enum] Code checking
+
+[para] [vset critcl] [vset VERSION] comes with a very basic set of code checks pointing
+       out places where compatibility might or will be an issue.
+
+[para] The implementation checks all inlined C code declared by [cmd critcl::ccode],
+       [cmd critcl::ccommand], [cmd critcl::cproc] (and related/derived commands), as well
+       as the C companion files declared with [cmd critcl::csources].
+
+[para] It is very basic because it simply greps the code line by line for a number
+       of patterns and reports on their presence. The C code is not fully parsed.
+       The check can and will report pattern found in C code comments, for example.
+
+[para] The main patterns deal with functions affected by the change to [type Tcl_Size],
+       the removal of old-style interpreter state handling, and command creation.
+
+[para] A warning message is printed for all detections.
+
+[para] This is disabled for the [const Tcl_Size]-related pattern if the line also matches
+       the pattern [const {*OK tcl9*}].
+
+[para] In this way all places in the code already handled can be marked and excluded
+       from the warnings.      
+
+[list_begin enumerated]
+
+[enum] Interpreter State handling
+
+[para] Tcl 9 removed the type [type Tcl_SavedResult] and its associated functions
+       [fun Tcl_SaveResult], [fun Tcl_RestoreResult], and [fun Tcl_DiscardResult].
+
+[para] When a package uses this type and the related functions a rewrite is necessary.
+
+[para] With Tcl 9 use of type [type Tcl_InterpState] and its functions
+       [fun Tcl_SaveInterpState], [fun Tcl_RestoreInterpState], and
+       [fun Tcl_DiscardInterpState] is now required.
+
+[para] As these were introduced with Tcl 8.5 the rewrite gives us compatibility with
+       Tcl 8.6 for free.
+
+[enum] [type Tcl_Size]
+
+[para] One of the main changes introduced with Tcl 9 is the breaking of the 2G barrier
+       for the number of bytes in a string, elements in a list, etc.
+
+       In a lot of interfaces [type int] was replaced with [type Tcl_Size], which is
+       effectively [type ptrdiff_t] behind the scenes.
+
+[para] The [file tclpre9compat.h] header mentioned above provides a suitable definition
+       of [type Tcl_Size] for [const 8.6], i.e. maps it to [type int].
+
+       This enables the package code to use [type Tcl_Size] everywhere and still have it
+       work for both Tcl 8.6 and 9.
+
+[para] It is of course necessary to rewrite the package code to use [type Tcl_Size].
+
+[para] The checker reports all lines in the C code using a function whose signature
+       was changed to use [type Tcl_Size] over [type int].
+
+[para] Note that it is necessary to manually check the package code for places where
+       a [const %d] text formatting specification should be replaced with
+       [const TCL_SIZE_FMT].
+
+[para] I.e. all places where [type Tcl_Size] values are formatted with [fun printf]-style
+       functions a formatting string [example {"... %d ..."}] has to be replaced with
+       [example {"... " TCL_SIZE_FMT " ..."}]
+
+[para] The macro [cmd TCL_SIZE_FMT] is defined by Critcl's compatibility layer, as an
+       extension of the [cmd TCL_SIZE_MODIFIER] macro which only contains the
+       formatting modifier to insert into a plain [const %d] to handle [type Tcl_Size]
+       values.
+
+[para] [strong Note] how the original formatting string is split into multiple strings.
+       The C compiler will fuse these back together into a single string.
+
+[enum] Command creation.
+
+[para] This is technically a part of the [type Tcl_Size] changes.
+
+[para] All places using [fun Tcl_CreateObjCommand] have to be rewritten to use
+       [fun Tcl_CreateObjCommand2] instead, and the registered command functions
+       to use [type Tcl_Size] for their [arg objc] argument.
+
+[para] The [file tclpre9compat.h] header maps this back to the old function
+       when compilation is done against Tcl 8.6.
+
+[para] [vset critcl] does this itself for the commands created via [cmd critcl::ccommand],
+       [cmd critcl::cproc], and derived places ([package critcl::class]).
+
+[enum] TIP 494. This TIP adds three semantic constants wrapping [const -1] to Tcl 9 to
+       make the meaning of code clearer. As part of this it also casts the constant to the
+       proper type. They are:
+
+[list_begin itemized]
+[item] [const TCL_IO_FAILURE]
+[item] [const TCL_AUTO_LENGTH]
+[item] [const TCL_INDEX_NONE]
+[list_end]
+
+[para] Critcl's compatibility layer provides the same constants to Tcl 8.6.
+
+[para] Critcl's new checker highlights places where [const TCL_AUTO_LENGTH] is suitable.
+
+[para] Doing this for the other two constants looks to require deeper and proper parsing
+       of C code, which the checker does not do.
+
+[list_end]
+[list_end]
+
+[section {Additional References}]
+[list_begin enumerated]
+[enum] [uri https://wiki.tcl-lang.org/page/Porting+extensions+to+Tcl+9]
+[enum] [uri https://wiki.tcl-lang.org/page/Tcl+9+functions+using+Tcl%5FSize]
+[enum] [uri https://core.tcl-lang.org/tcl/wiki?name=Migrating%20scripts%20to%20Tcl%209]
+[enum] [uri https://core.tcl-lang.org/tcl/wiki?name=Migrating%20C%20extensions%20to%20Tcl%209]
+[list_end]
+
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback.inc]
+[manpage_end]

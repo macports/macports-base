@@ -1,0 +1,22 @@
+/* ---------------------------------------------------------------------- */
+
+static void c_snafu()
+{
+
+}
+
+static int
+snafu(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return TCL_ERROR;
+  }
+
+  /* Call - - -- --- ----- -------- */
+  c_snafu();
+
+  /* (void return) - - -- --- ----- -------- */
+	return TCL_OK;
+}

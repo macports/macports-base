@@ -1,0 +1,19 @@
+# critcl::cdata -- Testing with trace code.
+# -------------------------------------------------------------------------
+# Setup
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+useLocalFile test/support/crit_utils.tcl
+
+# -------------------------------------------------------------------------
+
+trace-do cdata
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

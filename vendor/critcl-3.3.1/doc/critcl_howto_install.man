@@ -1,0 +1,51 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: how-to}]
+[include version.inc]
+[manpage_begin critcl_howto_install n [vset VERSION]]
+[include include/module.inc]
+[titledesc {How To Install CriTcl}]
+[description]
+[include include/welcome.inc]
+
+[para] [vset critcl] is installed in four major steps:
+
+[list_begin enumerated]
+[enum] [sectref {Install The Requisites}]
+[enum] Follow the instructions on [term {How To Get The CriTcl Sources}]
+[enum] [sectref {Install The CriTcl Packages}]
+[enum] [sectref {Test The Installation}]
+[list_end]
+
+It is now possible to follow the instructions on [term {How To Use CriTcl}].
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Install The Requisites}]
+
+This major step breaks down into three minor steps:
+
+[list_begin enumerated]
+[enum] [sectref {Install A Working C Compiler}] and development environment.
+[enum] [sectref {Install A Working Tcl Shell}]
+[enum] [sectref {Install Supporting Tcl Packages}]
+[list_end]
+
+[subsection {Install A Working C Compiler}]	[include include/rq_cc.inc]
+[subsection {Install A Working Tcl Shell}]	[include include/rq_tcl.inc]
+[subsection {Install Supporting Tcl Packages}]	[include include/rq_tcllib.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Install The CriTcl Packages}]
+
+Note that this step has different instructions dependent on the platform [vset critcl] is
+to be installed on. In other words, only one of the sub sections applies, the other can be
+ignored.
+
+[subsection {Install On Unix}]		[include include/b_unix.inc]
+[subsection {Install On Windows}]	[include include/b_windows.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section {Test The Installation}]	[include include/b_test.inc]
+
+[include include/feedback.inc]
+[manpage_end]

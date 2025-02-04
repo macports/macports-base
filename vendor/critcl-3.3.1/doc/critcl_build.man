@@ -1,0 +1,17 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include version.inc]
+[manpage_begin critcl_build_tool n [vset VERSION]]
+[include include/module.inc]
+[titledesc {CriTcl build.tcl Tool Reference}]
+[description]
+[include include/welcome.inc]
+
+The script [file build.tcl] found in the top directory of the [vset critcl] sources is the
+main tool of use to a developer or maintainer of [vset critcl] itself.
+
+[para] Invoking it a via [example {./build.tcl help}] provides the online help for this
+tool, explaining the operations available, and their arguments.
+
+[include include/feedback.inc]
+[manpage_end]

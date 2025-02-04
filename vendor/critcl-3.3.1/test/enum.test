@@ -1,0 +1,99 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# enum.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+
+    useLocal lib/critcl/critcl.tcl             critcl
+    useLocal lib/critcl-iassoc/iassoc.tcl      critcl::iassoc
+    useLocal lib/critcl-literals/literals.tcl  critcl::literals
+
+    localcache-setup
+}
+testing {
+    useLocal lib/critcl-enum/enum.tcl critcl::enum
+}
+
+# -------------------------------------------------------------------------
+##
+
+test enum-mode-tcl+list-1.0 {critcl-enum, mode: +list} -setup {
+    make-demo TL {
+        critcl::enum::def demo {
+            E_global global
+            E_exact  exact
+            E_filler filler
+        } +list
+
+        critcl::cproc decode {Tcl_Interp* ip int args} object {
+            Tcl_Obj* res = demo_ToObjList (ip, args.c, args.v);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+    }
+} -body {
+    decode 1 0 2
+} -result {exact global filler}
+
+test enum-mode-tcl-1.0 {critcl-enum, mode: tcl} -setup {
+    make-demo TL {
+        critcl::enum::def demo {
+            E_global global
+            E_exact  exact
+            E_filler filler
+        }
+
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* str} int {
+            int val;
+            demo_GetFromObj (ip, str, 0, &val);
+            return val;
+        }
+
+        critcl::cproc decode {Tcl_Interp* ip int val} object {
+            Tcl_Obj* res = demo_ToObj (ip, val);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo str} int {
+            return str;
+        }
+
+        # Encode hidden in the argtype.
+        critcl::cproc xencode-p {Tcl_Interp* ip demo-prefix str} int {
+            return str;
+        }
+
+        # Decode hidden in the resultype
+        critcl::cproc xdecode {Tcl_Interp* ip int val} demo {
+            return val;
+        }
+    }
+} -body {
+    res!
+    res+ [encode    exact]
+    res+ [xencode   filler]
+    res+ [xencode-p glob]
+    res+ [xencode   glob]
+    res+ [decode  2]
+    res+ [xdecode 0]
+    res?
+} -result {1 2 0 0 filler global}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

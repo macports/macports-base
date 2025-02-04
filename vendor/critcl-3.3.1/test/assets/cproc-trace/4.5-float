@@ -1,0 +1,32 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static void c__aproc0(float x)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  float _x;
+
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if (oc != 2) {
+    Tcl_WrongNumArgs(interp, 1, ov, "x");
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  /* (float x) - - -- --- ----- -------- */
+	{
+	double t;
+	if (Tcl_GetDoubleFromObj(interp, ov[1], &t) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp);
+	_x = (float) t; }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_x);
+
+  /* (void return) - - -- --- ----- -------- */
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

@@ -383,6 +383,18 @@ VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLX_SUBDIR)
 AC_SUBST(VENDOR_TCLX_INSTALL)
 
+## critcl package
+CRITCL_PLATFORMS="$(echo "$CFLAGS" | awk '{for (I=1;I<NF;I++) if ($I == "-arch") print "macosx-"$(I+1)}')"
+if test "$CRITCL_PLATFORMS" = "" -a "$OS_PLATFORM" = darwin; then
+    CRITCL_PLATFORMS=macosx-$host_cpu
+fi
+CRITCL_PLATFORMS="$(echo "$CRITCL_PLATFORMS" | \
+    sed -E -e 's/macosx-a(rm|arch)64/macosx-aarch64 macosx-arm macosx-arm64/' \
+        -e 's/macosx-i[3-6]86/macosx-ix86/' \
+        -e 's/macosx-ppc/macosx-powerpc/' \
+        | tr '\n' ' ')"
+AC_SUBST(CRITCL_PLATFORMS)
+
 ## Tcllib package
 # Note that Tcllib needs a Tcl interpreter during installation; it will *not*
 # be the one we configure above, because that one isn't built yet. That's not
@@ -473,6 +485,7 @@ AC_CONFIG_FILES([
 	tests/test/library.tcl
 	tests/test/trace/test.tcl
 	vendor/Makefile
+	vendor/critcl/lib/critcl/Config
 	vendor/signify-osx/autoconf.mk
 ])
 

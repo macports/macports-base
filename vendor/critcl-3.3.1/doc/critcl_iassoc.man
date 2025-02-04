@@ -1,0 +1,129 @@
+[vset VERSION 1.2]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin critcl::iassoc n [vset VERSION]]
+[include include/module2.inc]
+[keywords singleton {Tcl Interp Association}]
+[titledesc {CriTcl - Code Gen - Tcl Interp Associations}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::iassoc [opt [vset VERSION]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the [package critcl::iassoc]
+package. This package provides convenience commands for advanced
+functionality built on top of the critcl core.
+
+[para] With it a user wishing to associate some data with a Tcl
+interpreter via Tcl's [fun Tcl_(Get|Set)AssocData()] APIs can now
+concentrate on the data itself, while all the necessary boilerplate
+around it is managed by this package.
+
+[para] Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.
+
+[para] This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::critcl::iassoc::def] [arg name] [arg arguments] [arg struct] \
+	[arg constructor] [arg destructor]]
+
+This command defines a C function with the given [arg name] which
+provides access to a structure associated with a Tcl interpreter.
+
+[para] The C code code fragment [arg struct] defines the elements of
+said structure, whereas the fragments [arg constructor] and
+[arg destructor] are C code blocks executed to initialize and release
+any dynamically allocated parts of this structure, when needed. Note
+that the structure itself is managed by the system.
+
+[para] The new function takes a [const Tcl_Interp*] pointer refering
+to the interpreter whose structure we wish to obtain as the first
+argument, plus the specified [arg arguments] and returns a pointer to
+the associated structure, of type "[arg name]_data" (see below).
+
+[para] The [arg arguments] are a dictionary-like list of C types and
+identifiers specifying additional arguments for the accessor function,
+and, indirectly, the [arg constructor] C code block. This is useful
+for the supplication of initialization values, or the return of more
+complex error information in case of a construction failure.
+
+[para] The C types associated with the structure are derived from
+[arg name], with "[arg name]_data__" the type of the structure itself,
+and "[arg name]_data" representing a pointer to the structure.
+
+The C code blocks can rely on the following C environments:
+[list_begin definitions]
+[def [arg constructor]]
+[list_begin definitions]
+
+[def [var data]] Pointer to the structure (type: [arg name]_data) to
+initialize.
+
+[def [var interp]] Pointer to the Tcl interpreter (type: Tcl_Interp*)
+the new structure will be associated with.
+
+[def error] A C code label the constructor can jump to should it have
+to signal a construction failure. It is the responsibility of the
+constructor to release any fields already initialized before jumping
+to this label.
+
+[def ...] The names of the constructor arguments specified with
+[arg arguments].
+[list_end]
+[def [arg destructor]]
+[list_begin definitions]
+[def [var data]] Pointer to the structure being released.
+[def [var interp]] Pointer to the Tcl interpreter the structure
+belonged to.
+[list_end]
+[list_end]
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Example]
+
+The example shown below is the specification of a simple interpreter-associated
+counter. The full example, with meta data and other incidentals, can be found
+in the directory [file examples/queue] of the critcl source
+distribution/repository.
+
+[example {
+package require Tcl 8.6
+package require critcl 3.2
+
+critcl::buildrequirement {
+    package require critcl::iassoc
+}
+
+critcl::iassoc::def icounter {} {
+    int counter; /* The counter variable */
+} {
+    data->counter = 0;
+} {
+    /* Nothing to release */
+}
+
+critcl::ccode {
+    ... function (...)
+    {
+         /* Access to the data ... */
+         icounter_data D = icounter (interp /* ... any declared arguments, here, none */);
+	 ... D->counter ...
+    }
+}
+# or, of course, 'cproc's, 'ccommand's etc.
+
+package provide icounter 1
+}]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

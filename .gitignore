@@ -51,6 +51,8 @@ vendor/**/*.dylib
 vendor/**/*.dSYM
 vendor/**/config.log
 vendor/**/config.status
+vendor/**/.critcl
+vendor/critcl*/lib/critcl/Config
 vendor/tcl8.*/unix/Tcl-Info.plist
 vendor/tcl8.*/unix/Tclsh-Info.plist
 vendor/tcl8.*/unix/tcl.pc

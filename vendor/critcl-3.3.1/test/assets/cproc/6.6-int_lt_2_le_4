@@ -1,0 +1,34 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static void c__aproc0(int x)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  int _x;
+
+  if (oc != 2) {
+    Tcl_WrongNumArgs(interp, 1, ov, "x");
+    return TCL_ERROR;
+  }
+
+  /* (int < 2 x) - - -- --- ----- -------- */
+	{
+	{
+	if (Tcl_GetIntFromObj(interp, ov[1], &_x) != TCL_OK) return TCL_ERROR; }
+	/* Range check, assert (x < 2) */
+	if (!(_x < 2)) {
+	    Tcl_AppendResult (interp, "expected int < 2, but got \"", Tcl_GetString (ov[1]), "\"", NULL);
+	    return TCL_ERROR;
+	} }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_x);
+
+  /* (void return) - - -- --- ----- -------- */
+	return TCL_OK;
+}

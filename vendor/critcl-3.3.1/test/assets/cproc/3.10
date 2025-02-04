@@ -1,0 +1,24 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static char* c__aproc0()
+{
+return alloc_string("bar");
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  char* rv;
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return TCL_ERROR;
+  }
+
+  /* Call - - -- --- ----- -------- */
+  rv = c__aproc0();
+
+  /* (dstring return) - - -- --- ----- -------- */
+	Tcl_SetResult (interp, rv, TCL_DYNAMIC);
+	return TCL_OK;
+}

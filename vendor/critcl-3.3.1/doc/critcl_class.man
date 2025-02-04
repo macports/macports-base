@@ -1,0 +1,57 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 1.1]
+[manpage_begin critcl::class n [vset VERSION]]
+[include include/module2.inc]
+[keywords {C class} {C object} {C instance}]
+[titledesc {CriTcl - Code Gen - C Classes}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::class [opt [vset VERSION]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the [package critcl::class]
+package. This package provides convenience commands for advanced
+functionality built on top of the core.
+
+[para] With it a user wishing to create a C level object with class
+and instance commands can concentrate on specifying the class- and
+instance-variables and -methods in a manner similar to a TclOO class,
+while all the necessary boilerplate around it is managed by this
+package.
+
+[para] Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.
+
+[para] This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::critcl::class::define] [arg name] [arg script]]
+
+This is the main command to define a new class [arg name], where
+[arg name] is the name of the Tcl command representing the class,
+i.e. the [term {class command}]. The [arg script] provides the
+specification of the class, i.e. information about included headers,
+class- and instance variables, class- and instance-methods, etc.
+
+See the section [sectref {Class Specification API}] below for the
+detailed list of the available commands and their semantics.
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Class Specification API}][include include/class_spec.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Example][include include/class_example.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

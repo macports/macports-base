@@ -1,0 +1,25 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static void c__aproc0()
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0();
+
+  /* (void return) - - -- --- ----- -------- */
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}
