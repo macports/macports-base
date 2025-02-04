@@ -532,6 +532,7 @@ void macho_destroy_handle(macho_handle_t *handle) {
 
 /* Returns string representation of the MACHO_* error code constants */
 const char *macho_strerror(int err) {
+#ifdef __MACH__
     int num = fls(err);
 
     static char *errors[] = {
@@ -544,5 +545,8 @@ const char *macho_strerror(int err) {
         /* 0x20 */ "Shared cache only",
     };
     return errors[num];
+#else
+    return "";
+#endif
 }
 
