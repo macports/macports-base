@@ -2924,6 +2924,7 @@ proc macports::_upgrade_mport_deps {mport target} {
     set workername [ditem_key $mport workername]
     set deptypes [macports::_deptypes_for_target $target $workername]
     set portinfo [mportinfo $mport]
+    set opened_mports [list]
     array set depscache {}
 
     set required_archs [$workername eval [list get_canonical_archs]]
@@ -2932,15 +2933,14 @@ proc macports::_upgrade_mport_deps {mport target} {
     # Pluralize "arch" appropriately.
     set s [expr {[llength $required_archs] == 1 ? "" : "s"}]
 
-    set test _portnameactive
-
+    try {
     foreach deptype $deptypes {
         if {![dict exists $portinfo $deptype]} {
             continue
         }
         foreach depspec [dict get $portinfo $deptype] {
             set dep_portname [$workername eval [list _get_dep_port $depspec]]
-            if {$dep_portname ne "" && ![info exists depscache(port:$dep_portname)] && [$test $dep_portname]} {
+            if {$dep_portname ne "" && ![info exists depscache(port:$dep_portname)] && [_portnameactive $dep_portname]} {
                 set variants [dict create]
 
                 # check that the dep has the required archs
@@ -2960,6 +2960,14 @@ proc macports::_upgrade_mport_deps {mport target} {
                         }
                     }
                     if {[llength $missing] > 0} {
+                        # open the mport since the static index doesn't necessarily reflect the currently available variants
+                        set dep_regref [lindex [registry::entry installed $dep_portname] 0]
+                        set dep_variations [_variants_to_variations [$dep_regref requested_variants]]
+                        # open with +universal since we'll want that if we end up upgrading
+                        dict set dep_variations universal +
+                        set dep_mport [mportopen [dict get $dep_portinfo porturl] $options $dep_variations]
+                        lappend opened_mports $dep_mport
+                        set dep_portinfo [mportinfo $dep_mport]
                         if {[dict exists $dep_portinfo variants] && "universal" in [dict get $dep_portinfo variants]} {
                             # dep offers a universal variant
                             if {[llength $active_archs] == 1} {
@@ -3002,6 +3010,11 @@ proc macports::_upgrade_mport_deps {mport target} {
                     return -code error "upgrade $dep_portname failed"
                 }
             }
+        }
+    }
+    } finally {
+        foreach mport $opened_mports {
+            mportclose $mport
         }
     }
 }
@@ -4397,6 +4410,17 @@ proc macports::_deptypes_for_target {target workername} {
 proc macports::_deptype_needs_archcheck {deptype} {
     variable archcheck_dep_types
     return [expr {$deptype in ${archcheck_dep_types}}]
+}
+
+# Given a variant string like '+foo+bar-baz', returns a dict mapping
+# each variant name to + or -, like {foo + bar + baz -}.
+proc macports::_variants_to_variations {variants} {
+    set variations [dict create]
+    set split_variants [string map {+ " + " - " - "} $variants]
+    foreach {sign varname} $split_variants {
+        dict set variations $varname $sign
+    }
+    return $variations
 }
 
 # selfupdate procedure
