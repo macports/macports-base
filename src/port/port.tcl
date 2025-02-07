@@ -2846,7 +2846,7 @@ proc action_deps { action portlist opts } {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
-            set portinfo [dict merge $portinfo [mportinfo $mport]]
+            set portinfo [mportinfo $mport]
             mportclose $mport
         } elseif {$portinfo eq ""} {
             ui_warn "port ${action} --index does not work with the 'current' pseudo-port"
@@ -2926,7 +2926,7 @@ proc action_deps { action portlist opts } {
                             ui_debug "$::errorInfo"
                             break_softcontinue "Unable to open port: $result" 1 status
                         }
-                        set portinfo [dict merge $portinfo [mportinfo $mport]]
+                        set portinfo [mportinfo $mport]
                         mportclose $mport
                     }
 
