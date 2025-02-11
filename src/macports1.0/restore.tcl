@@ -316,19 +316,6 @@ namespace eval restore {
         }
     }
 
-    ##
-    # Convert a variant string into a serialized array of variations suitable for passing to mportopen
-    proc variants_to_variations_arr {variantstr} {
-        set split_variants_re {([-+])([[:alpha:]_]+[\w\.]*)}
-        set result {}
-
-        foreach {match sign variant} [regexp -all -inline -- $split_variants_re $variantstr] {
-            lappend result $variant $sign
-        }
-
-        return $result
-    }
-
     # Get the port that satisfies a depspec, with respect to the files
     # in the snapshot for path-pased deps.
     proc resolve_depspec {depspec ports snapshot_id} {
@@ -491,7 +478,7 @@ namespace eval restore {
             # Open the port with the requested variants from the snapshot
             if {![dict exists $mports $portname]} {
                 set options [dict create ports_requested $requested subport $portname]
-                set variations [variants_to_variations_arr $requested_variants]
+                set variations [macports::_variants_to_variations $requested_variants]
                 if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
                     $progress intermission
                     ui_error "Unable to open port '$portname' with variants '$requested_variants': $result"
@@ -712,7 +699,7 @@ namespace eval restore {
             if {![dict exists $mports $portname]} {
                 set porturl [dict get $portinfo porturl]
                 set options [dict create ports_requested $requested subport $portname]
-                set variations [variants_to_variations_arr $requested_variants]
+                set variations [macports::_variants_to_variations $requested_variants]
 
                 if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
                     ui_debug $::errorInfo

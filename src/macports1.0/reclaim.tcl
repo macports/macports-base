@@ -221,18 +221,7 @@ namespace eval reclaim {
     # installed with the given requested variants
     proc get_variations {installed_variants} {
         global macports::global_variations
-        set vararray [dict create {*}[array get global_variations]]
-        set splitvariant [split $installed_variants -]
-        set minusvariant [lrange $splitvariant 1 end]
-        set splitvariant [split [lindex $splitvariant 0] +]
-        set plusvariant [lrange $splitvariant 1 end]
-        foreach v $plusvariant {
-            dict set vararray $v +
-        }
-        foreach v $minusvariant {
-            dict set vararray $v -
-        }
-        return $vararray
+        return [dict merge [array get global_variations] [macports::_variants_to_variations $installed_variants]]
     }
 
     proc load_distfile_cache {varname} {
@@ -689,20 +678,7 @@ namespace eval reclaim {
         lassign [mportlookup $portname] portname portinfo
         if {[dict exists $portinfo porturl]} {
             set options [dict create subport $portname]
-
-            set splitvariant [split $requested_variants -]
-            set minusvariant [lrange $splitvariant 1 end]
-            set splitvariant [split [lindex $splitvariant 0] +]
-            set plusvariant [lrange $splitvariant 1 end]
-            set variations [dict create]
-            foreach v $plusvariant {
-                dict set variations $v +
-            }
-            foreach v $minusvariant {
-                if {[string first "+" $v] == -1} {
-                    dict set variations $v -
-                }
-            }
+            set variations [macports::_variants_to_variations $requested_variants]
 
             if {[catch {set mport [mportopen [dict get $portinfo porturl] $options $variations]} result]} {
                 ui_debug "unable to open port $name ${requested_variants}: $result"

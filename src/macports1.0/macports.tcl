@@ -2456,20 +2456,10 @@ proc mportopen_installed {name version revision variants options} {
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
     set portfile_dir [file join ${registry.path} registry portfiles ${name}-${version}_${revision} [$regref portfile]]
 
-    set variations [dict create]
-    # Relies on all negated variants being at the end of requested_variants
-    set minusvariant [lrange [split [$regref requested_variants] -] 1 end]
-    set plusvariant [lrange [split [$regref variants] +] 1 end]
-    foreach v $plusvariant {
-        dict set variations $v +
-    }
-    foreach v $minusvariant {
-        if {[string first "+" $v] == -1} {
-            dict set variations $v -
-        } else {
-            ui_warn "Invalid negated variant for $name @${version}_${revision}${variants}: $v"
-        }
-    }
+    set negative_variations [dict filter \
+        [macports::_variants_to_variations [$regref requested_variants]] \
+        value -]
+    set variations [dict merge $negative_variations [macports::_variants_to_variations [$regref variants]]]
 
     dict set options subport $name
 
@@ -4659,31 +4649,12 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
     # open the port, and update the portinfo.
     set porturl [dict get $portinfo porturl]
 
-    # Relies on all negated variants being at the end of requested_variants
-    set splitvariant [split $oldrequestedvariant -]
-    set minusvariant [lrange $splitvariant 1 end]
-    set splitvariant [split [lindex $splitvariant 0] +]
-    set plusvariant [lrange $splitvariant 1 end]
     ui_debug "Merging existing requested variants '${oldrequestedvariant}' into variants"
-    set oldrequestedvariations [dict create]
+    set oldrequestedvariations [_variants_to_variations $oldrequestedvariant]
     # also save the current variants for dependency calculation
     # purposes in case we don't end up upgrading this port
-    set installedvariations [dict create]
-    foreach v $plusvariant {
-        dict set oldrequestedvariations $v +
-    }
-    foreach v $minusvariant {
-        if {[string first "+" $v] == -1} {
-            dict set oldrequestedvariations $v -
-            dict set installedvariations $v -
-        } else {
-            ui_warn "Invalid negated variant for ${portname}: $v"
-        }
-    }
-    set plusvariant [lrange [split $oldvariant +] 1 end]
-    foreach v $plusvariant {
-        dict set installedvariations $v +
-    }
+    set installedvariations [dict filter $oldrequestedvariations value -]
+    set installedvariations [dict merge $installedvariations [_variants_to_variations $oldvariant]]
 
     # Now merge all the variations. Global (i.e. variants.conf) ones are
     # overridden by the previous requested variants, which are overridden
