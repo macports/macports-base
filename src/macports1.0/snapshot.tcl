@@ -354,10 +354,6 @@ namespace eval snapshot {
         }
 
         global registry::tdbc_connection
-        if {![info exists tdbc_connection]} {
-            registry::tdbc_connect
-        }
-
         variable import_snapshot_stmt
         variable import_port_stmt
         variable import_file_stmt
@@ -488,9 +484,6 @@ namespace eval snapshot {
     # confusion with the proc in portutil.
     proc delete_snapshot {opts} {
         global registry::tdbc_connection
-        if {![info exists tdbc_connection]} {
-            registry::tdbc_connect
-        }
         set snapshot_id [dict get $opts ports_snapshot_delete]
         if {[catch {registry::snapshot get_by_id $snapshot_id}]} {
             ui_error "No such snapshot ID: $snapshot_id"
@@ -515,9 +508,6 @@ namespace eval snapshot {
     # Get the port name that owns the given file path in the given snapshot.
     proc file_owner {path snapshot_id} {
         global registry::tdbc_connection
-        if {![info exists tdbc_connection]} {
-            registry::tdbc_connect
-        }
         variable file_owner_stmt
         if {![info exists file_owner_stmt]} {
             set query {SELECT snapshot_ports.port_name FROM snapshot_ports
@@ -535,9 +525,6 @@ namespace eval snapshot {
 
     proc port_files {snapshot_id port_name} {
         global registry::tdbc_connection
-        if {![info exists tdbc_connection]} {
-            registry::tdbc_connect
-        }
         variable port_files_stmt
         if {![info exists port_files_stmt]} {
             set port_files_stmt [$tdbc_connection prepare {

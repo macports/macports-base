@@ -636,9 +636,6 @@ proc _progress {args} {
 
 proc _get_port_conflicts {port} {
     global registry::tdbc_connection
-    if {![info exists tdbc_connection]} {
-        registry::tdbc_connect
-    }
     variable conflicts_stmt
     if {![info exists conflicts_stmt]} {
         set query {SELECT files.id, files.path, files.actual_path FROM
