@@ -46,11 +46,13 @@ DISTCLEAN_TARGETS= distclean-tcl distclean-tcllib distclean-tclx distclean-signi
 ifneq (@OS_PLATFORM@,linux)
 DESTROOT_TARGETS+=   destroot-signify
 endif
+CPCMD=cp -p
 ifeq (@HAVE_CLONEFILE@,yes)
 ifeq (@HAVE_DECL_CLONE_NOOWNERCOPY@,yes)
 DESTROOT_TARGETS+=   destroot-install
 CLEAN_TARGETS+= clean-install
 DISTCLEAN_TARGETS+= distclean-install
+CPCMD+= -c
 endif
 endif
 ifeq (@OS_PLATFORM@,darwin)
@@ -72,15 +74,21 @@ destroot-tcllib: all-tcl
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=${DESTROOT}" TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
 
-destroot-critcl: all-tcl
+.stamp-critcl: | all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}${CRITCL_SUBDIR}
-	@umask 0022; cd ${CRITCL_SUBDIR} && "@INTREE_TCLSH@" ./build.tcl install --prefix "${PREFIX}/libexec/macports" --dest-dir "${DESTROOT}" $(CRITCL_TARGET)
+	@umask 0022; cd ${CRITCL_SUBDIR} && /usr/bin/env "HOME=@abs_top_builddir@/vendor" "@INTREE_TCLSH@" ./build.tcl install --prefix "${PREFIX}/libexec/macports" --dest-dir "${DESTROOT}" $(CRITCL_TARGET)
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/critcl*
+	@touch .stamp-critcl
 
-destroot-tcllibc: all-tcl destroot-critcl
+destroot-critcl: .stamp-critcl
+
+.stamp-tcllibc: .stamp-critcl
 	@echo ===\> staging tcllibc to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; /usr/bin/env "PATH=${DESTROOT}${PREFIX}/libexec/macports/bin:$$PATH" $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=${DESTROOT}" "CRITCL_TARGET=$(CRITCL_TARGET)" TCLSH_PROG=@INTREE_TCLSH@ install-binaries
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
+	@touch .stamp-tcllibc
+
+destroot-tcllibc: .stamp-tcllibc
 
 destroot-signify:
 	@echo ===\> staging to destroot in ${DIRPRFX}${SIGNIFY_SUBDIR}
@@ -141,10 +149,16 @@ install-tcllib:
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
 
-install-tcllibc: install-tcllib
-	@echo ===\> making $(@:%-tcllibc=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; /usr/bin/env "PATH=${DESTROOT}${PREFIX}/libexec/macports/bin:$$PATH" $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ install-binaries
-	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
+install-tcllibc: .stamp-tcllibc
+	@echo ===\> making $(@:%-tcllibc=%)
+	@umask 0022; cd "${DESTROOT}${PREFIX}/libexec/macports/lib"; \
+	    for d in $(find tcllibc* -type d); do \
+	        mkdir -p "$(DESTDIR)${PREFIX}/libexec/macports/lib/$d"; \
+	    done; \
+	    for f in $(find tcllibc* -type f); do \
+	        $(CPCMD) "$d" "$(DESTDIR)${PREFIX}/libexec/macports/lib/$d"; \
+	    done
+	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllibc*
 
 install-signify:
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
@@ -157,11 +171,12 @@ install-install:
 test:
 
 clean: $(CLEAN_TARGETS)
-	rm -rf ${DESTROOT}
-
-distclean: $(DISTCLEAN_TARGETS)
-	rm -f Makefile
 	rm -rf vendor-destroot
+	rm -f .stamp-*
+
+distclean: clean $(DISTCLEAN_TARGETS)
+	rm -rf .critcl
+	rm -f Makefile
 	rm -f tclsh
 
 codesign:: signify-osx/signify tcl/unix/libtcl8.6.dylib tcl/unix/tclsh tclx/libtclx8.6.dylib tcl/unix/pkgs/itcl4.3.2/libitcl4.3.2.dylib tcl/unix/pkgs/tdbc1.1.10/libtdbc1.1.10.dylib tcl/unix/pkgs/tdbcpostgres1.1.10/libtdbcpostgres1.1.10.dylib tcl/unix/pkgs/thread2.8.11/libthread2.8.11.dylib tcl/unix/pkgs/tdbcmysql1.1.10/libtdbcmysql1.1.10.dylib tcl/unix/pkgs/tdbcodbc1.1.10/libtdbcodbc1.1.10.dylib tcl/unix/pkgs/sqlite3.47.2/libsqlite3.47.2.dylib

@@ -45,6 +45,7 @@ tests/test/trace/test.tcl
 vendor/vendor-destroot/
 vendor/tclsh
 vendor/install/build/
+vendor/.stamp-*
 vendor/**/*.o
 vendor/**/*.a
 vendor/**/*.dylib
