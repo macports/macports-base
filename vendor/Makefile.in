@@ -9,8 +9,8 @@ PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
 
 .PHONY: all clean distclean install destroot test
-.PHONY: destroot-tcl destroot-tclx destroot-tcllib destroot-signify destroot-install
-.PHONY: install-tcl install-tclx install-tcllib install-signify install-install
+.PHONY: destroot-tcl destroot-critcl destroot-tclx destroot-tcllib destroot-tcllibc destroot-signify destroot-install
+.PHONY: install-tcl install-tclx install-tcllib install-tcllibc install-signify install-install
 .PHONY: %-tcl %-tclx %-tcllib %-signify %-install
 
 # for make all, run destroot (where destroot will depend on all of each
