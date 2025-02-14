@@ -4,19 +4,15 @@ DESTROOT="@abs_top_builddir@/vendor/vendor-destroot"
 MP_PREFIX="@prefix@/libexec/macports"
 LIB_PATH="${DESTROOT}${MP_PREFIX}/lib:${DESTROOT}${MP_PREFIX}/lib/@SQLITE3_LIBNAME@"
 
-# For macOS
-if [ -z "$DYLD_LIBRARY_PATH" ]; then
-    export DYLD_LIBRARY_PATH="$LIB_PATH"
-else
-    export DYLD_LIBRARY_PATH="$LIB_PATH:$DYLD_LIBRARY_PATH"
-fi
-
 # For Linux and *BSD
 if [ -z "$LD_LIBRARY_PATH" ]; then
     export LD_LIBRARY_PATH="$LIB_PATH"
 else
     export LD_LIBRARY_PATH="$LIB_PATH:$LD_LIBRARY_PATH"
 fi
+# DYLD_LIBRARY_PATH tends to get lost on recent macOS due to basic
+# tools like /bin/sh being subject to SIP, so we have to edit the load
+# commands instead (see vendor/Makefile.in).
 
 export TCLLIBPATH="${DESTROOT}${MP_PREFIX}/lib"
 

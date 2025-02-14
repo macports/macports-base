@@ -64,6 +64,9 @@ destroot: $(DESTROOT_TARGETS)
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ "DESTDIR=${DESTROOT}" @VENDOR_TCL_INSTALL@
+	[ "@OS_PLATFORM@" != darwin ] || install_name_tool -change "$(MP_PREFIX)/lib/libtcl@TCL_VERSION@.dylib" \
+	    "@executable_path/../lib/libtcl@TCL_VERSION@.dylib" \
+	    "$(DESTROOT)$(MP_PREFIX)/bin/tclsh@TCL_VERSION@"
 
 destroot-tclx: all-tclx
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
