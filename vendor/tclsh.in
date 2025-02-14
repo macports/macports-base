@@ -1,6 +1,8 @@
 #!/bin/sh
 
-LIB_PATH="@TCL_BIN_DIR@:@TCL_BIN_DIR@/pkgs/@SQLITE3_LIBNAME@"
+DESTROOT="@abs_top_builddir@/vendor/vendor-destroot"
+MP_PREFIX="@prefix@/libexec/macports"
+LIB_PATH="${DESTROOT}${MP_PREFIX}/lib:${DESTROOT}${MP_PREFIX}/lib/@SQLITE3_LIBNAME@"
 
 # For macOS
 if [ -z "$DYLD_LIBRARY_PATH" ]; then
@@ -15,5 +17,7 @@ if [ -z "$LD_LIBRARY_PATH" ]; then
 else
     export LD_LIBRARY_PATH="$LIB_PATH:$LD_LIBRARY_PATH"
 fi
+
+export TCLLIBPATH="${DESTROOT}${MP_PREFIX}/lib"
 
 exec "@TCL_BIN_DIR@/tclsh" "$@"
