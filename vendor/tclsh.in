@@ -20,4 +20,4 @@ fi
 
 export TCLLIBPATH="${DESTROOT}${MP_PREFIX}/lib"
 
-exec "@TCL_BIN_DIR@/tclsh" "$@"
+exec "${DESTROOT}@TCLSH@" "$@"
