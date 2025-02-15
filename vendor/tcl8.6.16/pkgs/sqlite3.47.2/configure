@@ -7817,7 +7817,7 @@ fi
 esac
 fi
 	    # TEA specific: use LDFLAGS_DEFAULT instead of LDFLAGS
-	    SHLIB_LD='${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -install_name $(pkglibdir)/$(PKG_LIB_FILE)'
+	    SHLIB_LD='${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -install_name @executable_path/../lib/$(PKG_DIR)/$(PKG_LIB_FILE)'
 	    # TEA specific: link shlib with current and compatibility version flags
 	    vers=`echo ${PACKAGE_VERSION} | sed -e 's/^\([0-9]\{1,5\}\)\(\(\.[0-9]\{1,3\}\)\{0,2\}\).*$/\1\2/p' -e d`
 	    SHLIB_LD="${SHLIB_LD} -current_version ${vers:-0} -compatibility_version ${vers:-0}"
