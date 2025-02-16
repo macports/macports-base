@@ -793,7 +793,25 @@ proc portconfigure::configure_get_default_compiler {} {
     foreach compiler $search_list {
         set allowed yes
         foreach pattern ${compiler.blacklist} {
-            if {[string match $pattern $compiler]} {
+            if {[llength $pattern] >= 3 && [lindex $pattern 0] eq $compiler} {
+                # version based, e.g. {clang < 500}
+                set compiler_vers [compiler.command_line_tools_version $compiler]
+                set allowed no
+                if {$compiler_vers eq {}} {
+                    break
+                }
+                foreach {operator check_vers} [lrange ${pattern} 1 end] {
+                    # matches only if all comparisons are true
+                    if {![vercmp $compiler_vers $operator $check_vers]} {
+                        set allowed yes
+                        break
+                    }
+                }
+                if {!$allowed} {
+                    break
+                }
+            } elseif {[string match $pattern $compiler]} {
+                # pattern based, e.g. *gcc-4.2
                 set allowed no
                 break
             }
