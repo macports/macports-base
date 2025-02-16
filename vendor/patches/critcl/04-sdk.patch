@@ -1,7 +1,14 @@
 --- lib/critcl/Config.in.orig
 +++ lib/critcl/Config.in
-@@ -83,12 +83,16 @@ threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
+@@ -81,20 +81,31 @@ threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
+ # OSX - check if universal binaries supported by the installed toolchain
+ 
  if {[string match macosx-* $platform]} {
++    if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
++        set osxmin $::env(osxmin)
++    } elseif {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
++        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
++    }
      if {[info exists ::env(SDKROOT)] && $::env(SDKROOT) ne ""} {
          set SDKROOT $::env(SDKROOT)
 +    } elseif {![catch {exec xcrun --show-sdk-path} sdkpath] && $sdkpath ne {} && [file exists $sdkpath]} {
@@ -19,7 +26,17 @@
          foreach dir [glob -nocomplain -tails \
  			    -directory $base/SDKs MacOSX*] {
              set ver [string trimright \
-@@ -102,16 +106,22 @@ if {[string match macosx-* $platform]} {
+                         [file rootname [string range $dir $pos end]] u]
+-            if {"$ver" != "" && [package vcompare $ver 10.4] >= 0}  {
+-                # 10.4 is earliest supporting universal that we support
++            if {"$ver" != "" && [package vcompare $ver 10.4] >= 0
++                && (![info exists osxmin] || [package vcompare $ver $osxmin] >= 0)}  {
++                # 10.4 is earliest supporting universal that we support, and
++                # the deployment target cannot be newer than the SDK.
+                 set path($ver) $dir
+                 lappend sdklist $ver
+             }
+@@ -102,16 +113,21 @@ if {[string match macosx-* $platform]} {
          if {[llength $sdklist]} {
              set ver [lindex [lsort -command "package vcompare" $sdklist] 0]
              set SDKROOT $base/SDKs/$path($ver)
@@ -28,11 +45,9 @@
 +            break
          }
      }
--    if {$SDKROOT ne ""} {
 +    }
-+    if {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
-+        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
-+    } elseif {0 && $SDKROOT ne ""} {
++    if {![info exists osxmin]} {
+     if {$SDKROOT ne ""} {
          # get the SDKsettings for the min OSX value supported
  	set info ""
 -        if [catch {
@@ -47,7 +62,7 @@
              catch {
                  set info [exec defaults read $SDKROOT/SDKSettings DefaultProperties \
  			      -dict MACOSX_DEPLOYMENT_TARGET]
-@@ -126,6 +136,7 @@ if {[string match macosx-* $platform]} {
+@@ -126,6 +142,7 @@ if {[string match macosx-* $platform]} {
          regsub -all {[\n"\;=\{\}]+} $info "" info ;#" help emacs hilighting
          regsub -all {\s+} $info " " info
          set osxmin [lindex $info 1]
@@ -55,13 +70,16 @@
      } else {
          # use the current platform
          foreach {v1 v2 v3} [split $::tcl_platform(osVersion) .] break
-@@ -146,6 +157,9 @@ if {[string match macosx-* $platform]} {
-     if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
-         set osxmin $::env(osxmin)
+@@ -143,8 +160,10 @@ if {[string match macosx-* $platform]} {
+         # set info [exec lipo -info /usr/lib/libSystem.dylib]
+         # set plats [split [string trim [lindex [split $info :] 2]]]
      }
+-    if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
+-        set osxmin $::env(osxmin)
++    }
++    }
 +    if {$SDKROOT eq ""} {
 +        set SDKROOT /
-+    }
+     }
      set universal 0
      catch {
- 	set ppc    [expr {[exec gcc -v -arch ppc    > /dev/null 2>@stdout] eq ""}]

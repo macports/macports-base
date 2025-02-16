@@ -81,6 +81,23 @@ threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
 # OSX - check if universal binaries supported by the installed toolchain
 
 if {[string match macosx-* $platform]} {
+    if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
+        set osxmin $::env(osxmin)
+    } elseif {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
+        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
+    } else {
+        # use the current platform
+        set v1 [lindex [split $::tcl_platform(osVersion) .] 0]
+        # Darwin 19 and earlier are macOS 10.x. Darwin 20 and later are macOS
+        # 11, macOS 12, etc.
+        if {$v1 >= 20} {
+            incr v1 -9
+            set osxmin ${v1}.0
+        } else {
+            incr v1 -4
+            set osxmin 10.$v1
+        }
+    }
     if {[info exists ::env(SDKROOT)] && $::env(SDKROOT) ne ""} {
         set SDKROOT $::env(SDKROOT)
     } elseif {![catch {exec xcrun --show-sdk-path} sdkpath] && $sdkpath ne {} && [file exists $sdkpath]} {
@@ -97,8 +114,10 @@ if {[string match macosx-* $platform]} {
 			    -directory $base/SDKs MacOSX*] {
             set ver [string trimright \
                         [file rootname [string range $dir $pos end]] u]
-            if {"$ver" != "" && [package vcompare $ver 10.4] >= 0}  {
-                # 10.4 is earliest supporting universal that we support
+            if {"$ver" != "" && [package vcompare $ver 10.4] >= 0
+                && (![info exists osxmin] || [package vcompare $ver $osxmin] >= 0)}  {
+                # 10.4 is earliest supporting universal that we support, and
+                # the deployment target cannot be newer than the SDK.
                 set path($ver) $dir
                 lappend sdklist $ver
             }
@@ -109,54 +128,6 @@ if {[string match macosx-* $platform]} {
             break
         }
     }
-    }
-    if {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
-        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
-    } elseif {0 && $SDKROOT ne ""} {
-        # get the SDKsettings for the min OSX value supported
-	set info ""
-	    if {[catch {
-	            set osxmin [exec plutil -extract DefaultProperties.MACOSX_DEPLOYMENT_TARGET \
-	                              raw $SDKROOT/SDKSettings.plist]
-	    }]} {
-
-        if {[catch {
-                set info [exec defaults read $SDKROOT/SDKSettings buildSettings]
-        }]} {
-            catch {
-                set info [exec defaults read $SDKROOT/SDKSettings DefaultProperties \
-			      -dict MACOSX_DEPLOYMENT_TARGET]
-            }
-        }
-	if {$info eq ""} {
-	    puts stderr "SDKROOT isn't configured correctly on this host"
-	    puts stderr "current setting $SDKROOT needs updating"
-	    exit 1
-	}
-        set info [string trim $info]
-        regsub -all {[\n"\;=\{\}]+} $info "" info ;#" help emacs hilighting
-        regsub -all {\s+} $info " " info
-        set osxmin [lindex $info 1]
-        }
-    } else {
-        # use the current platform
-        foreach {v1 v2 v3} [split $::tcl_platform(osVersion) .] break
-        # Darwin 19 and earlier are macOS 10.x. Darwin 20 and later are macOS
-        # 11, macOS 12, etc.
-        if {$v1 >= 20} {
-            incr v1 -9
-            set osxmin ${v1}.0
-        } else {
-            incr v1 -4
-            set osxmin 10.$v1
-        }
-        # do we actually need to check if universal is supported, given the
-        # gcc check below will do it for us?
-        # set info [exec lipo -info /usr/lib/libSystem.dylib]
-        # set plats [split [string trim [lindex [split $info :] 2]]]
-    }
-    if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
-        set osxmin $::env(osxmin)
     }
     if {$SDKROOT eq ""} {
         set SDKROOT /
