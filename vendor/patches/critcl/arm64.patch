@@ -32,7 +32,7 @@ index 185b968..f4d1fd3 100644
  macosx-ix86 when            $i386 && $x86_64
  macosx-ix86 compile         gcc -c -arch i386 -arch x86_64 \
      -isysroot $SDKROOT \
-@@ -256,6 +271,14 @@ macosx-x86_64 link_preload  -undefined dynamic_lookup
+@@ -256,6 +271,22 @@ macosx-x86_64 link_preload  -undefined dynamic_lookup
  macosx-x86_64 strip
  macosx-x86_64 platform      macosx-x86_64
  
@@ -43,6 +43,14 @@ index 185b968..f4d1fd3 100644
 +macosx-arm64 link_preload   -undefined dynamic_lookup
 +macosx-arm64 strip
 +macosx-arm64 platform       macosx-arm64
++
++macosx-aarch64 when         $arm64
++macosx-aarch64 copy         macosx-arm64
++macosx-aarch64 platform     macosx-aarch64
++
++macosx-arm when             $arm64
++macosx-arm copy             macosx-arm64
++macosx-arm platform         macosx-arm
 +
  # Linux - 32 bit or 64 bit build - select using "-target" if you don't
  #         want the platform default (32 on 32, 64 on 64). This requires

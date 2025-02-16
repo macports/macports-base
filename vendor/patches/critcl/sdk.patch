@@ -1,0 +1,67 @@
+--- lib/critcl/Config.in.orig
++++ lib/critcl/Config.in
+@@ -83,12 +83,16 @@ threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
+ if {[string match macosx-* $platform]} {
+     if {[info exists ::env(SDKROOT)] && $::env(SDKROOT) ne ""} {
+         set SDKROOT $::env(SDKROOT)
++    } elseif {![catch {exec xcrun --show-sdk-path} sdkpath] && $sdkpath ne {} && [file exists $sdkpath]} {
++        set SDKROOT $sdkpath
+     } else {
+         # look for an SDK supporting universal binaries
++        set SDKROOT  ""
+         set pos [string length MacOSX]
+ 	set sdklist {}
+-	set base /Developer
+-	catch {set base [exec xcode-select -print-path]}
++	set bases {/Library/Developer/CommandLineTools /Developer}
++	catch {lappend bases [exec xcode-select -print-path]}
++	foreach base $bases {
+         foreach dir [glob -nocomplain -tails \
+ 			    -directory $base/SDKs MacOSX*] {
+             set ver [string trimright \
+@@ -102,16 +106,22 @@ if {[string match macosx-* $platform]} {
+         if {[llength $sdklist]} {
+             set ver [lindex [lsort -command "package vcompare" $sdklist] 0]
+             set SDKROOT $base/SDKs/$path($ver)
+-        } else {
+-            set SDKROOT  ""
++            break
+         }
+     }
+-    if {$SDKROOT ne ""} {
++    }
++    if {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
++        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
++    } elseif {0 && $SDKROOT ne ""} {
+         # get the SDKsettings for the min OSX value supported
+ 	set info ""
+-        if [catch {
++	if {[catch {
++	        set osxmin [exec plutil -extract DefaultProperties.MACOSX_DEPLOYMENT_TARGET \
++	                        raw $SDKROOT/SDKSettings.plist]
++	}]} {
++        if {[catch {
+                 set info [exec defaults read $SDKROOT/SDKSettings buildSettings]
+-        }] {
++        }]} {
+             catch {
+                 set info [exec defaults read $SDKROOT/SDKSettings DefaultProperties \
+ 			      -dict MACOSX_DEPLOYMENT_TARGET]
+@@ -126,6 +136,7 @@ if {[string match macosx-* $platform]} {
+         regsub -all {[\n"\;=\{\}]+} $info "" info ;#" help emacs hilighting
+         regsub -all {\s+} $info " " info
+         set osxmin [lindex $info 1]
++        }
+     } else {
+         # use the current platform
+         foreach {v1 v2 v3} [split $::tcl_platform(osVersion) .] break
+@@ -146,6 +157,9 @@ if {[string match macosx-* $platform]} {
+     if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
+         set osxmin $::env(osxmin)
+     }
++    if {$SDKROOT eq ""} {
++        set SDKROOT /
++    }
+     set universal 0
+     catch {
+ 	set ppc    [expr {[exec gcc -v -arch ppc    > /dev/null 2>@stdout] eq ""}]
