@@ -473,6 +473,25 @@ namespace eval restore {
                 set requested_variants ""
                 set requested 0
             }
+
+            if {[dict exists $portinfo replaced_by]} {
+                set replacement [dict get $portinfo replaced_by]
+                ui_debug "$portname is replaced by $replacement"
+                set port [mportlookup $replacement]
+                if {[llength $port] >= 2} {
+                    lassign $port portname portinfo
+                    # If we've already seen the replacement, skip it
+                    if {[dict exists $mports $portname] &&
+                        [macports::_mport_supports_archs [dict get $mports $portname] [dict get $required_archs $portname]]} {
+                        continue
+                    }
+                } else {
+                    # Will probably fail to install, but that will be
+                    # handled and reported.
+                    ui_debug "lookup of $replacement failed, continuing with $portname"
+                }
+            }
+
             set porturl [dict get $portinfo porturl]
 
             # Open the port with the requested variants from the snapshot
