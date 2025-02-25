@@ -2802,7 +2802,12 @@ proc mportexec {mport target} {
             if {[info exists ui_options(questions_yesno)]} {
                 set deplist [list]
                 foreach ditem $dlist {
-                    lappend deplist [ditem_key $ditem provides]
+                    set depstring [ditem_key $ditem provides]
+                    set portinfo [mportinfo $ditem]
+                    if {[dict exists $portinfo canonical_active_variants]} {
+                        append depstring " [dict get $portinfo canonical_active_variants]"
+                    }
+                    lappend deplist $depstring
                 }
                 set retvalue [$ui_options(questions_yesno) "The following dependencies will be installed: " "TestCase#2" [lsort $deplist] {y} 0]
                 if {$retvalue == 1} {
