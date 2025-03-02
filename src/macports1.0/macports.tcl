@@ -56,6 +56,7 @@ namespace eval macports {
         startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted \
         configureccache ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
+        indexjobs \
         universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
@@ -81,6 +82,7 @@ namespace eval macports {
         rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
+        indexjobs \
         applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
         developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
         os_platform os_subplatform macos_version macos_version_major macosx_version macosx_sdk_version \
@@ -950,6 +952,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::configurepipe \
         macports::buildnicevalue \
         macports::buildmakejobs \
+        macports::indexjobs \
         macports::host_blacklist \
         macports::preferred_hosts \
         macports::keeplogs \
@@ -1537,6 +1540,9 @@ match macports.conf.default."
     }
     if {![info exists buildmakejobs]} {
         set buildmakejobs 0
+    }
+    if {![info exists indexjobs]} {
+        set indexjobs 0
     }
 
     # default user to run as when privileges can be dropped
@@ -6641,15 +6647,35 @@ proc macports::unobscure_maintainers {list} {
 # Get actual number of parallel jobs based on buildmakejobs, which may
 # be 0 for automatic selection.
 proc macports::get_parallel_jobs {{mem_restrict yes}} {
-    variable buildmakejobs; variable os_platform
+    variable buildmakejobs
     if {[string is integer -strict $buildmakejobs] && $buildmakejobs > 0} {
         set jobs $buildmakejobs
-    } elseif {$os_platform eq "darwin" && $buildmakejobs == 0
-              && ![catch {sysctl hw.activecpu} cpus]} {
+    } else {
+        set jobs [macports::calc_auto_max_jobs $mem_restrict]
+    }
+    return $jobs
+}
+
+# Get actual number of parallel jobs based on indexjobs, which may
+# be 0 for automatic selection.
+proc macports::get_index_jobs {{mem_restrict no}} {
+    variable indexjobs
+    if {[string is integer -strict $indexjobs] && $indexjobs > 0} {
+        set jobs $indexjobs
+    } else {
+        set jobs [macports::calc_auto_max_jobs $mem_restrict]
+    }
+    return $jobs
+}
+
+# Calculate jobs based on automatic selection.
+proc macports::calc_auto_max_jobs {{mem_restrict yes}} {
+    variable os_platform
+    if {$os_platform eq "darwin" && ![catch {sysctl hw.activecpu} cpus]} {
         set jobs $cpus
-        if {$mem_restrict && ![catch {sysctl hw.memsize} memsize]
-                && $jobs > $memsize / (1024 * 1024 * 1024) + 1} {
-            set jobs [expr {$memsize / (1024 * 1024 * 1024) + 1}]
+        if {$mem_restrict && ![catch {sysctl hw.memsize} memsize]} {
+            set memsize_gb [expr {($memsize / round(pow(1024,3))) + 1}]
+            set jobs [expr min($jobs, $memsize_gb)]
         }
     } else {
         set jobs 2
