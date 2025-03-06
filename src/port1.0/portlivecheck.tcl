@@ -45,13 +45,14 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.compression livecheck.curloptions
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.branch livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.compression livecheck.curloptions
 
 # defaults
 default livecheck.url {$homepage}
 default livecheck.type default
 default livecheck.md5 {}
 default livecheck.regex {}
+default livecheck.branch {}
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
@@ -60,10 +61,11 @@ default livecheck.compression yes
 default livecheck.curloptions [list --append-http-header "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"]
 
 proc portlivecheck::livecheck_main {args} {
-    global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
+    global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.branch livecheck.name livecheck.distname livecheck.version \
            livecheck.ignore_sslcert \
            livecheck.compression \
            livecheck.curloptions \
+           git.cmd \
            homepage portpath \
            master_sites name subport
 
@@ -231,6 +233,21 @@ proc portlivecheck::livecheck_main {args} {
             } else {
                 if {!$updated} {
                     ui_debug "${livecheck.url} is older than Portfile"
+                }
+            }
+        }
+        "git" {
+            if {${livecheck.branch} eq {}} {
+                set livecheck.branch "HEAD"
+            }
+            ui_debug "Getting latest commit from ${livecheck.url} ${livecheck.branch}"
+            if {[catch {exec ${git.cmd} ls-remote ${livecheck.url} ${livecheck.branch}} result]} {
+                ui_error "cannot check if $subport was updated ($result)"
+                set updated -1
+            } else {
+                set updated_version [lindex [split $result] 0]
+                if {$updated_version ne ${livecheck.version}} {
+                    set updated 1
                 }
             }
         }
