@@ -46,13 +46,11 @@ DISTCLEAN_TARGETS= distclean-tcl distclean-tcllib distclean-tclx distclean-signi
 ifneq (@OS_PLATFORM@,linux)
 DESTROOT_TARGETS+=   destroot-signify
 endif
-CPCMD=cp -p
 ifeq (@HAVE_CLONEFILE@,yes)
 ifeq (@HAVE_DECL_CLONE_NOOWNERCOPY@,yes)
 DESTROOT_TARGETS+=   destroot-install
 CLEAN_TARGETS+= clean-install
 DISTCLEAN_TARGETS+= distclean-install
-CPCMD+= -c
 endif
 endif
 ifeq (@OS_PLATFORM@,darwin)
@@ -158,7 +156,7 @@ install-tcllibc:
 	        mkdir -p "$(DESTDIR)$(TCL_PREFIX)/lib/$$d"; \
 	    done; \
 	    for f in $$(find tcllibc* -type f); do \
-	        $(CPCMD) "$$f" "$(DESTDIR)$(TCL_PREFIX)/lib/$$f"; \
+	        cp -p "$$f" "$(DESTDIR)$(TCL_PREFIX)/lib/$$f"; \
 	    done
 	@chmod -R ugo+rX $(DESTDIR)$(TCL_PREFIX)/lib/tcllibc*
 
