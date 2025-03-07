@@ -169,7 +169,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         if {[llength $extras] >= 2} {
             set sglobal [lindex $extras 0]
             set senv [lindex $extras 1]
-            append full_list " $sglobal"
+            lappend full_list $sglobal
             if {[info exists env($senv)]} {
                 set full_list [concat $env($senv) $full_list]
             }
@@ -178,19 +178,17 @@ proc portfetch::checksites {sitelists mirrorfile} {
         set site_list [list]
         foreach site $full_list {
             if {[regexp $url_re $site match site]} {
-                set site_list [concat $site_list $site]
+                lappend site_list $site
             } else {
                 set splitlist [split $site :]
                 if {[llength $splitlist] > 3 || [llength $splitlist] <1} {
                     ui_error [format [msgcat::mc "Unable to process mirror sites for: %s, ignoring."] $site]
                 }
-                set mirrors "[lindex $splitlist 0]"
-                set subdir "[lindex $splitlist 1]"
-                set tag "[lindex $splitlist 2]"
+                lassign $splitlist mirrors subdir tag
                 if {[info exists ${listname}.mirror_subdir]} {
-                    append subdir "[set ${listname}.mirror_subdir]"
+                    append subdir [set ${listname}.mirror_subdir]
                 }
-                set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir $mirrorfile]]
+                lappend site_list {*}[mirror_sites $mirrors $tag $subdir $mirrorfile]
             }
         }
 
@@ -198,7 +196,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         foreach site $site_list {
             if {[regexp $tagged_url_re $site match site tag] && ![info exists extras_added($tag)]} {
                 if {$sglobal ne ""} {
-                    set site_list [concat $site_list [mirror_sites $sglobal $tag "" $mirrorfile]]
+                    lappend site_list {*}[mirror_sites $sglobal $tag "" $mirrorfile]
                 }
                 if {[info exists env($senv)]} {
                     set site_list [concat $env($senv) $site_list]
@@ -208,7 +206,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         }
 
         foreach site $site_list {
-        if {[regexp $tagged_url_re $site match site tag]} {
+            if {[regexp $tagged_url_re $site match site tag]} {
                 lappend urlmap($tag) $site
             } else {
                 lappend urlmap($listname) $site
