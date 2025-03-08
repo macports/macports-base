@@ -190,9 +190,9 @@ proc portarchivefetch::fetchfiles {args} {
     }
 
     set fetch_options [list]
+    set credentials {}
     if {[string length ${archivefetch.user}] || [string length ${archivefetch.password}]} {
-        lappend fetch_options -u
-        lappend fetch_options "${archivefetch.user}:${archivefetch.password}"
+        set credentials ${archivefetch.user}:${archivefetch.password}
     }
     if {${archivefetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
@@ -239,6 +239,7 @@ proc portarchivefetch::fetchfiles {args} {
             set signature ${incoming_path}/${archive}.rmd160
             set sig_fetched 0
             foreach site $urlmap($url_var) {
+                set orig_site $site
                 if {[string index $site end] ne "/"} {
                     append site /
                 }
@@ -248,7 +249,7 @@ proc portarchivefetch::fetchfiles {args} {
                 if {!$archive_fetched} {
                     ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
                     try {
-                        curl fetch {*}$fetch_options $file_url ${incoming_path}/${archive}.TMP
+                        curlwrap fetch $orig_site $credentials {*}$fetch_options $file_url ${incoming_path}/${archive}.TMP
                         set archive_fetched 1
                     } trap {POSIX SIG SIGINT} {_ eOptions} {
                         ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
@@ -272,7 +273,7 @@ proc portarchivefetch::fetchfiles {args} {
                 if {$archive_fetched} {
                     ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
                     try {
-                        curl fetch {*}$fetch_options ${file_url}.rmd160 $signature
+                        curlwrap fetch $orig_site $credentials {*}$fetch_options ${file_url}.rmd160 $signature
                         set sig_fetched 1
                         break
                     } trap {POSIX SIG SIGINT} {_ eOptions} {

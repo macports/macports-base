@@ -58,7 +58,7 @@ namespace eval macports {
         configureccache ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
-        master_site_local patch_site_local archive_site_local buildfromsource \
+        master_site_local patch_site_local archive_site_local fetch_credentials buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         default_compilers pkg_post_unarchive_deletions ui_interactive] {
@@ -949,6 +949,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::buildmakejobs \
         macports::host_blacklist \
         macports::preferred_hosts \
+        macports::fetch_credentials \
         macports::keeplogs \
         macports::place_worksymlink \
         macports::revupgrade_autorun \
@@ -1752,6 +1753,14 @@ match macports.conf.default."
     if {[info exists archive_site_local] && ![info exists env(ARCHIVE_SITE_LOCAL)]} {
         set env(ARCHIVE_SITE_LOCAL) $archive_site_local
     }
+    if {[info exists fetch_credentials]} {
+        if {[llength $fetch_credentials] % 2 != 0} {
+            ui_error "fetch_credentials must have an even number of elements"
+            set fetch_credentials {}
+        }
+    } else {
+        set fetch_credentials {}
+    }
 
     # Proxy handling (done this late since Pextlib is needed)
     if {![info exists proxy_override_env] || ![string is true -strict $proxy_override_env]} {
@@ -2022,6 +2031,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     $workername alias get_compatible_xcode_versions macports::get_compatible_xcode_versions
 
+    $workername alias curlwrap macports::curlwrap
+
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
             variable $opt
@@ -2111,6 +2122,16 @@ proc macports::get_tar_flags {suffix} {
             return -
         }
     }
+}
+
+# Wrapper for curl command to add credentials if configured
+proc macports::curlwrap {action site credentials args} {
+    variable fetch_credentials
+    if {[dict exists $fetch_credentials $site]} {
+        set credentials [dict get $fetch_credentials $site]
+    }
+    set credential_args [expr {$credentials ne {} ? [list -u $credentials] : {}}]
+    curl $action {*}$credential_args {*}$args
 }
 
 ##
