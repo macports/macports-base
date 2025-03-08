@@ -164,14 +164,19 @@ proc portfetch::checksites {sitelists mirrorfile} {
         global ${listname}.mirror_subdir
         set full_list [set $listname]
         # add the specified global and user-defined mirrors
-        set sglobal ""
-        set senv ""
+        set global_sites [list]
+        set untagged_env_sites [list]
         if {[llength $extras] >= 2} {
-            set sglobal [lindex $extras 0]
-            set senv [lindex $extras 1]
+            lassign $extras sglobal senv
             lappend full_list $sglobal
+            set global_sites [mirror_sites $sglobal "" "" $mirrorfile]
             if {[info exists env($senv)]} {
-                set full_list [concat $env($senv) $full_list]
+                foreach env_site $env($senv) {
+                    lappend full_list $env_site
+                    if {![regexp $tagged_url_re $env_site]} {
+                        lappend untagged_env_sites $env_site
+                    }
+                }
             }
         }
 
@@ -192,25 +197,21 @@ proc portfetch::checksites {sitelists mirrorfile} {
             }
         }
 
-        # add in the global and user-defined mirrors for each tag
-        foreach site $site_list {
-            if {[regexp $tagged_url_re $site match site tag] && ![info exists extras_added($tag)]} {
-                if {$sglobal ne ""} {
-                    lappend site_list {*}[mirror_sites $sglobal $tag "" $mirrorfile]
-                }
-                if {[info exists env($senv)]} {
-                    set site_list [concat $env($senv) $site_list]
-                }
-                set extras_added($tag) yes
-            }
-        }
-
+        set tags [dict create]
         foreach site $site_list {
             if {[regexp $tagged_url_re $site match site tag]} {
                 lappend urlmap($tag) $site
+                dict set tags $tag 1
             } else {
                 lappend urlmap($listname) $site
             }
+        }
+
+        # add in the global and user-defined mirrors for each tag
+        foreach tag [dict keys $tags] {
+            # Only add untagged sites from the environment here.
+            # Tagged ones will already be in the list.
+            lappend urlmap($tag) {*}$untagged_env_sites {*}$global_sites
         }
     }
 }
