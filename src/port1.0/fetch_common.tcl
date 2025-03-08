@@ -168,8 +168,10 @@ proc portfetch::checksites {sitelists mirrorfile} {
         set untagged_env_sites [list]
         if {[llength $extras] >= 2} {
             lassign $extras sglobal senv
-            lappend full_list $sglobal
-            set global_sites [mirror_sites $sglobal "" "" $mirrorfile]
+            if {$sglobal ne ""} {
+                lappend full_list $sglobal
+                set global_sites [mirror_sites $sglobal "" "" $mirrorfile]
+            }
             if {[info exists env($senv)]} {
                 foreach env_site $env($senv) {
                     lappend full_list $env_site
