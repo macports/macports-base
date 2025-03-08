@@ -501,9 +501,9 @@ proc portfetch::fetchfiles {args} {
     variable urlmap
 
     set fetch_options [list]
+    set credentials {}
     if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
-        lappend fetch_options -u
-        lappend fetch_options "${fetch.user}:${fetch.password}"
+        set credentials ${fetch.user}:${fetch.password}
     }
     if {${fetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
@@ -547,7 +547,7 @@ proc portfetch::fetchfiles {args} {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 macports_try -pass_signal {
-                    curl fetch {*}$fetch_options $file_url "${distpath}/${distfile}.TMP"
+                    curlwrap fetch $site $credentials {*}$fetch_options $file_url ${distpath}/${distfile}.TMP
                     file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"
                     set fetched 1
                     break
