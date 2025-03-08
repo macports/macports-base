@@ -238,13 +238,6 @@ proc portfetch::sortsites {urls default_listvar} {
             continue
         }
 
-        # can't do the ping with dropped privileges (though it works fine if we didn't start as root)
-        if {[getuid] == 0 && [geteuid] != 0} {
-            set oldeuid [geteuid]
-            set oldegid [getegid]
-            seteuid 0; setegid 0
-        }
-
         set hosts [list]
         foreach site $urllist {
             if {[string range $site 0 6] eq "file://"} {
@@ -276,6 +269,13 @@ proc portfetch::sortsites {urls default_listvar} {
                 lset hosts $n [lindex $hosts [incr len -1]]
                 lset hosts $len $tmp
             }
+        }
+
+        # can't do the ping with dropped privileges (though it works fine if we didn't start as root)
+        if {[getuid] == 0 && [geteuid] != 0} {
+            set oldeuid [geteuid]
+            set oldegid [getegid]
+            seteuid 0; setegid 0
         }
 
         set pinged_hosts [list]
