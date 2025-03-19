@@ -43,9 +43,10 @@ default portsandbox_profile {}
 # command line usage would be:
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
-    global os.major portsandbox_profile workpath distpath \
-        package.destpath configure.ccache ccache_dir \
-        sandbox_network configure.distcc porttrace prefix_frozen
+    global os.major portsandbox_profile workpath worksrcpath distpath \
+        package.destpath configure.ccache ccache_dir portdbpath \
+        sandbox_network configure.distcc porttrace prefix_frozen \
+        build.type
 
     switch $target {
         activate -
@@ -82,6 +83,16 @@ proc portsandbox::set_profile {target} {
     if {${configure.ccache}} {
         lappend allow_dirs $ccache_dir
     }
+    if {${build.type} eq "xcode"} {
+        # whitelist directories used by Xcode tools
+        lappend allow_dirs $portdbpath/home/Library/Developer/Xcode \
+                           $portdbpath/home/Library/Caches \
+                           $portdbpath/home/Library/org.swift.swiftpm \
+                           $portdbpath/home/.swiftpm \
+        # explicitly whitelist source dir to work around problems building
+        # Xcode projects in-source
+        lappend allow_dirs $worksrcpath
+    }
 
     set portsandbox_profile "(version 1) (allow default) (deny file-write*) \
 (allow file-write-data (literal \"/dev/null\") (literal \"/dev/zero\") \
@@ -101,19 +112,21 @@ proc portsandbox::set_profile {target} {
         lappend perms file-write-setugid
     }
 
-    # If ${prefix} is on its own volume, grant access to its
+    # If ${prefix} or the ports DB is on its own volume, grant access to its
     # temporary items directory, used by Xcode tools
-    if {[catch {get_mountpoint ${prefix_frozen}} mountpoint]} {
-        ui_debug "get_mountpoint failed: $mountpoint"
-        set mountpoint /
-    }
+    foreach dir [list ${prefix_frozen} ${portdbpath} ${portdbpath}/build] {
+        if {[catch {get_mountpoint ${dir}} mountpoint]} {
+            ui_debug "get_mountpoint failed: $mountpoint"
+            set mountpoint /
+        }
 
-    if {$mountpoint ne "/"} {
-        set extradir [file join $mountpoint ".TemporaryItems"]
+        if {$mountpoint ne "/"} {
+            set extradir [file join $mountpoint ".TemporaryItems"]
 
-        if {[file isdirectory $extradir]} {
-            ui_debug "adding $extradir to allowed Sandbox paths"
-            lappend allow_dirs $extradir
+            if {[file isdirectory $extradir]} {
+                ui_debug "adding $extradir to allowed Sandbox paths"
+                lappend allow_dirs $extradir
+            }
         }
     }
 
@@ -141,5 +154,11 @@ proc portsandbox::set_profile {target} {
                 }
             }
         }
+    }
+
+    if {${build.type} eq "xcode"} {
+        # let Xcode create jobs (FIXME: narrow allowed commands)
+        append portsandbox_profile "\
+(allow job-creation)"
     }
 }
