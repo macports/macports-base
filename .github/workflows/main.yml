@@ -69,7 +69,7 @@ jobs:
           make test
       - name: Deploy man pages to web
         if: vars.MP_RELEASE_BRANCH == github.ref_name && startsWith(matrix.os,'ubuntu')
-        env:
+        #env:
           #MANPAGE_SSH_HOST: ${{ secrets.MANPAGE_SSH_HOST }}
           #MANPAGE_SSH_HOSTKEY: ${{ secrets.MANPAGE_SSH_HOSTKEY }}
           #MANPAGE_SSH_USER: ${{ secrets.MANPAGE_SSH_USER }}
