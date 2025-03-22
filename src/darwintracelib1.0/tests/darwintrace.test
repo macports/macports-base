@@ -128,9 +128,8 @@ test darwintrace_relative_symlinks "Test that resolution of relative symlinks wo
         set levels [llength [regexp -all -inline -- "/" $cwd]]
         set path "[string repeat "../" [expr {$levels + 2}]]$cwd//./stat"
 
-        [setup [list allow "$cwd/symlink"]]
-
-        exec -ignorestderr -- ln -s $path symlink
+        [setup [list allow "$cwd/symlink" allow "/private/var/select/sh" allow "/bin" allow "/usr" allow "/dev" allow $env(DARWINTRACE_SIP_WORKAROUND_PATH)]]
+        system "/bin/ln -s $path symlink"
     } \
     -cleanup {
         file delete -force symlink
@@ -142,7 +141,7 @@ test darwintrace_relative_symlinks "Test that resolution of relative symlinks wo
 test darwintrace_long_symlinks "Test that resolution of long symlinks does not trigger the stack canary" \
     -setup {
         [setup [list allow /]]
-        exec -- ln -s [string repeat "ab/de/ghi/" 102] longlink
+        system "/bin/ln -s [string repeat "ab/de/ghi/" 102] longlink"
     } \
     -cleanup {
         [expect]
