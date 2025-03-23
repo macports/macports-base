@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 64
+          fetch-depth: 1
       - name: Cleanup /usr/local
         run: |
           sudo mkdir /opt/local.old
