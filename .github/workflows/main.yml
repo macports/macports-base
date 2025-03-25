@@ -69,22 +69,22 @@ jobs:
           make test
       - name: Deploy man pages to web
         if: vars.MP_RELEASE_BRANCH == github.ref_name && startsWith(matrix.os,'ubuntu')
-        #env:
-          #MANPAGE_SSH_HOST: ${{ secrets.MANPAGE_SSH_HOST }}
-          #MANPAGE_SSH_HOSTKEY: ${{ secrets.MANPAGE_SSH_HOSTKEY }}
-          #MANPAGE_SSH_USER: ${{ secrets.MANPAGE_SSH_USER }}
-          #MANPAGE_SSH_KEY: ${{ secrets.MANPAGE_SSH_KEY }}
+        env:
+          MANPAGE_SSH_HOST: ${{ secrets.MANPAGE_SSH_HOST }}
+          MANPAGE_SSH_HOSTKEY: ${{ secrets.MANPAGE_SSH_HOSTKEY }}
+          MANPAGE_SSH_USER: ${{ secrets.MANPAGE_SSH_USER }}
+          MANPAGE_SSH_KEY: ${{ secrets.MANPAGE_SSH_KEY }}
         run: |
           set -eu
           make -C doc html ASCIIDOC=/usr/bin/asciidoc XSLTPROC=/usr/bin/xsltproc \
             DOCBOOK_XSL=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
-          #echo "$MANPAGE_SSH_KEY" > ssh_key
-          #chmod 0600 ssh_key
-          #echo "$MANPAGE_SSH_HOSTKEY" > ssh_known_hosts
+            
+          touch ssh_key
+          chmod 0600 ssh_key
+          echo "$MANPAGE_SSH_KEY" > ssh_key
+          echo "$MANPAGE_SSH_HOSTKEY" > ssh_known_hosts
 
-          #export RSYNC_RSH="ssh -l $MANPAGE_SSH_USER -i ssh_key -oUserKnownHostsFile=ssh_known_hosts"
-          #echo "Uploading manpage HTML files"
-          echo "Placeholder for uploading manpage HTML files"
-          ls -R doc/*.html
-          #rsync -avzhC --progress doc/*.html "${MANPAGE_SSH_HOST}:man/"
-          #rm -f ssh_key ssh_known_hosts
+          export RSYNC_RSH="ssh -l $MANPAGE_SSH_USER -i ssh_key -oUserKnownHostsFile=ssh_known_hosts"
+          echo "Uploading manpage HTML files"
+          rsync -avzhC --progress --delay-updates --delete-after doc/*.html "${MANPAGE_SSH_HOST}:./"
+          rm -f ssh_key ssh_known_hosts
