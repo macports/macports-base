@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 64
+          fetch-depth: 1
       - name: Cleanup /usr/local
         if: startsWith(matrix.os,'macos')
         run: |
@@ -34,10 +34,16 @@ jobs:
           esac
       - name: Install Linux Dependencies
         if: startsWith(matrix.os,'ubuntu')
-        run: >
-          sudo apt update &&
-          sudo apt install mtree-netbsd
-          libcurl4-openssl-dev
+        env:
+            MP_RELEASE_BRANCH: ${{ vars.MP_RELEASE_BRANCH }}
+        run: |
+          set -eu
+          sudo apt update
+          sudo apt install mtree-netbsd libcurl4-openssl-dev
+          if [ "$MP_RELEASE_BRANCH" = "$GITHUB_REF_NAME" ]; then
+            # Extra dep for building HTML man pages.
+            sudo apt install asciidoc-base
+          fi
       - name: Configure MacPorts Base
         run: |
           set -eu
@@ -61,3 +67,24 @@ jobs:
         run: |
           set -eu
           make test
+      - name: Deploy man pages to web
+        if: vars.MP_RELEASE_BRANCH == github.ref_name && startsWith(matrix.os,'ubuntu')
+        env:
+          MANPAGE_SSH_HOST: ${{ secrets.MANPAGE_SSH_HOST }}
+          MANPAGE_SSH_HOSTKEY: ${{ secrets.MANPAGE_SSH_HOSTKEY }}
+          MANPAGE_SSH_USER: ${{ secrets.MANPAGE_SSH_USER }}
+          MANPAGE_SSH_KEY: ${{ secrets.MANPAGE_SSH_KEY }}
+        run: |
+          set -eu
+          make -C doc html ASCIIDOC=/usr/bin/asciidoc XSLTPROC=/usr/bin/xsltproc \
+            DOCBOOK_XSL=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
+            
+          touch ssh_key
+          chmod 0600 ssh_key
+          echo "$MANPAGE_SSH_KEY" > ssh_key
+          echo "$MANPAGE_SSH_HOSTKEY" > ssh_known_hosts
+
+          export RSYNC_RSH="ssh -l $MANPAGE_SSH_USER -i ssh_key -oUserKnownHostsFile=ssh_known_hosts"
+          echo "Uploading manpage HTML files"
+          rsync -avzhC --progress --delay-updates --delete-after doc/*.html "${MANPAGE_SSH_HOST}:./"
+          rm -f ssh_key ssh_known_hosts
