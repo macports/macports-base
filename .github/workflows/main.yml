@@ -42,7 +42,7 @@ jobs:
           sudo apt install mtree-netbsd libcurl4-openssl-dev
           if [ "$MP_RELEASE_BRANCH" = "$GITHUB_REF_NAME" ]; then
             # Extra dep for building HTML man pages.
-            sudo apt install asciidoc-base
+            sudo apt install --no-install-recommends asciidoc-base
           fi
       - name: Configure MacPorts Base
         run: |
