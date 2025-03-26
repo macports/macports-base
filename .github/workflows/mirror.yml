@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Fetch release files
-      - uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1
         with:
             fileName: '*'
             tarBall: false
