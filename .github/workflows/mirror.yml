@@ -39,5 +39,15 @@ jobs:
           echo "$MIRROR_SSH_KEY" > ssh_key
           echo "$MIRROR_SSH_HOSTKEY" > ssh_known_hosts
           export RSYNC_RSH="ssh -l $MIRROR_SSH_USER -i ssh_key -oUserKnownHostsFile=ssh_known_hosts -p 23"
-          rsync -av --progress --delay-updates ./mpfiles "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts"
+          case "$GITHUB_REF_NAME" in
+            *-rc*) SUBDIR="/testing" ;;
+            *-beta*) SUBDIR="/testing" ;;
+            *) SUBDIR="" ;;
+          esac
+          rsync -av --progress --delay-updates ./mpfiles/ "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts${SUBDIR}"
+
+          echo "Updating RELEASE_URL"
+          curl -fL -o ./RELEASE_URL https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL
+          chmod a+r ./RELEASE_URL
+          rsync -av --delay-updates ./RELEASE_URL "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts/
           rm -f ssh_key ssh_known_hosts
