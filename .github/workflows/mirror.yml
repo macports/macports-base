@@ -1,33 +1,29 @@
-name: "mirror base source"
+name: "Mirror base files"
 
 on:
   release:
-    types: [released]
+    types: [released, edited]
 
 permissions:
   contents: read
 
 jobs:
   build:
-    name: Mirror base source
+    name: Mirror base files
     concurrency:
       group: mirror-${{ github.ref }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch release source
-        run: |
-          set -eu
+      - name: Fetch release files
+      - uses: robinraju/release-downloader@v1
+        with:
+            fileName: '*'
+            tarBall: false
+            zipBall: false
+            out-file-path: 'mpfiles'
 
-          MP_VERS="$(echo "$GITHUB_REF_NAME" | colrm 1 1)"
-          SOURCE_FILE="MacPorts-${MP_VERS}.tar.bz2"
-          SIG_FILE="${SOURCE_FILE}.sig"
-          DOWNLOAD_BASEURL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/"
-          mkdir -p mpsource
-          curl -fL -o "./mpsource/${SOURCE_FILE}" "${DOWNLOAD_BASEURL}${SOURCE_FILE}"
-          curl -fL -o "./mpsource/${SIG_FILE}" "${DOWNLOAD_BASEURL}${SIG_FILE}"
-
-      - name: Deploy release source
+      - name: Deploy release files
         env:
           MIRROR_SSH_HOST: ${{ secrets.MIRROR_SSH_HOST }}
           MIRROR_SSH_HOSTKEY: ${{ secrets.MIRROR_SSH_HOSTKEY }}
@@ -36,9 +32,12 @@ jobs:
         run: |
           set -eu
 
-          echo "Uploading tarball for MacPorts $GITHUB_REF_NAME"
-          echo "$MIRROR_SSH_KEY" > ssh_key
+          echo "Uploading files for MacPorts $GITHUB_REF_NAME"
+          chmod -R a+rX mpfiles
+          touch ssh_key
           chmod 0600 ssh_key
+          echo "$MIRROR_SSH_KEY" > ssh_key
           echo "$MIRROR_SSH_HOSTKEY" > ssh_known_hosts
           export RSYNC_RSH="ssh -l $MIRROR_SSH_USER -i ssh_key -oUserKnownHostsFile=ssh_known_hosts -p 23"
-          rsync -av --progress ./mpsource/MacPorts-* "${MIRROR_SSH_HOST}:"
+          rsync -av --progress --delay-updates ./mpfiles "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts"
+          rm -f ssh_key ssh_known_hosts
