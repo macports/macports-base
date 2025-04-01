@@ -260,7 +260,7 @@ proc portlint::lint_platforms {platforms} {
     set errors [list]
     set warnings [list]
 
-    global lint_platforms
+    global lint_platforms subport name
 
     foreach platform $platforms {
         set platname [lindex $platform 0]
@@ -269,7 +269,7 @@ proc portlint::lint_platforms {platforms} {
         }
     }
 
-    if {$platforms eq "darwin"} {
+    if {$platforms eq "darwin" && [string equal -nocase $name $subport]} {
         lappend warnings "Unnecessary platforms line as darwin is the default"
     }
 
