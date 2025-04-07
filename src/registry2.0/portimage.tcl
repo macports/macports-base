@@ -721,15 +721,17 @@ proc _activate_contents {port {rename_list {}}} {
     set seendirs [dict create]
     set confirmed_rename_list [list]
     # This is big and hairy and probably could be done better.
-    # First, we need to check the source file, make sure it exists
+    # First, we need to check the source file, make sure it exists.
     # Then we remove the $location from the path of the file in the contents
-    #  list  and check to see if that file exists
-    # Last, if the file exists, and belongs to another port, and force is set
-    #  we remove the file from the file_map, take ownership of it, and
-    #  clobber it
+    #  list and check to see if that file exists.
+    # Last, if the file exists and force is set, we rename the file to a
+    #  non-conflicting name, and update the activated path in the registry
+    #  entry for the current owner (if any) accordingly, which allows
+    #  the port now being activated to create and own the file.
     set todeactivate [dict create]
+    set reg_forced_renames [list]
     try {
-        registry::write {
+        registry::read {
             foreach file $imagefiles {
                 incr progress_step
                 _progress update $progress_step $progress_total_steps
@@ -774,9 +776,12 @@ proc _activate_contents {port {rename_list {}}} {
                     }
                     if {$owner eq {} || ![dict exists $todeactivate $owner]} {
                         if {$force} {
-                            # if we're forcing the activation, then we move any existing
+                            # If we're forcing the activation, then we move any existing
                             # files to a backup file, both in the filesystem and in the
-                            # registry
+                            # registry. But we need to do the registry part later in the
+                            # write transaction so it will be rolled back if anything
+                            # fails. The filesystem part is rolled back in the on error
+                            # clause of the outermost try statement.
                             if {$owner ne {}} {
                                 # Rename all conflicting files for this owner.
                                 set owner_deactivate_paths [list]
@@ -789,13 +794,13 @@ proc _activate_contents {port {rename_list {}}} {
                                         lappend owner_activate_paths $path
                                         set bakfile ${actual_path}${baksuffix}
                                         lappend owner_backup_paths $bakfile
+                                        _progress intermission
                                         ui_warn "File $actual_path already exists.  Moving to: $bakfile."
                                         ::file rename -force -- $actual_path $bakfile
                                         lappend backups $actual_path
                                     }
                                 }
-                                $owner deactivate $owner_deactivate_paths
-                                $owner activate $owner_activate_paths $owner_backup_paths
+                                lappend reg_forced_renames $owner $owner_deactivate_paths $owner_activate_paths $owner_backup_paths
                             } else {
                                 # Just rename this file.
                                 set bakfile ${file}${baksuffix}
@@ -867,6 +872,14 @@ proc _activate_contents {port {rename_list {}}} {
             # Activate it, and catch errors so we can roll-back
 
             try {
+                if {$force} {
+                    # Update registry to reflect renames of any conflicting files that were found
+                    foreach {owner owner_deactivate_paths owner_activate_paths owner_backup_paths} $reg_forced_renames {
+                        $owner deactivate $owner_deactivate_paths
+                        $owner activate $owner_activate_paths $owner_backup_paths
+                    }
+                    unset reg_forced_renames
+                }
                 $port activate $imagefiles
                 _activate_directories $directories $extracted_dir
                 _activate_files [lmap f $files {string cat ${extracted_dir}${f}}] \
