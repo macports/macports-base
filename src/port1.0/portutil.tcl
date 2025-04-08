@@ -3167,6 +3167,24 @@ proc exec_as_uid {uid code} {
     return -code $retcode $result
 }
 
+# Run the given code, becoming root first if possible, and dropping
+# privileges again afterward.
+proc exec_with_available_privileges {code} {
+    if {[getuid] == 0 && [geteuid] != 0} {
+        seteuid 0; setegid 0
+        set deprivileged 1
+    }
+    try {
+        uplevel 1 $code
+    } finally {
+        if {[info exists deprivileged]} {
+            global macportsuser
+            setegid [uname_to_gid $macportsuser]
+            seteuid [name_to_uid $macportsuser]
+        }
+    }
+}
+
 # dependency analysis helpers
 
 ### _libtest is private; subject to change without notice

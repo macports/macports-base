@@ -56,29 +56,31 @@ proc portmpkg::mpkg_main {args} {
     return [package_mpkg $subport $epoch $version $revision]
 }
 
-proc portmpkg::make_dependency_list {portname destination} {
-    global prefix package.flat requested_variations
-    set result [list]
-    if {[catch {set res [mport_lookup $portname]} error]} {
-        ui_debug $::errorInfo
-        return -code error "port lookup failed: $error"
-    }
-    lassign $res portname portinfo
-
-    if {[getuid] == 0 && [geteuid] != 0} {
-        seteuid 0; setegid 0
-        set deprivileged 1
-    }
-
-    set mport [mport_open [dict get $portinfo porturl] [dict create prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portname] [array get requested_variations]]
-
-    if {[info exists deprivileged]} {
-        global macportsuser
-        setegid [uname_to_gid $macportsuser]
-        seteuid [name_to_uid $macportsuser]
-    }
-
+proc portmpkg::archcheck {mport dependent_mport} {
     set portinfo [mport_info $mport]
+    if {[dict exists $portinfo installs_libs] && ![dict get $portinfo installs_libs]} {
+        return 1
+    }
+    set skip_archcheck [_mportkey $dependent_mport depends_skip_archcheck]
+    if {[lsearch -exact -nocase $skip_archcheck [dict get $portinfo name]] >= 0} {
+        return 1
+    }
+    set required_archs [_mport_archs $dependent_mport]
+    if {[_mport_supports_archs $mport $required_archs]} {
+        return 1
+    }
+    # Since only depends_lib and depends_run are considered in mpkg,
+    # there's no need to check if the dep type needs matching archs.
+    return 0
+}
+
+proc portmpkg::get_dependencies {mport dep_map base_options variations} {
+    set portinfo [mport_info $mport]
+    set portname [dict get $portinfo name]
+    if {![dict exists $dep_map $portname]} {
+        # guard against infinite recursion with circular dependencies
+        dict set dep_map $portname {}
+    }
 
     # get the union of depends_run and depends_lib
     set depends [list]
@@ -88,31 +90,91 @@ proc portmpkg::make_dependency_list {portname destination} {
     foreach depspec $depends {
         set dep [_get_dep_port $depspec]
         if {$dep ne ""} {
-            lappend result {*}[make_dependency_list $dep $destination]
+            # Get the dep's mport handle, opening it if needed
+            if {[catch {set res [mport_lookup $dep]} error]} {
+                ui_debug $::errorInfo
+                return -code error "port lookup failed: $error"
+            }
+            # depname will have canonical case and so can safely be
+            # used as the dict key
+            lassign $res depname dep_portinfo
+            set add_deps 0
+            if {[dict exists $dep_map $depname]} {
+                set dep_mport [dict get $dep_map $depname]
+                # The dep has already been processed, so there's
+                # nothing to do in this case if the archs match.
+            } else {
+                set options $base_options
+                dict set options subport $depname
+                exec_with_available_privileges {
+                    set dep_mport [mport_open [dict get $dep_portinfo porturl] $options $variations]
+                }
+                set add_deps 1
+            }
+            # Reopen with +universal if possible if the archs aren't compatible
+            if {![archcheck $dep_mport $mport] && ![dict exists $variations universal]} {
+                set check_portinfo [mport_info $dep_mport]
+                set dep_archs [_mport_archs $dep_mport]
+                if {[dict exists $check_portinfo variants] && "universal" in [dict get $check_portinfo variants]
+                        && [llength $dep_archs] < 2} {
+                    mport_close $dep_mport
+                    set uvariations $variations
+                    dict set uvariations universal +
+                    set options $base_options
+                    dict set options subport $depname
+                    exec_with_available_privileges {
+                        set dep_mport [mport_open [dict get $dep_portinfo porturl] $options $uvariations]
+                    }
+                    set add_deps 1
+                    # dep_map entry for this dep will be updated in the recursive call
+                }
+            }
+            if {$add_deps} {
+                # Add this dependency and its dependencies to the dep_map
+                set dep_map [get_dependencies $dep_mport $dep_map $base_options $variations]
+            }
         }
     }
 
-    lappend result [list $portname [dict get $portinfo version] [dict get $portinfo revision] $mport]
+    # ensure this port comes after its deps in the dict
+    dict unset dep_map $portname
+    dict set dep_map $portname [list $mport [dict get $portinfo version] [dict get $portinfo revision]]
+    return $dep_map
+}
+
+proc portmpkg::make_dependency_list {portname destination} {
+    global prefix package.flat requested_variations
+
+    if {[catch {set res [mport_lookup $portname]} error]} {
+        ui_debug $::errorInfo
+        return -code error "port lookup failed: $error"
+    }
+    lassign $res portname portinfo
+    set base_options [dict create prefix $prefix package.destpath ${destination} package.flat ${package.flat}]
+    set options $base_options
+    dict set options subport $portname
+    set variations [array get requested_variations]
+
+    exec_with_available_privileges {
+        set mport [mport_open [dict get $portinfo porturl] $options $variations]
+    }
+
+    set result [get_dependencies $mport [dict create] $base_options $variations]
+    mport_close $mport
+    # don't re-package ourself
+    dict unset result $portname
+
     return $result
 }
 
 proc portmpkg::make_one_package {portname mport} {
-    if {[getuid] == 0 && [geteuid] != 0} {
-        seteuid 0; setegid 0
-        set deprivileged 1
-    }
-
     ui_debug "building dependency package: $portname"
-    set result [mport_exec $mport pkg]
+    exec_with_available_privileges {
+        set result [mport_exec $mport pkg]
+    }
     mport_close $mport
     if {$result} {
         error "Processing of port $portname failed"
-    }
-
-    if {[info exists deprivileged]} {
-        global macportsuser
-        setegid [uname_to_gid $macportsuser]
-        seteuid [name_to_uid $macportsuser]
     }
 }
 
@@ -136,26 +198,18 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
         set packages_path ${mpkgpath}/Contents/Packages
         set resources_path ${mpkgpath}/Contents/Resources
     }
-    system "mkdir -p -m 0755 [shellescape ${packages_path}]"
-    system "mkdir -p -m 0755 [shellescape ${resources_path}]"
+    xinstall -d -m 0755 ${packages_path} ${resources_path}
 
     set dependencies [list]
     # get deplist
     set deps [make_dependency_list $portname $packages_path]
-    set deps [lsort -unique $deps]
-    foreach dep $deps {
-        set name [lindex $dep 0]
-        set vers [lindex $dep 1]
-        set rev [lindex $dep 2]
-        set mport [lindex $dep 3]
-        # don't re-package ourself
-        if {$name ne $portname} {
-            make_one_package $name $mport
-            if {${package.flat} && ${os.major} >= 10} {
-                lappend dependencies org.macports.${name} [portpkg::image_name ${name} ${vers} ${rev}]-component.pkg
-            } else {
-                lappend dependencies [portpkg::image_name ${name} ${vers} ${rev}].pkg
-            }
+    dict for {name depinfo} $deps {
+        lassign $depinfo mport vers rev
+        make_one_package $name $mport
+        if {${package.flat} && ${os.major} >= 10} {
+            lappend dependencies org.macports.${name} [portpkg::image_name ${name} ${vers} ${rev}]-component.pkg
+        } else {
+            lappend dependencies [portpkg::image_name ${name} ${vers} ${rev}].pkg
         }
     }
     if {${package.flat} && ${os.major} >= 10} {
