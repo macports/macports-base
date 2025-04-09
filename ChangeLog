@@ -2,6 +2,36 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.0 (unreleased)
+    - MacPorts now requires Mac OS X 10.5 or later.
+
+    - 'port reclaim' now has an option to keep unrequested ports that
+      are build-time dependencies of requested ports.
+      (#60754, jmr in bbc10c2)
+
+    - 'port migrate' and 'port restore' will now check if ports set
+      replaced_by and install the replacement instead. (jmr in 0ff09a1)
+
+    - The interactive message confirming the dependencies to be
+      installed now includes their variants. (jmr in 8d1fbf2)
+
+    - 'port mpkg' now checks architectures of dependencies and enables
+      the universal variant if needed. (#34177, jmr in a83bf73)
+
+    - Added 'git' livecheck.type. (makr in c1c02d8)
+
+    - compiler.blacklist can now include version comparisons. This
+      functionality was previously provided by a PortGroup.
+      (jmr in 89035db)
+
+    - Many copy operations now use clonefile if possible.
+      (jmr in 3da9cd2)
+
+    - Updated the bundled Tcl to 8.6.16. (jmr in 3954f08)
+
+    - Updated tcllib to 2.0, including tcllibc.
+      (jmr in d82c8c9, 7bf1511)
+
 Release 2.10.6 (unreleased)
     - Fixed incorrect handling of master_site_local and
       archive_site_local. (#57720, jmr in 00aab6a)
