@@ -2,6 +2,17 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.10.6 (unreleased)
+    - Fixed incorrect handling of master_site_local and
+      archive_site_local. (#57720, jmr in 00aab6a)
+
+    - Fixed error when installing a port that needs one of its
+      dependencies to be universal and using a PortIndex that was
+      generated on a machine where that dependency does not support a
+      universal variant. (jmr in 31f7c7f)
+
+    - Improved portindex startup time. (jmr in bdeaa81)
+
 Release 2.10.5 (2024-11-23 by jmr)
     - Fixed error when the Command Line Tools receipt is missing.
       (#71339, jmr in dab32c5)
