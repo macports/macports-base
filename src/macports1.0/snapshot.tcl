@@ -460,7 +460,7 @@ namespace eval snapshot {
                 }
             }
             if {[llength $inactive_ports] != 0} {
-                set msg "Following inactive ports will not be a part of this snapshot and won't be installed while restoring:"
+                set msg "The following inactive ports will not be a part of this snapshot and won't be installed while restoring:"
                 set inactive_ports [lsort -index 0 -nocase $inactive_ports]
                 if {[info exists macports::ui_options(questions_yesno)]} {
                     set retvalue [$macports::ui_options(questions_yesno) $msg "Continue?" $inactive_ports {y} 0]
