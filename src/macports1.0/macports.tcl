@@ -1680,8 +1680,12 @@ match macports.conf.default."
         HOME JAVA_HOME MASTER_SITE_LOCAL ARCHIVE_SITE_LOCAL
         PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY
         USER GROUP LANG
-        http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
+        http_proxy
         COLUMNS LINES
+    }
+    # Curl accepts these variables in both lower- and upper-case
+    foreach var {https_proxy ftp_proxy all_proxy no_proxy} {
+        lappend keepenvkeys $var [string toupper $var]
     }
     if {[info exists extra_env]} {
         set keepenvkeys [concat $keepenvkeys $extra_env]
@@ -1789,14 +1793,16 @@ match macports.conf.default."
             set env(http_proxy) $sysConfProxies(proxy_http)
         }
     }
-    if {![info exists env(HTTPS_PROXY)] || $proxy_override_env} {
+    if {(![info exists env(https_proxy)] && ![info exists env(HTTPS_PROXY)]) || $proxy_override_env} {
+        unset -nocomplain env(https_proxy)
         if {[info exists proxy_https]} {
             set env(HTTPS_PROXY) $proxy_https
         } elseif {[info exists sysConfProxies(proxy_https)]} {
             set env(HTTPS_PROXY) $sysConfProxies(proxy_https)
         }
     }
-    if {![info exists env(FTP_PROXY)] || $proxy_override_env} {
+    if {(![info exists env(ftp_proxy)] && ![info exists env(FTP_PROXY)]) || $proxy_override_env} {
+        unset -nocomplain env(ftp_proxy)
         if {[info exists proxy_ftp]} {
             set env(FTP_PROXY) $proxy_ftp
         } elseif {[info exists sysConfProxies(proxy_ftp)]} {
@@ -1808,7 +1814,8 @@ match macports.conf.default."
             set env(RSYNC_PROXY) $proxy_rsync
         }
     }
-    if {![info exists env(NO_PROXY)] || $proxy_override_env} {
+    if {(![info exists env(no_proxy)] && ![info exists env(NO_PROXY)]) || $proxy_override_env} {
+        unset -nocomplain env(no_proxy)
         if {[info exists proxy_skip]} {
             set env(NO_PROXY) $proxy_skip
         } elseif {[info exists sysConfProxies(proxy_skip)]} {

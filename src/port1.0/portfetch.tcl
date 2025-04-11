@@ -302,16 +302,13 @@ proc portfetch::bzrfetch {args} {
     #   "proxy.example.com:8080": No host component
     # Set the "http_proxy" and "HTTPS_PROXY" environmental variables
     # to valid URLs by prepending "http://" and appending "/".
-    if {   [info exists env(http_proxy)]
-        && [string compare -length 7 {http://} $env(http_proxy)] != 0} {
-        set orig_http_proxy $env(http_proxy)
-        set env(http_proxy) http://${orig_http_proxy}/
-    }
-
-    if {   [info exists env(HTTPS_PROXY)]
-        && [string compare -length 7 {http://} $env(HTTPS_PROXY)] != 0} {
-        set orig_https_proxy $env(HTTPS_PROXY)
-        set env(HTTPS_PROXY) http://${orig_https_proxy}/
+    foreach varname {http_proxy https_proxy HTTPS_PROXY} {
+        if {[info exists env($varname)]
+            && [string compare -length 7 {http://} $env($varname)] != 0
+        } then {
+            set orig_${varname} $env($varname)
+            set env($varname) http://[set orig_${varname}]/
+        }
     }
 
     try {
@@ -319,11 +316,10 @@ proc portfetch::bzrfetch {args} {
             return -code error [msgcat::mc "Bazaar checkout failed"]
         }
     } finally {
-        if {[info exists orig_http_proxy]} {
-            set env(http_proxy) ${orig_http_proxy}
-        }
-        if {[info exists orig_https_proxy]} {
-            set env(HTTPS_PROXY) ${orig_https_proxy}
+        foreach varname {http_proxy https_proxy HTTPS_PROXY} {
+            if {[info exists orig_${varname}]} {
+                set env($varname) [set orig_${varname}]
+            }
         }
     }
 
@@ -392,8 +388,8 @@ proc portfetch::svn_proxy_args {url} {
         && [info exists env(http_proxy)]} {
         set proxy_str $env(http_proxy)
     } elseif {   [string compare -length 8 {https://} ${url}] == 0
-              && [info exists env(HTTPS_PROXY)]} {
-        set proxy_str $env(HTTPS_PROXY)
+              && ([info exists env(HTTPS_PROXY)] || [info exists env(https_proxy)])} {
+        set proxy_str [expr {[info exists env(https_proxy)] ? $env(https_proxy) : $env(HTTPS_PROXY)}]
     } else {
         return ""
     }
