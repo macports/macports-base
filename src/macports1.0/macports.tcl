@@ -1898,6 +1898,24 @@ proc mportshutdown {} {
     registry::close
 }
 
+# Override variables. Used by portindex to evaluate Portfiles as though
+# on a different platform.
+# vars: a list of pairs of variable names and their desired values.
+proc macports::override_vars {vars} {
+    foreach {varname value} $vars {
+        # only allow overrides of existing variables in the macports namespace
+        if {[namespace which -variable ::macports::${varname}] eq ""} {
+            ui_warn "Not overriding $varname because it does not exist in the macports namespace"
+            continue
+        }
+        # Remove any traces that might overwrite the var
+        foreach t [trace info variable ::macports::${varname}] {
+            trace remove variable ::macports::${varname} {*}$t
+        }
+        variable $varname $value
+    }
+}
+
 # link plist for xcode 4.3's benefit
 proc macports::copy_xcode_plist {target_homedir} {
     variable user_home; variable macportsuser

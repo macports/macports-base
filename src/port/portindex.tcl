@@ -1,5 +1,5 @@
 #!@TCLSH@
-# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
 
@@ -16,17 +16,17 @@ set stats [dict create \
 set extended_mode 0
 array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list ports_no_load_quick_index 1]
-set port_options            [list]
+set var_overrides           [list]
 
 # Pass global options into mportinit
 mportinit ui_options global_options
 
 # Standard procedures
-proc print_usage args {
-    puts "Usage: $::argv0 \[-dfe\] \[-o output directory\] \[-p plat_ver_\[cxxlib_\]arch\] \[directory\]"
+proc print_usage {} {
+    puts "Usage: $::argv0 \[-defx\] \[-o output directory\] \[-p plat_ver_arch\] \[directory\]"
     puts "-d:\tOutput debugging information"
-    puts "-f:\tDo a full re-index instead of updating"
     puts "-e:\tExit code indicates if ports failed to parse"
+    puts "-f:\tDo a full re-index instead of updating"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
     puts "-x:\tInclude extra (optional) information in the PortIndex, like variant description and port notes."
@@ -77,7 +77,7 @@ proc _index_from_portinfo {portinfo {is_subport no}} {
     return [list [dict get $portinfo name] $len $keep_portinfo]
 }
 
-proc _open_port {portdir absportdir port_options {subport {}}} {
+proc _open_port {portdir absportdir {subport {}}} {
     global macports::prefix
     # Make sure $prefix expands to '${prefix}' so that the PortIndex is
     # portable across prefixes, see https://trac.macports.org/ticket/53169 and
@@ -86,7 +86,9 @@ proc _open_port {portdir absportdir port_options {subport {}}} {
     macports_try -pass_signal {
         set prefix {${prefix}}
         if {$subport ne {}} {
-            dict set port_options subport $subport
+            set port_options [dict create subport $subport]
+        } else {
+            set port_options {}
         }
         set mport [mportopen file://$absportdir $port_options]
     } finally {
@@ -102,7 +104,7 @@ proc _open_port {portdir absportdir port_options {subport {}}} {
 }
 
 proc pindex {portdir jobnum {subport {}}} {
-    global directory full_reindex qindex oldmtime ui_options port_options
+    global directory full_reindex qindex oldmtime ui_options
     try {
         tsv::set status $jobnum 1
         set absportdir [file join $directory $portdir]
@@ -149,7 +151,7 @@ proc pindex {portdir jobnum {subport {}}} {
         }
 
         macports_try -pass_signal {
-            set portinfo [_open_port $portdir $absportdir $port_options $subport]
+            set portinfo [_open_port $portdir $absportdir $subport]
             if {$is_subport} {
                 puts "Adding subport $subport"
             } else {
@@ -188,7 +190,7 @@ proc pindex {portdir jobnum {subport {}}} {
 
 proc init_threads {} {
     global worker_init_script qindex keepkeys ui_options \
-           global_options port_options directory \
+           global_options var_overrides directory \
            full_reindex oldfd oldmtime maxjobs poolid pending_jobs \
            nextjobnum
     append worker_init_script \
@@ -196,7 +198,6 @@ proc init_threads {} {
         [list set keepkeys $keepkeys] \n \
         [list array set ui_options [array get ui_options]] \n \
         [list array set global_options [array get global_options]] \n \
-        [list set port_options $port_options] \n \
         [list set directory $directory] \n \
         [list set full_reindex $full_reindex] \n \
         [list mportinit ui_options global_options] \n \
@@ -205,11 +206,15 @@ proc init_threads {} {
         global outpath
         append worker_init_script \n \
             [list set outpath $outpath] \n \
-            {set oldfd [open $outpath r]} \n
+            {set oldfd [open $outpath r]}
     }
     if {[info exists oldmtime]} {
         append worker_init_script \
-            [list set oldmtime $oldmtime] \n
+            \n [list set oldmtime $oldmtime]
+    }
+    if {$var_overrides ne {}} {
+        append worker_init_script \
+            \n [list macports::override_vars $var_overrides]
     }
     set maxjobs [macports::get_parallel_jobs no]
     set poolid [tpool::create -minworkers 1 -maxworkers $maxjobs -initcmd $worker_init_script]
@@ -304,68 +309,78 @@ if {$argc > 8} {
     exit 1
 }
 
-for {set i 0} {$i < $argc} {incr i} {
-    set arg [lindex $argv $i]
-    switch -regex -- $arg {
-        {^-.+} {
-            if {$arg eq "-d"} { # Turn on debug output
+proc parse_args {} {
+    global argc argv
+    for {set i 0} {$i < $argc} {incr i} {
+        set arg [lindex $argv $i]
+        switch -glob -- $arg {
+            -d { # Turn on debug output
+                global ui_options
                 set ui_options(ports_debug) yes
-            } elseif {$arg eq "-o"} { # Set output directory
+            }
+            -e { # Non-zero exit code on errors
+                global permit_error
+                set permit_error 1
+            }
+            -f { # Completely rebuild index
+                global full_reindex
+                set full_reindex 1
+            }
+            -o { # Set output directory
                 incr i
+                global outdir
                 set outdir [file join [pwd] [lindex $argv $i]]
-            } elseif {$arg eq "-p"} { # Set platform
+            }
+            -p { # Simulate platform
+                global var_overrides
                 incr i
-                set platlist [split [lindex $argv $i] _]
-                set os_platform [lindex $platlist 0]
-                set os_major [lindex $platlist 1]
-                if {[llength $platlist] > 3} {
-                    set cxx_stdlib [lindex $platlist 2]
-                    switch -- $cxx_stdlib {
-                        libcxx {
-                            set cxx_stdlib libc++
-                        }
-                        libstdcxx {
-                            set cxx_stdlib libstdc++
-                        }
-                        default {
-                            puts stderr "Unknown C++ standard library: $cxx_stdlib (use libcxx or libstdcxx)"
-                            print_usage
-                            exit 1
-                        }
-                    }
-                    set os_arch [lindex $platlist 3]
+                set plat_arg [lindex $argv $i]
+                if {[string match file:* $plat_arg]} {
+                    # Read variables to override from a file
+                    set filename [string range $plat_arg [string first : $plat_arg]+1 end]
+                    set fd [open $filename r]
+                    gets $fd var_overrides
+                    close $fd
                 } else {
+                    # Use basic variable overrides based on platform name
+                    set platlist [split $plat_arg _]
+                    if {[llength $platlist] != 3} {
+                        puts stderr "Platform specifier should be of the form plat_ver_arch"
+                        print_usage
+                        exit 1
+                    }
+                    set os_platform [lindex $platlist 0]
+                    set os_major [lindex $platlist 1]
                     if {$os_platform eq "macosx"} {
-                        if {$os_major < 10} {
-                            set cxx_stdlib libstdc++
-                        } else {
-                            set cxx_stdlib libc++
-                        }
+                        set cxx_stdlib [expr {$os_major < 10 ? "libstdc++" : "libc++"}]
+                        lappend var_overrides macports::os_subplatform $os_platform \
+                                              macports::cxx_stdlib $cxx_stdlib
+                        set os_platform darwin
                     }
                     set os_arch [lindex $platlist 2]
+                    lappend var_overrides macports::os_platform $os_platform \
+                                          macports::os_major $os_major \
+                                          macports::os_version ${os_major}.0.0 \
+                                          macports::os_arch $os_arch
                 }
-                if {$os_platform eq "macosx"} {
-                    lappend port_options os.subplatform $os_platform os.universal_supported yes cxx_stdlib $cxx_stdlib
-                    set os_platform darwin
-                }
-                lappend port_options os.platform $os_platform os.major $os_major os.version ${os_major}.0.0 os.arch $os_arch
-            } elseif {$arg eq "-f"} { # Completely rebuild index
-                set full_reindex 1
-            } elseif {$arg eq "-x"} { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
+            }
+            -x { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
+                global extended_mode
                 set extended_mode 1
-            } elseif {$arg eq "-e"} { # Non-zero exit code on errors
-                set permit_error 1
-            } else {
+            }
+            -* {
                 puts stderr "Unknown option: $arg"
                 print_usage
                 exit 1
             }
-        }
-        default {
-            set directory [file join [pwd] $arg]
+            default {
+                global directory
+                set directory [file join [pwd] $arg]
+            }
         }
     }
 }
+parse_args
 
 if {![info exists directory]} {
     set directory .
