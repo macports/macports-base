@@ -127,6 +127,11 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # - gigabytes of physical memory + 1
 #buildmakejobs       	0
 
+# Number of threads to use when indexing ports. If set
+# to 0, the number of threads will be the number of
+# automatically-detected CPU cores
+#indexjobs       	0
+
 # umask value to use when a port installs its files.
 #destroot_umask      	022
 

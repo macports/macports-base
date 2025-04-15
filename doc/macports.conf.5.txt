@@ -113,6 +113,11 @@ buildmakejobs::
     physical memory plus one, whichever is less."
     *Default:*;; 0
 
+indexjobs::
+    Number of threads to use when indexing ports. 0 is a special value meaning
+    "the number of CPU cores."
+    *Default:*;; 0
+
 portautoclean::
     Automatic cleaning of the build directory of a given port after it has been
     installed.
