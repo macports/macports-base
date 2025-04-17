@@ -3454,8 +3454,8 @@ proc _archive_available {} {
         return 1
     }
 
-    # check if there's an archive available on the server
-    global archive_sites
+    # check if there's an archive on the primary or local servers
+    global archive_sites env
     set mirrors macports_archives
     if {[lsearch $archive_sites macports_archives::*] == -1} {
         set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
@@ -3465,32 +3465,37 @@ proc _archive_available {} {
         return 0
     }
     set archivetype $portfetch::mirror_sites::archive_type($mirrors)
-    set archivename "${archiverootname}.${archivetype}"
+    set archivename ${archiverootname}.${archivetype}
+    set sites_entries [list]
+    if {[info exists env(ARCHIVE_SITE_LOCAL)]} {
+        lappend sites_entries {*}$env(ARCHIVE_SITE_LOCAL)
+    }
     # grab first site, should conventionally be the master mirror
-    set sites_entry [lindex $portfetch::mirror_sites::sites($mirrors) 0]
-    # look for and strip off any tag, which will start with the first colon after the
-    # first slash after the ://
-    set lastcolon [string last : $sites_entry]
-    set aftersep [expr {[string first : $sites_entry] + 3}]
-    set firstslash [string first / $sites_entry $aftersep]
-    if {$firstslash != -1 && $firstslash < $lastcolon} {
-        incr lastcolon -1
-        set site [string range $sites_entry 0 $lastcolon]
-    } else {
-        set site $sites_entry
-    }
-    if {[string index $site end] ne "/"} {
-        append site /
-    }
-    append site [option archive.subdir]
-    set url [portfetch::assemble_url $site $archivename]
-    ui_debug "Fetching $archivename archive size"
-    # curl getsize can return -1 instead of throwing an error for
-    # nonexistent files on FTP sites.
-    if {![catch {curl getsize $url} size] && $size > 0
-          && ![catch {curl getsize ${url}.rmd160} sigsize] && $sigsize > 0} {
-        set archive_available_result 1
-        return 1
+    lappend sites_entries [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+    foreach sites_entry $sites_entries {
+        # look for and strip off any tag, which will start with the first colon after the
+        # first slash after the ://
+        set lastcolon [string last : $sites_entry]
+        set aftersep [expr {[string first : $sites_entry] + 3}]
+        set firstslash [string first / $sites_entry $aftersep]
+        if {$firstslash != -1 && $firstslash < $lastcolon} {
+            set site [string range $sites_entry 0 ${lastcolon}-1]
+        } else {
+            set site $sites_entry
+        }
+        set orig_site $site
+        if {[string index $site end] ne "/"} {
+            append site /
+        }
+        set url [portfetch::assemble_url ${site}[option archive.subdir] $archivename]
+        ui_debug "Checking if $archivename exists at $site"
+        # curl getsize can return -1 instead of throwing an error for
+        # nonexistent files on FTP sites.
+        if {![catch {curlwrap getsize $orig_site {} $url} size] && $size > 0
+              && ![catch {curlwrap getsize $orig_site {} ${url}.rmd160} sigsize] && $sigsize > 0} {
+            set archive_available_result 1
+            return 1
+        }
     }
 
     set archive_available_result 0
