@@ -1038,6 +1038,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		int ignoresslcert = 0;
 		char theSizeString[32];
 		const char* theURL;
+		const char* theUserPassString = NULL;
 		CURLcode theCurlCode;
 		double theFileSize;
 
@@ -1049,6 +1050,18 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
 			if (strcmp(theOption, "--ignore-ssl-cert") == 0) {
 				ignoresslcert = 1;
+			} else if (strcmp(theOption, "-u") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					theUserPassString = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl getsize: -u option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;
+				}
 			} else {
 				Tcl_ResetResult(interp);
 				Tcl_AppendResult(interp, "curl getsize: unknown option ", theOption, NULL);
@@ -1065,7 +1078,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		}
 
 		/* first (second) parameter is the url */
-		if (objc < 3 || objc > 4) {
+		if (objc < 3 || objc > 6) {
 			Tcl_WrongNumArgs(interp, 1, objv, "getsize [--ignore-ssl-cert] url");
 			theResult = TCL_ERROR;
 			break;
@@ -1161,6 +1174,15 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				break;
 			}
 			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYHOST, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
+		}
+
+        /* set the l/p, if any */
+		if (theUserPassString) {
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_USERPWD, theUserPassString);
 			if (theCurlCode != CURLE_OK) {
 				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 				break;
