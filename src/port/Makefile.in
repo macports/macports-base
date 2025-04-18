@@ -37,11 +37,10 @@ distclean: clean
 install: all mkdirs
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${bindir}"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${localstatedir}/macports"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${DESTDIR}${bindir}/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror port-tclsh "${DESTDIR}${bindir}/"
 	$(LN_S) -f port "${DESTDIR}${bindir}/portf"
-	$(LN_S) -f "${TCLSH}" "${DESTDIR}${bindir}/port-tclsh"
 ifeq (darwin,@OS_PLATFORM@)
 ifneq (8,@OS_MAJOR@)
-	chmod -h 555 "${DESTDIR}${bindir}/portf" "${DESTDIR}${bindir}/port-tclsh"
+	chmod -h 555 "${DESTDIR}${bindir}/portf"
 endif
 endif

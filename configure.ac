@@ -465,5 +465,6 @@ AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
 AC_CONFIG_FILES([src/upgrade_sources_conf_default.tcl], [chmod +x src/upgrade_sources_conf_default.tcl])
+AC_CONFIG_FILES([src/port/port-tclsh], [chmod +x src/port/port-tclsh])
 
 AC_OUTPUT
