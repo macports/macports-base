@@ -31,6 +31,7 @@ src/darwintracelib1.0/tests/stat
 src/darwintracelib1.0/sip_copy_proc.[ch]
 src/machista1.0/tests/libmachista-test
 src/port/*
+!src/port/port-tclsh.in
 !src/port/*.tcl
 src/programs/*/build/
 src/**/*.o
