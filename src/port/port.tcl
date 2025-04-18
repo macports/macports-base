@@ -3278,6 +3278,9 @@ proc action_contents { action portlist opts } {
     }
 
     foreachport $portlist {
+        if {$portname eq {}} {
+            break_softcontinue "port contents failed: a port name is required" 1 status
+        }
         set composite_version [composite_version $portversion $variations]
         set ilist ""
         if {[catch {set ilist [registry_installed $portname $composite_version no yes]} result]} {
