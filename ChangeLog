@@ -13,9 +13,9 @@ Release 2.10.6 (unreleased)
 
     - Improved portindex startup time. (jmr in bdeaa81)
 
-    - Changed 'port-tclsh' to a wrapper script instead of a symlink to fix Tcl
-      the Tcl library search path.
-      (cal in b9274800f, d83346fb9)
+    - Changed 'port-tclsh' to a wrapper script instead of a symlink to fix the
+      Tcl library search path.
+      (#72359, cal in ddf08fb88, b951449b7)
 
 Release 2.10.5 (2024-11-23 by jmr)
     - Fixed error when the Command Line Tools receipt is missing.
