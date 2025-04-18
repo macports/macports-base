@@ -9757,6 +9757,8 @@ ac_config_files="$ac_config_files src/pkg_mkindex.sh"
 
 ac_config_files="$ac_config_files src/upgrade_sources_conf_default.tcl"
 
+ac_config_files="$ac_config_files src/port/port-tclsh"
+
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10492,6 +10494,7 @@ do
     "src/images_to_archives.tcl") CONFIG_FILES="$CONFIG_FILES src/images_to_archives.tcl" ;;
     "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
     "src/upgrade_sources_conf_default.tcl") CONFIG_FILES="$CONFIG_FILES src/upgrade_sources_conf_default.tcl" ;;
+    "src/port/port-tclsh") CONFIG_FILES="$CONFIG_FILES src/port/port-tclsh" ;;
 
   *) as_fn_error $? "invalid argument: '$ac_config_target'" "$LINENO" 5;;
   esac
@@ -11050,6 +11053,7 @@ printf "%s\n" "$as_me: $ac_file is unchanged" >&6;}
     "src/images_to_archives.tcl":F) chmod +x src/images_to_archives.tcl ;;
     "src/pkg_mkindex.sh":F) chmod +x src/pkg_mkindex.sh ;;
     "src/upgrade_sources_conf_default.tcl":F) chmod +x src/upgrade_sources_conf_default.tcl ;;
+    "src/port/port-tclsh":F) chmod +x src/port/port-tclsh ;;
 
   esac
 done # for ac_tag
