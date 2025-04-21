@@ -175,21 +175,33 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath subbuildpath worksymlink
+    global portbuildpath subbuildpath worksymlink subport
 
-    if {[file isdirectory $subbuildpath]} {
-        ui_debug "Removing directory: ${subbuildpath}"
+    if {[catch {set real_subbuildpath [realpath $subbuildpath]}]} {
+        set real_subbuildpath $subbuildpath
+    }
+    if {[file isdirectory $real_subbuildpath]} {
+        ui_debug "Removing directory: ${real_subbuildpath}"
+        macports_try -pass_signal {
+            delete $real_subbuildpath
+        } on error {eMessage} {
+            ui_debug "$::errorInfo"
+            ui_error "$eMessage"
+        }
+    } else {
+        ui_debug "No work directory found to remove at ${real_subbuildpath}"
+    }
+    if {![catch {file type $subbuildpath}]} {
+        ui_debug "Removing symlink: ${subbuildpath}"
         macports_try -pass_signal {
             delete $subbuildpath
         } on error {eMessage} {
             ui_debug "$::errorInfo"
             ui_error "$eMessage"
         }
-        # silently fail if non-empty (other subports might be using portbuildpath)
-        catch {file delete $portbuildpath}
-    } else {
-        ui_debug "No work directory found to remove at ${subbuildpath}"
     }
+    # silently fail if non-empty (other subports might be using portbuildpath)
+    catch {file delete $portbuildpath}
 
     # Clean symlink, if necessary
     if {![catch {file type $worksymlink} result] && $result eq "link"} {

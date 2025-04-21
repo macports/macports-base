@@ -1727,6 +1727,30 @@ proc eval_targets {target} {
     return $result
 }
 
+proc portutil::create_workpath {} {
+    global workpath portbuildpath subbuildpath subport
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot create_workpath
+    }
+    file mkdir $portbuildpath
+    # Create and link build dir if link or link target are missing or wrong type.
+    if {[catch {file type $subbuildpath} ftype] || $ftype eq "directory" || ![file isdirectory $subbuildpath]} {
+        # This doesn't need to be unguessable, just unique (and short). Four
+        # random characters is enough for ~1.7M build dirs.
+        set shortpath [mkdtemp [file dirname $portbuildpath]/[string range $subport 0 3]XXXX]
+        if {$ftype eq "directory"} {
+            delete $shortpath
+            file rename $subbuildpath $shortpath
+        }
+        file attributes $shortpath -permissions 0755
+        chownAsRoot $shortpath
+        ln -sf $shortpath $subbuildpath
+    }
+
+    file mkdir $workpath/.home $workpath/.tmp
+    chownAsRoot $subbuildpath
+}
+
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
@@ -1734,23 +1758,8 @@ proc open_statefile {args} {
            subbuildpath
 
     if {![tbool ports_dryrun]} {
-        set need_chown 0
-        if {![file isdirectory $workpath/.home]} {
-            if {[getuid] == 0 && [geteuid] != 0} {
-                elevateToRoot create_workpath
-            }
-            file mkdir $workpath/.home
-            set need_chown 1
-        }
-        if {![file isdirectory $workpath/.tmp]} {
-            if {[getuid] == 0 && [geteuid] != 0} {
-                elevateToRoot create_workpath
-            }
-            file mkdir $workpath/.tmp
-            set need_chown 1
-        }
-        if {$need_chown} {
-            chownAsRoot $subbuildpath
+        if {![file isdirectory $workpath/.home] || ![file isdirectory $workpath/.tmp]} {
+            portutil::create_workpath
         }
         # Create a symlink to the workpath for port authors
         if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
