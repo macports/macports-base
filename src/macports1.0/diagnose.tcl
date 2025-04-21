@@ -779,6 +779,9 @@ namespace eval diagnose {
         while {[llength $check_paths] > 0} {
             set path [lindex $check_paths end]
             set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            if {[catch {file type $path}]} {
+                continue
+            }
             set perms [file attributes $path -permissions]
             if {$perms & 0002 && $path ni $ww_dirs} {
                 lappend ww_dirs $path
