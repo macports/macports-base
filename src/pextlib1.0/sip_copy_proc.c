@@ -467,6 +467,13 @@ static int resign(const char *filepath) {
     }
 
     if (pid != waitpid(pid, &exitstatus, 0)) {
+        if (errno == ECHILD) {
+            /* The child vanished before we could waitpid(2) it. This shouldn't
+             * happen, but apparently occasionally does in practice, and we
+             * shouldn't error out in this case. */
+            result = 0;
+            goto resign_out;
+        }
         fprintf(stderr, "waitpid(%d): %s\n", pid, strerror(errno));
         goto resign_out;
     }
