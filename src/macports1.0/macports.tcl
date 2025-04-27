@@ -3315,6 +3315,70 @@ proc macports::chown {path user} {
     }
 }
 
+proc macports::verify_signature_signify {file pubkey signature} {
+    set verified 0
+    macports_try -pass_signal {
+        set command [list \
+            $macports::autoconf::signify_path -V \
+            -p $pubkey \
+            -x $signature \
+            -m $file]
+        ui_debug "Invoking ${command} to verify signature"
+        exec {*}$command
+        set verified 1
+        ui_debug "$file successfully verified with public key $pubkey"
+    } on error {eMessage} {
+        ui_debug "$file failed to verify with public key $pubkey"
+        ui_debug "signify output: $eMessage"
+    }
+    return $verified
+}
+
+proc macports::verify_signature_openssl {file pubkey signature} {
+    set openssl [findBinary openssl $macports::autoconf::openssl_path]
+    set verified 0
+    macports_try -pass_signal {
+        run_unprivileged {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $file}
+        set verified 1
+        ui_debug "successful verification with key $pubkey"
+    } on error {eMessage} {
+        ui_debug "failed verification with key $pubkey"
+        ui_debug "openssl output: $eMessage"
+    }
+    return $verified
+}
+
+proc macports::verify_ports_signature {path} {
+    variable archivefetch_pubkeys
+    set signify_pubkeys [glob -nocomplain -directory $macports::autoconf::macports_keys_ports *.pub]
+    set openssl_pubkeys [list]
+    foreach pubkey $archivefetch_pubkeys {
+        if {[file extension $pubkey] eq ".pub"} {
+            lappend signify_pubkeys $pubkey
+        } elseif {[file extension $pubkey] eq ".pem"} {
+            lappend openssl_pubkeys $pubkey
+        }
+    }
+    ui_debug "Attempting to verify signature for $path"
+    set signify_signature ${path}.sig
+    if {[file isfile $signify_signature]} {
+        foreach signify_pubkey $signify_pubkeys {
+            if {[verify_signature_signify $path $signify_pubkey $signify_signature]} {
+                return
+            }
+        }
+    }
+    set openssl_signature ${path}.rmd160
+    if {[file isfile $openssl_signature]} {
+        foreach openssl_pubkey $openssl_pubkeys {
+            if {[verify_signature_openssl $path $openssl_pubkey $openssl_signature]} {
+                return
+            }
+        }
+    }
+    error "No known key verified signature for $path"
+}
+
 proc mportsync {{options {}}} {
     global macports::sources macports::ui_prefix \
            macports::os_platform macports::os_major \
@@ -3382,7 +3446,7 @@ proc mportsync {{options {}}} {
                     if {$extension eq "tar"} {
                         set filename ${filename}.gz
                     }
-                    set include_option "--include=/${filename} --include=/${filename}.rmd160"
+                    set include_option "--include=/${filename} --include=/${filename}.rmd160 --include=/${filename}.sig"
                     # need to do a few things before replacing the ports tree in this case
                     set extractdir [file dirname $destdir]
                     set destdir [file join $extractdir remote]
@@ -3417,12 +3481,12 @@ proc mportsync {{options {}}} {
                 }
 
                 if {$is_tarball} {
-                    global macports::archivefetch_pubkeys macports::hfscompression macports::autoconf::openssl_path
+                    global macports::hfscompression
                     set tarball [file join $destdir $filename]
                     # Fetch plain .tar if .tar.gz is missing
                     if {![file isfile $tarball]} {
                         set filename [file rootname $filename]
-                        set include_option "--include=/${filename} --include=/${filename}.rmd160"
+                        set include_option "--include=/${filename} --include=/${filename}.rmd160 --include=/${filename}.sig"
                         set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                         macports_try -pass_signal {
                             macports::run_unprivileged {system $rsync_commandline}
@@ -3439,21 +3503,7 @@ proc mportsync {{options {}}} {
                         }
                     }
                     # verify signature for tarball
-                    set signature ${tarball}.rmd160
-                    set openssl [macports::findBinary openssl $openssl_path]
-                    set verified 0
-                    foreach pubkey $archivefetch_pubkeys {
-                        macports_try -pass_signal {
-                            macports::run_unprivileged {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball}
-                            set verified 1
-                            ui_debug "successful verification with key $pubkey"
-                            break
-                        } on error {eMessage} {
-                            ui_debug "failed verification with key $pubkey"
-                            ui_debug "openssl output: $eMessage"
-                        }
-                    }
-                    if {!$verified} {
+                    if {[catch {macports::verify_ports_signature ${tarball}}]} {
                         ui_error "Failed to verify signature for ports tree!"
                         incr numfailed
                         continue
@@ -3506,7 +3556,7 @@ proc mportsync {{options {}}} {
                     if {$is_tarball} {
                         # chop ports.tar off the end
                         set index_source [string range $source 0 end-[string length [file tail $source]]]
-                        set include_option "--include=/PortIndex.rmd160 ${include_option}"
+                        set include_option "--include=/PortIndex.rmd160 --include=/PortIndex.sig ${include_option}"
                     } else {
                         set index_source $source
                     }
@@ -3521,24 +3571,13 @@ proc mportsync {{options {}}} {
                             set ok 0
                             set needs_portindex true
                             # verify signature for PortIndex
-                            foreach pubkey $archivefetch_pubkeys {
-                                macports_try -pass_signal {
-                                    macports::run_unprivileged {
-                                        exec $openssl dgst -ripemd160 -verify $pubkey \
-                                            -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex
-                                    }
-                                    set ok 1
-                                    set needs_portindex false
-                                    ui_debug "successful verification with key $pubkey"
-                                    break
-                                } on error {eMessage} {
-                                    ui_debug "failed verification with key $pubkey"
-                                    ui_debug "openssl output: $eMessage"
-                                }
-                            }
-                            if {$ok} {
+                            if {![catch {macports::verify_ports_signature ${destdir}/PortIndex}]} {
                                 # move PortIndex into place
                                 file rename -force ${destdir}/PortIndex ${extractdir}/ports/
+                                set ok 1
+                                set needs_portindex false
+                            } else {
+                                ui_debug "failed signature verification for PortIndex"
                             }
                         }
                         if {$ok} {
@@ -3600,6 +3639,19 @@ proc mportsync {{options {}}} {
                     incr numfailed
                     continue
                 }
+                # TODO: signatures are not yet deployed for daily tarball
+                #macports_try -pass_signal {
+                #    curl fetch {*}$progressflag ${source}.sig ${tarpath}.sig
+                #} on error {eMessage} {
+                #    ui_error [msgcat::mc "Fetching %s failed: %s" ${source}.sig $eMessage]
+                #    incr numfailed
+                #    continue
+                #}
+                #if {[catch {macports::verify_ports_signature $tarpath}]} {
+                #    ui_error "Verifying signature failed for ${source}"
+                #    incr numfailed
+                #    continue
+                #}
 
                 set extflag {}
                 switch -- $extension {
