@@ -813,7 +813,7 @@ proc get_dep_ports {portname recursive} {
             return -code error "Unable to open port $portname: $result"
         }
     }
-    set portinfo [dict merge $portinfo [mportinfo $mport]]
+    set portinfo [mportinfo $mport]
     mportclose $mport
 
     # gather its deps
@@ -858,7 +858,7 @@ proc get_dep_ports {portname recursive} {
                         ui_error "Unable to open port $depname: $result"
                         continue
                     }
-                    set portinfo [dict merge $portinfo [mportinfo $mport]]
+                    set portinfo [mportinfo $mport]
                     mportclose $mport
 
                     # collect its deps
@@ -923,7 +923,7 @@ proc get_subports {portname} {
             return -code error "Unable to open port $portname: $result"
         }
     }
-    set portinfo [dict merge $portinfo [mportinfo $mport]]
+    set portinfo [mportinfo $mport]
     mportclose $mport
 
     # gather its subports
@@ -1727,7 +1727,7 @@ proc action_info { action portlist opts } {
                 break_softcontinue "Unable to open port: $result" 1 status
             }
             dict unset options subport
-            set portinfo [dict merge $portinfo [mportinfo $mport]]
+            set portinfo [dict merge [dict filter $portinfo key portdir porturl] [mportinfo $mport]]
             mportclose $mport
         } elseif {$portinfo eq ""} {
             ui_warn "no PortIndex entry found for $portname"
@@ -3417,7 +3417,7 @@ proc action_variants { action portlist opts } {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
-            set portinfo [dict merge $portinfo [mportinfo $mport]]
+            set portinfo [mportinfo $mport]
             mportclose $mport
         } elseif {$portinfo eq ""} {
             ui_warn "port variants --index does not work with 'current' pseudo-port"
@@ -3844,7 +3844,7 @@ proc action_portcmds { action portlist opts } {
 
                     # If not available, get the homepage for the port by opening the Portfile
                     if {$homepage eq "" && ![catch {set ctx [mportopen $porturl]} result]} {
-                        set portinfo [dict merge $portinfo [mportinfo $ctx]]
+                        set portinfo [mportinfo $ctx]
                         if {[dict exists $portinfo homepage]} {
                             set homepage [dict get $portinfo homepage]
                         }
