@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.10.6 (unreleased)
+Release 2.10.6 (2025-04-29 by jmr)
     - Fixed incorrect handling of master_site_local and
       archive_site_local. (#57720, jmr in 00aab6a)
 
