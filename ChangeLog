@@ -32,7 +32,7 @@ Release 2.11.0 (unreleased)
     - Updated tcllib to 2.0, including tcllibc.
       (jmr in d82c8c9, 7bf1511)
 
-Release 2.10.6 (unreleased)
+Release 2.10.6 (2025-04-29 by jmr)
     - Fixed incorrect handling of master_site_local and
       archive_site_local. (#57720, jmr in 00aab6a)
 
