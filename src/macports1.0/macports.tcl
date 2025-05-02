@@ -2963,6 +2963,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                         set dep_variations [_variants_to_variations [$dep_regref requested_variants]]
                         # open with +universal since we'll want that if we end up upgrading
                         dict set dep_variations universal +
+                        dict set options subport $dep_portname
                         set dep_mport [mportopen [dict get $dep_portinfo porturl] $options $dep_variations]
                         lappend opened_mports $dep_mport
                         set dep_portinfo [mportinfo $dep_mport]
