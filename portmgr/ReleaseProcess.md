@@ -273,6 +273,8 @@ updated with the tag of the release to distribute. This file is read by the
 cron job that makes the code available via rsync. See
 [`jobs/mprsyncup`][mprsyncup] in the macports-infrastructure repository.
 
+The CDN cache for `distfiles.macports.org/MacPorts/RELEASE_URL` may need to
+be purged to make the new version available in a timely manner.
 
 ### Update the branch buildbot uses to generate manpages ###
 
