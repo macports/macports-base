@@ -50,5 +50,5 @@ jobs:
           echo "Updating RELEASE_URL"
           curl -fL -o ./RELEASE_URL https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL
           chmod a+r ./RELEASE_URL
-          rsync -av --delay-updates ./RELEASE_URL "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts/
+          rsync -av --delay-updates ./RELEASE_URL "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts/"
           rm -f ssh_key ssh_known_hosts
