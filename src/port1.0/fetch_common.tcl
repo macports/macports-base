@@ -80,6 +80,24 @@ proc portfetch::assemble_url {site distfile} {
     return "${site}[percent_encode ${distfile}]"
 }
 
+# Given a *_sites entry that possibly has a tag on the end, return a
+# list consisting of the part of the entry preceding the tag, and the
+# tag itself.
+proc portfetch::separate_tag {element} {
+    # tag will be after the last colon after the
+    # first slash after the ://
+    set lastcolon [string last : $element]
+    set aftersep [expr {[string first : $element] + 3}]
+    set firstslash [string first / $element $aftersep]
+    if {$firstslash != -1 && $firstslash < $lastcolon} {
+        set tag [string range $element ${lastcolon}+1 end]
+        set element [string range $element 0 ${lastcolon}-1]
+    } else {
+        set tag ""
+    }
+    return [list $element $tag]
+}
+
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
@@ -102,21 +120,11 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
 
         # here we have the chance to take a look at tags, that possibly
         # have been assigned in mirror_sites.tcl
-        # tag will be after the last colon after the
-        # first slash after the ://
-        set lastcolon [string last : $element]
-        set aftersep [expr {[string first : $element] + 3}]
-        set firstslash [string first / $element $aftersep]
-        if {$firstslash != -1 && $firstslash < $lastcolon} {
-            set mirror_tag [string range $element [expr {$lastcolon + 1}] end]
-            set element [string range $element 0 [expr {$lastcolon - 1}]]
-        } else {
-            set mirror_tag ""
-        }
+        lassign [separate_tag $element] element mirror_tag
 
         # if the URL has $name embedded, kill any mirror_tag that may have been added
         # since a mirror_tag and $name are incompatible
-        if {[regexp $name_re $element]} {
+        if {$mirror_tag ne "" && [regexp $name_re $element]} {
             set mirror_tag ""
         }
 
