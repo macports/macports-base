@@ -2071,6 +2071,10 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # tool path cache
     $workername alias get_tool_path macports::get_tool_path
 
+    # Signature verification
+    $workername alias verify_signature_openssl macports::verify_signature_openssl
+    $workername alias verify_signature_signify macports::verify_signature_signify
+
     $workername alias get_compatible_xcode_versions macports::get_compatible_xcode_versions
 
     $workername alias curlwrap macports::curlwrap
@@ -6656,7 +6660,7 @@ proc macports::get_archive_sites_conf_values {} {
         variable os_platform; variable os_major
         set archive_sites_conf_values [list]
         set all_names [list]
-        set defaults_list [list applications_dir /Applications/MacPorts prefix /opt/local type tbz2]
+        set defaults_list [list applications_dir /Applications/MacPorts prefix /opt/local type tbz2 sigtype rmd160]
         if {$os_platform eq "darwin" && $os_major <= 12} {
             lappend defaults_list cxx_stdlib libstdc++ delete_la_files no
         } else {
