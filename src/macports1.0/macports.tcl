@@ -3325,7 +3325,7 @@ proc macports::verify_signature_signify {file pubkey signature} {
             -x $signature \
             -m $file]
         ui_debug "Invoking ${command} to verify signature"
-        exec {*}$command
+        run_unprivileged {exec {*}$command}
         set verified 1
         ui_debug "$file successfully verified with public key $pubkey"
     } on error {eMessage} {
@@ -3339,11 +3339,17 @@ proc macports::verify_signature_openssl {file pubkey signature} {
     set openssl [findBinary openssl $macports::autoconf::openssl_path]
     set verified 0
     macports_try -pass_signal {
-        run_unprivileged {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $file}
+        set command [list \
+            $openssl dgst -ripemd160 \
+            -verify $pubkey \
+            -signature $signature \
+            $file]
+        ui_debug "Invoking ${command} to verify signature"
+        run_unprivileged {exec {*}$command}
         set verified 1
-        ui_debug "successful verification with key $pubkey"
+        ui_debug "$file successfully verified with public key $pubkey"
     } on error {eMessage} {
-        ui_debug "failed verification with key $pubkey"
+        ui_debug "$file failed to verify with public key $pubkey"
         ui_debug "openssl output: $eMessage"
     }
     return $verified
