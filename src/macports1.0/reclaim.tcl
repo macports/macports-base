@@ -77,6 +77,7 @@ namespace eval reclaim {
         remove_distfiles
         remove_builds
         remove_ccache
+        remove_snapshots
 
         if {![macports::global_option_isset ports_dryrun]} {
             set last_run_contents [read_last_run_file]
@@ -174,6 +175,50 @@ namespace eval reclaim {
             ui_info [msgcat::mc "Deleting everything under %s" $ccache_dir]
             macports_try -pass_signal {
                 file delete -force -- {*}$ccachedirs
+            } on error {eMessage} {
+                ui_debug "$::errorInfo"
+                ui_error "$eMessage"
+            }
+        }
+    }
+
+    proc remove_snapshots {} {
+        # Delete registry snapshots older than 30 days
+
+        if {[macports::global_option_isset ports_dryrun]} {
+            ui_msg "Deleting snapshots... (dry run)"
+            ui_info "Skipping deletion of registry snapshots older than 30 days (dry run)"
+            return
+        }
+
+        set now [clock seconds]
+        set old_snapshot_info {}
+        set snapshots [lmap snap [registry::snapshot get_all] {
+            set created_at_seconds [clock scan [$snap created_at] -timezone :UTC -format "%Y-%m-%d %T"]
+            if {($now - $created_at_seconds) <= 2592000} {
+                continue
+            }
+            lappend old_snapshot_info "[clock format $created_at_seconds -format "%Y-%m-%d %T%z"] [$snap note]"
+            string cat $snap
+        }]
+
+        if {[llength $snapshots] == 0} {
+            ui_info "No registry snapshots older than 30 days to delete"
+            return
+        }
+
+        global macports::ui_options
+        set retval 0
+        if {[info exists ui_options(questions_yesno)]} {
+            set retval [$ui_options(questions_yesno) "Registry snapshots older than 30 days found:" "" [list "" {*}$old_snapshot_info] "y" 0 "Would you like to delete them?"]
+        }
+
+        if {${retval} == 0} {
+            ui_info "Deleting old registry snapshots"
+            macports_try -pass_signal {
+                foreach snap $snapshots {
+                    snapshot::delete_snapshot [$snap id]
+                }
             } on error {eMessage} {
                 ui_debug "$::errorInfo"
                 ui_error "$eMessage"

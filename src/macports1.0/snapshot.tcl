@@ -189,7 +189,7 @@ namespace eval snapshot {
                 return 0
             }
             "delete" {
-                return [delete_snapshot $opts]
+                return [delete_snapshot [dict get $opts ports_snapshot_delete]]
             }
             "export" {
                 if {[catch {set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_export]]} result]} {
@@ -482,9 +482,8 @@ namespace eval snapshot {
 
     # Remove a snapshot from the registry. Not called 'delete' to avoid
     # confusion with the proc in portutil.
-    proc delete_snapshot {opts} {
+    proc delete_snapshot {snapshot_id} {
         global registry::tdbc_connection
-        set snapshot_id [dict get $opts ports_snapshot_delete]
         if {[catch {registry::snapshot get_by_id $snapshot_id}]} {
             ui_error "No such snapshot ID: $snapshot_id"
             return 1
