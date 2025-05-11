@@ -94,13 +94,24 @@ namespace eval snapshot {
                     return 0
                 }
 
+                # Convert UTC datetimes to local timezone
+                set timestamps [dict create]
+                foreach snapshot $snapshots {
+                    set created_at_seconds [clock scan [$snapshot created_at] -timezone :UTC -format "%Y-%m-%d %T"]
+                    dict set timestamps $snapshot [clock format $created_at_seconds -format "%Y-%m-%d %T%z"]
+                }
+
                 set lens [dict create id [string length "ID"] created_at [string length "Created"] note [string length "Note"]]
                 foreach snapshot $snapshots {
-                    foreach fieldname {id created_at note} {
+                    foreach fieldname {id note} {
                         set len [string length [$snapshot $fieldname]]
                         if {[dict get $lens $fieldname] < $len} {
                             dict set lens $fieldname $len
                         }
+                    }
+                    set len [string length [dict get $timestamps $snapshot]]
+                    if {[dict get $lens created_at] < $len} {
+                        dict set lens created_at $len
                     }
                 }
 
@@ -112,7 +123,7 @@ namespace eval snapshot {
                     ui_msg [string repeat "=" [string length $heading]]
                 }
                 foreach snapshot $snapshots {
-                    ui_msg [format $formatStr [dict get $lens id] [$snapshot id] [dict get $lens created_at] [$snapshot created_at] [dict get $lens note] [$snapshot note]]
+                    ui_msg [format $formatStr [dict get $lens id] [$snapshot id] [dict get $lens created_at] [dict get $timestamps $snapshot] [dict get $lens note] [$snapshot note]]
                 }
 
                 return 0
