@@ -260,7 +260,7 @@ proc portlint::lint_platforms {platforms} {
     set errors [list]
     set warnings [list]
 
-    global lint_platforms subport name
+    global lint_platforms name subport PortInfo
 
     foreach platform $platforms {
         set platname [lindex $platform 0]
@@ -269,7 +269,11 @@ proc portlint::lint_platforms {platforms} {
         }
     }
 
-    if {$platforms eq "darwin" && [string equal -nocase $name $subport]} {
+    # Skip if there are any subports in the Portfile, as lint is not smart
+    # enough to know which platforms line belongs to which subport.
+    if {$platforms eq "darwin" && [string equal -nocase $name $subport]
+        && (![info exists PortInfo(subports)] || $PortInfo(subports) eq {})
+    } then {
         lappend warnings "Unnecessary platforms line as darwin is the default"
     }
 
