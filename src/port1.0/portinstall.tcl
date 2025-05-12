@@ -52,6 +52,45 @@ default install.asroot no
 
 set_ui_prefix
 
+# If the given path is in a git checkout, return the currently checked
+# out commit. If not, return an empty string.
+proc portinstall::get_path_commit {path} {
+    set result ""
+    if {![catch {findBinary git} git] && ![catch {file type $path} ftype]} {
+        if {$ftype ne "directory"} {
+            set path [file dirname $path]
+        }
+        # Recent git refuses to run if the current user doesn't own
+        # the checkout.
+        if {[getuid] == 0} {
+            macports_try -pass_signal {
+                set prev_euid [geteuid]
+                set prev_egid [getegid]
+                if {[geteuid] != 0} {
+                    seteuid 0
+                }
+                # Must change egid before dropping root euid.
+                setegid [name_to_gid [file attributes $path -group]]
+                seteuid [name_to_uid [file attributes $path -owner]]
+            } on error {err} {
+                ui_debug "get_path_commit: dropping privileges failed: $err"
+            }
+        }
+        if {[catch {exec -ignorestderr $git -C $path rev-parse HEAD 2> /dev/null} result]} {
+            ui_debug "get_path_commit: git rev-parse failed: $result"
+            set result ""
+        }
+    }
+    if {[info exists prev_euid]} {
+        seteuid 0
+        if {[info exists prev_egid]} {
+            setegid $prev_egid
+        }
+        seteuid $prev_euid
+    }
+    return $result
+}
+
 proc portinstall::install_start {args} {
     global UI_PREFIX subport version revision portvariants \
            prefix_frozen
@@ -75,7 +114,8 @@ proc portinstall::create_archive {location archive.type} {
            epoch configure.cxx_stdlib cxx_stdlib PortInfo \
            archive.env archive.cmd archive.pre_args archive.args \
            archive.post_args archive.dir depends_lib depends_run \
-           portarchive_hfscompression
+           portarchive_hfscompression xcodeversion xcodecltversion use_xcode \
+           os.subplatform os.version macos_version source_date_epoch
     set archive.env {}
     set archive.cmd {}
     set archive.pre_args {}
@@ -289,6 +329,30 @@ proc portinstall::create_archive {location archive.type} {
              }
          }
     }
+
+    puts $fd "@macports_version [macports_version]"
+    lassign [_get_compatible_platform] compat_platform compat_major
+    if {$compat_platform ne "any"} {
+        if {${os.subplatform} ne ""} {
+            puts $fd "@os.subplatform ${os.subplatform}"
+        }
+        if {$compat_major ne "any"} {
+            puts $fd "@os.version ${os.version}"
+            if {$macos_version ne ""} {
+                puts $fd "@macos_version $macos_version"
+            }
+            if {$use_xcode && $xcodeversion ni {"" none}} {
+                puts $fd "@xcodeversion $xcodeversion"
+            } elseif {$xcodecltversion ni {"" none}} {
+                puts $fd "@xcodecltversion $xcodecltversion"
+            }
+        }
+    }
+    set ports_commit [get_path_commit $portpath]
+    if {$ports_commit ne ""} {
+        puts $fd "@ports_commit $ports_commit"
+    }
+    puts $fd "@source_date_epoch $source_date_epoch"
 
     set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
     set binary_files [list]
