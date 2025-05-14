@@ -1431,10 +1431,9 @@ proc target_run {ditem} {
 
                 #start tracelib
                 set tracing no
-                if {($result == 0
+                if {$result == 0
                   && [tbool ports_trace]
-                  && $target ne "clean"
-                  && $target ne "uninstall")} {
+                  && $target ni {clean uninstall}} {
                     # uninstall will open a portfile from registry and call
                     # deactivate and uninstall there; if we enable trace mode
                     # for the first level the two trace threads will conflict
@@ -1443,10 +1442,7 @@ proc target_run {ditem} {
 
                     # Enable the fence to prevent any creation/modification
                     # outside the sandbox.
-                    if {$target ne "activate"
-                      && $target ne "deactivate"
-                      && $target ne "archive"
-                      && $target ne "install"} {
+                    if {$target ni {activate archive deactivate install}} {
                         porttrace::trace_enable_fence
                     }
 
@@ -1551,8 +1547,7 @@ proc target_run {ditem} {
                 # Check dependencies & file creations outside workpath.
                 if {[tbool ports_trace]
                   && $tracing
-                  && $target ne "clean"
-                  && $target ne "uninstall"} {
+                  && $target ni {clean uninstall}} {
 
                     tracelib closesocket
 
