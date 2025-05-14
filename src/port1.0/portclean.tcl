@@ -260,11 +260,13 @@ proc portclean::clean_archive {args} {
                     ui_debug "$::errorInfo"
                     ui_error "$result"
                 }
-                if {[file isfile ${path}.rmd160]} {
-                    ui_debug "Removing archive signature: ${path}.rmd160"
-                    if {[catch {delete ${path}.rmd160} result]} {
-                        ui_debug "$::errorInfo"
-                        ui_error "$result"
+                foreach sigtype {rmd160 sig} {
+                    if {[file isfile ${path}.${sigtype}]} {
+                        ui_debug "Removing archive signature: ${path}.${sigtype}"
+                        if {[catch {delete ${path}.${sigtype}} result]} {
+                            ui_debug "$::errorInfo"
+                            ui_error "$result"
+                        }
                     }
                 }
                 incr count
