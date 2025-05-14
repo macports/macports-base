@@ -3469,6 +3469,11 @@ proc _archive_available {} {
         return 0
     }
     set archivetype $portfetch::mirror_sites::archive_type($mirrors)
+    if {[info exists portfetch::mirror_sites::archive_sigtype($mirrors)]} {
+        set sigtype $portfetch::mirror_sites::archive_sigtype($mirrors)
+    } else {
+        set sigtype rmd160
+    }
     set archivename ${archiverootname}.${archivetype}
     set sites_entries [list]
     if {[info exists env(ARCHIVE_SITE_LOCAL)]} {
@@ -3496,7 +3501,7 @@ proc _archive_available {} {
         # curl getsize can return -1 instead of throwing an error for
         # nonexistent files on FTP sites.
         if {![catch {curlwrap getsize $orig_site {} $url} size] && $size > 0
-              && ![catch {curlwrap getsize $orig_site {} ${url}.rmd160} sigsize] && $sigsize > 0} {
+              && ![catch {curlwrap getsize $orig_site {} ${url}.${sigtype}} sigsize] && $sigsize > 0} {
             set archive_available_result 1
             return 1
         }
