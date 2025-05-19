@@ -1682,6 +1682,13 @@ proc eval_targets {target} {
                 }
                 return $result
             }
+        } elseif {$target eq "archive"} {
+            # run the archive target but ignore its (completed) dependencies
+            set result [target_run [lindex [dlist_search $dlist provides $target] 0]]
+            if {[getuid] == 0 && [geteuid] != 0} {
+                seteuid 0; setegid 0
+            }
+            return $result
         }
     }
 

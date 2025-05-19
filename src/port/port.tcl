@@ -3888,7 +3888,7 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    if {($action eq "install" || $action eq "archive") && ![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
+    if {$action in {install archive} && ![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
         return 1
     }
     set status 0
@@ -3969,10 +3969,12 @@ proc action_target { action portlist opts } {
             if {![dict exists $options ports_install_unrequested]} {
                 dict set options ports_requested 1
             }
-            # we actually activate as well
-            set target activate
-        } elseif {$action eq "archive"} {
-            set target install
+            # we actually activate as well by default
+            if {![dict exists $options ports_install_no-activate]} {
+                set target activate
+            } else {
+                set target install
+            }
         } else {
             set target $action
         }
@@ -4245,7 +4247,7 @@ set cmd_opts_array [dict create {*}{
     space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}
-    install     {allow-failing no-replace no-rev-upgrade unrequested}
+    install     {allow-failing no-activate no-replace no-rev-upgrade unrequested}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all archive dist work logs}
