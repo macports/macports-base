@@ -4177,13 +4177,11 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
     set options [ditem_key $mport options]
 
-    if {$target in {{} install activate}} {
-        if {$target eq {} && [_mportcheck_known_fail $options $portinfo]} {
-            return 1
-        }
-        if {$target ne "install" && [catch {_mporterrorifconflictsinstalled $mport}]} {
-            return 1
-        }
+    if {$target eq {} && [_mportcheck_known_fail $options $portinfo]} {
+        return 1
+    }
+    if {$target in {{} activate} && [catch {_mporterrorifconflictsinstalled $mport}]} {
+        return 1
     }
 
     set workername [ditem_key $mport workername]
