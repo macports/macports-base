@@ -2925,13 +2925,11 @@ proc mportexec {mport target} {
         }
     } else {
         # No dependencies, but we still need to check for conflicts.
-        if {$target eq "" || $target eq "install" || $target eq "activate"} {
-            if {[catch {_mporterrorifconflictsinstalled $mport}]} {
-                if {$log_needs_pop} {
-                    macports::pop_log
-                }
-                return 1
+        if {$target in {{} activate} && [catch {_mporterrorifconflictsinstalled $mport}]} {
+            if {$log_needs_pop} {
+                macports::pop_log
             }
+            return 1
         }
     }
 
@@ -4183,7 +4181,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         if {$target eq {} && [_mportcheck_known_fail $options $portinfo]} {
             return 1
         }
-        if {[catch {_mporterrorifconflictsinstalled $mport}]} {
+        if {$target ne "install" && [catch {_mporterrorifconflictsinstalled $mport}]} {
             return 1
         }
     }
