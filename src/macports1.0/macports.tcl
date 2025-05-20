@@ -1958,8 +1958,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     # Tell the sub interpreter about commonly needed Tcl packages we
     # already know about so it won't glob for packages.
-    foreach pkgName {port portactivate portarchivefetch portbuild portbump
-                     portchecksum portclean portconfigure portdeactivate
+    foreach pkgName {port portactivate portarchive portarchivefetch portbuild
+                     portbump portchecksum portclean portconfigure portdeactivate
                      portdepends portdestroot portdistcheck portdistfiles
                      portdmg portextract portfetch portimage portinstall
                      portlint portlivecheck portload portmain portmdmg
@@ -2937,7 +2937,7 @@ proc mportexec {mport target} {
     set result [$workername eval [list eval_targets $target]]
 
     # If auto-clean mode and successful install, clean-up after install
-    if {$result == 0 && $portautoclean && $target in {install activate}} {
+    if {$result == 0 && $portautoclean && $target in {install activate archive}} {
         # Make sure we are back in the port path, just in case
         set portpath [ditem_key $mport portpath]
         catch {cd $portpath}
@@ -4488,6 +4488,7 @@ proc macports::_target_needs_deps {target} {
         destroot -
         install -
         activate -
+        archive -
         dmg -
         mdmg -
         pkg -
@@ -4519,6 +4520,7 @@ proc macports::_target_needs_toolchain {workername target} {
 
         install -
         activate -
+        archive -
         dmg -
         mdmg -
         pkg -
@@ -4558,6 +4560,7 @@ proc macports::_deptypes_for_target {target workername} {
         }
         install     -
         activate    -
+        archive     -
         {}          {
             if {[global_option_isset ports_binary_only] ||
                 [$workername eval {registry_exists $subport $version $revision $portvariants}]
