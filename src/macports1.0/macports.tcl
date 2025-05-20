@@ -1344,7 +1344,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 26]macports/
 
     # Format for receipts; currently only "sqlite" is allowed
     # could previously be "flat", so we switch that to sqlite
-    if {![info exists portdbformat] || $portdbformat eq "flat" || $portdbformat eq "sqlite"} {
+    if {![info exists portdbformat] || $portdbformat in {sqlite flat}} {
         set registry.format receipt_sqlite
     } else {
         return -code error "unknown registry format '$portdbformat' set in macports.conf"
@@ -1847,7 +1847,7 @@ match macports.conf.default."
 
     if {![info exists ui_options(ports_no_old_index_warning)]} {
         set default_source_url [lindex $sources_default 0]
-        if {[macports::getprotocol $default_source_url] eq "file" || [macports::getprotocol $default_source_url] eq "rsync"} {
+        if {[macports::getprotocol $default_source_url] in {file rsync}} {
             set default_portindex [macports::getindex $default_source_url]
             if {[file exists $default_portindex] && [clock seconds] - [file mtime $default_portindex] > 1209600} {
                 ui_warn "port definitions are more than two weeks old, consider updating them by running 'port selfupdate'."
