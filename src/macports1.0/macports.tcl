@@ -5948,8 +5948,18 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                             # if this is not the case software linking against this library might have erroneous load commands
 
                             try {
-                                set idloadcmdpath [revupgrade_handle_special_paths $bpath [$architecture cget -mat_install_name]]
-                                if {[string index $idloadcmdpath 0] ne "/"} {
+                                if {[catch {revupgrade_handle_special_paths $bpath [$architecture cget -mat_install_name]} idloadcmdpath]} {
+                                    set port [registry::entry owner $bpath]
+                                    if {$port ne ""} {
+                                        set portname [$port name]
+                                    } else {
+                                        set portname <unknown-port>
+                                    }
+                                    if {$fancy_output} {
+                                        $revupgrade_progress intermission
+                                    }
+                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains a variable that could not be evaluated"
+                                } elseif {[string index $idloadcmdpath 0] ne "/"} {
                                     set port [registry::entry owner $bpath]
                                     if {$port ne ""} {
                                         set portname [$port name]
