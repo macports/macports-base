@@ -43,21 +43,17 @@ install::
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
 # create run user if it doesn't exist
-	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
-        if ! ${DSCL} -q . -read "/Groups/${RUNUSR}" > /dev/null 2>&1 ; then \
-            if test `id -u` -eq 0; then \
+	@if test `id -u` -eq 0; then \
+        if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
+            if ! ${DSCL} -q . -read "/Groups/${RUNUSR}" > /dev/null 2>&1 ; then \
                 echo "Creating group \"${RUNUSR}\"" ; \
                 ${DSEDITGROUP} -q -o create "${RUNUSR}" ; \
-            else \
-                echo "Not creating group \"${RUNUSR}\" (not root)" ; \
             fi ; \
-        fi ; \
-        if ! ${DSCL} -q . -list "/Users/${RUNUSR}" > /dev/null 2>&1 ; then \
-            if test `id -u` -eq 0; then \
+            if ! ${DSCL} -q . -list "/Users/${RUNUSR}" > /dev/null 2>&1 ; then \
                 echo "Creating user \"${RUNUSR}\"" ; \
                 NEXTUID=501; \
                 while test -n "`${DSCL} -q /Search -search /Users UniqueID $$NEXTUID`"; do \
-                    let "NEXTUID=NEXTUID+1"; \
+                    NEXTUID=$$((NEXTUID+1)); \
                 done; \
                 ${DSCL} -q . -create "/Users/${RUNUSR}" UniqueID $$NEXTUID ; \
                 \
@@ -71,23 +67,19 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
                 ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
                 ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false ; \
-            else \
-                echo "Not creating user \"${RUNUSR}\" (not root)" ; \
             fi ; \
-        fi ; \
-        RUNUSR_UID=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $$2}'); \
-        if test "$$RUNUSR_UID" -gt 500; then \
-            if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
-                if test `id -u` -eq 0; then \
+            RUNUSR_UID=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $$2}'); \
+            if test "$$RUNUSR_UID" -gt 500; then \
+                if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
                     echo "Updating home directory location for user \"${RUNUSR}\"" ; \
                     ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
-                else \
-                    echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
                 fi ; \
             fi ; \
+        else \
+            echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
         fi ; \
     else \
-        echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+        echo "Not creating or updating user or group \"${RUNUSR}\" (not root)" ; \
     fi
 # Move ping cache to new location
 	@if [ -f "${localstatedir}/macports/pingtimes" ]; then \
