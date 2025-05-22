@@ -2167,7 +2167,10 @@ proc check_variants {target} {
     }
     if {$statereq} {
 
-        set state_fd [open_statefile]
+        if {[catch {set state_fd [open_statefile]} result]} {
+            ui_error "Failed to open statefile for $PortInfo(name): $result"
+            return 1
+        }
 
         if {![tbool ports_force] && [check_statefile_variants variations oldvariations $state_fd]} {
             ui_error "Requested variants \"[canonicalize_variants $variations]\" do not match those the build was started with: \"[canonicalize_variants $oldvariations]\"."
