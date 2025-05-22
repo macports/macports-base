@@ -2167,8 +2167,8 @@ proc check_variants {target} {
     }
     if {$statereq} {
 
-        if {[catch {set state_fd [open_statefile]} result]} {
-            ui_error "Failed to open statefile for $PortInfo(name): $result"
+        if {[catch {set state_fd [open_statefile]} err]} {
+            ui_error "Failed to open statefile for $PortInfo(name): $err"
             return 1
         }
 
