@@ -886,9 +886,11 @@ proc portlint::lint_main {args} {
 
     if {$nitpick && [info exists patchfiles]} {
         foreach patchfile $patchfiles {
-            if {!([string match "*.diff" $patchfile] ||
-                  [string match "*.patch" $patchfile]) &&
-                 [file exists "$portpath/files/$patchfile"]} {
+            set ext [file extension $patchfile]
+            if {$ext in {.Z .gz .bz2 .xz}} {
+                set ext [file extension [file rootname $patchfile]]
+            }
+            if {$ext ni {.diff .patch} && [file exists ${portpath}/files/${patchfile}]} {
                 ui_warn "Patchfile $patchfile does not follow the source patch naming policy \"*.diff\" or \"*.patch\""
                 incr warnings
             }
