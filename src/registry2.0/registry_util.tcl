@@ -99,7 +99,7 @@ proc check_dependents {port force {action "uninstall/deactivate"}} {
                     #registry::entry close $depport
                 }
                 ui_msg "Note: It is not recommended to uninstall/deactivate a port that has dependents as it breaks the dependents."
-                set retvalue [$macports::ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0]
+                set retvalue [$macports::ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0 "[string totitle $action] [$port name] anyway?"]
                 if {$retvalue == 0} {
                     set force "yes"
                 } else {
