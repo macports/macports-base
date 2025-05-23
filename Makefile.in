@@ -69,7 +69,12 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false ; \
             fi ; \
             RUNUSR_UID=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $$2}'); \
-            if test "$$RUNUSR_UID" -gt 500; then \
+            RUNUSR_NAME=$$(${DSCL} -q . -read "/Users/${RUNUSR}" RealName | /usr/bin/awk '{print $$2}'); \
+            RUNUSR_SHELL=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UserShell | /usr/bin/awk '{print $$2}'); \
+            if test "$$RUNUSR_SHELL" != "/usr/bin/false"; then \
+                echo "Warning: user '${RUNUSR}' appears to be a login user (should be unprivileged)" ; \
+            fi ; \
+            if test "$$RUNUSR_UID" -gt 500 -a "$$RUNUSR_SHELL" = "/usr/bin/false" -a "$$RUNUSR_NAME" = "MacPorts" ; then \
                 if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
                     echo "Updating home directory location for user \"${RUNUSR}\"" ; \
                     ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
