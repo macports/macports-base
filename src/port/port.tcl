@@ -146,7 +146,17 @@ proc map_friendly_field_names { field } {
 }
 
 
-proc registry_installed {portname {portversion ""} {require_single yes} {only_active no}} {
+# Return registry handles for the installed port(s) that have the given
+# name and (optionally) version.
+# allow_multiple: possible values are "no", "all", or "selected"
+#   no: Return one value. Error if more than one port matches and
+#       interactive disambiguation is not possible.
+#   all: Return a list of all matches.
+#   selected: Return a single match, or if more than one port matches,
+#       return the values chosen by the user if interactive, otherwise
+#       error.
+# only_active: boolean, whether to match only active ports
+proc registry_installed {portname {portversion ""} {allow_multiple no} {only_active no}} {
     if {!$only_active} {
         set possible_matches [registry::entry imaged $portname]
     } else {
@@ -164,7 +174,7 @@ proc registry_installed {portname {portversion ""} {require_single yes} {only_ac
         set matches $possible_matches
     }
 
-    if {!$require_single} {
+    if {$allow_multiple eq "all" || ($matches eq {} && $allow_multiple eq "selected")} {
         return $matches
     }
 
@@ -181,9 +191,16 @@ proc registry_installed {portname {portversion ""} {require_single yes} {only_ac
                 lappend portilist "  $portname @[$i version]_[$i revision][$i variants]"
             }
         }
-        if {[info exists ui_options(questions_singlechoice)]} {
-            set retindex [$macports::ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
+        if {$allow_multiple eq "no" && [info exists ui_options(questions_singlechoice)]} {
+            set retindex [$ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
             return [lindex $matches $retindex]
+        } elseif {$allow_multiple eq "selected" && [info exists ui_options(questions_multichoice)]} {
+            set indexlist [$ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
+            set retlist [list]
+            foreach index $indexlist {
+                lappend retlist [lindex $matches $index]
+            }
+            return $retlist
         } else {
             ui_notice $msg
             foreach portstr $portilist {
@@ -198,7 +215,11 @@ proc registry_installed {portname {portversion ""} {require_single yes} {only_ac
             return -code error "Registry error: $portname $portversion not registered as installed."
         }
     }
-    return [lindex $matches 0]
+    if {$allow_multiple eq "no"} {
+        return [lindex $matches 0]
+    } else {
+        return $matches
+    }
 }
 
 # Add the entry to the given portlist, adding default values for name,
@@ -2681,9 +2702,9 @@ proc action_dependents { action portlist opts } {
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
         # choose the active version if there is one
-        set ilist [registry_installed $portname $composite_version no yes]
+        set ilist [registry_installed $portname $composite_version all yes]
         if {$ilist eq ""} {
-            set ilist [registry_installed $portname $composite_version no no]
+            set ilist [registry_installed $portname $composite_version all no]
         }
         if {$ilist eq ""} {
             break_softcontinue "[string trim "$portname $composite_version"] is not installed" 1 status
@@ -3032,30 +3053,37 @@ proc action_uninstall { action portlist opts } {
     set portlist [portlist_sortdependents $portlist]
 
     foreachport $portlist {
-        if {[registry::entry imaged $portname] eq ""} {
+        set composite_version [composite_version $portversion $variations]
+        if {[catch {registry_installed $portname $composite_version selected} matches]} {
+            break_softcontinue "port uninstall failed: $matches" 1 status
+        }
+        if {$matches eq ""} {
             # if the code path arrives here the port either isn't installed, or
             # it doesn't exist at all. We can't be sure, but we can check the
             # portindex whether a port by that name exists (in which case not
             # uninstalling it is probably no problem). If there is no port by
             # that name, alert the user in case of typos.
-            ui_info "$portname is not installed"
-            if {[catch {set res [mportlookup $portname]} result] || [llength $res] == 0} {
+            set maybe_vers [expr {$composite_version ne "" ? " @$composite_version" : ""}]
+            ui_info "${portname}${maybe_vers} is not installed"
+            if {![catch {mportlookup $portname} res] && $res eq ""} {
                 ui_warn "no such port: $portname, skipping uninstall"
             }
             continue
         }
-        set composite_version [composite_version $portversion $variations]
-        if {![dict exists $options ports_uninstall_no-exec]
-            && ![catch {registry_installed $portname $composite_version} regref]} {
 
-            if {[registry::run_target $regref uninstall $options]} {
+        foreach regref $matches {
+            if {![dict exists $options ports_uninstall_no-exec]
+                    && [registry::run_target $regref uninstall $options]} {
                 continue
             }
+            if {[catch {registry_uninstall::uninstall [$regref name] [$regref version] [$regref revision] [$regref variants] $options} result]} {
+                ui_debug $::errorInfo
+                break_softcontinue "port uninstall failed: $result" 1 status
+            }
         }
-
-        if { [catch {registry_uninstall::uninstall_composite $portname $composite_version $options} result] } {
-            ui_debug $::errorInfo
-            break_softcontinue "port uninstall failed: $result" 1 status
+        # Handle possible break_softcontinue from inner loop
+        if {$status != 0} {
+            break
         }
     }
 
@@ -3073,7 +3101,7 @@ proc action_installed { action portlist opts } {
         set restrictedList 1
         foreachport $portlist {
             set composite_version [composite_version $portversion $variations]
-            if {[catch {lappend ilist {*}[registry_installed $portname $composite_version no no]} result]} {
+            if {[catch {lappend ilist {*}[registry_installed $portname $composite_version all no]} result]} {
                 ui_debug $::errorInfo
                 break_softcontinue "port installed failed: $result" 1 status
             }
@@ -3137,7 +3165,7 @@ proc action_outdated { action portlist opts } {
         foreach portspec $portlist {
             set portname [dict get $portspec name]
             set composite_version [composite_version [dict get $portspec version] [dict get $portspec variants]]
-            if {[catch {lappend ilist {*}[registry_installed $portname $composite_version no yes]} result]} {
+            if {[catch {lappend ilist {*}[registry_installed $portname $composite_version all yes]} result]} {
                 ui_debug $::errorInfo
                 break_softcontinue "port outdated failed: $result" 1 status
             }
@@ -3283,13 +3311,13 @@ proc action_contents { action portlist opts } {
         }
         set composite_version [composite_version $portversion $variations]
         set ilist ""
-        if {[catch {set ilist [registry_installed $portname $composite_version no yes]} result]} {
+        if {[catch {set ilist [registry_installed $portname $composite_version all yes]} result]} {
             ui_debug $::errorInfo
             break_softcontinue "port contents failed: $result" 1 status
         }
         if {$ilist ne ""} {
             set regref [lindex $ilist 0]
-        } elseif {[catch {set regref [registry_installed $portname $composite_version yes no]} result]} {
+        } elseif {[catch {set regref [registry_installed $portname $composite_version no no]} result]} {
             ui_debug $::errorInfo
             break_softcontinue "port contents failed: $result" 1 status
         }
