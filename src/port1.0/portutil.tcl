@@ -1738,8 +1738,8 @@ proc portutil::create_workpath {} {
     # Create and link build dir if link or link target are missing or wrong type.
     if {[catch {file type $subbuildpath} ftype] || $ftype eq "directory" || ![file isdirectory $subbuildpath]} {
         # This doesn't need to be unguessable, just unique (and short). Four
-        # random characters is enough for ~1.7M build dirs.
-        set shortpath [mkdtemp [file dirname $portbuildpath]/[string range $subport 0 3]XXXX]
+        # random characters is enough for ~1.7M build dirs. Posix calls for 6.
+        set shortpath [mkdtemp [file dirname $portbuildpath]/[string range $subport 0 3]XXXXXX]
         if {$ftype eq "directory"} {
             delete $shortpath
             file rename $subbuildpath $shortpath
