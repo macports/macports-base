@@ -9742,7 +9742,7 @@ printf "%s\n" "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/portlist1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile vendor/signify-osx/autoconf.mk"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/compat/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port/port-tclsh.c src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/portlist1.0/Makefile src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile vendor/signify-osx/autoconf.mk"
 
 
 ac_config_files="$ac_config_files vendor/tclsh"
@@ -9756,8 +9756,6 @@ ac_config_files="$ac_config_files src/images_to_archives.tcl"
 ac_config_files="$ac_config_files src/pkg_mkindex.sh"
 
 ac_config_files="$ac_config_files src/upgrade_sources_conf_default.tcl"
-
-ac_config_files="$ac_config_files src/port/port-tclsh"
 
 
 cat >confcache <<\_ACEOF
@@ -10462,8 +10460,8 @@ do
     "portmgr/dmg/postflight") CONFIG_FILES="$CONFIG_FILES portmgr/dmg/postflight" ;;
     "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "src/cregistry/Makefile") CONFIG_FILES="$CONFIG_FILES src/cregistry/Makefile" ;;
     "src/compat/Makefile") CONFIG_FILES="$CONFIG_FILES src/compat/Makefile" ;;
+    "src/cregistry/Makefile") CONFIG_FILES="$CONFIG_FILES src/cregistry/Makefile" ;;
     "src/darwintracelib1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/darwintracelib1.0/Makefile" ;;
     "src/darwintracelib1.0/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/darwintracelib1.0/tests/Makefile" ;;
     "src/machista1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/machista1.0/Makefile" ;;
@@ -10474,11 +10472,12 @@ do
     "src/package1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/package1.0/Makefile" ;;
     "src/package1.0/package_test_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/package1.0/package_test_autoconf.tcl" ;;
     "src/pextlib1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/pextlib1.0/Makefile" ;;
-    "src/portlist1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/portlist1.0/Makefile" ;;
     "src/port/Makefile") CONFIG_FILES="$CONFIG_FILES src/port/Makefile" ;;
+    "src/port/port-tclsh.c") CONFIG_FILES="$CONFIG_FILES src/port/port-tclsh.c" ;;
     "src/port1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/port1.0/Makefile" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/port1.0/port_test_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_test_autoconf.tcl" ;;
+    "src/portlist1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/portlist1.0/Makefile" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
     "src/registry2.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/registry2.0/Makefile" ;;
     "src/registry2.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry2.0/registry_autoconf.tcl" ;;
@@ -10494,7 +10493,6 @@ do
     "src/images_to_archives.tcl") CONFIG_FILES="$CONFIG_FILES src/images_to_archives.tcl" ;;
     "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
     "src/upgrade_sources_conf_default.tcl") CONFIG_FILES="$CONFIG_FILES src/upgrade_sources_conf_default.tcl" ;;
-    "src/port/port-tclsh") CONFIG_FILES="$CONFIG_FILES src/port/port-tclsh" ;;
 
   *) as_fn_error $? "invalid argument: '$ac_config_target'" "$LINENO" 5;;
   esac
@@ -11053,7 +11051,6 @@ printf "%s\n" "$as_me: $ac_file is unchanged" >&6;}
     "src/images_to_archives.tcl":F) chmod +x src/images_to_archives.tcl ;;
     "src/pkg_mkindex.sh":F) chmod +x src/pkg_mkindex.sh ;;
     "src/upgrade_sources_conf_default.tcl":F) chmod +x src/upgrade_sources_conf_default.tcl ;;
-    "src/port/port-tclsh":F) chmod +x src/port/port-tclsh ;;
 
   esac
 done # for ac_tag
