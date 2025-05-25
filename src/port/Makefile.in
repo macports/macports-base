@@ -5,7 +5,7 @@ include ../../Mk/macports.autoconf.mk
 
 INSTALLDIR=	${prefix}
 TOPSRCDIR=	../..
-SCRIPTS=	portmirror portindex port
+SCRIPTS=	portmirror portindex port port-tclsh
 
 edit = sed -e 's,@TCLSH\@,$(TCLSH),g'
 
