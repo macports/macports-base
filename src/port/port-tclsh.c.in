@@ -1,0 +1,20 @@
+#define _XOPEN_SOURCE 600
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[]) {
+	if (argc > 0) {
+		char *newname = strdup("@TCLSH@");
+		if (newname != NULL) {
+			argv[0] = newname;
+		}
+		/* Ignore errors and just leave argv[0] the same, hoping that the
+		 * executed program will still work fine. */
+	}
+	execvp("@TCLSH@", argv);
+	perror("execvp('@TCLSH@', argv)");
+	return EXIT_FAILURE;
+}

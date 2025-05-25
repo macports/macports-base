@@ -431,8 +431,8 @@ AC_CONFIG_FILES([
 	portmgr/dmg/postflight
 	setupenv.bash
 	src/Makefile
-	src/cregistry/Makefile
 	src/compat/Makefile
+	src/cregistry/Makefile
 	src/darwintracelib1.0/Makefile
 	src/darwintracelib1.0/tests/Makefile
 	src/machista1.0/Makefile
@@ -443,11 +443,12 @@ AC_CONFIG_FILES([
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
-	src/portlist1.0/Makefile
 	src/port/Makefile
+	src/port/port-tclsh.c
 	src/port1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/port1.0/port_test_autoconf.tcl
+	src/portlist1.0/Makefile
 	src/programs/Makefile
 	src/registry2.0/Makefile
 	src/registry2.0/registry_autoconf.tcl
@@ -465,6 +466,5 @@ AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
 AC_CONFIG_FILES([src/upgrade_sources_conf_default.tcl], [chmod +x src/upgrade_sources_conf_default.tcl])
-AC_CONFIG_FILES([src/port/port-tclsh], [chmod +x src/port/port-tclsh])
 
 AC_OUTPUT
