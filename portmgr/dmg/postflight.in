@@ -206,9 +206,25 @@ function create_run_user {
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
         ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false
     fi
-    if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
-        echo "Updating home directory location for user \"${RUNUSR}\""
-        ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
+    RUNUSR_UID=$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $2}')
+    RUNUSR_NAME=$(${DSCL} -q . -read "/Users/${RUNUSR}" RealName | /usr/bin/awk '{print $2}')
+    RUNUSR_SHELL=$(${DSCL} -q . -read "/Users/${RUNUSR}" UserShell | /usr/bin/awk '{print $2}')
+    if test "$RUNUSR_UID" -gt 500 -a "$RUNUSR_SHELL" = "/usr/bin/false" -a "$RUNUSR_NAME" = "MacPorts"; then
+        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
+            echo "Updating home directory location for user \"${RUNUSR}\""
+            ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
+        fi
+    else
+        echo "Warning: '${RUNUSR}' user has unexpected atrributes:"
+        if test "$RUNUSR_UID" -le 500; then
+            echo "UniqueID: $RUNUSR_UID (expected > 500)"
+        fi
+        if test "$RUNUSR_NAME" != "MacPorts"; then
+            echo "RealName: $RUNUSR_NAME (expected 'MacPorts')"
+        fi
+        if test "$RUNUSR_SHELL" != "/usr/bin/false"; then
+            echo "UserShell: $RUNUSR_SHELL (expected '/usr/bin/false')"
+        fi
     fi
 }
 
