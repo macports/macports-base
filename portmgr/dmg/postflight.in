@@ -231,7 +231,7 @@ fi
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL=$(${DSCL} . -read "/Users/${USER}" shell) || {
+USHELL=$(${DSCL} . -read "/Users/${USER}" UserShell) || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1
