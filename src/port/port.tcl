@@ -3050,6 +3050,19 @@ proc action_uninstall { action portlist opts } {
         return 1
     }
 
+    # Confirm uninstallation if it looks like all active ports have
+    # been specified, provided that is a reasonably large number.
+    global macports::ui_options
+    if {[info exists ui_options(questions_yesno)]} {
+        set portlist_len [llength $portlist]
+        if {$portlist_len > 5 && $portlist_len >= [llength [registry::entry installed]]} {
+            set retvalue [$ui_options(questions_yesno) {} "UninstallMany" {} {n} 0 "Uninstall $portlist_len ports?"]
+            if {$retvalue != 0} {
+                return 0
+            }
+        }
+    }
+
     set portlist [portlist_sortdependents $portlist]
 
     foreachport $portlist {
