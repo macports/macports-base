@@ -403,7 +403,8 @@ proc portfetch::svn_proxy_args {url} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url patchfiles
+    global svn.args svn.method svn.revision svn.url patchfiles \
+        fetch.user fetch.password
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -415,6 +416,12 @@ proc portfetch::svnfetch {args} {
 
     if {[option fetch.ignore_sslcert]} {
         svn.pre_args-append --trust-server-cert
+    }
+    if {${fetch.user} ne {}} {
+        svn.pre_args-append --username ${fetch.user}
+    }
+    if {${fetch.password} ne {}} {
+        svn.pre_args-append --password ${fetch.password}
     }
 
     set proxy_args [svn_proxy_args ${svn.url}]
