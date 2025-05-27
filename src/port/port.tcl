@@ -2137,18 +2137,8 @@ proc action_notes { action portlist opts } {
     set status 0
     set gvariations [dict create {*}[array get global_variations]]
     foreachport $portlist {
-        if {$porturl eq ""} {
-            # Look up the port.
-            if {[catch {mportlookup $portname} result]} {
-                ui_debug $::errorInfo
-                break_softcontinue "The lookup of '$portname' failed: $result" \
-                                1 status
-            }
-            if {[llength $result] < 2} {
-                break_softcontinue "The port '$portname' was not found" 1 status
-            }
-
-            # Retrieve the port's URL.
+        if {$porturl eq "" && ![catch {mportlookup $portname} result] && $result ne ""} {
+            # Retrieve the port's URL from the index.
             lassign $result portname portinfo
             set porturl [dict get $portinfo porturl]
         }
@@ -2161,12 +2151,32 @@ proc action_notes { action portlist opts } {
         }
 
         # Open the Portfile associated with this port.
-        if {[catch {set mport [mportopen $porturl $options \
-                                         $merged_variations]} \
-                   result]} {
-            ui_debug $::errorInfo
-            break_softcontinue [concat "The URL '$porturl' could not be" \
-                                       "opened: $result"] 1 status
+        if {$porturl ne ""} {
+            if {[catch {set mport [mportopen $porturl $options \
+                                             $merged_variations]} \
+                       result]} {
+                ui_debug $::errorInfo
+                break_softcontinue [concat "The URL '$porturl' could not be" \
+                                           "opened: $result"] 1 status
+            }
+        } else {
+            # Not in the tree, so try to open a matching port from the registry
+            set composite_version [composite_version $portversion $variations]
+            set regref [registry_installed $portname $composite_version yes yes]
+            if {$regref eq {}} {
+                set regrefs [registry_installed $portname $composite_version yes no]
+                # Try to use the latest version installed
+                set regref [lindex [portlist_sortregrefs $regrefs] end]
+                if {$regref eq {}} {
+                    set maybe_vers [expr {$composite_version ne "" ? " @$composite_version" : ""}]
+                    break_softcontinue "The port '$portname${maybe_vers}' could not be found." 1 status
+                }
+            }
+            if {[catch {set mport [mportopen_installed [$regref name] [$regref version] \
+                    [$regref revision] [$regref variants] $options]} result]} {
+                ui_debug $::errorInfo
+                break_softcontinue "The port '$portname @[$regref version]_[$regref revision][$regref variants]' could not be opened: $result" 1 status
+            }
         }
         set portinfo [mportinfo $mport]
         mportclose $mport
