@@ -9,6 +9,9 @@ Release 2.11.0 (unreleased)
       are build-time dependencies of requested ports.
       (#60754, jmr in bbc10c2)
 
+    - 'port reclaim' will now offer to delete old registry snapshots.
+      (jmr in 6b5f407)
+
     - 'port migrate' and 'port restore' will now check if ports set
       replaced_by and install the replacement instead. (jmr in 0ff09a1)
 
@@ -23,6 +26,44 @@ Release 2.11.0 (unreleased)
     - compiler.blacklist can now include version comparisons. This
       functionality was previously provided by a PortGroup.
       (jmr in 89035db)
+
+    - Lower-case versions of environment variables controlling network
+      proxy use are now accepted. (jmr in 5e9ddc1)
+
+    - Interactive confirmation will be requested if it looks like all
+      active ports are about to be uninstalled.
+      (#46229, jmr in 85438c2)
+
+    - 'port uninstall' will once again allow interactively selecting
+      multiple versions to uninstall when there is ambiguity.
+      (#70922, jmr in 5d107c1)
+
+    - 'port archive' will once again always ensure that an archive
+      exists for the specified ports, even if port images are stored as
+      directories on your system. If you just want to install without
+      activating, use 'port install --no-activate'. (jmr in e372075)
+
+    - Signify signatures are supported for the ports tree and archives.
+      (jmr in d915971, ce4af0f)
+
+    - 'port lint' no longer warns about patch filenames that end in a
+      suffix indicating compression (e.g. .gz).
+      (#70428, jmr in acc1304)
+
+    - 'port diagnose' no longer fails when trying to check the
+      permissions on directories if they don't exist.
+      (#72087, jmr in 0a2b468)
+
+    - Installing without activating will no longer fail when there is a
+      declared conflict. (jmr in f17785d)
+
+    - 'port rev-upgrade --id-loadcmd-check' no longer fails on install
+      names containing @rpath or @executable_path.
+      (#67534, jmr in 34a8990)
+
+    - Build directory names are now much shorter to help avoid problems
+      with some build systems and long paths. A symlink is created with
+      the previous naming scheme. (#70539, jmr in 9911d29)
 
     - Many copy operations now use clonefile if possible.
       (jmr in 3da9cd2)
