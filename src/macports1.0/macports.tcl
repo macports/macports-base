@@ -6862,14 +6862,14 @@ proc macports::get_compatible_xcode_versions {} {
             set rec 15.4
         }
         15 {
-            set min 16
-            set ok 16
-            set rec 16
+            set min 16.0
+            set ok 16.0
+            set rec 16.4
         }
         default {
-            set min 16
-            set ok 16
-            set rec 16
+            set min 16.0
+            set ok 16.0
+            set rec 16.4
         }
     }
     return [list $min $ok $rec]
