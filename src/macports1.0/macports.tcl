@@ -4280,18 +4280,19 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 if {$parse} {
                     set dep_options $options
                     dict set dep_options subport [dict get $dep_portinfo name]
+                    set dep_porturl [dict get $dep_portinfo porturl]
                     # Figure out the depport. Check the depList (or open_mports) first, since
                     # we potentially leak mport references if we mportopen each time,
                     # because mportexec only closes each open mport once.
                     set matchlistname [expr {$depListName ne {} ? "depList" : "macports::open_mports"}]
                     set comparators [dict create options dictequal]
-                    set depport_matches [dlist_match_multi [set $matchlistname] [list porturl [dict get $dep_portinfo porturl] options $dep_options] $comparators]
+                    set depport_matches [dlist_match_multi [set $matchlistname] [list porturl $dep_porturl options $dep_options] $comparators]
                     # if multiple matches, the most recently opened one is more likely what we want
                     set depport [lindex $depport_matches end]
 
                     if {$depport eq ""} {
                         # We haven't opened this one yet.
-                        set depport [mportopen [dict get $dep_portinfo porturl] $dep_options $variations]
+                        set depport [mportopen $dep_porturl $dep_options $variations]
                         if {$depListName ne {}} {
                             lappend depList $depport
                         }
@@ -4303,6 +4304,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             if {$parse && $check_archs
                 && ![macports::_mport_supports_archs $depport $required_archs]} {
 
+                set dep_portinfo [mportinfo $depport]
                 set supported_archs [_mportkey $depport supported_archs]
                 set dep_variations [[ditem_key $depport workername] eval [list array get requested_variations]]
                 mportclose $depport
@@ -4317,7 +4319,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     if {![dict exists $dep_variations universal] || [dict get $dep_variations universal] ne "+"} {
                         dict set dep_variations universal +
                         # try again with +universal
-                        set depport [mportopen [dict get $dep_portinfo porturl] $dep_options $dep_variations]
+                        set depport [mportopen $dep_porturl $dep_options $dep_variations]
                         if {[macports::_mport_supports_archs $depport $required_archs]} {
                             set arch_mismatch 0
                             if {$depListName ne {}} {
@@ -4327,7 +4329,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     }
                 }
                 if {$arch_mismatch} {
-                    macports::_explain_arch_mismatch [_mportkey $mport subport] $dep_portname $required_archs $supported_archs $has_universal
+                    macports::_explain_arch_mismatch [_mportkey $mport subport] [dict get $dep_portinfo name] $required_archs $supported_archs $has_universal
                     return 1
                 }
             }
