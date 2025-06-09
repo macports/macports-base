@@ -73,7 +73,6 @@ Release 2.11.0 (unreleased)
     - Updated tcllib to 2.0, including tcllibc.
       (jmr in d82c8c9, 7bf1511)
 
-Release 2.10.8 (unreleased)
     - Changed 'port-tclsh' to a binary instead of a wrapper script to
       fix mpstats.
       (#72530, cal in 186667728, 5b91e31cc)
