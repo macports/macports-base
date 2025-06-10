@@ -8,3 +8,9 @@ include $(srcdir)/../../Mk/macports.subdir.mk
 
 distclean::
 	rm -f Makefile
+
+codesign::
+	@for subdir in $(SUBDIR) ; do \
+        echo ===\> making $@ in ${DIRPRFX}$$subdir; \
+        ( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
+    done

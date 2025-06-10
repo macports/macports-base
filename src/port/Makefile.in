@@ -42,3 +42,6 @@ install: all mkdirs
 ifeq (darwin,@OS_PLATFORM@)
 	chmod -h 555 "${DESTDIR}${bindir}/portf"
 endif
+
+codesign:: port-tclsh
+	../codesign.sh $?
