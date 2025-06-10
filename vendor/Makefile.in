@@ -43,6 +43,7 @@ all-tclx: all-tcl
 DESTROOT_TARGETS=   destroot-tcl destroot-tclx destroot-tcllib destroot-tcllibc
 CLEAN_TARGETS= clean-tcl clean-tcllib clean-tclx clean-signify
 DISTCLEAN_TARGETS= distclean-tcl distclean-tcllib distclean-tclx distclean-signify
+CODESIGN_TARGETS= signify-osx/signify tcl/unix/libtcl[89]*.dylib tcl/unix/tclsh tclx/libtclx[89]*.dylib tcl/unix/pkgs/itcl*/libitcl*.dylib tcl/unix/pkgs/tdbc[0-9]*/libtdbc*.dylib tcl/unix/pkgs/tdbcpostgres*/libtdbcpostgres*.dylib tcl/unix/pkgs/thread*/libthread*.dylib tcl/unix/pkgs/tdbcmysql*/libtdbcmysql*.dylib tcl/unix/pkgs/tdbcodbc*/libtdbcodbc*.dylib tcl/unix/pkgs/sqlite3*/libsqlite3*.dylib $(DESTROOT)$(TCL_PREFIX)/lib/tcllibc*/macosx-macports/tcllibc.dylib
 ifneq (@OS_PLATFORM@,linux)
 DESTROOT_TARGETS+=   destroot-signify
 endif
@@ -51,6 +52,7 @@ ifeq (@HAVE_DECL_CLONE_NOOWNERCOPY@,yes)
 DESTROOT_TARGETS+=   destroot-install
 CLEAN_TARGETS+= clean-install
 DISTCLEAN_TARGETS+= distclean-install
+CODESIGN_TARGETS+= install/build/install
 endif
 endif
 ifeq (@OS_PLATFORM@,darwin)
@@ -182,6 +184,6 @@ distclean: $(DISTCLEAN_TARGETS)
 	rm -f Makefile
 	rm -f tclsh
 
-codesign:: signify-osx/signify tcl/unix/libtcl[89]*.dylib tcl/unix/tclsh tclx/libtclx[89]*.dylib tcl/unix/pkgs/itcl*/libitcl*.dylib tcl/unix/pkgs/tdbc[0-9]*/libtdbc*.dylib tcl/unix/pkgs/tdbcpostgres*/libtdbcpostgres*.dylib tcl/unix/pkgs/thread*/libthread*.dylib tcl/unix/pkgs/tdbcmysql*/libtdbcmysql*.dylib tcl/unix/pkgs/tdbcodbc*/libtdbcodbc*.dylib tcl/unix/pkgs/sqlite3*/libsqlite3*.dylib $(DESTROOT)$(TCL_PREFIX)/lib/tcllibc*/macosx-macports/tcllibc.dylib
+codesign:: $(CODESIGN_TARGETS)
 	../src/codesign.sh $?
 
