@@ -2,7 +2,7 @@ name: "Mirror base files"
 
 on:
   release:
-    types: [released, edited]
+    types: [released, prereleased, edited]
 
 permissions:
   contents: read
