@@ -19,26 +19,26 @@ all: destroot
 
 %-tcl:
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ $(@:%-tcl=%)
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" $(@:%-tcl=%)
 
 %-tclx:
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ $(@:%-tclx=%)
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLX_SUBDIR@" $(@:%-tclx=%)
 
 # tclx also links against libtclstub
 all-tclx: all-tcl
 
 %-tcllib:
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ $(@:%-tcllib=%)
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLLIB_SUBDIR@" TCLSH_PROG="@INTREE_TCLSH@" $(@:%-tcllib=%)
 
 %-signify:
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C ${SIGNIFY_SUBDIR} $(@:%-signify=%)
+	@umask 0022; "$(MAKE)" -C "${SIGNIFY_SUBDIR}" $(@:%-signify=%)
 
 %-install:
 	@echo ===\> making $(@:%-install=%) in ${DIRPRFX}${INSTALL_SUBDIR}
-	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} $(@:%-install=%)
+	@umask 0022; "$(MAKE)" -C "${INSTALL_SUBDIR}" $(@:%-install=%)
 
 DESTROOT_TARGETS=   destroot-tcl destroot-tclx destroot-tcllib destroot-tcllibc
 CLEAN_TARGETS= clean-tcl clean-tcllib clean-tclx clean-signify
@@ -62,24 +62,24 @@ endif
 destroot: $(DESTROOT_TARGETS)
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ "DESTDIR=${DESTROOT}" @VENDOR_TCL_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" "DESTDIR=${DESTROOT}" @VENDOR_TCL_INSTALL@
 	[ "@OS_PLATFORM@" != darwin ] || install_name_tool -change "$(TCL_PREFIX)/lib/libtcl@TCL_VERSION@.dylib" \
 	    "@executable_path/../lib/libtcl@TCL_VERSION@.dylib" \
 	    "$(DESTROOT)$(TCL_PREFIX)/bin/tclsh@TCL_VERSION@"
 
 destroot-tclx: all-tclx
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ "DESTDIR=${DESTROOT}" @VENDOR_TCLX_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLX_SUBDIR@" "DESTDIR=${DESTROOT}" @VENDOR_TCLX_INSTALL@
 
 # tcllib requires a working tclsh
 destroot-tcllib: destroot-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=${DESTROOT}" TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLLIB_SUBDIR@" "DESTDIR=${DESTROOT}" TCLSH_PROG="@INTREE_TCLSH@" @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTROOT)$(TCL_PREFIX)/lib/tcllib*
 
 .stamp-critcl: $(CRITCL_SUBDIR)/lib/critcl/critcl.tcl | destroot-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}${CRITCL_SUBDIR}
-	@umask 0022; cd $(CRITCL_SUBDIR) && /usr/bin/env "HOME=@abs_top_builddir@/vendor" "@INTREE_TCLSH@" ./build.tcl install --prefix "$(TCL_PREFIX)" --dest-dir "$(DESTROOT)" $(CRITCL_TARGET)
+	@umask 0022; cd "$(CRITCL_SUBDIR)" && /usr/bin/env "HOME=@abs_top_builddir@/vendor" "@INTREE_TCLSH@" ./build.tcl install --prefix "$(TCL_PREFIX)" --dest-dir "$(DESTROOT)" $(CRITCL_TARGET)
 	@chmod -R ugo+rX $(DESTROOT)$(TCL_PREFIX)/lib/critcl*
 	@touch .stamp-critcl
 
@@ -87,7 +87,7 @@ destroot-critcl: .stamp-critcl
 
 .stamp-tcllibc: $(TCLLIB_SUBDIR)/support/installation/version.tcl .stamp-critcl
 	@echo ===\> staging tcllibc to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; /usr/bin/env "PATH=$(DESTROOT)$(TCL_PREFIX)/bin:$$PATH" $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ "DESTDIR=$(DESTROOT)" "CRITCL_TARGET=$(CRITCL_TARGET)" TCLSH_PROG=@INTREE_TCLSH@ install-binaries
+	@umask 0022; /usr/bin/env "PATH=$(DESTROOT)$(TCL_PREFIX)/bin:$$PATH" "$(MAKE)" -C "@VENDOR_TCLLIB_SUBDIR@" "DESTDIR=$(DESTROOT)" "CRITCL_TARGET=$(CRITCL_TARGET)" TCLSH_PROG="@INTREE_TCLSH@" install-binaries
 	@chmod -R ugo+rX $(DESTROOT)$(TCL_PREFIX)/lib/tcllib*
 	@touch .stamp-tcllibc
 
@@ -95,11 +95,11 @@ destroot-tcllibc: .stamp-tcllibc
 
 destroot-signify:
 	@echo ===\> staging to destroot in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C $(SIGNIFY_SUBDIR) install "PREFIX=$(DESTROOT)$(TCL_PREFIX)"
+	@umask 0022; "$(MAKE)" -C "$(SIGNIFY_SUBDIR)" install "PREFIX=$(DESTROOT)$(TCL_PREFIX)"
 
 destroot-install: all-install
 	@echo ===\> staging to destroot in ${DIRPRFX}${INSTALL_SUBDIR}
-	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} install "DESTDIR=${DESTROOT}"
+	@umask 0022; "$(MAKE)" -C "${INSTALL_SUBDIR}" install "DESTDIR=${DESTROOT}"
 
 INSTALL_TARGETS=    install-tcl install-tclx install-tcllib install-tcllibc
 ifneq (@OS_PLATFORM@,linux)
@@ -138,17 +138,17 @@ OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.1{2,3}.tm \
 install-tcl:
 	rm -rf $(OLD_TCL_FILES)
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ @VENDOR_TCL_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" @VENDOR_TCL_INSTALL@
 
 install-tclx:
-	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tclx8.4
+	rm -rf "$(DESTDIR)$(TCL_PACKAGE_PATH)/tclx8.4"
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ @VENDOR_TCLX_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLX_SUBDIR@" @VENDOR_TCLX_INSTALL@
 
 install-tcllib:
 	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tcllib1.*
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLLIB_SUBDIR@" TCLSH_PROG="@INTREE_TCLSH@" @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTDIR)$(TCL_PREFIX)/lib/tcllib*
 
 install-tcllibc:
@@ -164,11 +164,11 @@ install-tcllibc:
 
 install-signify:
 	@echo ===\> making $(@:%-signify=%) in ${DIRPRFX}${SIGNIFY_SUBDIR}
-	@umask 0022; $(MAKE) -C $(SIGNIFY_SUBDIR) install "PREFIX=$(DESTDIR)$(TCL_PREFIX)"
+	@umask 0022; "$(MAKE)" -C "$(SIGNIFY_SUBDIR)" install "PREFIX=$(DESTDIR)$(TCL_PREFIX)"
 
 install-install:
 	@echo ===\> making $(@:%-install=%) in ${DIRPRFX}${INSTALL_SUBDIR}
-	@umask 0022; $(MAKE) -C ${INSTALL_SUBDIR} install
+	@umask 0022; "$(MAKE)" -C "${INSTALL_SUBDIR}" install
 
 test:
 
