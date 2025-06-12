@@ -325,8 +325,12 @@ proc set_phase {phase} {
     global macports::current_phase
     set current_phase $phase
     if {$phase ne "main"} {
-        set cur_time [clock format [clock seconds] -format  {%+}]
-        ui_debug "$phase phase started at $cur_time"
+        set ms [clock milliseconds]
+        set sec [expr {$ms / 1000}]
+        set fraction [format "%.3u" [expr {$ms % 1000}]]
+        set utc_time [clock format $sec -timezone :UTC -format "%Y-%m-%dT%T.${fraction}%z"]
+        set local_time [clock format $sec -format {%+}]
+        ui_debug "$phase phase started at $utc_time ($local_time)"
     }
 }
 
