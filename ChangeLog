@@ -12,6 +12,10 @@ Release 2.11.0 (unreleased)
     - 'port reclaim' will now offer to delete old registry snapshots.
       (jmr in 6b5f407)
 
+    - 'port snapshot' can now export and import snapshots in JSON
+      format with the new '--export' and '--import' options.
+      (#16808, cal in 4d9e8a1, f745b45)
+
     - 'port migrate' and 'port restore' will now check if ports set
       replaced_by and install the replacement instead. (jmr in 0ff09a1)
 
