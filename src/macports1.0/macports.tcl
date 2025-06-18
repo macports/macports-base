@@ -3392,7 +3392,7 @@ proc mportsync {{options {}}} {
     global macports::sources macports::ui_prefix \
            macports::os_platform macports::os_major \
            macports::os_arch macports::autoconf::tar_path \
-           macports::macportsuser
+           macports::macportsuser macports::portdbpath
 
     if {[dict exists $options no_reindex]} {
         upvar [dict get $options needed_portindex_var] any_needed_portindex
@@ -3482,7 +3482,7 @@ proc mportsync {{options {}}} {
                 # Do rsync fetch
                 set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                 macports_try -pass_signal {
-                    macports::run_unprivileged {system $rsync_commandline}
+                    macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
                 } on error {} {
                     ui_error "Synchronization of the local ports tree failed doing rsync"
                     incr numfailed
@@ -3498,7 +3498,7 @@ proc mportsync {{options {}}} {
                         set include_option "--include=/${filename} --include=/${filename}.rmd160 --include=/${filename}.sig"
                         set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                         macports_try -pass_signal {
-                            macports::run_unprivileged {system $rsync_commandline}
+                            macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
                         } on error {} {
                             ui_error "Synchronization of the local ports tree failed doing rsync"
                             incr numfailed
@@ -3532,7 +3532,7 @@ proc mportsync {{options {}}} {
                     set zflag [expr {[file extension $tarball] eq ".gz" ? "z" : ""}]
                     set tar_cmd "$tar -C ${extractdir}/tmp -x${zflag}f $tarball"
                     macports_try -pass_signal {
-                        macports::run_unprivileged {system $tar_cmd}
+                        macports::run_unprivileged {system -W ${portdbpath}/home $tar_cmd}
                     } on error {eMessage} {
                         ui_error "Failed to extract ports tree from tarball: $eMessage"
                         incr numfailed
@@ -3572,7 +3572,7 @@ proc mportsync {{options {}}} {
                     set remote_indexdir "${index_source}PortIndex_${os_platform}_${os_major}_${os_arch}/"
                     set rsync_commandline "$rsync_path $rsync_options $include_option $remote_indexdir $destdir"
                     macports_try -pass_signal {
-                        macports::run_unprivileged {system $rsync_commandline}
+                        macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
                         
                         set ok 1
                         set needs_portindex false
@@ -3722,7 +3722,7 @@ proc mportsync {{options {}}} {
                 set group [file attributes $indexdir -group]
                 if {[catch {
                         macports::run_unprivileged {
-                            system "${prefix}/bin/portindex [macports::shellescape $indexdir]"
+                            system -W ${portdbpath}/home "${prefix}/bin/portindex [macports::shellescape $indexdir]"
                         } [list $owner $group]
                 }]} {
                     ui_error "updating PortIndex for $source failed"
