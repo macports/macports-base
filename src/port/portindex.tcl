@@ -375,7 +375,11 @@ proc parse_args {} {
             }
             default {
                 global directory
-                set directory [file join [pwd] $arg]
+                if {[string index $arg 0] ne "/"} {
+                    set directory [file join [pwd] $arg]
+                } else {
+                    set directory $arg
+                }
             }
         }
     }
