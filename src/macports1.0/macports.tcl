@@ -3597,7 +3597,7 @@ proc mportsync {{options {}}} {
                     }
                 }
                 macports_try -pass_signal {
-                    system [list chmod -R a+r $destdir]
+                    system "chmod -R a+r [macports::shellescape $destdir]"
                 } on error {} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
