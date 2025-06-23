@@ -25,12 +25,18 @@ port-reclaim \- Reclaims disk space\&.
 .sp
 .nf
 \fBport\fR [\fB\-vdNy\fR] \fBreclaim\fR
+    [\-\-keep\-build\-deps]
     [\-\-enable\-reminders] [\-\-disable\-reminders]
 .fi
 .SH "DESCRIPTION"
 .sp
 \fBport reclaim\fR will find files that can be removed to reclaim disk space by uninstalling inactive ports on your system as well as unnecessary unrequested ports, and removing unneeded or unused installation files\&. The user is then provided interactive options for files to remove\&. No files are removed initially, until the user selects them from the provided list\&.
 .SH "OPTIONS"
+.PP
+\fB\-\-keep\-build\-deps\fR
+.RS 4
+Normally, ports are considered to be needed if they are either requested or a runtime dependency of another needed port\&. Using this option causes ports that are a build\-time dependency of another needed port to also be considered needed\&.
+.RE
 .PP
 \fB\-\-enable\-reminders\fR
 .RS 4
