@@ -54,29 +54,25 @@ namespace eval snapshot {
         # Returns:
         #           registry::snapshot
 
-        if {![dict exists $opts options_snapshot_order]} {
-            set operation "create"
-        } else {
-            set operation ""
-            foreach op {list create diff delete export import} {
-                set opname "ports_snapshot_$op"
-                if {[dict exists $opts $opname]} {
-                    if {$operation ne ""} {
-                        ui_error "Only one of the --list, --create, --diff, --delete, --export, or --import options can be specified."
-                        error "Incorrect usage, see port snapshot --help."
-                    }
-
-                    set operation $op
-                }
-            }
-        }
-
         if {[dict exists $opts ports_snapshot_help]} {
             print_usage
             return 0
         }
 
+        set operation ""
+        foreach op {list create diff delete export import} {
+            set optname ports_snapshot_$op
+            if {[dict exists $opts $optname]} {
+                if {$operation ne ""} {
+                    ui_error "Only one of the --list, --create, --diff, --delete, --export, or --import options can be specified."
+                    error "Incorrect usage, see port snapshot --help."
+                }
+                set operation $op
+            }
+        }
+
         switch $operation {
+            "" -
             "create" {
                 if {[catch {create $opts} result]} {
                     ui_error "Failed to create snapshot: $result"
