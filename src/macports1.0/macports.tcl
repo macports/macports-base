@@ -790,11 +790,12 @@ proc macports::set_developer_dir {name1 name2 op} {
     # Try the default
     variable os_major
     variable xcodeversion
-    if {$os_major >= 11 && ([vercmp $xcodeversion 4.3] >= 0 ||
-        ($xcodeversion eq {} && [file exists /Applications/Xcode.app/Contents/Developer]))
-    } {
-        set developer_dir /Applications/Xcode.app/Contents/Developer
-    } else {
+    # developer_dir is potentially read by the setxcodeinfo trace proc,
+    # so make sure a value is set before reading $xcodeversion.
+    set developer_dir /Applications/Xcode.app/Contents/Developer
+    if {$os_major < 11 || ($os_major < 12 && ([vercmp $xcodeversion < 4.3] ||
+        ($xcodeversion in {{} none} && ![file exists /Applications/Xcode.app/Contents/Developer])))
+    } then {
         set developer_dir /Developer
     }
 }
