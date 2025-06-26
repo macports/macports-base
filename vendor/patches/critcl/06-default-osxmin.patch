@@ -1,15 +1,18 @@
 --- lib/critcl/Config.in.orig	2025-02-17 00:15:58
 +++ lib/critcl/Config.in	2025-02-17 00:27:16
-@@ -85,6 +85,18 @@
+@@ -85,6 +85,21 @@
          set osxmin $::env(osxmin)
      } elseif {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
          set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
 +    } else {
 +        # use the current platform
 +        set v1 [lindex [split $::tcl_platform(osVersion) .] 0]
-+        # Darwin 19 and earlier are macOS 10.x. Darwin 20 and later are macOS
-+        # 11, macOS 12, etc.
-+        if {$v1 >= 20} {
++        # Darwin 19 and earlier are macOS 10.x. Darwin 20-24 are macOS
++        # 11-15. Darwin 25 is macOS 26.
++        if {$v1 >= 25} {
++            incr v1
++            set osxmin ${v1}.0
++        } elseif {$v1 >= 20} {
 +            incr v1 -9
 +            set osxmin ${v1}.0
 +        } else {
