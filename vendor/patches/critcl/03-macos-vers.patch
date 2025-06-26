@@ -1,16 +1,19 @@
 index e6b9591..e655934 100644
 --- lib/app-critcl/runtime.tcl.orig
 +++ lib/app-critcl/runtime.tcl
-@@ -117,8 +117,16 @@ proc ::critcl::runtime::MapPlatform {{mapping {}}} {
+@@ -117,8 +117,19 @@ proc ::critcl::runtime::MapPlatform {{mapping {}}} {
  	set v [split $version .]
  	set v1 [lindex $v 0]
  	set v2 [lindex $v 1]
 -	incr v1 -4
 -	set version 10.$v1.$v2
 +	set v3 [lindex $v 2]
-+	# Darwin 19 and earlier are macOS 10.x. Darwin 20 and later are macOS
-+    # 11, macOS 12, etc.
-+    if {$v1 >= 20} {
++	# Darwin 19 and earlier are macOS 10.x. Darwin 20-24 are macOS
++    # 11-15. Darwin 25 is macOS 26.
++    if {$v1 >= 25} {
++        incr v1
++        set version $v1.$v2.$v3
++    } elseif {$v1 >= 20} {
 +        incr v1 -9
 +        set version $v1.$v2.$v3
 +    } else {
@@ -24,16 +27,19 @@ diff --git a/lib/critcl-platform/platform.tcl b/lib/critcl-platform/platform.tcl
 index fbfc535..d2a84b6 100644
 --- lib/critcl-platform/platform.tcl.orig
 +++ lib/critcl-platform/platform.tcl
-@@ -183,9 +183,16 @@ proc ::platform::identify {} {
+@@ -183,9 +183,19 @@ proc ::platform::identify {} {
  	macosx {
  	    set major [lindex [split $tcl_platform(osVersion) .] 0]
  	    if {$major > 8} {
 -		incr major -4
 -		append plat 10.$major
 -		return "${plat}-${cpu}"
-+	        # Darwin 19 and earlier are macOS 10.x. Darwin 20 and later
-+            # are macOS 11, macOS 12, etc.
-+	        if {$major >= 20} {
++	        # Darwin 19 and earlier are macOS 10.x. Darwin 20-24
++            # are macOS 11-15. Darwin 25 is macOS 26.
++           if {$major >= 25} {
++               incr major
++               append plat $major
++	        } elseif {$major >= 20} {
 +	            incr major -9
 +		        append plat $major
 +	        } else {

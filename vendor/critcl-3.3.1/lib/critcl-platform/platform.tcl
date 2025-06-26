@@ -183,9 +183,12 @@ proc ::platform::identify {} {
 	macosx {
 	    set major [lindex [split $tcl_platform(osVersion) .] 0]
 	    if {$major > 8} {
-	        # Darwin 19 and earlier are macOS 10.x. Darwin 20 and later
-            # are macOS 11, macOS 12, etc.
-	        if {$major >= 20} {
+	        # Darwin 19 and earlier are macOS 10.x. Darwin 20-24
+            # are macOS 11-15. Darwin 25 is macOS 26.
+            if {$major >= 25} {
+                incr major
+                append plat $major
+	        } elseif {$major >= 20} {
 	            incr major -9
 		        append plat $major
 	        } else {
