@@ -3421,6 +3421,10 @@ proc _check_xcode_version {} {
                     } else {
                         ui_warn "The macOS ${configure.sdk_version} SDK does not appear to be installed. This port may not build correctly."
                     }
+                } elseif {$xcodecltversion ne "none" && [vercmp $xcodecltversion >= 16]
+                          && [file exists ${cltpath}/usr/include/c++/v1]} {
+                    ui_warn "Old C++ headers are present, which may cause build failures with Command Line Tools v16+."
+                    ui_warn "Please see: <https://trac.macports.org/wiki/ProblemHotlist#clts16>"
                 }
             }
 
