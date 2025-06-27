@@ -1571,7 +1571,9 @@ match macports.conf.default."
     # Default arch to build for
     if {![info exists build_arch]} {
         if {$os_platform eq "darwin"} {
-            if {$os_major >= 20} {
+            if {$os_arch eq "powerpc"} {
+                set build_arch ppc
+            } elseif {$os_major >= 20} {
                 if {$os_arch eq "arm" || (![catch {sysctl sysctl.proc_translated} translated] && $translated)} {
                     set build_arch arm64
                 } else {
@@ -1584,11 +1586,7 @@ match macports.conf.default."
                     set build_arch i386
                 }
             } else {
-                if {$os_arch eq "powerpc"} {
-                    set build_arch ppc
-                } else {
-                    set build_arch i386
-                }
+                set build_arch i386
             }
         } else {
             switch -glob $tcl_platform(machine) {
