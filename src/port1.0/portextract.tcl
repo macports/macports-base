@@ -43,7 +43,7 @@ namespace eval portextract {
 }
 
 # define options
-options extract.only extract.mkdir extract.rename extract.asroot
+options extract.only extract.mkdir extract.rename extract.rename_filter extract.asroot
 commands extract
 
 # Set up defaults
@@ -58,6 +58,7 @@ default extract.pre_args -dc
 default extract.post_args {| ${portutil::autoconf::tar_command} -xf -}
 default extract.mkdir no
 default extract.rename no
+default extract.rename_filter {*}
 
 set_ui_prefix
 
@@ -159,9 +160,10 @@ proc portextract::extract_main {args} {
     }
 
     if {[option extract.rename] && ![file exists [option worksrcpath]]} {
-        global workpath distname
+        global workpath distname extract.rename_filter
         # rename whatever directory exists in $workpath to $distname
-        set worksubdirs [glob -nocomplain -types d -directory $workpath *]
+        ui_debug [format [msgcat::mc "extract.rename: using filter '%s'"] ${extract.rename_filter}]
+        set worksubdirs [glob -nocomplain -types d -directory $workpath ${extract.rename_filter}]
         if {[llength $worksubdirs] == 1} {
             set origpath [lindex $worksubdirs 0]
             set newpath [file join $workpath $distname]
