@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.11.0 (unreleased)
+Release 2.11.0 (2025-07-09 by jmr)
     - MacPorts now requires Mac OS X 10.5 or later.
 
     - 'port reclaim' now has an option to keep unrequested ports that
