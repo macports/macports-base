@@ -80,7 +80,11 @@ ifeq ($(DESTDIR),)
             if test "$$RUNUSR_UID" -gt 500 -a "$$RUNUSR_SHELL" = "/usr/bin/false" -a "$$RUNUSR_NAME" = "MacPorts" ; then \
                 if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
                     echo "Updating home directory location for user \"${RUNUSR}\"" ; \
-                    ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
+                    if ! ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; then \
+                        echo "Failed to update home directory!" ; \
+                        echo "Please ask the system administrator to manually run:" ; \
+                        echo "    ${DSCL} -q . -create \"/Users/${RUNUSR}\" NFSHomeDirectory \"${localstatedir}/macports/home\"" ; \
+                    fi ; \
                 fi ; \
             fi ; \
         else \
