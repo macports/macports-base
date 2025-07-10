@@ -212,7 +212,11 @@ function create_run_user {
     if test "$RUNUSR_UID" -gt 500 -a "$RUNUSR_SHELL" = "/usr/bin/false" -a "$RUNUSR_NAME" = "MacPorts"; then
         if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
             echo "Updating home directory location for user \"${RUNUSR}\""
-            ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
+            if ! ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home" ; then
+                echo "Failed to update home directory!"
+                echo "Please ask the system administrator to manually run:"
+                echo "    ${DSCL} -q . -create \"/Users/${RUNUSR}\" NFSHomeDirectory \"${PREFIX}/var/macports/home\""
+            fi
         fi
     else
         echo "Warning: '${RUNUSR}' user has unexpected atrributes:"
