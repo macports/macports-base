@@ -447,7 +447,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	int devnull, files_match, from_fd = -1, serrno, target;
 	int tempcopy, temp_fd = -1, to_fd = -1;
 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
-#ifdef HAVE_CLONEFILE
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
 	const int tryclone = 1;
 #else
 	const int tryclone = 0;
