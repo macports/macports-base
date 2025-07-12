@@ -3399,6 +3399,18 @@ proc mportsync {{options {}}} {
         upvar [dict get $options needed_portindex_var] any_needed_portindex
     }
 
+    # We cd here for some commands, so make sure it exists.
+    if {![file isdirectory ${portdbpath}/home]} {
+        if {[catch {
+            file mkdir ${portdbpath}/home
+            if {[getuid] == 0} {
+                file attributes ${portdbpath}/home -owner $macportsuser -group $macportsuser
+            }
+        } result]} {
+            ui_warn "Failed to create '${portdbpath}/home': $result"
+        }
+    }
+
     set numfailed 0
     set obsoletesvn 0
 
