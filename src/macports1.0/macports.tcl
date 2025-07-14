@@ -3730,9 +3730,19 @@ proc mportsync {{options {}}} {
             set any_needed_portindex true
             if {![dict exists $options no_reindex]} {
                 global macports::prefix
-                set indexdir [file dirname [macports::getindex $source]]
+                set indexfile [macports::getindex $source]
+                set indexdir [file dirname $indexfile]
                 set owner [file attributes $indexdir -owner]
                 set group [file attributes $indexdir -group]
+                if {[getuid] == 0} {
+                    # Ensure any existing index can be read and written
+                    foreach f [list $indexfile ${indexfile}.quick] {
+                        if {[file isfile $f] && [file attributes $f -owner] ne $owner} {
+                            file attributes $f -owner $owner
+                            file attributes $f -permissions 0644
+                        }
+                    }
+                }
                 if {[catch {
                         macports::run_unprivileged {
                             system -W ${portdbpath}/home "${prefix}/bin/portindex [macports::shellescape $indexdir]"
