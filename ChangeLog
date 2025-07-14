@@ -2,6 +2,21 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.1 (2025-07-14 by jmr)
+    - A warning is printed if the home directory of the macports user
+      can't be updated, rather than installation failing.
+      (#72676, jmr in d1e4f04, 639d403)
+
+    - The xinstall command no longer fails on macOS 10.12.
+      (#72680, jmr in 22a8d57)
+
+    - Syncing will now create ${prefix}/var/macports/home if it doesn't
+      exist, to avoid failing. (#72681, jmr in bda1cc8)
+
+    - Syncing now adjusts the ownership and permissions on any existing
+      PortIndex if needed to avoid the portindex command failing when
+      run unprivileged. (#72677, jmr in 2810b15)
+
 Release 2.11.0 (2025-07-09 by jmr)
     - MacPorts now requires Mac OS X 10.5 or later.
 
