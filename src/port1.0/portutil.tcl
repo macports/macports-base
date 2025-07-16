@@ -1737,9 +1737,18 @@ proc portutil::create_workpath {} {
     file mkdir $portbuildpath
     # Create and link build dir if link or link target are missing or wrong type.
     if {[catch {file type $subbuildpath} ftype] || $ftype eq "directory" || ![file isdirectory $subbuildpath]} {
-        # This doesn't need to be unguessable, just unique (and short). Four
-        # random characters is enough for ~1.7M build dirs. Posix calls for 6.
-        set shortpath [mkdtemp [file dirname $portbuildpath]/[string range $subport 0 3]XXXXXX]
+        # First try a deterministic short name based on a hash of subbuildpath.
+        package require sha1
+        set beginning [file dirname $portbuildpath]/[string range $subport 0 3]
+        set shortpath ${beginning}[string range [::sha1::sha1 -hex -- $subbuildpath] 0 5]
+        # If the name is already taken, generate a random unique one with mkdtemp.
+        if {[file exists $shortpath]} {
+            # This doesn't need to be unguessable, just unique (and short). Four
+            # random characters is enough for ~1.7M build dirs. Posix calls for 6.
+            set shortpath [mkdtemp ${beginning}XXXXXX]
+        } else {
+            file mkdir $shortpath
+        }
         if {$ftype eq "directory"} {
             delete $shortpath
             file rename $subbuildpath $shortpath
