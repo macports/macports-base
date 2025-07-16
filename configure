@@ -764,6 +764,7 @@ BZR
 BZIP2_BIN
 BSDMAKE
 AA
+SYSTEM_INSTALL
 SET_MAKE
 LN_S
 INSTALL_DATA
@@ -4117,6 +4118,11 @@ else
 printf "%s\n" "no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
 fi
+
+
+# Save this for use at runtime. We may use a different install program
+# to install our own files.
+SYSTEM_INSTALL="$INSTALL"
 
 
 # Check for user-supplied paths before searching
@@ -7743,6 +7749,8 @@ HAVE_DECL_CLONE_NOOWNERCOPY=$ac_cv_have_decl_CLONE_NOOWNERCOPY
 if test x$ac_cv_func_clonefile = xyes -a x$ac_cv_have_decl_CLONE_NOOWNERCOPY = xyes; then
 ac_config_files="$ac_config_files vendor/install/Makefile"
 
+# If we build it, also use to install our own files.
+INSTALL="`(cd vendor; pwd)`/install/build/install"
 fi
 
 # Check for library functions, replacements are in pextlib1.0/compat/
@@ -8998,6 +9006,7 @@ printf "%s\n" "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)"
 	fi
 	cd "$mp_popdir"
 
+"$SED" -i "" "s|\$(SHELL) \$(UNIX_DIR)/install-sh -c|$INSTALL|" vendor/tcl/unix/Makefile
 VENDOR_TCL_SUBDIR=tcl/unix
 VENDOR_TCL_INSTALL="install-binaries install-headers install-libraries install-msgs install-packages"
 
@@ -9313,6 +9322,7 @@ printf "%s\n" "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)"
 	fi
 	cd "$mp_popdir"
 
+"$SED" -i "" "s|\$(SHELL) \$(srcdir)/tclconfig/install-sh -c|$INSTALL|" vendor/tclx/Makefile
 VENDOR_TCLX_SUBDIR=tclx
 VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 

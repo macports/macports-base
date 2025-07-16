@@ -131,9 +131,9 @@ fetch:
 	find src -name Root -exec rm {} +
 
 install: signify
-	install -d ${BINDIR} ${MANDIR}/man1
-	install -S -m 755 signify ${BINDIR}
-	install -S -m 644 signify.1 ${MANDIR}/man1
+	$(INSTALL) -d ${BINDIR} ${MANDIR}/man1
+	$(INSTALL) -S -m 755 signify ${BINDIR}
+	$(INSTALL) -S -m 644 signify.1 ${MANDIR}/man1
 
 
 ### regression test targets
