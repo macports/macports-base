@@ -107,6 +107,11 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
+# Save this for use at runtime. We may use a different install program
+# to install our own files.
+SYSTEM_INSTALL="$INSTALL"
+AC_SUBST(SYSTEM_INSTALL)
+
 # Check for user-supplied paths before searching
 
 dnl Beware of conflicts between the variables you set and any tools executed in
@@ -272,6 +277,8 @@ AC_SUBST(HAVE_CLONEFILE, $ac_cv_func_clonefile)
 AC_SUBST(HAVE_DECL_CLONE_NOOWNERCOPY, $ac_cv_have_decl_CLONE_NOOWNERCOPY)
 if test x$ac_cv_func_clonefile = xyes -a x$ac_cv_have_decl_CLONE_NOOWNERCOPY = xyes; then
 AC_CONFIG_FILES([vendor/install/Makefile])
+# If we build it, also use to install our own files.
+INSTALL="`(cd vendor; pwd)`/install/build/install"
 fi
 
 # Check for library functions, replacements are in pextlib1.0/compat/
@@ -366,6 +373,7 @@ AC_SUBST(CLONEBIN_PATH)
 
 ## Tcl package
 MP_CONFIG_SUBDIR([vendor/tcl/unix], [--prefix=${macports_libexec_dir} --enable-threads])
+"$SED" -i "" "s|\$(SHELL) \$(UNIX_DIR)/install-sh -c|$INSTALL|" vendor/tcl/unix/Makefile
 VENDOR_TCL_SUBDIR=tcl/unix
 VENDOR_TCL_INSTALL="install-binaries install-headers install-libraries install-msgs install-packages"
 AC_SUBST(VENDOR_TCL_SUBDIR)
@@ -378,6 +386,7 @@ AC_SUBST(VENDOR_DESTROOT)
 ## TclX package
 # TclX is required for signal handling
 MP_CONFIG_SUBDIR([vendor/tclx], [--prefix=${macports_libexec_dir}])
+"$SED" -i "" "s|\$(SHELL) \$(srcdir)/tclconfig/install-sh -c|$INSTALL|" vendor/tclx/Makefile
 VENDOR_TCLX_SUBDIR=tclx
 VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLX_SUBDIR)

@@ -53,6 +53,9 @@ DESTROOT_TARGETS+=   destroot-install
 CLEAN_TARGETS+= clean-install
 DISTCLEAN_TARGETS+= distclean-install
 CODESIGN_TARGETS+= install/build/install
+all-tcl: all-install
+all-tclx: all-install
+all-signify: all-install
 endif
 endif
 ifeq (@OS_PLATFORM@,darwin)
@@ -158,7 +161,7 @@ install-tcllibc:
 	        mkdir -p "$(DESTDIR)$(TCL_PREFIX)/lib/$$d"; \
 	    done; \
 	    for f in $$(find tcllibc* -type f); do \
-	        cp -p "$$f" "$(DESTDIR)$(TCL_PREFIX)/lib/$$f"; \
+	        @INSTALL@ -m 0444 "$$f" "$(DESTDIR)$(TCL_PREFIX)/lib/$$f"; \
 	    done
 	@chmod -R ugo+rX $(DESTDIR)$(TCL_PREFIX)/lib/tcllibc*
 

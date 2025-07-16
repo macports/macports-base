@@ -4,3 +4,4 @@ HAVE_TIMINGSAFE_BCMP=   @HAVE_TIMINGSAFE_BCMP@
 HAVE_DECL_RPP_STDIN=    @HAVE_DECL_RPP_STDIN@
 CC=                     @CC@
 CFLAGS=                 @CFLAGS@
+INSTALL=                @INSTALL@
