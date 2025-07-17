@@ -31,8 +31,9 @@ test get_default_subport {
     Get default subport unit test.
 } -body {
     set portpath path/port/subport
-    if {[portmain::get_default_subport] != "subport"} {
-        return "FAIL: wrong subport"
+    set result [portmain::get_default_subport]
+    if {$result ne "subport"} {
+        return "FAIL: wrong subport: $result"
     }
     return "Get default subport successful."
 } -result "Get default subport successful."
@@ -42,8 +43,9 @@ test get_subbuildpath {
     Get subbuildpath unit test.
 } -body {
     set portpath path/port/subport
-    if {[portmain::get_subbuildpath] != [file normalize "./build/subport"]} {
-        return "FAIL: wrong subbuildpath"
+    set result [portmain::get_subbuildpath]
+    if {[file normalize $result] ne [file normalize "./build/subport"]} {
+        return "FAIL: wrong subbuildpath: $result"
     }
     return "Get subbuild path successful."
 } -result "Get subbuild path successful."
