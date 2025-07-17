@@ -132,6 +132,12 @@ proc portsandbox::set_profile {target} {
     }
 
     foreach dir $allow_dirs {
+        set normdir [file normalize $dir]
+        if {$dir ne $normdir} {
+            lappend allow_dirs $normdir
+        }
+    }
+    foreach dir $allow_dirs {
         foreach perm $perms {
             append portsandbox_profile " (allow $perm ("
             if {${os.major} > 9} {

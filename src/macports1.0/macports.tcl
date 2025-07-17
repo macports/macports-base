@@ -3132,7 +3132,7 @@ proc macports::getportbuildpath {id {portname {}}} {
     variable portdbpath
     regsub {://} $id {.} port_path
     regsub -all {/} $port_path {_} port_path
-    return [file join $portdbpath build $port_path $portname]
+    return [file join [file normalize [file join $portdbpath build]] $port_path $portname]
 }
 
 proc macports::getportlogpath {id {portname {}}} {
@@ -3143,7 +3143,7 @@ proc macports::getportlogpath {id {portname {}}} {
 }
 
 proc macports::getportworkpath_from_buildpath {portbuildpath} {
-    return [file normalize [file join $portbuildpath work]]
+    return [file join $portbuildpath work]
 }
 
 proc macports::getportworkpath_from_portdir {portpath {portname {}}} {
