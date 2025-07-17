@@ -102,7 +102,7 @@ proc portmain::get_subbuildpath {} {
         global portpath
         set subdir [file tail $portpath]
     }
-    return [file normalize [file join $portbuildpath $subdir]]
+    return [file join $portbuildpath $subdir]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
 default prefix /opt/local
