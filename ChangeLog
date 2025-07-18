@@ -2,6 +2,18 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.2 (2025-07-18 by jmr)
+    - Installing MacPorts from source now uses its own copy of
+      install(1) on systems that support APFS. As well as improving
+      performance, this also seems to work around an apparent bug in
+      the macOS filesystem cache that could cause errors during or
+      right after selfupdate. (#72689, jmr in 23e60c7)
+
+    - The value of $workpath is no longer fully normalized, so that it
+      and other options based on it (such as $destroot) will remain
+      consistent before and after the path is created.
+      (#72701, jmr in 5500c4a)
+
 Release 2.11.1 (2025-07-14 by jmr)
     - A warning is printed if the home directory of the macports user
       can't be updated, rather than installation failing.
