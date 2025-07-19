@@ -45,8 +45,6 @@ install:: all
 		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${DESTDIR}${INSTALLDIR}/$$file"; \
 	done
 
-	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${DESTDIR}${INSTALLDIR}"
-
 
 include $(srcdir)/../../Mk/macports.tea.mk
 
