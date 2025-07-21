@@ -33,6 +33,7 @@
 
 package provide portextract 1.0
 package require portutil 1.0
+package require port 1.0
 
 set org.macports.extract [target_new org.macports.extract portextract::extract_main]
 target_provides ${org.macports.extract} extract
@@ -40,10 +41,13 @@ target_requires ${org.macports.extract} main fetch checksum
 target_prerun ${org.macports.extract} portextract::extract_start
 
 namespace eval portextract {
+    variable all_use_options [list use_7z use_bzip2 use_dmg use_lzip use_lzma use_tar use_xz use_zip]
+    variable dmg_mount {/tmp/mports.XXXXXXXX}
 }
 
 # define options
-options extract.only extract.mkdir extract.rename extract.asroot
+options extract.only extract.mkdir extract.rename extract.suffix extract.asroot \
+        {*}${portextract::all_use_options}
 commands extract
 
 # Set up defaults
@@ -53,13 +57,135 @@ default extract.asroot no
 default extract.only {[portextract::disttagclean $distfiles]}
 
 default extract.dir {${workpath}}
-default extract.cmd {[findBinary gzip ${portutil::autoconf::gzip_path}]}
-default extract.pre_args -dc
-default extract.post_args {| ${portutil::autoconf::tar_command} -xf -}
+default extract.cmd {[portextract::get_extract_cmd]}
+default extract.pre_args {[portextract::get_extract_pre_args]}
+default extract.post_args {[portextract::get_extract_post_args]}
+default extract.suffix {[portextract::get_extract_suffix]}
 default extract.mkdir no
 default extract.rename no
 
+foreach _extract_use_option ${portextract::all_use_options} {
+    option_proc ${_extract_use_option} portextract::set_extract_type
+}
+unset _extract_use_option
+
 set_ui_prefix
+
+proc portextract::get_extract_cmd {} {
+    variable all_use_options
+    global {*}$all_use_options
+    if {[tbool use_bzip2]} {
+        if {![catch {findBinary lbzip2} result]} {
+            return $result
+        } else {
+            return [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
+        }
+    } elseif {[tbool use_lzma]} {
+        return [findBinary lzma ${portutil::autoconf::lzma_path}]
+    } elseif {[tbool use_tar]} {
+        return [findBinary tar ${portutil::autoconf::tar_command}]
+    } elseif {[tbool use_xz]} {
+        return [findBinary xz ${portutil::autoconf::xz_path}]
+    } elseif {[tbool use_zip]} {
+        return [findBinary unzip ${portutil::autoconf::unzip_path}]
+    } elseif {[tbool use_7z]} {
+        return [binaryInPath {7za}]
+    } elseif {[tbool use_lzip]} {
+        return [binaryInPath {lzip}]
+    } elseif {[tbool use_dmg]} {
+        return [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
+    }
+    return [findBinary gzip ${portutil::autoconf::gzip_path}]
+}
+
+proc portextract::get_extract_pre_args {} {
+    variable all_use_options
+    global {*}$all_use_options
+    if {[tbool use_tar]} {
+        return {-xf}
+    } elseif {[tbool use_zip]} {
+        return {-q}
+    } elseif {[tbool use_7z]} {
+        return {x}
+    } elseif {[tbool use_lzip]} {
+        return {-dc}
+    } elseif {[tbool use_dmg]} {
+        return {attach}
+    }
+    return {-dc}
+}
+
+proc portextract::get_extract_post_args {} {
+    global use_tar use_zip use_7z use_dmg
+    if {[tbool use_tar]} {
+        return {}
+    } elseif {[tbool use_zip]} {
+        global extract.dir
+        return "-d [shellescape ${extract.dir}]"
+    } elseif {[tbool use_7z]} {
+        return {}
+    } elseif {[tbool use_dmg]} {
+        global distname extract.cmd
+        return "-private -readonly -nobrowse -mountpoint [shellescape ${dmg_mount}] && cd [shellescape ${dmg_mount}] && [findBinary find ${portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${portutil::autoconf::cpio_path}] -0 -p -d -m -u [shellescape ${extract.dir}/${distname}]; status=\$?; cd / && ${extract.cmd} detach [shellescape ${dmg_mount}] && [findBinary rmdir ${portutil::autoconf::rmdir_path}] [shellescape ${dmg_mount}]; exit \$status"
+    }
+    return "| ${portutil::autoconf::tar_command} -xf -"
+}
+
+proc portextract::get_extract_suffix {} {
+    variable all_use_options
+    global {*}$all_use_options
+    if {[tbool use_bzip2]} {
+        return {.tar.bz2}
+    } elseif {[tbool use_lzma]} {
+        return {.tar.lzma}
+    } elseif {[tbool use_tar]} {
+        return {.tar}
+    } elseif {[tbool use_xz]} {
+        return {.tar.xz}
+    } elseif {[tbool use_zip]} {
+        return {.zip}
+    } elseif {[tbool use_7z]} {
+        return {.7z}
+    } elseif {[tbool use_lzip]} {
+        return {.tar.lz}
+    } elseif {[tbool use_dmg]} {
+        return {.dmg}
+    }
+    return {.tar.gz}
+}
+
+proc portextract::set_extract_type {option action args} {
+    # Make the use_* options act like radio buttons - if one is turned
+    # on, all the others turn off.
+    if {${action} eq "set" && [string is true -strict $args]} {
+        variable all_use_options
+        global {*}$all_use_options
+        foreach opt $all_use_options {
+            if {$opt ne $option} {
+                unset -nocomplain $opt
+            }
+        }
+    }
+}
+
+proc portextract::add_extract_deps {} {
+    variable all_use_options
+    global {*}$all_use_options
+    if {[tbool use_bzip2] && ![catch {findBinary lbzip2}]} {
+        depends_extract-append bin:lbzip2:lbzip2
+    } elseif {[tbool use_lzma]} {
+        depends_extract-append bin:lzma:xz
+    } elseif {[tbool use_xz]} {
+        depends_extract-append bin:xz:xz
+    } elseif {[tbool use_zip]} {
+        depends_extract-append bin:unzip:unzip
+    } elseif {[tbool use_7z]} {
+        depends_extract-append bin:7za:p7zip
+    } elseif {[tbool use_lzip]} {
+        depends_extract-append bin:lzip:lzip
+    }
+}
+port::register_callback portextract::add_extract_deps
 
 # XXX
 # Helper function for portextract.tcl that strips all tag names from a list
@@ -75,7 +201,7 @@ proc portextract::disttagclean {list} {
 }
 
 proc portextract::extract_start {args} {
-    global UI_PREFIX extract.dir extract.mkdir use_tar use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg
+    global UI_PREFIX extract.dir extract.mkdir use_dmg
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
 
@@ -89,38 +215,8 @@ proc portextract::extract_start {args} {
         file mkdir ${worksrcpath}
         set extract.dir ${worksrcpath}
     }
-    if {[tbool use_tar]} {
-        option extract.cmd [findBinary tar ${portutil::autoconf::tar_command}]
-        option extract.pre_args -xf
-        option extract.post_args ""
-    } elseif {[tbool use_bzip2]} {
-        if {![catch {findBinary lbzip2} result]} {
-            option extract.cmd $result
-        } else {
-            option extract.cmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
-        }
-    } elseif {[tbool use_lzma]} {
-        option extract.cmd [findBinary lzma ${portutil::autoconf::lzma_path}]
-    } elseif {[tbool use_xz]} {
-        option extract.cmd [findBinary xz ${portutil::autoconf::xz_path}]
-    } elseif {[tbool use_zip]} {
-        option extract.cmd [findBinary unzip ${portutil::autoconf::unzip_path}]
-        option extract.pre_args -q
-        option extract.post_args "-d ${extract.dir}"
-    } elseif {[tbool use_7z]} {
-        option extract.cmd [binaryInPath "7za"]
-        option extract.pre_args x
-        option extract.post_args ""
-    } elseif {[tbool use_lzip]} {
-        option extract.cmd [binaryInPath "lzip"]
-        option extract.pre_args "-dc"
-        #option extract.post_args ""
-    } elseif {[tbool use_dmg]} {
-        global distname extract.cmd
-        set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
-        option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
-        option extract.pre_args attach
-        option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && cd \\\"${dmg_mount}\\\" && [findBinary find ${portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${portutil::autoconf::cpio_path}] -0 -p -d -m -u \\\"${extract.dir}/${distname}\\\"; status=\$?; cd / && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\"; exit \$status"
+    if {[tbool use_dmg]} {
+        variable dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
     }
 }
 

@@ -31,6 +31,7 @@
 
 package provide portfetch 1.0
 package require fetch_common 1.0
+package require portextract 1.0
 package require portutil 1.0
 package require Pextlib 1.0
 
@@ -45,8 +46,8 @@ namespace eval portfetch {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_tar \
-    use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
+options master_sites patch_sites distfiles patchfiles \
+    dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     fetch.user_agent master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision \
@@ -62,7 +63,6 @@ commands cvs
 commands svn
 
 # Defaults
-default extract.suffix .tar.gz
 default fetch.type standard
 
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
@@ -121,56 +121,8 @@ default mirror_sites.listfile mirror_sites.tcl
 default mirror_sites.listpath port1.0/fetch
 
 # Option-executed procedures
-option_proc use_tar   portfetch::set_extract_type
-option_proc use_bzip2 portfetch::set_extract_type
-option_proc use_lzma  portfetch::set_extract_type
-option_proc use_xz    portfetch::set_extract_type
-option_proc use_zip   portfetch::set_extract_type
-option_proc use_7z    portfetch::set_extract_type
-option_proc use_lzip  portfetch::set_extract_type
-option_proc use_dmg   portfetch::set_extract_type
 
 option_proc fetch.type portfetch::set_fetch_type
-
-proc portfetch::set_extract_type {option action args} {
-    global extract.suffix
-    if {[string equal ${action} "set"] && [tbool args]} {
-        switch $option {
-            use_tar {
-                set extract.suffix .tar
-            }
-            use_bzip2 {
-                set extract.suffix .tar.bz2
-                if {![catch {findBinary lbzip2} result]} {
-                    depends_extract-append bin:lbzip2:lbzip2
-                }
-            }
-            use_lzma {
-                set extract.suffix .tar.lzma
-                depends_extract-append bin:lzma:xz
-            }
-            use_xz {
-                set extract.suffix .tar.xz
-                depends_extract-append bin:xz:xz
-            }
-            use_zip {
-                set extract.suffix .zip
-                depends_extract-append bin:unzip:unzip
-            }
-            use_7z {
-                set extract.suffix .7z
-                depends_extract-append bin:7za:p7zip
-            }
-            use_lzip {
-                set extract.suffix .tar.lz
-                depends_extract-append bin:lzip:lzip
-            }
-            use_dmg {
-                set extract.suffix .dmg
-            }
-        }
-    }
-}
 
 proc portfetch::set_fetch_type {option action args} {
     global os.platform os.major
