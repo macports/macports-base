@@ -95,14 +95,9 @@ proc portmain::get_default_subport {} {
 }
 default subbuildpath {[portmain::get_subbuildpath]}
 proc portmain::get_subbuildpath {} {
-    global portbuildpath subport
-    if {$subport ne ""} {
-        set subdir $subport
-    } else {
-        global portpath
-        set subdir [file tail $portpath]
-    }
-    return [file join $portbuildpath $subdir]
+    global portpath subport
+    set subdir [expr {$subport ne "" ? $subport : [file tail $portpath]}]
+    return [getportbuildpath $portpath $subdir]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
 default prefix /opt/local

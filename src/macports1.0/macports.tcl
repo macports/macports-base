@@ -2015,6 +2015,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # Export some utility functions defined here.
     $workername alias macports_version macports::version
     $workername alias macports_create_thread macports::create_thread
+    $workername alias getportbuildpath macports::getportbuildpath
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
     $workername alias getportresourcepath macports::getportresourcepath
     $workername alias getportlogpath macports::getportlogpath
@@ -3125,16 +3126,16 @@ proc _source_is_obsolete_svn_repo {source_dir} {
 }
 
 proc macports::getportbuildpath {id {portname {}}} {
+    package require sha1
     variable portdbpath
-    regsub {://} $id {.} port_path
-    regsub -all {/} $port_path {_} port_path
-    return [file join [file normalize [file join $portdbpath build]] $port_path $portname]
+    set beginning [file normalize [file join $portdbpath build]]
+    set path_hash [string range [::sha1::sha1 -hex -- $id] 0 7]
+    return [file join $beginning ${portname}-${path_hash}]
 }
 
 proc macports::getportlogpath {id {portname {}}} {
     variable portdbpath
-    regsub {://} $id {.} port_path
-    regsub -all {/} $port_path {_} port_path
+    set port_path [string map {:// . / _} $id]
     return [file join $portdbpath logs $port_path $portname]
 }
 

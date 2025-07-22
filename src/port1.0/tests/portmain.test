@@ -25,6 +25,7 @@ set os_version 12
 set os_arch i386
 set portpath .
 set portbuildpath ./build
+set macports::portdbpath .
 
 
 test get_default_subport {
@@ -44,7 +45,7 @@ test get_subbuildpath {
 } -body {
     set portpath path/port/subport
     set result [portmain::get_subbuildpath]
-    if {[file normalize $result] ne [file normalize "./build/subport"]} {
+    if {$result ne [file normalize "./build/subport-a3cbf658"]} {
         return "FAIL: wrong subbuildpath: $result"
     }
     return "Get subbuild path successful."

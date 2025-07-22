@@ -177,31 +177,44 @@ proc portclean::clean_dist {args} {
 proc portclean::clean_work {args} {
     global portbuildpath subbuildpath worksymlink subport
 
-    if {[catch {set real_subbuildpath [realpath $subbuildpath]}]} {
-        set real_subbuildpath $subbuildpath
-    }
-    if {[file isdirectory $real_subbuildpath]} {
-        ui_debug "Removing directory: ${real_subbuildpath}"
-        macports_try -pass_signal {
-            delete $real_subbuildpath
-        } on error {eMessage} {
-            ui_debug "$::errorInfo"
-            ui_error "$eMessage"
-        }
-    } else {
-        ui_debug "No work directory found to remove at ${real_subbuildpath}"
-    }
-    if {![catch {file type $subbuildpath}]} {
-        ui_debug "Removing symlink: ${subbuildpath}"
+    if {[file isdirectory $subbuildpath]} {
+        ui_debug "Removing directory: ${subbuildpath}"
         macports_try -pass_signal {
             delete $subbuildpath
         } on error {eMessage} {
             ui_debug "$::errorInfo"
             ui_error "$eMessage"
         }
+    } else {
+        ui_debug "No work directory found to remove at ${subbuildpath}"
     }
-    # silently fail if non-empty (other subports might be using portbuildpath)
-    catch {file delete $portbuildpath}
+
+    set old_buildpath [portutil::get_oldbuildpath]
+    set old_subbbuildpath [file join $old_buildpath $subport]
+    if {[catch {set old_subbbuildpath_norm [realpath $old_subbbuildpath]}]} {
+        set old_subbbuildpath_norm [file normalize $old_subbbuildpath]
+    }
+    if {$old_subbbuildpath_norm ne $old_subbbuildpath && [file isdirectory $old_subbbuildpath_norm]} {
+        ui_debug "Removing directory: ${old_subbbuildpath_norm}"
+        macports_try -pass_signal {
+            delete $old_subbbuildpath_norm
+        } on error {eMessage} {
+            ui_debug "$::errorInfo"
+            ui_error "$eMessage"
+        }
+    }
+
+    if {![catch {file type $old_subbbuildpath}]} {
+        ui_debug "Removing symlink: ${old_subbbuildpath}"
+        macports_try -pass_signal {
+            delete $old_subbbuildpath
+        } on error {eMessage} {
+            ui_debug "$::errorInfo"
+            ui_error "$eMessage"
+        }
+    }
+    # silently fail if non-empty (other subports might be using old_buildpath)
+    catch {file delete $old_buildpath}
 
     # Clean symlink, if necessary
     if {![catch {file type $worksymlink} result] && $result eq "link"} {
