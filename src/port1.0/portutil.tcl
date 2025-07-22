@@ -1729,37 +1729,34 @@ proc eval_targets {target} {
     return $result
 }
 
+# Traditional build subdir based on portpath
+proc portutil::get_oldbuildpath {} {
+    global portbuildpath portpath
+    return [file join [file dirname $portbuildpath] [string map {:// . / _} $portpath]]
+}
+
 proc portutil::create_workpath {} {
-    global workpath portbuildpath subbuildpath subport
+    global workpath subbuildpath subport
     if {[getuid] == 0 && [geteuid] != 0} {
         elevateToRoot create_workpath
     }
-    file mkdir $portbuildpath
+    set old_buildpath [get_oldbuildpath]
+    set old_subbbuildpath [file join $old_buildpath $subport]
+    file mkdir $old_buildpath
     # Create and link build dir if link or link target are missing or wrong type.
-    if {[catch {file type $subbuildpath} ftype] || $ftype eq "directory" || ![file isdirectory $subbuildpath]} {
-        # First try a deterministic short name based on a hash of subbuildpath.
-        package require sha1
-        set beginning [file dirname $portbuildpath]/[string range $subport 0 3]
-        set shortpath ${beginning}[string range [::sha1::sha1 -hex -- $subbuildpath] 0 5]
-        # If the name is already taken, generate a random unique one with mkdtemp.
-        if {[file exists $shortpath]} {
-            # This doesn't need to be unguessable, just unique (and short). Four
-            # random characters is enough for ~1.7M build dirs. Posix calls for 6.
-            set shortpath [mkdtemp ${beginning}XXXXXX]
-        } else {
-            file mkdir $shortpath
-        }
+    if {[catch {file type $old_subbbuildpath} ftype] || $ftype eq "directory" || ![file isdirectory $old_subbbuildpath]} {
+        file mkdir $subbuildpath
         if {$ftype eq "directory"} {
-            delete $shortpath
-            file rename $subbuildpath $shortpath
+            delete $subbuildpath
+            file rename $old_subbbuildpath $subbuildpath
         }
-        file attributes $shortpath -permissions 0755
-        chownAsRoot $shortpath
-        ln -sf $shortpath $subbuildpath
+        file attributes $subbuildpath -permissions 0755
+        chownAsRoot $subbuildpath
+        ln -sf $subbuildpath $old_subbbuildpath
     }
 
     file mkdir $workpath/.home $workpath/.tmp
-    chownAsRoot $subbuildpath
+    chownAsRoot $old_subbbuildpath
 }
 
 # open_statefile

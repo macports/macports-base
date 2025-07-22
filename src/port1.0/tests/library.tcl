@@ -15,6 +15,7 @@ proc macports_worker_init {} {
     interp alias {} mport_info      {} mportinfo
     # Export some utility functions defined here.
     interp alias {} macports_create_thread          {} macports::create_thread
+    interp alias {} getportbuildpath                {} macports::getportbuildpath
     interp alias {} getportworkpath_from_buildpath  {} macports::getportworkpath_from_buildpath
     interp alias {} getportresourcepath             {} macports::getportresourcepath
     interp alias {} getportlogpath                  {} macports::getportlogpath
