@@ -2,6 +2,13 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.3 (2025-07-23 by jmr)
+    - $workpath is normalized again, since build systems may not apply
+      normalization consistently. The path is now deterministic, which
+      means it has to be longer to avoid collisions, though it should
+      still be shorter than pre-2.11, especially with longer prefixes.
+      (#72715, jmr in f3369be)
+
 Release 2.11.2 (2025-07-18 by jmr)
     - Installing MacPorts from source now uses its own copy of
       install(1) on systems that support APFS. As well as improving
