@@ -3128,9 +3128,8 @@ proc _source_is_obsolete_svn_repo {source_dir} {
 proc macports::getportbuildpath {id {portname {}}} {
     package require sha1
     variable portdbpath
-    set beginning [file normalize [file join $portdbpath build]]
     set path_hash [string range [::sha1::sha1 -hex -- $id] 0 7]
-    return [file join $beginning ${portname}-${path_hash}]
+    return [file normalize [file join $portdbpath build ${portname}-${path_hash}]]
 }
 
 proc macports::getportlogpath {id {portname {}}} {
