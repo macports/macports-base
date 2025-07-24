@@ -100,7 +100,12 @@ proc portmpkg::get_dependencies {mport dep_map base_options variations} {
             lassign $res depname dep_portinfo
             set add_deps 0
             if {[dict exists $dep_map $depname]} {
-                set dep_mport [dict get $dep_map $depname]
+                set dep_map_entry [dict get $dep_map $depname]
+                if {$dep_map_entry eq {}} {
+                    ui_debug "Circular dependency involving $depname"
+                    continue
+                }
+                set dep_mport [lindex $dep_map_entry 0]
                 # The dep has already been processed, so there's
                 # nothing to do in this case if the archs match.
             } else {
