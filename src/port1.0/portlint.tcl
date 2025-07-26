@@ -471,11 +471,6 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
-        if {[regexp {^\s*compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![dict exists $portgroups compiler_blacklist_versions]} {
-            ui_error "Line $lineno uses compiler.blacklist entry $blacklist which requires the compiler_blacklist_versions portgroup which has not been included"
-            incr errors
-        }
-
         if {[regexp {(^.*)(\meval\s+)(.*)(\[glob\M)(.*$)} $line -> match_before match_eval match_between match_glob match_after]} {
             ui_warn "Line $lineno should use the expansion operator instead of the eval procedure. Change"
             ui_warn "$line"
