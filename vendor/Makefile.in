@@ -80,9 +80,14 @@ destroot-tcllib: destroot-tcl
 	@umask 0022; "$(MAKE)" -C "@VENDOR_TCLLIB_SUBDIR@" "DESTDIR=${DESTROOT}" TCLSH_PROG="@INTREE_TCLSH@" @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTROOT)$(TCL_PREFIX)/lib/tcllib*
 
+# The unusual values for --prefix and --dest-dir are because critcl's
+# build system internally normalizes the prefix, which means the
+# directory structure in the destroot would be different and prevent us
+# from finding its files in other steps unless we also normalized,
+# which is difficult on older macOS versions.
 .stamp-critcl: $(CRITCL_SUBDIR)/lib/critcl/critcl.tcl | destroot-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}${CRITCL_SUBDIR}
-	@umask 0022; cd "$(CRITCL_SUBDIR)" && /usr/bin/env "HOME=@abs_top_builddir@/vendor" "@INTREE_TCLSH@" ./build.tcl install --prefix "$(TCL_PREFIX)" --dest-dir "$(DESTROOT)" $(CRITCL_TARGET)
+	@umask 0022; cd "$(CRITCL_SUBDIR)" && /usr/bin/env "HOME=@abs_top_builddir@/vendor" "@INTREE_TCLSH@" ./build.tcl install --prefix / --dest-dir "$(DESTROOT)$(TCL_PREFIX)" $(CRITCL_TARGET)
 	@chmod -R ugo+rX $(DESTROOT)$(TCL_PREFIX)/lib/critcl*
 	@touch .stamp-critcl
 
