@@ -554,12 +554,11 @@ AC_DEFUN([MP_CHECK_OLDLAYOUT],[
 AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 	dnl if the user specifies --with-no-root-privileges,
 	dnl use current user and group.
-	dnl use ~/Library/Tcl as Tcl package directory
 	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(no-root-privileges, [AS_HELP_STRING([--with-no-root-privileges],[specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
+	AC_ARG_WITH(no-root-privileges, [AS_HELP_STRING([--with-no-root-privileges],[specify that MacPorts should be installed in your home directory])], [NO_ROOTPRIVS=$withval] )
 
-	if test "${ROOTPRIVS+set}" = set; then
+	if test "${NO_ROOTPRIVS+set}" = set; then
 		# Set install-user to current user
 		AC_MSG_CHECKING([for install user])
 		DSTUSR=`id -un`

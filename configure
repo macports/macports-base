@@ -705,6 +705,7 @@ MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 MTREE_GNAME
 DSTMODE
+NO_ROOTPRIVS
 RUNUSR
 DSTGRP
 DSTUSR
@@ -7060,11 +7061,11 @@ printf "%s\n" "$mpconfigdir" >&6; }
 # Check whether --with-no-root-privileges was given.
 if test ${with_no_root_privileges+y}
 then :
-  withval=$with_no_root_privileges; ROOTPRIVS=$withval
+  withval=$with_no_root_privileges; NO_ROOTPRIVS=$withval
 fi
 
 
-	if test "${ROOTPRIVS+set}" = set; then
+	if test "${NO_ROOTPRIVS+set}" = set; then
 		# Set install-user to current user
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for install user" >&5
 printf %s "checking for install user... " >&6; }
@@ -7089,6 +7090,7 @@ printf %s "checking for macports user... " >&6; }
 printf "%s\n" "$RUNUSR" >&6; }
 
 	fi
+
 
 
 

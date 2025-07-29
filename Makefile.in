@@ -45,6 +45,7 @@ install::
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/keys/archives/*.pub  "$(DESTDIR)${datadir}/macports/keys/archives/"
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
+ifeq (@NO_ROOTPRIVS@,)
 # create run user if it doesn't exist
 	@if test `id -u` -eq 0; then \
         if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
@@ -93,6 +94,7 @@ ifeq ($(DESTDIR),)
     else \
         echo "Not creating or updating user or group \"${RUNUSR}\" (not root)" ; \
     fi
+endif
 # Move ping cache to new location
 	@if [ -f "${localstatedir}/macports/pingtimes" ]; then \
         mv "${localstatedir}/macports/pingtimes" "${localstatedir}/macports/cache/pingtimes"; \
