@@ -2,6 +2,19 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.4 (2025-08-01 by jmr)
+    - Fixed incorrect handling of existing work directories created by
+      older MacPorts versions in some cases. (#72740, jmr in bc9bfca)
+
+    - 'port lint' no longer incorrectly tells you to use the
+      compiler_blacklist_versions portgroup. (jmr in 46424c2)
+
+    - Fixed error when running 'port mpkg' on some ports.
+      (jmr in 07950fc)
+
+    - Fixed error when building base for a prefix that contains one or
+      more symlinks. (jmr in 2a7829d)
+
 Release 2.11.3 (2025-07-23 by jmr)
     - $workpath is normalized again, since build systems may not apply
       normalization consistently. The path is now deterministic, which
