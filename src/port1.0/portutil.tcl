@@ -1742,21 +1742,32 @@ proc portutil::create_workpath {} {
     }
     set old_buildpath [get_oldbuildpath]
     set old_subbbuildpath [file join $old_buildpath $subport]
-    file mkdir $old_buildpath
-    # Create and link build dir if link or link target are missing or wrong type.
-    if {[catch {file type $old_subbbuildpath} ftype] || $ftype eq "directory" || ![file isdirectory $old_subbbuildpath]} {
-        file mkdir $subbuildpath
-        if {$ftype eq "directory"} {
-            delete $subbuildpath
-            file rename $old_subbbuildpath $subbuildpath
+    file mkdir $old_buildpath $subbuildpath
+    set norm_old_workpath [file normalize ${old_subbbuildpath}/work]
+    # Link and/or move build dir if link or link target are missing or incorrect.
+    if {$norm_old_workpath ne $workpath} {
+        if {![catch {file type $old_subbbuildpath} ftype]} {
+            if {$ftype eq "directory"} {
+                # pre-2.11 build dir, move to new location
+                delete $subbuildpath
+                file rename $old_subbbuildpath $subbuildpath
+            } elseif {$ftype eq "link" && [file isdirectory $old_subbbuildpath]} {
+                # link to older 2.11.x build dir, rename
+                delete $subbuildpath
+                file rename [realpath $old_subbbuildpath] $subbuildpath
+            } else {
+                # broken link or something unexpected
+                delete $old_subbbuildpath
+            }
+            file attributes $subbuildpath -permissions 0755
         }
-        file attributes $subbuildpath -permissions 0755
-        chownAsRoot $subbuildpath
         ln -sf $subbuildpath $old_subbbuildpath
+        chownAsRoot $old_subbbuildpath
     }
 
     file mkdir $workpath/.home $workpath/.tmp
-    chownAsRoot $old_subbbuildpath
+    file attributes $workpath -permissions 0755
+    chownAsRoot $subbuildpath
 }
 
 # open_statefile
