@@ -353,15 +353,15 @@ proc parse_args {} {
                     set os_major [lindex $platlist 1]
                     if {$os_platform eq "macosx"} {
                         set cxx_stdlib [expr {$os_major < 10 ? "libstdc++" : "libc++"}]
-                        lappend var_overrides macports::os_subplatform $os_platform \
-                                              macports::cxx_stdlib $cxx_stdlib
+                        lappend var_overrides os_subplatform $os_platform \
+                                              cxx_stdlib $cxx_stdlib
                         set os_platform darwin
                     }
                     set os_arch [lindex $platlist 2]
-                    lappend var_overrides macports::os_platform $os_platform \
-                                          macports::os_major $os_major \
-                                          macports::os_version ${os_major}.0.0 \
-                                          macports::os_arch $os_arch
+                    lappend var_overrides os_platform $os_platform \
+                                          os_major $os_major \
+                                          os_version ${os_major}.0.0 \
+                                          os_arch $os_arch
                 }
             }
             -x { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
