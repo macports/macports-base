@@ -7,6 +7,7 @@ INSTALL_SUBDIR=		install
 
 DESTROOT=			@abs_top_builddir@/@VENDOR_DESTROOT@
 TCL_PREFIX=			@TCL_PREFIX@
+INSTALL=			@INSTALL@
 
 .PHONY: all clean distclean install destroot test
 .PHONY: destroot-tcl destroot-critcl destroot-tclx destroot-tcllib destroot-tcllibc destroot-signify destroot-install
@@ -65,7 +66,7 @@ endif
 destroot: $(DESTROOT_TARGETS)
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" "DESTDIR=${DESTROOT}" @VENDOR_TCL_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" "DESTDIR=$(DESTROOT)" "INSTALL=$(INSTALL)" @VENDOR_TCL_INSTALL@
 	[ "@OS_PLATFORM@" != darwin ] || install_name_tool -change "$(TCL_PREFIX)/lib/libtcl@TCL_VERSION@.dylib" \
 	    "@executable_path/../lib/libtcl@TCL_VERSION@.dylib" \
 	    "$(DESTROOT)$(TCL_PREFIX)/bin/tclsh@TCL_VERSION@"
@@ -146,7 +147,7 @@ OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.1{2,3}.tm \
 install-tcl:
 	rm -rf $(OLD_TCL_FILES)
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" @VENDOR_TCL_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" "INSTALL=$(INSTALL)" @VENDOR_TCL_INSTALL@
 
 install-tclx:
 	rm -rf "$(DESTDIR)$(TCL_PACKAGE_PATH)/tclx8.4"
@@ -166,7 +167,7 @@ install-tcllibc:
 	        mkdir -p "$(DESTDIR)$(TCL_PREFIX)/lib/$$d"; \
 	    done; \
 	    for f in $$(find tcllibc* -type f); do \
-	        @INSTALL@ -m 0444 "$$f" "$(DESTDIR)$(TCL_PREFIX)/lib/$$f"; \
+	        $(INSTALL) -m 0444 "$$f" "$(DESTDIR)$(TCL_PREFIX)/lib/$$f"; \
 	    done
 	@chmod -R ugo+rX $(DESTDIR)$(TCL_PREFIX)/lib/tcllibc*
 
