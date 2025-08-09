@@ -56,7 +56,7 @@ DISTCLEAN_TARGETS+= distclean-install
 CODESIGN_TARGETS+= install/build/install
 all-tcl: all-install
 all-tclx: all-install
-all-signify: all-install
+destroot-signify: all-install
 endif
 endif
 ifeq (@OS_PLATFORM@,darwin)
