@@ -550,7 +550,12 @@ proc portconfigure::find_close_sdk {sdk_version sdk_path} {
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
     global developer_dir macos_version macos_version_major xcodeversion \
-           os.arch os.major os.platform use_xcode
+           os.arch os.major os.platform use_xcode system_options
+
+    # Explicit override value
+    if {[info exists system_options(macosx_sdk_path)]} {
+        return $system_options(macosx_sdk_path)
+    }
 
     # This is only relevant for macOS
     if {${os.platform} ne "darwin"} {
