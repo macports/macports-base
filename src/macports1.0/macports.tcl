@@ -88,7 +88,10 @@ namespace eval macports {
         delete_la_files cxx_stdlib pkg_post_unarchive_deletions {*}$user_options]
 
     # Options set in the portfile interpreter but only in system_options
-    variable portinterp_private_options [list clonebin_path]
+    variable portinterp_private_options [list clonebin_path macosx_sdk_path]
+
+    # Only used via override_vars
+    variable macosx_sdk_path
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
