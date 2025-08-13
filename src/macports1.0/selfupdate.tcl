@@ -77,7 +77,7 @@ proc selfupdate::get_current_version {mp_source_path} {
         if {[can_use_https letsencrypt]} {
             lappend release_version_urls \
                 "https://distfiles.macports.org/MacPorts/RELEASE_URL" \
-                "https://trac.macports.org/export/HEAD/macports-base/config/RELEASE_URL"
+                "https://trac.macports.org/export/master/macports-base/config/RELEASE_URL"
         } else {
             lappend release_version_urls \
                 "http://distfiles.macports.org/MacPorts/RELEASE_URL"

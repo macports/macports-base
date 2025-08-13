@@ -140,7 +140,7 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # released. Multiple values, space-separated; only one of the URLs needs to be
 # available. Downloads will be attempted in the specified order.
 #release_version_urls https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL \
-#                     https://trac.macports.org/export/HEAD/macports-base/config/RELEASE_URL \
+#                     https://trac.macports.org/export/master/macports-base/config/RELEASE_URL \
 #                     https://distfiles.macports.org/MacPorts/RELEASE_URL
 
 # URL where MacPorts will download a new source code archive, if the
