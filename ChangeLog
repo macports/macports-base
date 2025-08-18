@@ -2,6 +2,22 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.5 (2025-08-18 by jmr)
+    - Fixed unexpected behaviour of (x)install commands on APFS in
+      some cases. (#72850, jmr in ea247a7, d8cfd53)
+
+    - Fixed a Makefile race condition that could cause installing
+      MacPorts from source to fail sometimes (including when running
+      selfupdate.) (#72802, jmr in 85db375)
+
+    - Fixed incorrect behaviour of 'portindex -p' when not using an
+      override file. (#72785, jmr in 1b58a9d)
+
+    - Fixed the last resort entry in release_version_urls used by
+      selfupdate, which was pointing to the wrong branch and so would
+      usually not indicate that a new version is available.
+      (#72823, jmr in 05122e1)
+
 Release 2.11.4 (2025-08-01 by jmr)
     - Fixed incorrect handling of existing work directories created by
       older MacPorts versions in some cases. (#72740, jmr in bc9bfca)
