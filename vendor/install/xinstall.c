@@ -93,6 +93,7 @@ mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 char *suffix = BACKUP_SUFFIX;
 
 static int	clone __P((const char *, const char *, int, char *, size_t));
+static void	handle_existing_file __P((char *path, struct stat *sbp));
 void	copy __P((int, char *, int, char *, off_t));
 int	compare __P((int, const char *, size_t, int, const char *, size_t));
 int	create_newfile __P((char *, int, struct stat *));
@@ -339,6 +340,9 @@ install(char *from_name, char *to_name,
 	if (!files_match) {
 		int done_clone = 0;
 	    if (tryclone && !devnull && !dostrip) {
+	        if (!tempcopy && target) {
+	            handle_existing_file(to_name, &to_sb);
+	        }
 	        done_clone = (clone(from_name, to_name, tempcopy, tempfile, sizeof(tempfile)) == 0);
 	    }
 	    if (done_clone &&
@@ -640,6 +644,36 @@ create_tempfile(char *path,
 	return (mkstemp(temp));
 }
 
+/* unlink or move (backup) an existing file */
+static void
+handle_existing_file(char *path, struct stat *sbp)
+{
+    char backup[MAXPATHLEN];
+    /*
+     * Unlink now... avoid ETXTBSY errors later.  Try to turn
+     * off the append/immutable bits -- if we fail, go ahead,
+     * it might work.
+     */
+    if (sbp->st_flags & NOCHANGEBITS)
+        (void)chflags(path, sbp->st_flags & ~NOCHANGEBITS);
+
+    if (dobackup) {
+        if (snprintf(backup, MAXPATHLEN, "%s%s",
+            path, suffix) != strlen(path) + strlen(suffix))
+            errx(EX_OSERR, "%s: backup filename too long",
+                path);
+        (void)snprintf(backup, MAXPATHLEN, "%s%s",
+            path, suffix);
+        if (verbose)
+            (void)printf("install: %s -> %s\n",
+                path, backup);
+        if (rename(path, backup) < 0)
+            err(EX_OSERR, "rename: %s to %s", path, backup);
+    } else {
+        (void)unlink(path);
+    }
+}
+
 /*
  * create_newfile --
  *	create a new file, overwriting an existing one if necessary
@@ -649,31 +683,8 @@ create_newfile(char *path,
 	       int target,
 	       struct stat *sbp)
 {
-	char backup[MAXPATHLEN];
-
 	if (target) {
-		/*
-		 * Unlink now... avoid ETXTBSY errors later.  Try to turn
-		 * off the append/immutable bits -- if we fail, go ahead,
-		 * it might work.
-		 */
-		if (sbp->st_flags & NOCHANGEBITS)
-			(void)chflags(path, sbp->st_flags & ~NOCHANGEBITS);
-
-		if (dobackup) {
-			if (snprintf(backup, MAXPATHLEN, "%s%s",
-			    path, suffix) != strlen(path) + strlen(suffix))
-				errx(EX_OSERR, "%s: backup filename too long",
-				    path);
-			(void)snprintf(backup, MAXPATHLEN, "%s%s",
-			    path, suffix);
-			if (verbose)
-				(void)printf("install: %s -> %s\n",
-				    path, backup);
-			if (rename(path, backup) < 0)
-				err(EX_OSERR, "rename: %s to %s", path, backup);
-		} else
-			(void)unlink(path);
+		handle_existing_file(path, sbp);
 	}
 
 	return (open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR));
@@ -775,7 +786,7 @@ clone(const char *from_name, const char *to_name,
         mktemp(temp_name);
         to_name = temp_name;
     }
-    return clonefile(from_name, to_name, CLONE_NOFOLLOW|CLONE_NOOWNERCOPY);
+    return clonefile(from_name, to_name, CLONE_NOOWNERCOPY);
 }
 
 /*
