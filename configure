@@ -9008,7 +9008,6 @@ printf "%s\n" "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)"
 	fi
 	cd "$mp_popdir"
 
-"$SED" -i "" "s|\$(SHELL) \$(UNIX_DIR)/install-sh -c|$INSTALL|" vendor/tcl/unix/Makefile
 VENDOR_TCL_SUBDIR=tcl/unix
 VENDOR_TCL_INSTALL="install-binaries install-headers install-libraries install-msgs install-packages"
 
@@ -9324,7 +9323,6 @@ printf "%s\n" "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)"
 	fi
 	cd "$mp_popdir"
 
-"$SED" -i "" "s|\$(SHELL) \$(srcdir)/tclconfig/install-sh -c|$INSTALL|" vendor/tclx/Makefile
 VENDOR_TCLX_SUBDIR=tclx
 VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 
