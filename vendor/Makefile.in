@@ -8,6 +8,7 @@ INSTALL_SUBDIR=		install
 DESTROOT=			@abs_top_builddir@/@VENDOR_DESTROOT@
 TCL_PREFIX=			@TCL_PREFIX@
 INSTALL=			@INSTALL@
+TCL_INSTALL_D_ARG=	INSTALL_DATA_DIR="@abs_top_builddir@/vendor/tcl/unix/install-sh -d -m 755"
 
 .PHONY: all clean distclean install destroot test
 .PHONY: destroot-tcl destroot-critcl destroot-tclx destroot-tcllib destroot-tcllibc destroot-signify destroot-install
@@ -54,6 +55,7 @@ DESTROOT_TARGETS+=   destroot-install
 CLEAN_TARGETS+= clean-install
 DISTCLEAN_TARGETS+= distclean-install
 CODESIGN_TARGETS+= install/build/install
+TCL_INSTALL_D_ARG=
 all-tcl: all-install
 all-tclx: all-install
 destroot-signify: all-install
@@ -66,7 +68,7 @@ endif
 destroot: $(DESTROOT_TARGETS)
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" "DESTDIR=$(DESTROOT)" "INSTALL=$(INSTALL)" @VENDOR_TCL_INSTALL@
+	@umask 0022; "$(MAKE)" -C "@VENDOR_TCL_SUBDIR@" "DESTDIR=$(DESTROOT)" "INSTALL=$(INSTALL)" $(TCL_INSTALL_D_ARG) @VENDOR_TCL_INSTALL@
 	[ "@OS_PLATFORM@" != darwin ] || install_name_tool -change "$(TCL_PREFIX)/lib/libtcl@TCL_VERSION@.dylib" \
 	    "@executable_path/../lib/libtcl@TCL_VERSION@.dylib" \
 	    "$(DESTROOT)$(TCL_PREFIX)/bin/tclsh@TCL_VERSION@"
