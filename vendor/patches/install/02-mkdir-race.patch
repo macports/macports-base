@@ -1,0 +1,19 @@
+Avoid race condition with concurrent directory creation.
+--- xinstall.c.orig
++++ xinstall.c
+@@ -831,8 +831,13 @@ install_dir(char *path)
+ 			*p = '\0';
+ 			if (stat(path, &sb)) {
+ 				if (errno != ENOENT || mkdir(path, 0755) < 0) {
+-					err(EX_OSERR, "mkdir %s", path);
+-					/* NOTREACHED */
++					/* Check if the dir was created between
++					 * our stat and mkdir calls. */
++					int saved_errno = errno;
++					if (errno != EEXIST || stat(path, &sb) < 0 || !S_ISDIR(sb.st_mode)) {
++					    errc(EX_OSERR, saved_errno, "mkdir %s", path);
++					    /* NOTREACHED */
++					}
+ 				} else if (verbose)
+ 					(void)printf("install: mkdir %s\n",
+ 						     path);

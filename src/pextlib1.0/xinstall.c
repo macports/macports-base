@@ -1128,13 +1128,17 @@ install_dir(Tcl_Interp *interp, char *path)
 			*p = '\0';
 			if (stat(path, &sb)) {
 				if (errno != ENOENT || mkdir(path, 0755) < 0) {
-					char errmsg[255];
+					/* Check if the dir was created between
+					 * our stat and mkdir calls. */
+					int saved_errno = errno;
+					if (errno != EEXIST || stat(path, &sb) < 0 || !S_ISDIR(sb.st_mode)) {
+					    char errmsg[255];
 
-					*p = ch;
-					snprintf(errmsg, sizeof errmsg, "%s: mkdir %s, %s",
-						 funcname, path, strerror(errno));
-					Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
-					return TCL_ERROR;
+					    snprintf(errmsg, sizeof errmsg, "%s: mkdir %s, %s",
+					        funcname, path, strerror(saved_errno));
+					    Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+					    return TCL_ERROR;
+					}
 				}
 				else {
                                         ui_info(interp, "%s: mkdir %s", funcname, path);
