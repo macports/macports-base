@@ -25,18 +25,18 @@ port-deps, port-rdeps \- Display a dependency listing for the given port(s)
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBdeps\fR
-     [\-\-index] [\-\-no\-build]
+     [\-\-index] [\-\-no\-build] [\-\-no\-test]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBrdeps\fR
-     [\-\-full] [\-\-index] [\-\-no\-build]
+     [\-\-full] [\-\-index] [\-\-no\-build] [\-\-no\-test]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport deps\fR lists all dependencies of the given port(s), i\&.e\&., the ports that need to be installed to build or use a port\&.
+\fBport deps\fR lists all dependencies of the given port(s), i\&.e\&., the ports that need to be installed to build or use a port, or to run its test suite\&.
 .sp
 \fBport rdeps\fR recursively descends into the dependencies and displays a tree of dependencies for a given port\&.
 .SH "OPTIONS"
@@ -54,7 +54,12 @@ Do not read Portfiles, but instead rely solely on the PortIndex information\&. N
 .PP
 \fB\-\-no\-build\fR
 .RS 4
-Exclude dependencies only required at build time, i\&.e\&., fetch, extract, and build dependencies\&.
+Exclude dependencies only required at build time, i\&.e\&., fetch, extract, patch, and build dependencies\&.
+.RE
+.PP
+\fB\-\-no\-test\fR
+.RS 4
+Exclude test dependencies\&.
 .RE
 .SH "GLOBAL OPTIONS"
 .sp
