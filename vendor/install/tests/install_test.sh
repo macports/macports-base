@@ -1,4 +1,3 @@
-#! /usr/bin/env atf-sh
 #
 # Copyright (c) 2016 Jilles Tjoelker
 # All rights reserved.
@@ -24,8 +23,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD$
 #
+
+atf_test_case copy_to_empty
+copy_to_empty_body() {
+	printf 'test\n123\r456\r\n789\0z' >testf
+	atf_check -s not-exit:0 -e match:"empty string" \
+	    install testf ""
+}
 
 copy_to_nonexistent_with_opts() {
 	printf 'test\n123\r456\r\n789\0z' >testf
@@ -206,15 +211,15 @@ strip_changing_with_opts() {
 	cmp otherf copyf || atf_fail "bad stripped copy"
 }
 
-# atf_test_case strip_changing
-# strip_changing_body() {
-# 	strip_changing_with_opts
-# }
-# 
-# atf_test_case strip_changing_comparing
-# strip_changing_comparing_body() {
-# 	strip_changing_with_opts -C
-# }
+atf_test_case strip_changing
+strip_changing_body() {
+	strip_changing_with_opts
+}
+
+atf_test_case strip_changing_comparing
+strip_changing_comparing_body() {
+	strip_changing_with_opts -C
+}
 
 strip_changing_overwrite_with_opts() {
 	setup_stripbin
@@ -226,15 +231,15 @@ strip_changing_overwrite_with_opts() {
 	cmp otherf copyf || atf_fail "bad stripped copy"
 }
 
-# atf_test_case strip_changing_overwrite
-# strip_changing_overwrite_body() {
-# 	strip_changing_overwrite_with_opts
-# }
-# 
-# atf_test_case strip_changing_overwrite_comparing
-# strip_changing_overwrite_comparing_body() {
-# 	strip_changing_overwrite_with_opts -C
-# }
+atf_test_case strip_changing_overwrite
+strip_changing_overwrite_body() {
+	strip_changing_overwrite_with_opts
+}
+
+atf_test_case strip_changing_overwrite_comparing
+strip_changing_overwrite_comparing_body() {
+	strip_changing_overwrite_with_opts -C
+}
 
 strip_changing_overwrite_eq_with_opts() {
 	setup_stripbin
@@ -246,130 +251,130 @@ strip_changing_overwrite_eq_with_opts() {
 	cmp otherf copyf || atf_fail "bad stripped copy"
 }
 
-# atf_test_case strip_changing_overwrite_eq
-# strip_changing_overwrite_eq_body() {
-# 	strip_changing_overwrite_eq_with_opts
-# }
-# 
-# atf_test_case strip_changing_overwrite_eq_comparing
-# strip_changing_overwrite_eq_comparing_body() {
-# 	strip_changing_overwrite_eq_with_opts -C
-# }
+atf_test_case strip_changing_overwrite_eq
+strip_changing_overwrite_eq_body() {
+	strip_changing_overwrite_eq_with_opts
+}
 
-# atf_test_case strip_noop
-# strip_noop_body() {
-# 	setup_stripbin true
-# 	printf 'test\n123\r456\r\n789\0z' >testf
-# 	atf_check install -s testf copyf
-# 	[ ! testf -nt copyf ] || atf_fail "bad timestamp"
-# 	printf 'test\n123\r456\r\n789\0z' >otherf
-# 	cmp otherf copyf || atf_fail "bad stripped copy"
-# }
+atf_test_case strip_changing_overwrite_eq_comparing
+strip_changing_overwrite_eq_comparing_body() {
+	strip_changing_overwrite_eq_with_opts -C
+}
 
-#atf_test_case hard_link
-#hard_link_body() {
-#	printf 'test\n123\r456\r\n789\0z' >testf
-#	atf_check install -l h testf copyf
-#	[ testf -ef copyf ] || atf_fail "not same file"
-#	[ ! -L copyf ] || atf_fail "copy is symlink"
-#}
+atf_test_case strip_noop
+strip_noop_body() {
+	setup_stripbin true
+	printf 'test\n123\r456\r\n789\0z' >testf
+	atf_check install -s testf copyf
+	[ ! testf -nt copyf ] || atf_fail "bad timestamp"
+	printf 'test\n123\r456\r\n789\0z' >otherf
+	cmp otherf copyf || atf_fail "bad stripped copy"
+}
 
-#atf_test_case symbolic_link
-#symbolic_link_body() {
-#	printf 'test\n123\r456\r\n789\0z' >testf
-#	atf_check install -l s testf copyf
-#	[ testf -ef copyf ] || atf_fail "not same file"
-#	[ -L copyf ] || atf_fail "copy is not symlink"
-#}
+atf_test_case hard_link
+hard_link_body() {
+	printf 'test\n123\r456\r\n789\0z' >testf
+	atf_check install -l h testf copyf
+	[ testf -ef copyf ] || atf_fail "not same file"
+	[ ! -L copyf ] || atf_fail "copy is symlink"
+}
 
-#atf_test_case symbolic_link_absolute
-#symbolic_link_absolute_body() {
-#	printf 'test\n123\r456\r\n789\0z' >testf
-#	atf_check install -l sa testf copyf
-#	[ testf -ef copyf ] || atf_fail "not same file"
-#	[ -L copyf ] || atf_fail "copy is not symlink"
-#	copyf_path=$(readlink copyf)
-#	testf_path="$(pwd -P)/testf"
-#	if [ "$copyf_path" != "$testf_path" ]; then
-#		atf_fail "unexpected symlink contents ('$copyf_path' != '$testf_path')"
-#	fi
-#}
+atf_test_case symbolic_link
+symbolic_link_body() {
+	printf 'test\n123\r456\r\n789\0z' >testf
+	atf_check install -l s testf copyf
+	[ testf -ef copyf ] || atf_fail "not same file"
+	[ -L copyf ] || atf_fail "copy is not symlink"
+}
 
-#atf_test_case symbolic_link_relative
-#symbolic_link_relative_body() {
-#	printf 'test\n123\r456\r\n789\0z' >testf
-#	atf_check install -l sr testf copyf
-#	[ testf -ef copyf ] || atf_fail "not same file"
-#	[ -L copyf ] || atf_fail "copy is not symlink"
-#	copyf_path=$(readlink copyf)
-#	testf_path="testf"
-#	if [ "$copyf_path" != "$testf_path" ]; then
-#		atf_fail "unexpected symlink contents ('$copyf_path' != '$testf_path')"
-#	fi
-#}
+atf_test_case symbolic_link_absolute
+symbolic_link_absolute_body() {
+	printf 'test\n123\r456\r\n789\0z' >testf
+	atf_check install -l sa testf copyf
+	[ testf -ef copyf ] || atf_fail "not same file"
+	[ -L copyf ] || atf_fail "copy is not symlink"
+	copyf_path=$(readlink copyf)
+	testf_path="$(pwd -P)/testf"
+	if [ "$copyf_path" != "$testf_path" ]; then
+		atf_fail "unexpected symlink contents ('$copyf_path' != '$testf_path')"
+	fi
+}
 
-# atf_test_case symbolic_link_relative_absolute_source_and_dest1
-# symbolic_link_relative_absolute_source_and_dest1_head() {
-# 	atf_set "descr" "Verify -l rs with absolute paths (.../copyf -> .../a/b/c/testf)"
-# }
-# symbolic_link_relative_absolute_source_and_dest1_body() {
-# 	src_path=a/b/c/testf
-# 	src_path_prefixed=$PWD/$src_path
-# 	dest_path=$PWD/copyf
-# 
-# 	atf_check mkdir -p a/b/c
-# 	atf_check touch $src_path
-# 	atf_check install -l sr $src_path_prefixed $dest_path
-# 	[ $src_path_prefixed -ef $dest_path ] || atf_fail "not same file"
-# 	[ -L $dest_path ] || atf_fail "copy is not symlink"
-# 	dest_path_relative=$(readlink $dest_path)
-# 	src_path_relative="$src_path"
-# 	if [ "$src_path_relative" != "$dest_path_relative" ]; then
-# 		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
-# 	fi
-# }
+atf_test_case symbolic_link_relative
+symbolic_link_relative_body() {
+	printf 'test\n123\r456\r\n789\0z' >testf
+	atf_check install -l sr testf copyf
+	[ testf -ef copyf ] || atf_fail "not same file"
+	[ -L copyf ] || atf_fail "copy is not symlink"
+	copyf_path=$(readlink copyf)
+	testf_path="testf"
+	if [ "$copyf_path" != "$testf_path" ]; then
+		atf_fail "unexpected symlink contents ('$copyf_path' != '$testf_path')"
+	fi
+}
 
-# atf_test_case symbolic_link_relative_absolute_source_and_dest1_double_slash
-# symbolic_link_relative_absolute_source_and_dest1_double_slash_head() {
-# 	atf_set "descr" "Verify -l rs with absolute paths (.../copyf -> .../a/b/c/testf), using double-slashes"
-# }
-# symbolic_link_relative_absolute_source_and_dest1_double_slash_body() {
-# 	src_path=a//b//c//testf
-# 	src_path_prefixed=$PWD/$src_path
-# 	dest_path=$PWD/copyf
-# 
-# 	atf_check mkdir -p a/b/c
-# 	atf_check touch $src_path
-# 	atf_check install -l sr $src_path_prefixed $dest_path
-# 	[ $src_path_prefixed -ef $dest_path ] || atf_fail "not same file"
-# 	[ -L $dest_path ] || atf_fail "copy is not symlink"
-# 	dest_path_relative=$(readlink $dest_path)
-# 	src_path_relative="$(echo $src_path | sed -e 's,//,/,g')"
-# 	if [ "$src_path_relative" != "$dest_path_relative" ]; then
-# 		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
-# 	fi
-# }
+atf_test_case symbolic_link_relative_absolute_source_and_dest1
+symbolic_link_relative_absolute_source_and_dest1_head() {
+	atf_set "descr" "Verify -l rs with absolute paths (.../copyf -> .../a/b/c/testf)"
+}
+symbolic_link_relative_absolute_source_and_dest1_body() {
+	src_path=a/b/c/testf
+	src_path_prefixed=$PWD/$src_path
+	dest_path=$PWD/copyf
 
-# atf_test_case symbolic_link_relative_absolute_source_and_dest2
-# symbolic_link_relative_absolute_source_and_dest2_head() {
-# 	atf_set "descr" "Verify -l rs with absolute paths (.../a/b/c/copyf -> .../testf)"
-# }
-# symbolic_link_relative_absolute_source_and_dest2_body() {
-# 	src_path=testf
-# 	src_path_prefixed=$PWD/$src_path
-# 	dest_path=$PWD/a/b/c/copyf
-# 
-# 	atf_check mkdir -p a/b/c
-# 	atf_check touch $src_path
-# 	atf_check install -l sr $src_path_prefixed $dest_path
-# 	[ $src_path_prefixed -ef $dest_path ] || atf_fail "not same file"
-# 	[ -L $dest_path ] || atf_fail "copy is not symlink"
-# 	dest_path_relative=$(readlink $dest_path)
-# 	src_path_relative="../../../$src_path"
-# 	if [ "$src_path_relative" != "$dest_path_relative" ]; then
-# 		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
-# 	fi
-# }
+	atf_check mkdir -p a/b/c
+	atf_check touch $src_path
+	atf_check install -l sr $src_path_prefixed $dest_path
+	[ $src_path_prefixed -ef $dest_path ] || atf_fail "not same file"
+	[ -L $dest_path ] || atf_fail "copy is not symlink"
+	dest_path_relative=$(readlink $dest_path)
+	src_path_relative="$src_path"
+	if [ "$src_path_relative" != "$dest_path_relative" ]; then
+		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
+	fi
+}
+
+atf_test_case symbolic_link_relative_absolute_source_and_dest1_double_slash
+symbolic_link_relative_absolute_source_and_dest1_double_slash_head() {
+	atf_set "descr" "Verify -l rs with absolute paths (.../copyf -> .../a/b/c/testf), using double-slashes"
+}
+symbolic_link_relative_absolute_source_and_dest1_double_slash_body() {
+	src_path=a//b//c//testf
+	src_path_prefixed=$PWD/$src_path
+	dest_path=$PWD/copyf
+
+	atf_check mkdir -p a/b/c
+	atf_check touch $src_path
+	atf_check install -l sr $src_path_prefixed $dest_path
+	[ $src_path_prefixed -ef $dest_path ] || atf_fail "not same file"
+	[ -L $dest_path ] || atf_fail "copy is not symlink"
+	dest_path_relative=$(readlink $dest_path)
+	src_path_relative="$(echo $src_path | sed -e 's,//,/,g')"
+	if [ "$src_path_relative" != "$dest_path_relative" ]; then
+		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
+	fi
+}
+
+atf_test_case symbolic_link_relative_absolute_source_and_dest2
+symbolic_link_relative_absolute_source_and_dest2_head() {
+	atf_set "descr" "Verify -l rs with absolute paths (.../a/b/c/copyf -> .../testf)"
+}
+symbolic_link_relative_absolute_source_and_dest2_body() {
+	src_path=testf
+	src_path_prefixed=$PWD/$src_path
+	dest_path=$PWD/a/b/c/copyf
+
+	atf_check mkdir -p a/b/c
+	atf_check touch $src_path
+	atf_check install -l sr $src_path_prefixed $dest_path
+	[ $src_path_prefixed -ef $dest_path ] || atf_fail "not same file"
+	[ -L $dest_path ] || atf_fail "copy is not symlink"
+	dest_path_relative=$(readlink $dest_path)
+	src_path_relative="../../../$src_path"
+	if [ "$src_path_relative" != "$dest_path_relative" ]; then
+		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
+	fi
+}
 
 atf_test_case mkdir_simple
 mkdir_simple_body() {
@@ -382,30 +387,184 @@ mkdir_simple_body() {
 	atf_check install -d dir1/dir2/dir3
 }
 
-# atf_test_case symbolic_link_relative_absolute_common
-# symbolic_link_relative_absolute_common_head() {
-# 	atf_set "descr" "Verify -l rs with absolute paths having common components"
-# }
-# symbolic_link_relative_absolute_common_body() {
-# 	filename=foo.so
-# 	src_path=lib
-# 	src_path_prefixed=$PWD/$src_path
-# 	dest_path=$PWD/libexec/
-# 	src_file=$src_path_prefixed/$filename
-# 	dest_file=$dest_path/$filename
-# 
-# 	atf_check mkdir $src_path_prefixed $dest_path
-# 	atf_check touch $src_file
-# 	atf_check install -l sr $src_file $dest_path
-# 
-# 	dest_path_relative=$(readlink $dest_file)
-# 	src_path_relative="../lib/$filename"
-# 	if [ "$src_path_relative" != "$dest_path_relative" ]; then
-# 		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
-# 	fi
-# }
+atf_test_case symbolic_link_relative_absolute_common
+symbolic_link_relative_absolute_common_head() {
+	atf_set "descr" "Verify -l rs with absolute paths having common components"
+}
+symbolic_link_relative_absolute_common_body() {
+	filename=foo.so
+	src_path=lib
+	src_path_prefixed=$PWD/$src_path
+	dest_path=$PWD/libexec/
+	src_file=$src_path_prefixed/$filename
+	dest_file=$dest_path/$filename
+
+	atf_check mkdir $src_path_prefixed $dest_path
+	atf_check touch $src_file
+	atf_check install -l sr $src_file $dest_path
+
+	dest_path_relative=$(readlink $dest_file)
+	src_path_relative="../lib/$filename"
+	if [ "$src_path_relative" != "$dest_path_relative" ]; then
+		atf_fail "unexpected symlink contents ('$src_path_relative' != '$dest_path_relative')"
+	fi
+}
+
+atf_test_case set_owner_group_mode
+set_owner_group_mode_head() {
+	atf_set "require.user" "root"
+}
+set_owner_group_mode_body() {
+	local fu=65531 fg=65531
+	local cu=65532 cg=65532
+	local u="$(id -u)"
+	local g="$(id -g)"
+	local m=0755 cm=4444
+	printf "test" >testf
+	atf_check chown "$fu:$fg" testf
+	atf_check chmod "$m" testf
+
+	atf_check install testf testc
+	atf_check_equal "$u:$g:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -o "$cu" testf testc
+	atf_check_equal "$cu:$g:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -g "$cg" testf testc
+	atf_check_equal "$u:$cg:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -o "$cu" -g "$cg" testf testc
+	atf_check_equal "$cu:$cg:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -m "$cm" testf testc
+	atf_check_equal "$u:$g:10$cm" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -o "$cu" -m "$cm" testf testc
+	atf_check_equal "$cu:$g:10$cm" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -g "$cg" -m "$cm" testf testc
+	atf_check_equal "$u:$cg:10$cm" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -o "$cu" -g "$cg" -m "$cm" testf testc
+	atf_check_equal "$cu:$cg:10$cm" "$(stat -f"%u:%g:%p" testc)"
+}
+
+atf_test_case set_owner_group_mode_unpriv
+set_owner_group_mode_unpriv_head() {
+	atf_set "require.user" "root"
+}
+set_owner_group_mode_unpriv_body() {
+	local fu=65531 fg=65531
+	local cu=65532 cg=65532
+	local u="$(id -u)"
+	local g="$(id -g)"
+	local m=0755 cm=4444 cM=0444
+	printf "test" >testf
+	atf_check chown "$fu:$fg" testf
+	atf_check chmod "$m" testf
+
+	atf_check install -U testf testc
+	atf_check_equal "$u:$g:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -o "$cu" testf testc
+	atf_check_equal "$u:$g:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -g "$cg" testf testc
+	atf_check_equal "$u:$g:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -o "$cu" -g "$cg" testf testc
+	atf_check_equal "$u:$g:10$m" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -m "$cm" testf testc
+	atf_check_equal "$u:$g:10$cM" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -o "$cu" -m "$cm" testf testc
+	atf_check_equal "$u:$g:10$cM" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -g "$cg" -m "$cm" testf testc
+	atf_check_equal "$u:$g:10$cM" "$(stat -f"%u:%g:%p" testc)"
+
+	atf_check install -U -o "$cu" -g "$cg" -m "$cm" testf testc
+	atf_check_equal "$u:$g:10$cM" "$(stat -f"%u:%g:%p" testc)"
+}
+
+atf_test_case set_optional_exec
+set_optional_exec_head() {
+	atf_set "require.user" "unprivileged"
+}
+set_optional_exec_body()
+{
+	echo "abc" > testfile.src
+
+	atf_check install -d -m ug+rX testdir
+	atf_check test -x testdir
+
+	atf_check install -m ug+rX testfile.src testfile
+	atf_check test ! -x testfile
+}
+
+#ifdef __APPLE__
+atf_test_case sandbox_fallback
+sandbox_fallback_head() {
+	atf_set "descr" "test sandbox fallback"
+}
+sandbox_fallback_body() {
+	local install=$(realpath "$(which install)")
+	local pwd=$(realpath "${PWD}")
+	mkdir src dst
+	echo "hello, world!" >src/file
+	cat >sandbox-profile <<EOF
+(version 1)
+(deny default)
+(import "system.sb")
+(allow file-read* process-exec
+  (literal "${install}"))
+(allow file-read*
+  (literal "${pwd}/src/file")
+  (literal "${pwd}/dst"))
+(allow file-read-metadata file-write*
+  (literal "${pwd}/dst/file"))
+EOF
+	atf_check -e match:'sandbox detected' \
+	      sandbox-exec -f sandbox-profile \
+	      "${install}" src/file dst/file
+	atf_check cmp src/file dst/file
+}
+
+atf_test_case sandbox_fallback_strip
+sandbox_fallback_strip_head() {
+	atf_set "descr" "test sandbox fallback with stripping"
+}
+sandbox_fallback_strip_body() {
+	local install=$(realpath "$(which install)")
+	local strip=$(realpath "$(which strip)")
+	local pwd=$(realpath "${PWD}")
+	mkdir src dst
+	echo "hello, world!" >src/file
+	cat >sandbox-profile <<EOF
+(version 1)
+(deny default)
+(import "system.sb")
+(allow process-fork)
+(allow file-read* process-exec
+  (literal "${install}")
+  (literal "${strip}"))
+(allow file-read*
+  (literal "${pwd}/src/file")
+  (literal "${pwd}/dst"))
+(allow file-read-metadata file-write*
+  (literal "${pwd}/dst/file"))
+EOF
+	atf_check -e match:'sandbox detected' \
+	      env STRIPBIN="${strip}" \
+	      sandbox-exec -f sandbox-profile \
+	      "${install}" -s src/file dst/file
+	atf_check cmp src/file dst/file
+}
+#endif /* __APPLE__ */
 
 atf_init_test_cases() {
+	atf_add_test_case copy_to_empty
 	atf_add_test_case copy_to_nonexistent
 	atf_add_test_case copy_to_nonexistent_safe
 	atf_add_test_case copy_to_nonexistent_comparing
@@ -429,20 +588,27 @@ atf_init_test_cases() {
 	atf_add_test_case overwrite_backup_safe
 	atf_add_test_case overwrite_backup_comparing
 	atf_add_test_case overwrite_backup_safe_comparing
-	#atf_add_test_case strip_changing
-	#atf_add_test_case strip_changing_comparing
-	#atf_add_test_case strip_changing_overwrite
-	#atf_add_test_case strip_changing_overwrite_comparing
-	#atf_add_test_case strip_changing_overwrite_eq
-	#atf_add_test_case strip_changing_overwrite_eq_comparing
-	#atf_add_test_case strip_noop
-	#atf_add_test_case hard_link
-	#atf_add_test_case symbolic_link
-	#atf_add_test_case symbolic_link_absolute
-	#atf_add_test_case symbolic_link_relative
-	#atf_add_test_case symbolic_link_relative_absolute_source_and_dest1
-	#atf_add_test_case symbolic_link_relative_absolute_source_and_dest1_double_slash
-	#atf_add_test_case symbolic_link_relative_absolute_source_and_dest2
-	#atf_add_test_case symbolic_link_relative_absolute_common
+	atf_add_test_case strip_changing
+	atf_add_test_case strip_changing_comparing
+	atf_add_test_case strip_changing_overwrite
+	atf_add_test_case strip_changing_overwrite_comparing
+	atf_add_test_case strip_changing_overwrite_eq
+	atf_add_test_case strip_changing_overwrite_eq_comparing
+	atf_add_test_case strip_noop
+	atf_add_test_case hard_link
+	atf_add_test_case symbolic_link
+	atf_add_test_case symbolic_link_absolute
+	atf_add_test_case symbolic_link_relative
+	atf_add_test_case symbolic_link_relative_absolute_source_and_dest1
+	atf_add_test_case symbolic_link_relative_absolute_source_and_dest1_double_slash
+	atf_add_test_case symbolic_link_relative_absolute_source_and_dest2
+	atf_add_test_case symbolic_link_relative_absolute_common
 	atf_add_test_case mkdir_simple
+	atf_add_test_case set_owner_group_mode
+	atf_add_test_case set_owner_group_mode_unpriv
+	atf_add_test_case set_optional_exec
+#ifdef __APPLE__
+	atf_add_test_case sandbox_fallback
+	atf_add_test_case sandbox_fallback_strip
+#endif /* __APPLE__ */
 }
