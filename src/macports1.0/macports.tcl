@@ -3546,11 +3546,57 @@ proc mportsync {{options {}}} {
                     } else {
                         set tar [macports::findBinary tar $tar_path]
                     }
-                    # extract tarball and move into place
-                    file mkdir ${extractdir}/tmp
-                    macports::chown ${extractdir}/tmp $macportsuser
                     set zflag [expr {[file extension $tarball] eq ".gz" ? "z" : ""}]
-                    set tar_cmd "$tar -C ${extractdir}/tmp -x${zflag}f $tarball"
+                    # Simply extract if there is no existing ports tree
+                    if {![file isdirectory ${extractdir}/ports]} {
+                        # Make sure there's not some other kind of file there
+                        file delete -force ${extractdir}/ports
+                        set kflag {}
+                    } else {
+                        # Extract only updated files, and delete ones not in the tarball.
+                        # First move the PortIndex to avoid deleting it.
+                        if {[file isfile $indexfile]} {
+                            macports::chown $indexfile $macportsuser
+                            file mkdir ${extractdir}/tmp
+                            macports::chown ${extractdir}/tmp $macportsuser
+                            file rename -force $indexfile ${extractdir}/tmp/
+                            if {[file isfile ${indexfile}.quick]} {
+                                macports::chown ${indexfile}.quick $macportsuser
+                                file rename -force ${indexfile}.quick ${extractdir}/tmp/
+                            }
+                        }
+                        package require tar
+                        set tarfiles [::tar::stat $tarball]
+                        set subpath_start [expr {[string length $extractdir] + 1}]
+                        fs-traverse -depth f [list ${extractdir}/ports] {
+                            set subpath [string range $f $subpath_start end]
+                            file lstat $f statinfo
+                            if {$statinfo(type) eq "directory"} {
+                                append subpath /
+                            }
+                            if {![dict exists $tarfiles $subpath]
+                                || [dict get $tarfiles $subpath type] ne $statinfo(type)
+                                || ($statinfo(type) ne "directory" && [dict get $tarfiles $subpath mtime] != $statinfo(mtime))
+                                || ($statinfo(type) eq "file" && [dict get $tarfiles $subpath size] != $statinfo(size))
+                                || ($statinfo(type) eq "link" && [dict get $tarfiles $subpath linkname] ne [file readlink $f])
+                            } then {
+                                file delete -force $f
+                            }
+                        }
+                        unset tarfiles
+                        # Put PortIndex back
+                        if {[file isfile ${extractdir}/tmp/PortIndex]} {
+                            file rename -force ${extractdir}/tmp/PortIndex $indexfile
+                            if {[file isfile ${extractdir}/tmp/PortIndex.quick]} {
+                                file rename -force ${extractdir}/tmp/PortIndex.quick ${indexfile}.quick
+                            }
+                        }
+                        file delete -force ${extractdir}/tmp
+                        # use -k to skip extracting files that exist
+                        set kflag k
+                    }
+
+                    set tar_cmd "$tar -C ${extractdir} -x${zflag}${kflag}f $tarball"
                     macports_try -pass_signal {
                         macports::run_unprivileged {system -W ${portdbpath}/home $tar_cmd}
                     } on error {eMessage} {
@@ -3558,19 +3604,10 @@ proc mportsync {{options {}}} {
                         incr numfailed
                         continue
                     }
-                    # save the local PortIndex data
+                    # keep a copy of the local PortIndex in case syncing fails
                     if {[file isfile $indexfile]} {
-                        macports::chown $indexfile $macportsuser
                         file copy -force $indexfile ${destdir}/
-                        file rename -force $indexfile ${extractdir}/tmp/ports/
-                        if {[file isfile ${indexfile}.quick]} {
-                            macports::chown ${indexfile}.quick $macportsuser
-                            file rename -force ${indexfile}.quick ${extractdir}/tmp/ports/
-                        }
                     }
-                    file delete -force ${extractdir}/ports
-                    file rename ${extractdir}/tmp/ports ${extractdir}/ports
-                    file delete -force ${extractdir}/tmp
                     # delete any old uncompressed tarball
                     if {[file extension $tarball] eq ".gz"} {
                         file delete -force [file rootname $tarball] [file rootname $tarball].rmd160
