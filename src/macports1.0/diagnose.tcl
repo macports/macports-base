@@ -64,7 +64,6 @@
 package provide diagnose 1.0
 
 package require macports
-package require reclaim 1.0
 
 namespace eval diagnose {
 
