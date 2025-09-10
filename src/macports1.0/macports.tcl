@@ -2988,6 +2988,9 @@ proc macports::_upgrade_mport_deps {mport target} {
     # Pluralize "arch" appropriately.
     set s [expr {[llength $required_archs] == 1 ? "" : "s"}]
 
+    set depnames_to_upgrade [list]
+    set depdict [dict create]
+
     try {
     foreach deptype $deptypes {
         if {![dict exists $portinfo $deptype]} {
@@ -3060,12 +3063,20 @@ proc macports::_upgrade_mport_deps {mport target} {
                     }
                 }
 
-                set status [macports::upgrade $dep_portname port:$dep_portname $variants $options depscache]
-                # status 2 means the port was not found in the index
-                if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
-                    return -code error "upgrade $dep_portname failed"
-                }
+                lappend depnames_to_upgrade $dep_portname
+                dict set depdict $dep_portname dspec port:$dep_portname
+                dict set depdict $dep_portname variations $variants
+                dict set depdict $dep_portname options $options
+                dict set depdict $dep_portname depscachename depscache
             }
+        }
+    }
+    # ignore errors due to ports not found in the index
+    set options [dict create ignore_unindexed 1]
+    if {[llength $depnames_to_upgrade] > 0} {
+        set status [macports::upgrade_multi $depnames_to_upgrade $depdict $options]
+        if {$status != 0 && ![macports::ui_isset ports_processall]} {
+            return -code error "upgrading deps for [dict get $portinfo name] failed"
         }
     }
     } finally {
@@ -4670,21 +4681,29 @@ proc macports::selfupdate {{options {}} {updatestatusvar {}}} {
 #   2 = port name not found in index
 #   3 = port not installed
 proc macports::upgrade {portname dspec variations options {depscachename {}}} {
-    variable global_options
-    # only installed ports can be upgraded
-    set ilist [registry::entry imaged $portname]
-    if {$ilist eq {}} {
-        ui_error "$portname is not installed"
-        return 3
-    }
-    #foreach i $ilist {
-    #    registry::entry close $i
-    #}
     if {$depscachename ne ""} {
         upvar $depscachename depscache
     } else {
         array set depscache {}
     }
+    set argdict [dict create $portname [dict create dspec $dspec variations $variations options $options depscachename depscache]]
+    return [macports::upgrade_multi [list $portname] $argdict $options]
+}
+
+proc macports::upgrade_multi {portnames argdict options} {
+    variable global_options
+    # only installed ports can be upgraded
+    foreach portname $portnames {
+        set ilist [registry::entry imaged $portname]
+        if {$ilist eq {}} {
+            ui_error "$portname is not installed"
+            return 3
+        }
+    }
+    #foreach i $ilist {
+    #    registry::entry close $i
+    #}
+
     # stop upgrade from being called via mportexec as well
     set orig_nodeps yes
     if {![info exists global_options(ports_nodeps)]} {
@@ -4692,8 +4711,36 @@ proc macports::upgrade {portname dspec variations options {depscachename {}}} {
         set orig_nodeps no
     }
 
-    # run the actual upgrade
-    set status [macports::_upgrade $portname $dspec $variations $options depscache]
+    # plan the upgrade
+    set upgrade_oplist [list]
+    set upgrade_portcount 0
+    foreach portname $portnames {
+        unset -nocomplain depscache
+        set depscachename [dict get $argdict $portname depscachename]
+        if {$depscachename ne ""} {
+            upvar $depscachename depscache
+        } else {
+            array set depscache {}
+        }
+        set status [macports::_plan_upgrade $portname \
+                        [dict get $argdict $portname dspec] \
+                        [dict get $argdict $portname variations] \
+                        [dict get $argdict $portname options] depscache]
+
+        if {$status == 2 && [dict exists $options ignore_unindexed]} {
+            set status 0
+        }
+        if {$status == 3 && [dict exists $options ignore_uninstalled]} {
+            set status 0
+        }
+        if {$status != 0 && ![ui_isset ports_processall]} {
+            break
+        }
+    }
+    if {$status == 0} {
+        # run the actual upgrade operations
+        set status [macports::_exec_upgrade $upgrade_oplist $upgrade_portcount]
+    }
 
     if {!$orig_nodeps} {
         unset -nocomplain global_options(ports_nodeps)
@@ -4702,9 +4749,15 @@ proc macports::upgrade {portname dspec variations options {depscachename {}}} {
     return $status
 }
 
-# main internal upgrade procedure
-proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
+# internal upgrade procedure - builds a list of operations needed to
+# perform the upgrade.
+proc macports::_plan_upgrade {portname dspec variations options {depscachename {}}} {
     variable global_variations
+
+    # Output - list of operations
+    upvar upgrade_oplist upgrade_oplist
+    # number of ports to be actually upgraded
+    upvar upgrade_portcount upgrade_portcount
 
     if {$depscachename ne ""} {
         upvar $depscachename depscache
@@ -4790,18 +4843,9 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
                 catch {mportclose $mport}
                 return $status
             }
-            # now install it
-            if {[catch {mportexec $mport activate} result]} {
-                ui_debug $::errorInfo
-                ui_error "Unable to exec port: $result"
-                catch {mportclose $mport}
-                return 1
-            } elseif {$result != 0} {
-                ui_error "Problem while installing $portname"
-                catch {mportclose $mport}
-                return $result
-            }
-            mportclose $mport
+            # add installing it to the operations list
+            lappend upgrade_oplist [list activate $mport]
+            incr upgrade_portcount
         } else {
             # dependency is satisfied by something other than the named port
             ui_debug "$portname not installed, soft dependency satisfied"
@@ -4820,7 +4864,6 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
     # set version_in_tree and revision_in_tree
     if {![dict exists $portinfo version]} {
         ui_error "Invalid port entry for ${portname}, missing version"
-        _upgrade_cleanup
         return 1
     }
     set version_in_tree [dict get $portinfo version]
@@ -4915,12 +4958,10 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
         if {[catch {mportlookup [dict get $portinfo replaced_by]} result]} {
             ui_debug $::errorInfo
             ui_error "port lookup failed: $result"
-            _upgrade_cleanup
             return 1
         }
         if {$result eq ""} {
             ui_error "No port [dict get $portinfo replaced_by] found."
-            _upgrade_cleanup
             return 1
         }
         lassign $result newname portinfo
@@ -4943,7 +4984,6 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
     if {[catch {set mport [mportopen $porturl $interp_options $variations]} result]} {
         ui_debug $::errorInfo
         ui_error "Unable to open port: $result"
-        _upgrade_cleanup
         return 1
     }
 
@@ -4995,7 +5035,6 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
                 if {[catch {set mport [mportopen $porturl $interp_options $installedvariations]} result]} {
                     ui_debug $::errorInfo
                     ui_error "Unable to open port: $result"
-                    _upgrade_cleanup
                     return 1
                 }
             } else {
@@ -5020,7 +5059,6 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
         # the last arg is because we might have to build from source if a rebuild is being forced
         set status [_upgrade_dependencies $portinfo depscache $called_variations $options [expr {$will_build && $already_installed}]]
         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-            _upgrade_cleanup
             return $status
         }
     } else {
@@ -5029,7 +5067,7 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
 
     if {!$will_install} {
         # not upgrading this port, so just update its metadata
-        _upgrade_metadata $mport $regref $is_dryrun
+        lappend upgrade_oplist [list metadata $mport $regref $is_dryrun]
         # check if we have to do dependents
         if {[dict exists $options ports_do_dependents]} {
             # We do dependents ..
@@ -5043,101 +5081,41 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
             }
             foreach mpname $dependents_names {
                 if {![info exists depscache(port:$mpname)]} {
-                    set status [macports::_upgrade $mpname port:$mpname $called_variations $options depscache]
+                    set status [macports::_plan_upgrade $mpname port:$mpname $called_variations $options depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-                        _upgrade_cleanup
                         return $status
                     }
                 }
             }
         }
-        _upgrade_cleanup
         return 0
     }
 
-    set workername [ditem_key $mport workername]
     if {$will_build} {
+        set oplist_entry [list install $mport]
         if {$already_installed
             && ([dict exists $options ports_upgrade_force] || $build_override == 1)} {
-            # Tell archivefetch/unarchive not to use the installed archive, i.e. a
-            # fresh one will be either fetched or built locally.
-            # Ideally this would be done in the interp_options when we mportopen,
-            # but we don't know if we want to do this at that point.
-            $workername eval [list set force_archive_refresh yes]
-
-            # run archivefetch and (if needed) destroot for version_in_tree
-            # doing this instead of just running install ensures that we have the
-            # new copy ready but not yet installed, so we can safely uninstall the
-            # existing one.
-            set archivefetch_failed 1
-            if {![dict exists $interp_options ports_source_only]} {
-                if {[catch {mportexec $mport archivefetch} result]} {
-                    ui_debug $::errorInfo
-                } elseif {$result == 0 && [$workername eval [list find_portarchive_path]] ne ""} {
-                    set archivefetch_failed 0
-                }
-            }
-            if {$archivefetch_failed} {
-                if {[dict exists $interp_options ports_binary_only]} {
-                    _upgrade_cleanup
-                    return 1
-                }
-                if {[catch {mportexec $mport destroot} result]} {
-                    ui_debug $::errorInfo
-                    _upgrade_cleanup
-                    return 1
-                } elseif {$result != 0} {
-                    _upgrade_cleanup
-                    return 1
-                }
-            }
+            # set flags: refresh, source_only, binary_only
+            lappend oplist_entry 1 [dict exists $interp_options ports_source_only] [dict exists $interp_options ports_binary_only]
         } else {
             # Normal non-forced case
-            # install version_in_tree (but don't activate yet)
-            if {[catch {mportexec $mport install} result]} {
-                ui_debug $::errorInfo
-                _upgrade_cleanup
-                return 1
-            } elseif {$result != 0} {
-                _upgrade_cleanup
-                return 1
-            }
+            lappend oplist_entry 0 0 0
         }
+        lappend upgrade_oplist $oplist_entry
     }
 
     unset interp_options
 
-    # check if the startupitem is loaded, so we can load again it after upgrading
-    # (deactivating the old version will unload the startupitem)
-    set loaded_startupitems [list]
+    # check which startupitems are loaded, so we can load again after upgrading
     if {$portname eq $newname} {
-        set loaded_startupitems [$workername eval [list portstartupitem::loaded]]
+        lappend upgrade_oplist [list save_startupitems $mport]
     }
 
     # are we installing an existing version due to force or epoch override?
     if {$already_installed
         && ([dict exists $options ports_upgrade_force] || $build_override == 1)} {
-         ui_debug "Uninstalling $newname ${version_in_tree}_${revision_in_tree}[dict get $portinfo canonical_active_variants]"
-        # we have to force the uninstall in case of dependents
-        set force_cur [dict exists $options ports_force]
-        dict set options ports_force yes
-        set newregref [registry::entry open $newname $version_in_tree $revision_in_tree [dict get $portinfo canonical_active_variants] ""]
-        if {$is_dryrun} {
-            ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}[dict get $portinfo canonical_active_variants] (dry run)"
-        } elseif {![registry::run_target $newregref uninstall $options]
-                  && [catch {registry_uninstall::uninstall $newname $version_in_tree $revision_in_tree [dict get $portinfo canonical_active_variants] $options} result]} {
-            ui_debug $::errorInfo
-            ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}[dict get $portinfo canonical_active_variants] failed: $result"
-            _upgrade_cleanup
-            return 1
-        }
-        # newregref is rendered invalid if the port was uninstalled
-        if {!$is_dryrun} {
-            unset newregref
-        }
-        if {!$force_cur} {
-            dict unset options ports_force
-        }
+
+        lappend upgrade_oplist [list uninstall $newname $version_in_tree $revision_in_tree [dict get $portinfo canonical_active_variants] $options $is_dryrun]
         if {$anyactive && $version_in_tree eq $version_active && $revision_in_tree == $revision_active
             && [dict get $portinfo canonical_active_variants] eq $variant_active && $portname eq $newname} {
             set anyactive no
@@ -5145,21 +5123,7 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
     }
     if {$anyactive && $portname ne $newname} {
         # replaced_by in effect, deactivate the old port
-        # we have to force the deactivate in case of dependents
-        set force_cur [dict exists $options ports_force]
-        dict set options ports_force yes
-        if {$is_dryrun} {
-            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"
-        } elseif {![registry::run_target $regref deactivate $options]
-                  && [catch {portimage::deactivate $portname $version_active $revision_active $variant_active $options} result]} {
-            ui_debug $::errorInfo
-            ui_error "Deactivating $portname @${version_active}_${revision_active}$variant_active failed: $result"
-            _upgrade_cleanup
-            return 1
-        }
-        if {!$force_cur} {
-            dict unset options ports_force
-        }
+        lappend upgrade_oplist [list deactivate $regref $portname $version_active $revision_active $variant_active $options $is_dryrun]
         set anyactive no
     }
     if {[dict exists $options port_uninstall_old] && $portname eq $newname} {
@@ -5170,33 +5134,14 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
 
     if {$is_dryrun} {
         if {$anyactive} {
-            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"
+            lappend upgrade_oplist [list message "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"]
         }
-        ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}[dict get $portinfo canonical_active_variants] (dry run)"
+        lappend upgrade_oplist [list message "Skipping activate $newname @${version_in_tree}_${revision_in_tree}[dict get $portinfo canonical_active_variants] (dry run)"]
     } else {
-        set failed 0
-        if {[catch {mportexec $mport activate} result]} {
-            ui_debug $::errorInfo
-            set failed 1
-        } elseif {$result != 0} {
-            set failed 1
-        }
-        if {$failed} {
-            ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}[dict get $portinfo canonical_active_variants]: $result"
-            _upgrade_cleanup
-            return 1
-        }
-        if {$loaded_startupitems ne ""} {
-            $workername eval [list set ::portstartupitem::load_only $loaded_startupitems]
-            if {[catch {mportexec $mport load} result]} {
-                ui_debug $::errorInfo
-                ui_warn "Error loading startupitem(s) for ${newname}: $result"
-            } elseif {$result != 0} {
-                ui_warn "Error loading startupitem(s) for ${newname}: $result"
-            }
-            $workername eval [list unset ::portstartupitem::load_only]
-        }
+        lappend upgrade_oplist [list activate_only $mport]
+        lappend upgrade_oplist [list load_startupitems $mport]
     }
+    incr upgrade_portcount
 
     # Check if we have to do dependents
     if {[dict exists $options ports_do_dependents]} {
@@ -5204,9 +5149,7 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
         dict set options ports_nodeps 1
 
         if {$portname ne $newname} {
-            if {![info exists newregref]} {
-                set newregref [registry::entry open $newname $version_in_tree $revision_in_tree [dict get $portinfo canonical_active_variants] ""]
-            }
+            set newregref [registry::entry open $newname $version_in_tree $revision_in_tree [dict get $portinfo canonical_active_variants] ""]
             lappend dependents_list {*}[$newregref dependents]
         }
 
@@ -5218,9 +5161,8 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
         }
         foreach mpname $dependents_names {
             if {![info exists depscache(port:$mpname)]} {
-                set status [macports::_upgrade $mpname port:$mpname $called_variations $options depscache]
+                set status [macports::_plan_upgrade $mpname port:$mpname $called_variations $options depscache]
                 if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-                    _upgrade_cleanup
                     return $status
                 }
             }
@@ -5228,34 +5170,14 @@ proc macports::_upgrade {portname dspec variations options {depscachename {}}} {
     }
 
     if {[info exists uninstall_later] && $uninstall_later} {
-        if {[catch {registry::entry imaged $portname} ilist]} {
-            ui_error "Checking installed version failed: $ilist"
-            return 1
-        }
-        foreach i $ilist {
-            set version [$i version]
-            set revision [$i revision]
-            set variant [$i variants]
-            if {$version eq $version_in_tree && $revision == $revision_in_tree && $variant eq [dict get $portinfo canonical_active_variants] && $portname eq $newname} {
-                continue
-            }
-            ui_debug "Uninstalling $portname ${version}_${revision}$variant"
-            if {$is_dryrun} {
-                ui_msg "Skipping uninstall $portname @${version}_${revision}$variant (dry run)"
-            } elseif {![registry::run_target $i uninstall $options]
-                      && [catch {registry_uninstall::uninstall $portname $version $revision $variant $options} result]} {
-                ui_debug $::errorInfo
-                # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
-                if {$result ne "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
-                    ui_error "Uninstall $portname @${version}_${revision}$variant failed: $result"
-                    _upgrade_cleanup
-                    return 1
-                }
-            }
+        if {$portname eq $newname} {
+            lappend upgrade_oplist [list uninstall_other_vers $portname $version_in_tree $revision_in_tree [dict get $portinfo canonical_active_variants] $options $is_dryrun]
+        } else {
+            # Uninstall all versions of a replaced port
+            lappend upgrade_oplist [list uninstall_other_vers $portname {} {} 0 $options $is_dryrun]
         }
     }
 
-    _upgrade_cleanup
     return 0
 }
 
@@ -5312,38 +5234,14 @@ proc macports::_mport_open_with_archcheck {porturl depspec dependent_mport optio
     error "architecture mismatch"
 }
 
-# _upgrade calls this to clean up before returning
-proc macports::_upgrade_cleanup {} {
-    #upvar ilist ilist regref regref newregref newregref \
-    #      deplist deplist
-    upvar mport mport
-    if {[info exists mport]} {
-        catch {mportclose $mport}
-    }
-    #if {[info exists ilist]} {
-    #    foreach i $ilist {
-    #        catch {registry::entry close $i}
-    #    }
-    #}
-    #if {[info exists regref]} {
-    #    catch {registry::entry close $regref}
-    #}
-    #if {[info exists newregref]} {
-    #    catch {registry::entry close $newregref}
-    #}
-    #if {[info exists deplist]} {
-    #    foreach i $deplist {
-    #        catch {registry::entry close $i}
-    #    }
-    #}
-}
-
 # upgrade_dependencies: helper proc for upgrade
-# Calls upgrade on each dependency listed in the PortInfo.
+# Calls _plan_upgrade on each dependency listed in the PortInfo.
 # Uses upvar to access the variables.
 proc macports::_upgrade_dependencies {portinfo depscachename variations options {build_needed no}} {
     upvar $depscachename depscache \
-          mport parentmport
+          mport parentmport \
+          upgrade_oplist upgrade_oplist \
+          upgrade_portcount upgrade_portcount
 
     # If we're following dependents, we only want to follow this port's
     # dependents, not those of all its dependencies. Otherwise, we would
@@ -5371,7 +5269,7 @@ proc macports::_upgrade_dependencies {portinfo depscachename variations options 
                     set d [lindex [split $i :] end]
                 }
                 if {![info exists depscache(port:$d)] && ![info exists depscache($i)]} {
-                    set status [macports::_upgrade $d $i $variations $options depscache]
+                    set status [macports::_plan_upgrade $d $i $variations $options depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} break
                 }
             }
@@ -5481,6 +5379,235 @@ proc macports::_upgrade_metadata {mport regref is_dryrun} {
             }
         }
     }
+}
+
+# Perform an upgrade by executing a list of operations generated by _plan_upgrade
+proc macports::_exec_upgrade {oplist upgrade_count} {
+    variable ui_prefix
+    set status 0
+    set upgrade_index 0
+    set all_mports [dict create]
+    set loaded_startupitems [dict create]
+    try {
+        # First extract the set of mports to close when we're done
+        foreach op $oplist {
+            switch -- [lindex $op 0] {
+                activate -
+                install -
+                metadata {
+                    dict set all_mports [lindex $op 1] {}
+                }
+            }
+        }
+        # Now run the actual operations
+        foreach op $oplist {
+            switch -- [lindex $op 0] {
+                activate {
+                    # Install and activate a port
+                    set mport [lindex $op 1]
+                    set portinfo [mportinfo $mport]
+                    set portname [dict get $portinfo name]
+                    set port_full_vers [dict get $portinfo version]_[dict get $portinfo revision][dict get $portinfo canonical_active_variants]
+                    if {$upgrade_count > 1} {
+                        incr upgrade_index
+                        ui_msg "$ui_prefix Installing $portname @$port_full_vers (${upgrade_index}/${upgrade_count})"
+                    }
+                    if {[catch {mportexec $mport activate} result]} {
+                        ui_debug $::errorInfo
+                        ui_error "Unable to exec port: $result"
+                        set status 1
+                        break
+                    } elseif {$result != 0} {
+                        ui_error "Problem while installing $portname @$port_full_vers"
+                        set status $result
+                        break
+                    }
+                }
+                activate_only {
+                    # Activate a previously installed port
+                    set mport [lindex $op 1]
+                    set failed 0
+                    if {[catch {mportexec $mport activate} result]} {
+                        ui_debug $::errorInfo
+                        set failed 1
+                    } elseif {$result != 0} {
+                        set failed 1
+                    }
+                    if {$failed} {
+                        set portinfo [mportinfo $mport]
+                        set portname [dict get $portinfo name]
+                        set port_full_vers [dict get $portinfo version]_[dict get $portinfo revision][dict get $portinfo canonical_active_variants]
+                        ui_error "Couldn't activate $portname @${port_full_vers}: $result"
+                        set status 1
+                        break
+                    }
+                }
+                deactivate {
+                    lassign [lrange $op 1 end] regref portname version revision variants options is_dryrun
+                    # we have to force the deactivate in case of dependents
+                    dict set options ports_force yes
+                    if {$is_dryrun} {
+                        ui_msg "Skipping deactivate $portname @${version}_${revision}${variants} (dry run)"
+                    } elseif {![registry::run_target $regref deactivate $options]
+                              && [catch {portimage::deactivate $portname $version $revision $variants $options} result]} {
+                        ui_debug $::errorInfo
+                        ui_error "Deactivating $portname @${version}_${revision}${variants} failed: $result"
+                        set status 1
+                        break
+                    }
+                }
+                install {
+                    set mport [lindex $op 1]
+                    set portname [ditem_key $mport provides]
+                    set workername [ditem_key $mport workername]
+                    if {$upgrade_count > 1} {
+                        incr upgrade_index
+                        ui_msg "$ui_prefix Upgrading $portname (${upgrade_index}/${upgrade_count})"
+                    }
+
+                    set refresh [lindex $op 2]
+                    if {$refresh} {
+                        # Tell archivefetch/unarchive not to use the installed archive, i.e. a
+                        # fresh one will be either fetched or built locally.
+                        # Ideally this would be done in the interp_options when we mportopen,
+                        # but we don't know if we want to do this at that point.
+                        $workername eval [list set force_archive_refresh yes]
+
+                        # run archivefetch and (if needed) destroot for version_in_tree
+                        # doing this instead of just running install ensures that we have the
+                        # new copy ready but not yet installed, so we can safely uninstall the
+                        # existing one.
+                        set destroot_needed 1
+                        set source_only [lindex $op 3]
+                        if {!$source_only} {
+                            if {[catch {mportexec $mport archivefetch} result]} {
+                                ui_debug $::errorInfo
+                            } elseif {$result == 0 && [$workername eval [list find_portarchive_path]] ne ""} {
+                                set destroot_needed 0
+                            }
+                        }
+                        if {$destroot_needed} {
+                            set binary_only [lindex $op 4]
+                            if {$binary_only} {
+                                set status 1
+                                break
+                            }
+                            if {[catch {mportexec $mport destroot} result]} {
+                                ui_debug $::errorInfo
+                                set status 1
+                                break
+                            } elseif {$result != 0} {
+                                set status 1
+                                break
+                            }
+                        }
+                    } else {
+                        # Normal non-forced case
+                        # install version_in_tree (but don't activate yet)
+                        if {[catch {mportexec $mport install} result]} {
+                            ui_debug $::errorInfo
+                            set status 1
+                            break
+                        } elseif {$result != 0} {
+                            set status 1
+                            break
+                        }
+                    }
+                }
+                load_startupitems {
+                    set mport [lindex $op 1]
+                    set portname [ditem_key $mport provides]
+                    if {[dict exists $loaded_startupitems $mport]} {
+                        set loaded [dict get $loaded_startupitems $mport]
+                    } else {
+                        ui_debug "_exec_upgrade: load_startupitems done for $portname without preceding save_startupitems"
+                        set loaded ""
+                    }
+                    if {$loaded ne ""} {
+                        set workername [ditem_key $mport workername]
+                        $workername eval [list set ::portstartupitem::load_only $loaded]
+                        if {[catch {mportexec $mport load} result]} {
+                            ui_debug $::errorInfo
+                            ui_warn "Error loading startupitem(s) for ${portname}: $result"
+                        } elseif {$result != 0} {
+                            ui_warn "Error loading startupitem(s) for ${portname}: $result"
+                        }
+                        $workername eval [list unset ::portstartupitem::load_only]
+                    }
+                }
+                message {
+                    ui_msg [lindex $op 1]
+                }
+                metadata {
+                    if {[catch {
+                            _upgrade_metadata {*}[lrange $op 1 end]
+                        } result]} {
+                            ui_debug $::errorInfo
+                            set portname [ditem_key [lindex $op 1] provides]
+                            ui_error "Failed to update metadata for ${portname}: $result"
+                        }
+                }
+                save_startupitems {
+                    # check which startupitems are loaded, so we can load again after upgrading
+                    # (deactivating the old version will unload the startupitems)
+                    set mport [lindex $op 1]
+                    set workername [ditem_key $mport workername]
+                    dict set loaded_startupitems $mport [$workername eval [list portstartupitem::loaded]]
+                }
+                uninstall {
+                    lassign [lrange $op 1 end] portname version revision variants options is_dryrun
+                    ui_debug "Uninstalling $portname ${version}_${revision}${variants}"
+                    # we have to force the uninstall in case of dependents
+                    dict set options ports_force yes
+                    set regref [registry::entry open $portname $version $revision $variants ""]
+                    if {$is_dryrun} {
+                        ui_msg "Skipping uninstall $portname @${version}_${revision}${variants} (dry run)"
+                    } elseif {![registry::run_target $regref uninstall $options]
+                              && [catch {registry_uninstall::uninstall $portname $version $revision $variants $options} result]} {
+                        ui_debug $::errorInfo
+                        ui_error "Uninstall $portname ${version}_${revision}${variants} failed: $result"
+                        set status 1
+                        break
+                    }
+                }
+                uninstall_other_vers {
+                    # Uninstall installed versions of the given port other than the version given
+                    lassign [lrange $op 1 end] portname keep_version keep_revision keep_variants options is_dryrun
+                    if {[catch {registry::entry imaged $portname} ilist]} {
+                        ui_error "Checking installed version of $portname failed: $ilist"
+                        set status 1
+                        break
+                    }
+                    foreach i $ilist {
+                        set version [$i version]
+                        set revision [$i revision]
+                        set variant [$i variants]
+                        if {$version eq $keep_version && $revision == $keep_revision && $variant eq $keep_variants} {
+                            continue
+                        }
+                        ui_debug "Uninstalling $portname @${version}_${revision}$variant"
+                        if {$is_dryrun} {
+                            ui_msg "Skipping uninstall $portname @${version}_${revision}$variant (dry run)"
+                        } elseif {![registry::run_target $i uninstall $options]
+                                  && [catch {registry_uninstall::uninstall $portname $version $revision $variant $options} result]} {
+                            ui_debug $::errorInfo
+                            # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
+                            if {$result ne "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
+                                ui_error "Uninstall $portname @${version}_${revision}$variant failed: $result"
+                                set status 1
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } finally {
+        foreach mport [dict keys $all_mports] {
+            mportclose $mport
+        }
+    }
+    return $status
 }
 
 # mportselect

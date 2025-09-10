@@ -2643,17 +2643,17 @@ proc action_upgrade { action portlist opts } {
 
     # shared depscache for all ports in the list
     array set depscache {}
-    set status 0
+    set portnames [list]
+    set argdict [dict create]
     foreachport $portlist {
-        if {![info exists depscache(port:$portname)]} {
-            set status [macports::upgrade $portname "port:$portname" $requested_variations $options depscache]
-            # status 2 means the port was not found in the index,
-            # status 3 means the port is not installed
-            if {$status != 0 && $status != 2 && $status != 3 && ![macports::ui_isset ports_processall]} {
-                break
-            }
-        }
+        lappend portnames $portname
+        dict set argdict $portname dspec port:$portname
+        dict set argdict $portname variations $requested_variations
+        dict set argdict $portname options $options
+        dict set argdict $portname depscachename depscache
     }
+    set upgrade_options [dict create ignore_unindexed 1 ignore_uninstalled 1]
+    set status [macports::upgrade_multi $portnames $argdict $upgrade_options]
 
     if {$status != 0 && $status != 2 && $status != 3} {
         print_tickets_url
