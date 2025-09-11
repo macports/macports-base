@@ -5393,9 +5393,10 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
         foreach op $oplist {
             switch -- [lindex $op 0] {
                 activate -
+                activate_only -
                 install -
                 metadata {
-                    dict set all_mports [lindex $op 1] {}
+                    dict set all_mports [lindex $op 1] 0
                 }
             }
         }
@@ -5426,6 +5427,11 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                 activate_only {
                     # Activate a previously installed port
                     set mport [lindex $op 1]
+                    if {$upgrade_count > 1 && ![dict get $all_mports $mport]} {
+                        dict set all_mports $mport 1
+                        incr upgrade_index
+                        ui_msg "$ui_prefix Upgrading $portname (${upgrade_index}/${upgrade_count})"
+                    }
                     set failed 0
                     if {[catch {mportexec $mport activate} result]} {
                         ui_debug $::errorInfo
@@ -5460,7 +5466,8 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     set mport [lindex $op 1]
                     set portname [ditem_key $mport provides]
                     set workername [ditem_key $mport workername]
-                    if {$upgrade_count > 1} {
+                    if {$upgrade_count > 1 && ![dict get $all_mports $mport]} {
+                        dict set all_mports $mport 1
                         incr upgrade_index
                         ui_msg "$ui_prefix Upgrading $portname (${upgrade_index}/${upgrade_count})"
                     }
