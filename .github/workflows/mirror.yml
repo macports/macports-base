@@ -2,13 +2,14 @@ name: "Mirror base files"
 
 on:
   release:
-    types: [released, prereleased, edited]
+    types: [published, edited]
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  mirror:
+    if: github.event.release.draft == false
     name: Mirror base files
     concurrency:
       group: mirror-${{ github.ref }}
