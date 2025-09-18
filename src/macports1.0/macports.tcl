@@ -4704,6 +4704,11 @@ proc macports::upgrade_multi {portnames argdict options} {
     #    registry::entry close $i
     #}
 
+    if {[llength $portnames] == 0} {
+        ui_info "Nothing to upgrade."
+        return 0
+    }
+
     # stop upgrade from being called via mportexec as well
     set orig_nodeps yes
     if {![info exists global_options(ports_nodeps)]} {
