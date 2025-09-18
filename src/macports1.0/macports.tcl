@@ -4722,19 +4722,21 @@ proc macports::upgrade_multi {portnames argdict options} {
         } else {
             array set depscache {}
         }
-        set status [macports::_plan_upgrade $portname \
-                        [dict get $argdict $portname dspec] \
-                        [dict get $argdict $portname variations] \
-                        [dict get $argdict $portname options] depscache]
+        set dspec [dict get $argdict $portname dspec]
+        if {![info exists depscache($dspec)]} {
+            set status [macports::_plan_upgrade $portname $dspec \
+                            [dict get $argdict $portname variations] \
+                            [dict get $argdict $portname options] depscache]
 
-        if {$status == 2 && [dict exists $options ignore_unindexed]} {
-            set status 0
-        }
-        if {$status == 3 && [dict exists $options ignore_uninstalled]} {
-            set status 0
-        }
-        if {$status != 0 && ![ui_isset ports_processall]} {
-            break
+            if {$status == 2 && [dict exists $options ignore_unindexed]} {
+                set status 0
+            }
+            if {$status == 3 && [dict exists $options ignore_uninstalled]} {
+                set status 0
+            }
+            if {$status != 0 && ![ui_isset ports_processall]} {
+                break
+            }
         }
     }
     if {$status == 0} {
