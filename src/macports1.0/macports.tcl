@@ -4714,6 +4714,7 @@ proc macports::upgrade_multi {portnames argdict options} {
     # plan the upgrade
     set upgrade_oplist [list]
     set upgrade_portcount 0
+    set status 0
     foreach portname $portnames {
         unset -nocomplain depscache
         set depscachename [dict get $argdict $portname depscachename]
