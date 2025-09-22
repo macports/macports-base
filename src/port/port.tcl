@@ -2650,10 +2650,9 @@ proc action_upgrade { action portlist opts } {
         dict set argdict $portname dspec port:$portname
         dict set argdict $portname variations $requested_variations
         dict set argdict $portname options $options
-        dict set argdict $portname depscachename depscache
     }
     set upgrade_options [dict create ignore_unindexed 1 ignore_uninstalled 1]
-    set status [macports::upgrade_multi $portnames $argdict $upgrade_options]
+    set status [macports::upgrade_multi $portnames $argdict $upgrade_options depscache]
 
     if {$status != 0 && $status != 2 && $status != 3} {
         print_tickets_url

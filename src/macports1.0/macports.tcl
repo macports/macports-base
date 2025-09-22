@@ -4686,11 +4686,11 @@ proc macports::upgrade {portname dspec variations options {depscachename {}}} {
     } else {
         array set depscache {}
     }
-    set argdict [dict create $portname [dict create dspec $dspec variations $variations options $options depscachename depscache]]
-    return [macports::upgrade_multi [list $portname] $argdict $options]
+    set argdict [dict create $portname [dict create dspec $dspec variations $variations options $options]]
+    return [macports::upgrade_multi [list $portname] $argdict $options depscache]
 }
 
-proc macports::upgrade_multi {portnames argdict options} {
+proc macports::upgrade_multi {portnames argdict options {depscachename {}}} {
     variable global_options
     # only installed ports can be upgraded
     foreach portname $portnames {
@@ -4711,18 +4711,17 @@ proc macports::upgrade_multi {portnames argdict options} {
         set orig_nodeps no
     }
 
+    if {$depscachename ne ""} {
+        upvar $depscachename depscache
+    } else {
+        array set depscache {}
+    }
+
     # plan the upgrade
     set upgrade_oplist [list]
     set upgrade_portcount 0
     set status 0
     foreach portname $portnames {
-        unset -nocomplain depscache
-        set depscachename [dict get $argdict $portname depscachename]
-        if {$depscachename ne ""} {
-            upvar $depscachename depscache
-        } else {
-            array set depscache {}
-        }
         set dspec [dict get $argdict $portname dspec]
         if {![info exists depscache($dspec)]} {
             set status [macports::_plan_upgrade $portname $dspec \
