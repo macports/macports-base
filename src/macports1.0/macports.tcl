@@ -5418,17 +5418,19 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
         set to_install_len [llength $ports_to_install]
         set to_upgrade_len [llength $ports_to_upgrade]
         if {[info exists ui_options(questions_yesno)]} {
-            set ports_msg $ports_to_upgrade
-            if {$to_install_len >= 1} {
-                set s [expr {$to_install_len >= 2 ? "s" : ""}]
-                set d [expr {$to_install_len >= 2 ? "dependencies" : "a dependency"}]
-                lappend ports_msg "\nThe following new port${s} will be installed as ${d}:" {*}$ports_to_install
-            }
-            set s [expr {$to_upgrade_len != 1 ? "s" : ""}]
-            set retvalue [$ui_options(questions_yesno) "The following port${s} will be upgraded:" "_exec_upgrade 1" $ports_msg {y} 0]
-            if {$retvalue == 1} {
-                # quit as user answered 'no'
-                return 0
+            if {$to_upgrade_len >= 1 || $to_install_len >= 1} {
+                set ports_msg $ports_to_upgrade
+                if {$to_install_len >= 1} {
+                    set s [expr {$to_install_len >= 2 ? "s" : ""}]
+                    set d [expr {$to_install_len >= 2 ? "dependencies" : "a dependency"}]
+                    lappend ports_msg "\nThe following new port${s} will be installed as ${d}:" {*}$ports_to_install
+                }
+                set s [expr {$to_upgrade_len != 1 ? "s" : ""}]
+                set retvalue [$ui_options(questions_yesno) "The following port${s} will be upgraded:" "_exec_upgrade 1" $ports_msg {y} 0]
+                if {$retvalue == 1} {
+                    # quit as user answered 'no'
+                    return 0
+                }
             }
         } else {
             if {$to_upgrade_len >= 1} {
