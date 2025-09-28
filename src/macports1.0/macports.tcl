@@ -99,7 +99,8 @@ namespace eval macports {
     variable portinterp_deferred_options [list developer_dir xcodeversion xcodebuildcmd \
                                                xcodecltversion xcode_license_unaccepted]
 
-    variable open_mports {}
+    # maps porturls to the list of open mports with each url
+    variable open_mports [dict create]
 
     variable ui_priorities [list error warn msg notice info debug any]
     variable current_phase main
@@ -2438,13 +2439,13 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
         }
     }
 
-    # Look for an already-open MPort with the same URL.
+    # Look for an already-open MPort with the same URL, variations and options.
     # If found, return the existing reference and bump the refcount.
-    if {$nocache ne ""} {
-        set mport ""
-    } else {
+    if {$nocache eq "" && [dict exists $open_mports $porturl]} {
         set comparators [dict create variations dictequal options dictequal]
-        set mport [dlist_match_multi $open_mports [list porturl $porturl variations $variations options $options] $comparators]
+        set mport [dlist_match_multi [dict get $open_mports $porturl] [list variations $variations options $options] $comparators]
+    } else {
+        set mport ""
     }
     if {$mport ne ""} {
         # just in case more than one somehow matches
@@ -2466,7 +2467,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     set workername [interp create]
 
     set mport [ditem_create]
-    lappend open_mports $mport
+    dict lappend open_mports $porturl $mport
     ditem_key $mport porturl $porturl
     ditem_key $mport portpath $portpath
     ditem_key $mport workername $workername
@@ -4186,10 +4187,18 @@ proc mportclose {mport} {
     incr refcnt -1
     ditem_key $mport refcnt $refcnt
     if {$refcnt == 0} {
-        dlist_delete open_mports $mport
+        set porturl [ditem_key $mport porturl]
+        if {[dict exists $open_mports $porturl]} {
+            set mports_for_url [dict get $open_mports $porturl]
+            if {[llength $mports_for_url] > 1} {
+                dlist_delete mports_for_url $mport
+                dict set open_mports $porturl $mports_for_url
+            } else {
+                dict unset open_mports $porturl
+            }
+        }
         set workername [ditem_key $mport workername]
         interp delete $workername
-        #set porturl [ditem_key $mport porturl]
         #if {[info exists macports::extracted_portdirs($porturl)]} {
             # TODO port.tcl calls mportopen multiple times on the same port to
             # determine a number of attributes and will close the port after
@@ -4359,21 +4368,18 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     set dep_options $options
                     dict set dep_options subport [dict get $dep_portinfo name]
                     set dep_porturl [dict get $dep_portinfo porturl]
-                    # Figure out the depport. Check the depList (or open_mports) first, since
+                    # Figure out the depport. Check the cache first, since
                     # we potentially leak mport references if we mportopen each time,
                     # because mportexec only closes each open mport once.
-                    set matchlistname [expr {$depListName ne {} ? "depList" : "macports::open_mports"}]
-                    set comparators [dict create options dictequal]
-                    set depport_matches [dlist_match_multi [set $matchlistname] [list porturl $dep_porturl options $dep_options] $comparators]
-                    # if multiple matches, the most recently opened one is more likely what we want
-                    set depport [lindex $depport_matches end]
-
-                    if {$depport eq ""} {
+                    if {[dict exists $port_seen $dep_porturl]} {
+                        set depport [dict get $port_seen $dep_porturl]
+                    } else {
                         # We haven't opened this one yet.
                         set depport [mportopen $dep_porturl $dep_options $variations]
                         if {$depListName ne {}} {
                             lappend depList $depport
                         }
+                        dict set port_seen $dep_porturl $depport
                     }
                 }
             }
@@ -4403,6 +4409,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                             if {$depListName ne {}} {
                                 lappend depList $depport
                             }
+                            dict set port_seen $dep_porturl $depport
                         }
                     }
                 }
