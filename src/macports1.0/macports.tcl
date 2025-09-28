@@ -2850,6 +2850,9 @@ proc mportexec {mport target} {
             if {$log_needs_pop} {
                 macports::pop_log
             }
+            foreach ditem $dlist {
+                catch {mportclose $ditem}
+            }
             return 1
         }
         if {![macports::ui_isset ports_debug]} {
