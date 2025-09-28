@@ -2884,7 +2884,7 @@ proc mportexec {mport target} {
                         mportclose $ditem
                     }
                     return 0
-                } 
+                }
             } else {
                 set depstring "$ui_prefix Dependencies to be installed:"
                 foreach ditem $dlist {
@@ -2979,12 +2979,12 @@ proc mportexec {mport target} {
 # upgrade any dependencies of mport that are installed and needed for target
 proc macports::_upgrade_mport_deps {mport target} {
     variable universal_archs
-    set options [ditem_key $mport options]
+    set base_options [ditem_key $mport options]
+    dict unset base_options subport
     set workername [ditem_key $mport workername]
     set deptypes [macports::_deptypes_for_target $target $workername]
     set portinfo [mportinfo $mport]
     set opened_mports [list]
-    array set depscache {}
 
     set required_archs [$workername eval [list get_canonical_archs]]
     set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
@@ -3002,8 +3002,10 @@ proc macports::_upgrade_mport_deps {mport target} {
         }
         foreach depspec [dict get $portinfo $deptype] {
             set dep_portname [$workername eval [list _get_dep_port $depspec]]
-            if {$dep_portname ne "" && ![info exists depscache(port:$dep_portname)] && [_portnameactive $dep_portname]} {
+            if {$dep_portname ne "" && [_portnameactive $dep_portname]} {
+                set options $base_options
                 set variants [dict create]
+                set prepend 0
 
                 # check that the dep has the required archs
                 set active_archs [_active_archs $dep_portname]
@@ -3050,6 +3052,9 @@ proc macports::_upgrade_mport_deps {mport target} {
                                     # upgrade the dep with +universal
                                     dict set variants universal +
                                     dict set options ports_upgrade_enforce-variants yes
+                                    # Prepend to the list so this port won't be processed as
+                                    # a dependency of something else before adding universal.
+                                    set prepend 1
                                     ui_debug "enforcing +universal upgrade for $dep_portname"
                                 }
                             } else {
@@ -3067,20 +3072,26 @@ proc macports::_upgrade_mport_deps {mport target} {
                     }
                 }
 
-                lappend depnames_to_upgrade $dep_portname
+                if {$prepend} {
+                    set depnames_to_upgrade [list $dep_portname {*}$depnames_to_upgrade]
+                } else {
+                    lappend depnames_to_upgrade $dep_portname
+                }
                 dict set depdict $dep_portname dspec port:$dep_portname
                 dict set depdict $dep_portname variations $variants
                 dict set depdict $dep_portname options $options
-                dict set depdict $dep_portname depscachename depscache
             }
         }
     }
     # ignore errors due to ports not found in the index
     set options [dict create ignore_unindexed 1]
     if {[llength $depnames_to_upgrade] > 0} {
+        variable ui_prefix
+        set portname [dict get $portinfo name]
+        ui_msg "$ui_prefix Upgrading already installed dependencies of $portname"
         set status [macports::upgrade_multi $depnames_to_upgrade $depdict $options]
         if {$status != 0 && ![macports::ui_isset ports_processall]} {
-            return -code error "upgrading deps for [dict get $portinfo name] failed"
+            return -code error "upgrading deps for $portname failed"
         }
     }
     } finally {
