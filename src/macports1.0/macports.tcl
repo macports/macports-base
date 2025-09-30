@@ -4199,8 +4199,7 @@ proc mportclose {mport} {
     #macports::extracted_portdirs
     set refcnt [ditem_key $mport refcnt]
     incr refcnt -1
-    ditem_key $mport refcnt $refcnt
-    if {$refcnt == 0} {
+    if {$refcnt <= 0} {
         set porturl [ditem_key $mport porturl]
         if {[dict exists $open_mports $porturl]} {
             set mports_for_url [dict get $open_mports $porturl]
@@ -4225,6 +4224,8 @@ proc mportclose {mport} {
             #file delete -force $macports::extracted_portdirs($porturl)
         #}
         ditem_delete $mport
+    } else {
+        ditem_key $mport refcnt $refcnt
     }
 }
 
