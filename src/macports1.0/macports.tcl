@@ -4386,15 +4386,15 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     # Figure out the depport. Check the cache first, since
                     # we potentially leak mport references if we mportopen each time,
                     # because mportexec only closes each open mport once.
-                    if {[dict exists $port_seen $dep_porturl]} {
-                        set depport [dict get $port_seen $dep_porturl]
+                    if {[dict exists $port_seen $dep_porturl $dep_portname_norm]} {
+                        set depport [dict get $port_seen $dep_porturl $dep_portname_norm]
                     } else {
                         # We haven't opened this one yet.
                         set depport [mportopen $dep_porturl $dep_options $variations]
                         if {$depListName ne {}} {
                             lappend depList $depport
                         }
-                        dict set port_seen $dep_porturl $depport
+                        dict set port_seen $dep_porturl $dep_portname_norm $depport
                     }
                 }
             }
@@ -4424,7 +4424,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                             if {$depListName ne {}} {
                                 lappend depList $depport
                             }
-                            dict set port_seen $dep_porturl $depport
+                            dict set port_seen $dep_porturl $dep_portname_norm $depport
                         }
                     }
                 }
