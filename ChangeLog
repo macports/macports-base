@@ -2,6 +2,14 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.11.6 (unreleased)
+    - Fixed possible failure of (x)install -d when something else
+      creates the directory while it is running.
+      (#72886, jmr in 97aedd9)
+
+    - Fixed sandbox error when building with Xcode on Mac OS X 10.5.
+      (#72940, jmr in 81ada26)
+
 Release 2.11.5 (2025-08-18 by jmr)
     - Fixed unexpected behaviour of (x)install commands on APFS in
       some cases. (#72850, jmr in ea247a7, d8cfd53)
