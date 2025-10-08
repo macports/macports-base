@@ -133,11 +133,11 @@ proc portarchive::archive_command_setup {location archive.type} {
                     if {${archive.type} eq "tmptar"} {
                         # Pass through tar for hardlink detection and HFS compression,
                         # but extract without saving the tar file.
-                        if {${portarchive_hfscompression} && [getuid] == 0 &&
-                            ![catch {binaryInPath bsdtar}] &&
-                            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]
-                        } then {
-                            set extract_tar bsdtar
+                        set extract_tar {}
+                        if {${portarchive_hfscompression} && [getuid] == 0} {
+                            set extract_tar [find_tar_with_hfscompression]
+                        }
+                        if {$extract_tar ne {}} {
                             set extract_tar_args {-xvp --hfsCompression -f}
                         } else {
                             set extract_tar $tar

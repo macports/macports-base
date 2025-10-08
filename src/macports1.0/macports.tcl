@@ -519,6 +519,28 @@ proc macports::binaryInPath {prog} {
     return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $prog $env(PATH)];
 }
 
+# Find a tar command that supports HFS compression.
+# Returns the path to it if found, otherwise returns an empty string.
+proc macports::find_tar_with_hfscompression {} {
+    variable prefix_frozen
+    # Check for bsdtar from the libarchive port.
+    set candidates [list ${prefix_frozen}/bin/bsdtar]
+    variable os_major
+    # The system bsdtar gained HFS compression support in macOS 10.15.
+    # Prefer it since it won't break if ports are deactivated.
+    if {$os_major >= 19} {
+        set candidates [list /usr/bin/bsdtar {*}$candidates]
+    }
+    foreach tar $candidates {
+        if {[file executable $tar] &&
+            ![catch {exec $tar -x --hfsCompression < /dev/null >& /dev/null}]
+        } then {
+            return $tar
+        }
+    }
+    return {}
+}
+
 # deferred option processing
 proc macports::getoption {name} {
     variable $name
@@ -2032,6 +2054,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias getportdir macports::getportdir
     $workername alias findBinary macports::findBinary
     $workername alias binaryInPath macports::binaryInPath
+    $workername alias find_tar_with_hfscompression macports::find_tar_with_hfscompression
     $workername alias sysctl sysctl
     $workername alias realpath realpath
     $workername alias _mportsearchpath _mportsearchpath
@@ -3564,11 +3587,13 @@ proc mportsync {{options {}}} {
                         continue
                     }
 
-                    if {${hfscompression} && [getuid] == 0 &&
-                            ![catch {macports::binaryInPath bsdtar}] &&
-                            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+                    set tar {}
+                    if {${hfscompression} && [getuid] == 0} {
                         ui_debug "Using bsdtar with HFS+ compression (if valid)"
-                        set tar "bsdtar --hfsCompression"
+                        set tar [macports::find_tar_with_hfscompression]
+                    }
+                    if {$tar ne {}} {
+                        set tar "$tar --hfsCompression"
                     } else {
                         set tar [macports::findBinary tar $tar_path]
                     }
