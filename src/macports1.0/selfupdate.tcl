@@ -327,11 +327,13 @@ proc selfupdate::download_source_rsync {} {
     set signature ${tarball}.rmd160
     verify_signature_legacy $tarball $signature
 
-    if {${hfscompression} && [getuid] == 0 &&
-            ![catch {macports::binaryInPath bsdtar}] &&
-            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+    set tar {}
+    if {${hfscompression} && [getuid] == 0} {
         ui_debug "Using bsdtar with HFS+ compression (if valid)"
-        set tar "bsdtar --hfsCompression"
+        set tar [macports::find_tar_with_hfscompression]
+    }
+    if {$tar ne {}} {
+        set tar "$tar --hfsCompression"
     } else {
         global macports::autoconf::tar_path
         set tar [macports::findBinary tar $tar_path]
