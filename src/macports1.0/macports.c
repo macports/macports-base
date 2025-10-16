@@ -42,7 +42,7 @@
 int
 Macports_Init(Tcl_Interp *interp)
 {
-	if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.6-", 0) == NULL)
 		return TCL_ERROR;
 	Tcl_CreateObjCommand(interp, "get_systemconfiguration_proxies", GetSystemConfigurationProxiesCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);

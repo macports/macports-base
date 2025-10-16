@@ -413,7 +413,7 @@ int set_needs_vacuum_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int o
  * It creates the global commands made available in the registry namespace.
  */
 int Registry_Init(Tcl_Interp* interp) {
-    if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
+    if (Tcl_InitStubs(interp, "8.6-", 0) == NULL) {
         return TCL_ERROR;
     }
     Tcl_CreateObjCommand(interp, "registry::open", registry_open, NULL, NULL);
