@@ -11,7 +11,7 @@
 #endif
 
 /* required for seteuid(2)/setegid(2) */
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <sys/types.h>
 #include <grp.h>
