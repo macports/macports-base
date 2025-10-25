@@ -10,6 +10,13 @@ Release 2.11.6 (unreleased)
     - Fixed sandbox error when building with Xcode on Mac OS X 10.5.
       (#72940, jmr in 81ada26)
 
+    - Prefer to use /usr/bin/bsdtar for HFS Compression when possible,
+      since the libarchive port doesn't work while its dependencies
+      are being upgraded. (#73103, jmr in c391f3f)
+
+    - Fixed permissions errors due to incorrect group membership
+      management. (#73160, jmr in 4497293)
+
 Release 2.11.5 (2025-08-18 by jmr)
     - Fixed unexpected behaviour of (x)install commands on APFS in
       some cases. (#72850, jmr in ea247a7, d8cfd53)
