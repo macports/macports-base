@@ -88,6 +88,25 @@ int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
     return TCL_OK;
 }
 
+int initGroupsForUID(Tcl_Interp *interp, uid_t uid)
+{
+    struct passwd *pwent = getpwuid(uid);
+    if (!pwent) {
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "getpwuid failed for uid %d: %d %s", uid, errno, strerror(errno));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+        return TCL_ERROR;
+    }
+
+    if (initgroups(pwent->pw_name, pwent->pw_gid)) {
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "initgroups(%s, %d) failed: %d %s", pwent->pw_name, pwent->pw_gid, errno, strerror(errno));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
 /*
 	setuid
 
@@ -95,8 +114,6 @@ int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 */
 int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-	long uid = 0;
-
 	/* Check the arg count */
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "uid");
@@ -104,13 +121,22 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	}
 
 	/* Get the new uid */
-	if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &uid))
+	long tmpuid; /* Tcl has no unsigned versions of its get functions. */
+	if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &tmpuid)) {
 		return TCL_ERROR;
+	}
+	uid_t uid = (uid_t)tmpuid;
+
+    /* Set up group membership corresponding to the new uid -
+       must be done as root. */
+    if (initGroupsForUID(interp, uid) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
 	/* set the uid */
 	if (0 != setuid(uid)) {
         char buffer[128];
-        snprintf(buffer, sizeof(buffer), "could not set uid to %ld: %d %s", uid, errno, strerror(errno));
+        snprintf(buffer, sizeof(buffer), "could not set uid to %d: %d %s", uid, errno, strerror(errno));
         Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
         return TCL_ERROR;
     }
@@ -125,8 +151,6 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 */
 int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-	long uid = 0;
-
 	/* Check the arg count */
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "uid");
@@ -134,14 +158,29 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	}
 
 	/* Get the new euid */
-	if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &uid))
+	long tmpuid; /* Tcl has no unsigned versions of its get functions. */
+	if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &tmpuid)) {
 		return TCL_ERROR;
+	}
+	uid_t uid = (uid_t)tmpuid;
+
+    /* Set up group membership corresponding to the new uid -
+       must be done as root. */
+    uid_t old_euid = geteuid();
+    if (old_euid == 0 && initGroupsForUID(interp, uid) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
 	/* set the euid */
 	if (0 != seteuid(uid)) {
         char buffer[128];
-        snprintf(buffer, sizeof(buffer), "could not set effective uid to %ld: %d %s", uid, errno, strerror(errno));
+        snprintf(buffer, sizeof(buffer), "could not set effective uid to %d: %d %s", uid, errno, strerror(errno));
         Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+        return TCL_ERROR;
+    }
+
+    /* Run initgroups if we are root now but weren't before. */
+    if (uid == 0 && old_euid != 0 && initGroupsForUID(interp, uid) != TCL_OK) {
         return TCL_ERROR;
     }
 
