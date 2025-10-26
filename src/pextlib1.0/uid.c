@@ -88,7 +88,7 @@ int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
     return TCL_OK;
 }
 
-int initGroupsForUID(Tcl_Interp *interp, uid_t uid)
+static int initGroupsForUID(Tcl_Interp *interp, uid_t uid)
 {
     struct passwd *pwent = getpwuid(uid);
     if (!pwent) {
