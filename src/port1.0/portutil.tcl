@@ -3469,8 +3469,8 @@ proc _check_xcode_version {} {
 # Helper function to do the potentially expensive first evaluation of
 # _archive_available, optionally asynchronously.
 proc portutil::_eval_archive_available {{async no}} {
-    global portutil::archive_available_result \
-           portutil::archive_available_curl_reqid
+    variable archive_available_result
+    variable archive_available_curl_reqid
 
     if {[info exists archive_available_curl_reqid]} {
         if {!$async} {
@@ -3566,6 +3566,7 @@ proc portutil::_eval_archive_available {{async no}} {
                 return
             }
         }
+        set archive_available_result 0
     }
 }
 
