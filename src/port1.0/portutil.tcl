@@ -3466,28 +3466,43 @@ proc _check_xcode_version {} {
     return 0
 }
 
-# check if we can unarchive this port
-proc _archive_available {} {
-    global ports_source_only porturl portutil::archive_available_result
+# Helper function to do the potentially expensive first evaluation of
+# _archive_available, optionally asynchronously.
+proc portutil::_eval_archive_available {{async no}} {
+    global portutil::archive_available_result \
+           portutil::archive_available_curl_reqid
 
-    if {[info exists archive_available_result]} {
-        return $archive_available_result
+    if {[info exists archive_available_curl_reqid]} {
+        if {!$async} {
+            lassign [curlwrap_async_result $archive_available_curl_reqid] status data
+            unset archive_available_curl_reqid
+            if {$status == 0} {
+                # success
+                set archive_available_result $data
+            } else {
+                # error
+                set archive_available_result 0
+            }
+        }
+        return
     }
 
+    global ports_source_only
     if {[tbool ports_source_only]} {
         set archive_available_result 0
-        return 0
+        return
     }
 
     if {[find_portarchive_path] ne ""} {
         set archive_available_result 1
-        return 1
+        return
     }
 
+    global porturl
     set archiverootname [file rootname [get_portimage_name]]
     if {[file rootname [file tail $porturl]] eq $archiverootname && [file extension $porturl] ne ""} {
         set archive_available_result 1
-        return 1
+        return
     }
 
     # check if there's an archive on the primary or local servers
@@ -3498,7 +3513,7 @@ proc _archive_available {} {
     }
     if {$mirrors eq {}} {
         set archive_available_result 0
-        return 0
+        return
     }
     set archivetype $portfetch::mirror_sites::archive_type($mirrors)
     if {[info exists portfetch::mirror_sites::archive_sigtype($mirrors)]} {
@@ -3513,6 +3528,9 @@ proc _archive_available {} {
     }
     # grab first site, should conventionally be the master mirror
     lappend sites_entries [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+    # Build list of URLs to check for the archive and its signature.
+    set sites [list]
+    set urls [list]
     foreach sites_entry $sites_entries {
         # look for and strip off any tag, which will start with the first colon after the
         # first slash after the ://
@@ -3529,18 +3547,36 @@ proc _archive_available {} {
             append site /
         }
         set url [portfetch::assemble_url ${site}[option archive.subdir] $archivename]
-        ui_debug "Checking if $archivename exists at $site"
-        # curl getsize can return -1 instead of throwing an error for
-        # nonexistent files on FTP sites.
-        if {![catch {curlwrap getsize $orig_site {} $url} size] && $size > 0
-              && ![catch {curlwrap getsize $orig_site {} ${url}.${sigtype}} sigsize] && $sigsize > 0} {
-            set archive_available_result 1
-            return 1
-        }
+        lappend sites $orig_site $orig_site
+        lappend urls $url ${url}.${sigtype}
     }
 
-    set archive_available_result 0
-    return 0
+    if {$async} {
+        # Queue the check on a separate thread and return immediately.
+        set archive_available_curl_reqid \
+            [curlwrap_async archive_exists {} {} $sites $urls]
+    } else {
+        foreach {url sigurl} $urls {site sigsite} $sites {
+            ui_debug "Checking if $archivename exists at $site"
+            # curl getsize can return -1 instead of throwing an error for
+            # nonexistent files on FTP sites.
+            if {![catch {curlwrap getsize $orig_site {} $url} size] && $size > 0
+                  && ![catch {curlwrap getsize $orig_site {} ${url}.${sigtype}} sigsize] && $sigsize > 0} {
+                set archive_available_result 1
+                return
+            }
+        }
+    }
+}
+
+# check if we can unarchive this port
+proc _archive_available {} {
+    global portutil::archive_available_result
+
+    if {![info exists archive_available_result]} {
+        portutil::_eval_archive_available no
+    }
+    return $archive_available_result
 }
 
 # get the mountpoint providing a given directory

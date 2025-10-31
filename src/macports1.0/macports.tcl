@@ -35,6 +35,7 @@
 package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
+package require mport_fetch_thread
 package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
@@ -2111,6 +2112,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias get_compatible_xcode_versions macports::get_compatible_xcode_versions
 
     $workername alias curlwrap macports::curlwrap
+    $workername alias curlwrap_async macports::curlwrap_async
+    $workername alias curlwrap_async_result macports::curlwrap_async_result
 
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
@@ -2212,14 +2215,30 @@ proc macports::get_tar_flags {suffix} {
     }
 }
 
-# Wrapper for curl command to add credentials if configured
-proc macports::curlwrap {action site credentials args} {
+# Private helper
+proc macports::_curlwrap_credential_args {site credentials} {
     variable fetch_credentials
     if {[dict exists $fetch_credentials $site]} {
         set credentials [dict get $fetch_credentials $site]
     }
-    set credential_args [expr {$credentials ne {} ? [list -u $credentials] : {}}]
-    curl $action {*}$credential_args {*}$args
+    return [expr {$credentials ne {} ? [list -u $credentials] : {}}]
+}
+
+# Wrapper for curl command to add credentials if configured
+proc macports::curlwrap {action site credentials args} {
+    curl $action {*}[_curlwrap_credential_args $site $credentials] {*}$args
+}
+
+# Asynchronous version of curlwrap, takes multiple URLs and returns a
+# handle that can be used to get the result later.
+proc macports::curlwrap_async {action credentials fixed_args sites urls} {
+    set credential_args [lmap site $sites {_curlwrap_credential_args $site $credentials}]
+    return [mport_fetch_thread::queue $action [list $fixed_args $credential_args $urls]]
+}
+
+# Get the result of a curlwrap_async operation.
+proc macports::curlwrap_async_result {id} {
+    return [mport_fetch_thread::get_result $id]
 }
 
 ##
