@@ -1933,7 +1933,7 @@ proc action_info { action portlist opts } {
                 }
             } elseif {$opt eq "fullname"} {
                 set inf "[dict get $portinfo name] @"
-                append inf [composite_version [dict get $portinfo version] [dict get $portinfo active_variants]]
+                append inf [composite_version [dict get $portinfo version] [expr {[dict exists $portinfo active_variants] ? [dict get $portinfo active_variants] : {}}]]
                 set ropt "fullname"
             } else {
                 # Map from friendly name
