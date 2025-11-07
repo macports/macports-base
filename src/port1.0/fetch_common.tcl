@@ -35,6 +35,7 @@ package require Pextlib 1.0
 namespace eval portfetch {
     variable urlmap
     array set urlmap {}
+    variable hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 }
 
 # Name space for internal site lists storage
@@ -230,7 +231,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
 proc portfetch::sortsites {urls default_listvar} {
     upvar $urls fetch_urls
     variable urlmap
-    set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
+    variable hostregex
 
     foreach {url_var distfile} $fetch_urls {
         if {![info exists urlmap($url_var)]} {
