@@ -206,7 +206,7 @@ namespace eval migrate {
             set variations [macports::_variants_to_variations $requested_variants]
             # Set same options as restore code so it's more likely the open mports
             # can be reused rather than having to be opened again.
-            set options [dict create ports_requested [$port requested] subport $portname]
+            set options [dict create ports_requested [$port requested] subport $portname mport_hint_install 1]
             lassign [mportlookup $portname] portname portinfo
             if {$portname eq "" ||
                 [catch {mportopen [dict get $portinfo porturl] $options $variations} mport]

@@ -36,6 +36,8 @@ package require Thread
 ##
 
 namespace eval mport_fetch_thread {
+    variable active_requests [dict create]
+    variable next_id 0
     variable management_thread
     trace add variable management_thread read mport_fetch_thread::init_management_thread
 
@@ -53,7 +55,7 @@ namespace eval mport_fetch_thread {
             # Result format: 2 element list: status, body
             # status = 0: success, body is the actual result
             # status = 1: error, body is error message
-            proc do_curl {op opargs} {
+            proc do_curl {op opargs result_tid result_var} {
                 global management_thread
                 set result {}
                 try {
@@ -81,10 +83,8 @@ namespace eval mport_fetch_thread {
                     set result [list 1 $err]
                 }
                 tsv::set mport_fetch_thread::thread_busy [thread::id] 0
-                # Ensure management thread's event loop wakes up in case there
-                # are queued requests that could now be handled by this thread.
-                thread::send -async $management_thread [list set main_wakeup 1]
-                return $result
+                # Set the result in the thread that wants it
+                thread::send -async $result_tid [list set $result_var $result]
             }
 
             thread::wait
@@ -137,38 +137,34 @@ namespace eval mport_fetch_thread {
             return $free_tid
         }
 
-        set next_id 0
         set request_queue [list]
         set main_wakeup {}
 
         # Add a request to the queue and arrange for the main loop to
         # wake up and process it.
-        proc queue_request {op opargs} {
-            global next_id request_queue main_wakeup
-            set req_id fetchreq$next_id
-            incr next_id
-            lappend request_queue [list $op $opargs $req_id]
+        proc queue_request {op opargs result_tid result_var} {
+            global request_queue main_wakeup
+            lappend request_queue [list $op $opargs $result_tid $result_var]
             set main_wakeup 1
-            return $req_id
         }
 
-        # Get the result of a request. If the request has not yet
-        # completed, blocks until it completes.
-        proc get_result {id} {
-            global $id
-            if {![info exists $id]} {
-                vwait $id
+        # Remove a request from the queue.
+        # Returns 1 if the request was in the queue, 0 otherwise.
+        proc unqueue_request {id} {
+            global request_queue
+            set index [lsearch -exact -dictionary -sorted -index 3 $request_queue $id]
+            if {$index != -1} {
+                set request_queue [lreplace ${request_queue}[set request_queue {}] $index $index]
+                return 1
             }
-            set result [set $id]
-            unset $id
-            return $result
+            return 0
         }
 
         # Main event loop for the management thread. Dispatches queued requests
         # and handles results of completed ones. Wakes up whenever a thread
         # completes its task or a new request is queued.
         proc main {} {
-            global request_queue next_id main_wakeup
+            global request_queue main_wakeup
             while {1} {
                 for {set i 0} {$i < [llength $request_queue]} {incr i} {
                     set tid [get_available_thread]
@@ -176,9 +172,8 @@ namespace eval mport_fetch_thread {
                         break
                     }
                     set req [lindex $request_queue $i]
-                    set result_id [lindex $req end]
-                    set req [lrange $req 0 end-1]
-                    thread::send -async $tid [list do_curl {*}$req] $result_id
+                    lassign $req op opargs result_tid result_var
+                    thread::send -async $tid [list do_curl $op $opargs $result_tid $result_var] main_wakeup
                 }
                 if {$i > 0} {
                     set request_queue [lrange $request_queue $i end]
@@ -203,13 +198,60 @@ proc mport_fetch_thread::init_management_thread {args} {
 # Queue a fetch operation to be performed on a thread in the background.
 # Returns an id that can be used with the get_result command.
 proc mport_fetch_thread::queue {op opargs} {
+    variable next_id
+    set result_name fetchreq$next_id
+    incr next_id
+    variable $result_name
+    set id [namespace which -variable $result_name]
     variable management_thread
-    thread::send $management_thread [list queue_request $op $opargs]
+    thread::send -async $management_thread [list queue_request $op $opargs [thread::id] $id]
+    variable active_requests
+    dict set active_requests $id 1
+    return $id
 }
 
 # Get the result of the operation identified by id, waiting until it
 # is complete first if needed.
 proc mport_fetch_thread::get_result {id} {
+    variable active_requests
+    if {[dict exists $active_requests $id]} {
+        dict unset active_requests $id
+        variable $id
+        if {![info exists $id]} {
+            vwait $id
+        }
+        set result [set $id]
+        unset $id
+        return $result
+    } else {
+        error "No pending request with id $id"
+    }
+}
+
+# Cancel the operation identified by id.
+proc mport_fetch_thread::cancel {id} {
+    variable active_requests
+    if {![dict exists $active_requests $id]} {
+        # Not in progress, guess it's fine?
+        return
+    }
+    dict unset active_requests $id
+    variable $id
+    if {[info exists $id]} {
+        # Already complete
+        unset $id
+        return
+    }
+    # Try to remove it from the queue
     variable management_thread
-    thread::send $management_thread [list get_result $id]
+    set was_unqueued [thread::send $management_thread [list unqueue_request $id]]
+    if {$was_unqueued} {
+        return
+    }
+    # Already dispatched. thread::cancel is tricky, so just wait for the result
+    # (so we can clean up the result variable)
+    if {![info exists $id]} {
+        vwait $id
+    }
+    unset $id
 }

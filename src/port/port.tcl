@@ -4019,6 +4019,8 @@ proc action_target { action portlist opts } {
             if {![dict exists $options ports_install_unrequested]} {
                 dict set options ports_requested 1
             }
+            # signal intent to install
+            dict set options mport_hint_install 1
             # we actually activate as well by default
             if {![dict exists $options ports_install_no-activate]} {
                 set target activate

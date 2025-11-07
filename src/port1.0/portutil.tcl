@@ -3466,12 +3466,30 @@ proc _check_xcode_version {} {
     return 0
 }
 
+# Get a head start on things that will need to be done when this port
+# is installed.
+proc portutil::_prep_install {} {
+    _eval_archive_available yes
+}
+
+# Clean up any asynchronous actions in progress
+proc portutil::_async_cleanup {} {
+    variable archive_available_curl_reqid
+    if {[info exists archive_available_curl_reqid]} {
+        curlwrap_async_cancel $archive_available_curl_reqid
+        unset archive_available_curl_reqid
+    }
+}
+
 # Helper function to do the potentially expensive first evaluation of
 # _archive_available, optionally asynchronously.
 proc portutil::_eval_archive_available {{async no}} {
     variable archive_available_result
-    variable archive_available_curl_reqid
+    if {[info exists archive_available_result]} {
+        return
+    }
 
+    variable archive_available_curl_reqid
     if {[info exists archive_available_curl_reqid]} {
         if {!$async} {
             lassign [curlwrap_async_result $archive_available_curl_reqid] status data
@@ -3481,6 +3499,7 @@ proc portutil::_eval_archive_available {{async no}} {
                 set archive_available_result $data
             } else {
                 # error
+                ui_debug "curlwrap_async failed: $data"
                 set archive_available_result 0
             }
         }

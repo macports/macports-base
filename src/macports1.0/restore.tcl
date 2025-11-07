@@ -496,7 +496,7 @@ namespace eval restore {
 
             # Open the port with the requested variants from the snapshot
             if {![dict exists $mports $portname]} {
-                set options [dict create ports_requested $requested subport $portname]
+                set options [dict create ports_requested $requested subport $portname mport_hint_install 1]
                 set variations [macports::_variants_to_variations $requested_variants]
                 if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
                     $progress intermission
@@ -521,7 +521,7 @@ namespace eval restore {
                 set variations [ditem_key $mport variations]
                 if {!([dict exists $variations universal] && [dict get $variations universal] eq "+")} {
                     dict set variations universal +
-                    set options [dict create ports_requested $requested subport $portname]
+                    set options [dict create ports_requested $requested subport $portname mport_hint_install 1]
                     if {![catch {set universal_mport [mportopen $porturl $options $variations]}]} {
                         if {[macports::_mport_supports_archs $universal_mport [dict get $required_archs $portname]]} {
                             mportclose $mport
@@ -553,7 +553,7 @@ namespace eval restore {
             #  (such as for example when a port depends on curl-ca-bundle, but the snapshot contains certsync, which
             #  conflicts with curl-ca-bundle).
             set workername [ditem_key $mport workername]
-            set deptypes [macports::_deptypes_for_target install $workername]
+            set deptypes_lists [macports::_deptypes_for_target install {}]
             set port_archs [$workername eval [list get_canonical_archs]]
             set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
 
@@ -561,47 +561,56 @@ namespace eval restore {
             if {![$dependencies node exists $provides]} {
                 $dependencies node insert $provides
             }
-            foreach deptype $deptypes {
-                if {![dict exists $portinfo $deptype]} {
-                    continue
+             foreach deptypes $deptypes_lists check_archive {no yes} {
+                # Skip build-time deps if an archive will be used
+                if {$check_archive && ($deptypes eq {} || ![_mport_has_deptypes $mport $deptypes]
+                    || [$workername eval {registry_exists $subport $version $revision $portvariants}]
+                    || (![macports::global_option_isset ports_source_only] && [$workername eval [list _archive_available]]))
+                } then {
+                    break
                 }
-                set check_archs [expr {$port_archs ne "noarch" && [macports::_deptype_needs_archcheck $deptype]}]
-                foreach depspec [dict get $portinfo $deptype] {
-                    set dependency [resolve_depspec $depspec $ports $snapshot_id]
-                    if {$dependency eq ""} {
-                        # Not fulfilled by a port in the snapshot. Check if
-                        # it needs to be fulfilled by any port. (This is safe
-                        # because all ports are inactive at this point.)
-                        set dependency [$workername eval [list _get_dep_port $depspec]]
+                foreach deptype $deptypes {
+                    if {![dict exists $portinfo $deptype]} {
+                        continue
+                    }
+                    set check_archs [expr {$port_archs ne "noarch" && [macports::_deptype_needs_archcheck $deptype]}]
+                    foreach depspec [dict get $portinfo $deptype] {
+                        set dependency [resolve_depspec $depspec $ports $snapshot_id]
                         if {$dependency eq ""} {
-                            continue
-                        }
-                    }
-                    if {$check_archs && [lsearch -exact -nocase $depends_skip_archcheck $dependency] == -1} {
-                        if {![dict exists $required_archs $dependency]} {
-                            dict set required_archs $dependency $port_archs
-                        } else {
-                            set dep_required_archs [dict get $required_archs $dependency]
-                            foreach arch $port_archs {
-                                if {$arch ni $dep_required_archs} {
-                                    lappend dep_required_archs $arch
-                                }
+                            # Not fulfilled by a port in the snapshot. Check if
+                            # it needs to be fulfilled by any port. (This is safe
+                            # because all ports are inactive at this point.)
+                            set dependency [$workername eval [list _get_dep_port $depspec]]
+                            if {$dependency eq ""} {
+                                continue
                             }
-                            dict set required_archs $dependency $dep_required_archs
                         }
+                        if {$check_archs && [lsearch -exact -nocase $depends_skip_archcheck $dependency] == -1} {
+                            if {![dict exists $required_archs $dependency]} {
+                                dict set required_archs $dependency $port_archs
+                            } else {
+                                set dep_required_archs [dict get $required_archs $dependency]
+                                foreach arch $port_archs {
+                                    if {$arch ni $dep_required_archs} {
+                                        lappend dep_required_archs $arch
+                                    }
+                                }
+                                dict set required_archs $dependency $dep_required_archs
+                            }
+                        }
+                        if {![$dependencies node exists $dependency]} {
+                            $dependencies node insert $dependency
+                        }
+                        if {[dict exists $ports $dependency]} {
+                            set dependency_requested_variants [lindex [dict get $ports $dependency] 2]
+                        } else {
+                            set dependency_requested_variants {}
+                        }
+                        dict set dep_ports $dependency $dependency_requested_variants
+    
+                        $dependencies arc insert $provides $dependency
+                        set worklist [linsert $worklist 0 $dependency]
                     }
-                    if {![$dependencies node exists $dependency]} {
-                        $dependencies node insert $dependency
-                    }
-                    if {[dict exists $ports $dependency]} {
-                        set dependency_requested_variants [lindex [dict get $ports $dependency] 2]
-                    } else {
-                        set dependency_requested_variants {}
-                    }
-                    dict set dep_ports $dependency $dependency_requested_variants
-
-                    $dependencies arc insert $provides $dependency
-                    set worklist [linsert $worklist 0 $dependency]
                 }
             }
 
@@ -717,7 +726,7 @@ namespace eval restore {
             lassign $res portname portinfo
             if {![dict exists $mports $portname]} {
                 set porturl [dict get $portinfo porturl]
-                set options [dict create ports_requested $requested subport $portname]
+                set options [dict create ports_requested $requested subport $portname mport_hint_install 1]
                 set variations [macports::_variants_to_variations $requested_variants]
 
                 if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
