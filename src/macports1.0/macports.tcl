@@ -4550,6 +4550,17 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
     # Loop on the depports.
     if {$recurseDeps} {
+        # Process deps with known archive status first
+        set depPorts1 [list]
+        set depPorts2 [list]
+        foreach depport $depPorts {
+            if {[[ditem_key $depport workername] eval [list portutil::_archive_available_ready]]} {
+                lappend depPorts1 $depport
+            } else {
+                lappend depPorts2 $depport
+            }
+        }
+        set depPorts [concat $depPorts1 $depPorts2]
         # Dep ports should be installed (all dependencies must be satisfied).
         foreach depport $depPorts {
             # Any of these may have been closed by a previous recursive call

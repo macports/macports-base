@@ -3481,6 +3481,11 @@ proc portutil::_async_cleanup {} {
     }
 }
 
+proc portutil::_archive_available_ready {} {
+    variable archive_available_result
+    return [info exists archive_available_result]
+}
+
 # Helper function to do the potentially expensive first evaluation of
 # _archive_available, optionally asynchronously.
 proc portutil::_eval_archive_available {{async no}} {
