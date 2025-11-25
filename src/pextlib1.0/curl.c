@@ -1055,17 +1055,27 @@ int
 CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
+	bool handleAdded = false;
 	FILE* theFile = NULL;
+	char theErrorString[CURL_ERROR_SIZE];
 	curl_interpdata_t *interpdata = Tcl_GetAssocData(interp, "pextlib::curl::interpdata", NULL);
 
+    /* Always 0-initialize the error string, since older curl versions may not
+	 * initialize the error string buffer at all. See
+	 * https://trac.macports.org/ticket/60581. */
+	theErrorString[0] = '\0';
+
 	do {
+		int ignoresslcert = 0;
+		const char* theUserPassString = NULL;
 		int optioncrsr;
 		int lastoption;
-		int ignoresslcert = 0;
-		char theSizeString[32];
 		const char* theURL;
-		const char* theUserPassString = NULL;
 		CURLcode theCurlCode;
+		CURLMcode theCurlMCode;
+		struct CURLMsg *info = NULL;
+		int running; /* number of running transfers */
+		char theSizeString[32];
 		double theFileSize;
 
 		optioncrsr = 2;
@@ -1121,10 +1131,30 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			break;
 		}
 
-		/* Create the CURL handle */
+#if LIBCURL_VERSION_NUM >= 0x074d00
+		cleanup_handle_if_needed(theURL, interpdata);
+#endif
+
+		/* Create the CURL handles */
+		if (interpdata->theMHandle == NULL) {
+			/* Re-use existing multi handle if theMHandle isn't NULL */
+			interpdata->theMHandle = curl_multi_init();
+			if (interpdata->theMHandle == NULL) {
+				theResult = TCL_ERROR;
+				Tcl_SetResult(interp, "error in curl_multi_init", TCL_STATIC);
+				break;
+			}
+		}
+		CURLM* theMHandle = interpdata->theMHandle;
+
 		if (interpdata->theHandle == NULL) {
 			/* Re-use existing handle if theHandle isn't NULL */
 			interpdata->theHandle = curl_easy_init();
+			if (interpdata->theHandle == NULL) {
+				theResult = TCL_ERROR;
+				Tcl_SetResult(interp, "error in curl_easy_init", TCL_STATIC);
+				break;
+			}
 		}
 		CURL* theHandle = interpdata->theHandle;
 		/* If we're re-using a handle, the previous call did ensure to reset it
@@ -1244,10 +1274,138 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			break;
 		}
 
-		/* actually fetch the resource */
-		theCurlCode = curl_easy_perform(theHandle);
+        theCurlCode = curl_easy_setopt(theHandle, CURLOPT_ERRORBUFFER, theErrorString);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+        /* add the easy handle to the multi handle */
+		theCurlMCode = curl_multi_add_handle(theMHandle, theHandle);
+		if (theCurlMCode != CURLM_OK) {
+			theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+			break;
+		}
+		handleAdded = true;
+
+		/* select(2) the file descriptors used by curl and interleave with
+		 * checks for TclX signals */
+		do {
+			int rc; /* select() return code */
+
+			/* arguments for select(2) */
+			int nfds;
+			fd_set readfds;
+			fd_set writefds;
+			fd_set errorfds;
+			struct timeval timeout;
+
+			long curl_timeout = -1;
+
+			/* curl_multi_timeout introduced in libcurl 7.15.4 */
+#if LIBCURL_VERSION_NUM >= 0x070f04
+			/* get the next timeout */
+			theCurlMCode = curl_multi_timeout(theMHandle, &curl_timeout);
+			if (theCurlMCode != CURLM_OK) {
+				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+				break;
+			}
+#endif
+
+			timeout.tv_sec = 1;
+			timeout.tv_usec = 0;
+			/* convert the timeout into a suitable format for select(2) and
+			 * limit the timeout to 1 second at most */
+			if (curl_timeout >= 0 && curl_timeout < 1000) {
+				timeout.tv_sec = 0;
+				/* convert ms to us */
+				timeout.tv_usec = curl_timeout * 1000;
+			}
+
+			/* get the fd sets for select(2) */
+			FD_ZERO(&readfds);
+			FD_ZERO(&writefds);
+			FD_ZERO(&errorfds);
+			theCurlMCode = curl_multi_fdset(theMHandle, &readfds, &writefds, &errorfds, &nfds);
+			if (theCurlMCode != CURLM_OK) {
+				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+				break;
+			}
+
+			/* The value of nfds is guaranteed to be >= -1. Passing nfds + 1 to
+			 * select(2) makes the case of nfds == -1 a sleep. */
+			rc = select(nfds + 1, &readfds, &writefds, &errorfds, &timeout);
+			if (-1 == rc) {
+				/* check for signals first to avoid breaking our special
+				 * handling of SIGINT and SIGTERM */
+				if (Tcl_AsyncReady()) {
+					theResult = Tcl_AsyncInvoke(interp, theResult);
+					if (theResult != TCL_OK) {
+						break;
+					}
+				}
+
+				/* select error */
+				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+
+			/* timeout or activity */
+			theCurlMCode = curl_multi_perform(theMHandle, &running);
+
+			/* process signals from TclX */
+			if (Tcl_AsyncReady()) {
+				theResult = Tcl_AsyncInvoke(interp, theResult);
+				if (theResult != TCL_OK) {
+					break;
+				}
+			}
+		} while (running > 0);
+
+        /* Find out whether the transfer succeeded or failed. */
+		info = curl_multi_info_read(theMHandle, &running);
+		if (running > 0) {
+			fprintf(stderr, "Warning: curl_multi_info_read has %d more structs available\n", running);
+		}
+
+        /* check for errors in the loop */
+		if (theResult != TCL_OK || theCurlMCode != CURLM_OK) {
+			break;
+		}
+
+        /* we should always get CURLMSG_DONE unless we aborted due to a Tcl
+		 * signal */
+		if (info == NULL) {
+			Tcl_SetResult(interp, "curl_multi_info_read() returned NULL", TCL_STATIC);
+			theResult = TCL_ERROR;
+			break;
+		}
+
+        if (info->msg != CURLMSG_DONE) {
+			snprintf(theErrorString, sizeof(theErrorString), "curl_multi_info_read() returned unexpected {.msg = %d, .data.result = %d}", info->msg, info->data.result);
+			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
+
+        if (info->data.result != CURLE_OK) {
+			/* execution failed, use the error string if it is set */
+			if (theErrorString[0] != '\0') {
+				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+			} else {
+				/* When the error buffer does not hold useful information,
+				 * generate our own message. Use a larger buffer since we add
+				 * a significant amount of text. */
+				char errbuf[256 + CURL_ERROR_SIZE];
+				snprintf(errbuf, sizeof(errbuf),
+					"curl_multi_info_read() returned {.msg = CURLMSG_DONE, "
+					".data.result = %d (!= CURLE_OK)}, but the error buffer "
+					"is not set. curl_easy_strerror(.data.result): %s",
+					info->data.result, curl_easy_strerror(info->data.result));
+				Tcl_SetResult(interp, errbuf, TCL_VOLATILE);
+			}
+			theResult = TCL_ERROR;
 			break;
 		}
 
@@ -1268,6 +1426,13 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			"%.0f", theFileSize);
 		Tcl_SetResult(interp, theSizeString, TCL_VOLATILE);
 	} while (0);
+
+    if (handleAdded) {
+		/* Remove the handle from the multi handle, but ignore errors to avoid
+		 * cluttering the real error info that might be somewhere further up */
+		curl_multi_remove_handle(interpdata->theMHandle, interpdata->theHandle);
+		handleAdded = false;
+	}
 
 	/* reset the connection */
 	if (interpdata->theHandle != NULL) {
