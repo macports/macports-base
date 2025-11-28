@@ -56,7 +56,6 @@ namespace eval mport_fetch_thread {
             # status = 0: success, body is the actual result
             # status = 1: error, body is error message
             proc do_curl {op opargs result_tid result_var} {
-                global management_thread
                 set result {}
                 try {
                     switch -- $op {
@@ -81,10 +80,11 @@ namespace eval mport_fetch_thread {
                     }
                 } on error {err} {
                     set result [list 1 $err]
+                } finally {
+                    tsv::set mport_fetch_thread::thread_busy [thread::id] 0
+                    # Set the result in the thread that wants it
+                    thread::send -async $result_tid [list set $result_var $result]
                 }
-                tsv::set mport_fetch_thread::thread_busy [thread::id] 0
-                # Set the result in the thread that wants it
-                thread::send -async $result_tid [list set $result_var $result]
             }
 
             thread::wait
@@ -125,7 +125,6 @@ namespace eval mport_fetch_thread {
                 if {[dict size $active_threads] < $max_threads} {
                     global worker_init_script
                     set free_tid [thread::create -preserved $worker_init_script]
-                    thread::send -async $free_tid [list set management_thread [thread::id]]
                 }
             }
 
@@ -222,6 +221,7 @@ proc mport_fetch_thread::get_result {id} {
         }
         set result [set $id]
         unset $id
+        macports::check_signals
         return $result
     } else {
         error "No pending request with id $id"
@@ -254,4 +254,5 @@ proc mport_fetch_thread::cancel {id} {
         vwait $id
     }
     unset $id
+    macports::check_signals
 }

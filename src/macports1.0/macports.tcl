@@ -1069,6 +1069,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Set the system encoding to utf-8
     encoding system utf-8
 
+    # Set up background error handler
+    interp bgerror {} macports::handle_bgerror
+
     # Set up signal handling for SIGTERM and SIGINT
     # Specifying error here will case the program to abort where it is with
     # a Tcl error, which can be caught, if necessary.
@@ -7284,4 +7287,22 @@ proc macports::get_compatible_xcode_versions {} {
         }
     }
     return [list $min $ok $rec]
+}
+
+# Handle errors that occur in background code. We're really only interested in signals.
+proc macports::handle_bgerror {result opts} {
+    set errorcode [dict get $opts -errorcode]
+    if {{POSIX SIG} eq [lrange $errorcode 0 1]} {
+        variable signal_caught [lindex $errorcode 2]
+    } else {
+        ui_debug "Error caught in background code: $errorcode $result"
+    }
+}
+
+# Error if an interrupt signal was received in the background
+proc macports::check_signals {} {
+    variable signal_caught
+    if {[info exists signal_caught]} {
+        return -code error -errorcode [list POSIX SIG $signal_caught] "Aborted: $signal_caught signal received"
+    }
 }
