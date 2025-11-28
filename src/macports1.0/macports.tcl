@@ -7303,6 +7303,9 @@ proc macports::handle_bgerror {result opts} {
 proc macports::check_signals {} {
     variable signal_caught
     if {[info exists signal_caught]} {
-        return -code error -errorcode [list POSIX SIG $signal_caught] "Aborted: $signal_caught signal received"
+        set return_args [list -code error -errorcode [list POSIX SIG $signal_caught] "Aborted: $signal_caught signal received"]
+        # Reset the flag in case code that handles the error ends up calling this again.
+        unset signal_caught
+        return {*}$return_args
     }
 }
