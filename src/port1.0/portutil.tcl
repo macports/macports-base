@@ -3479,6 +3479,8 @@ proc portutil::_async_cleanup {} {
         curlwrap_async_cancel $archive_available_curl_reqid
         unset archive_available_curl_reqid
     }
+    portfetch::_async_cleanup
+    portarchivefetch::_async_cleanup
 }
 
 proc portutil::_archive_available_ready {} {

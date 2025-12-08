@@ -273,6 +273,16 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		int running; /* number of running transfers */
 		char* acceptEncoding = NULL;
 
+        /* allow cancelling asynchronous transfers */
+		int cancelled = 0;
+        if ((theResult = Tcl_LinkVar(interp,
+                                     "::pextlib::curl::cancelled",
+                                     (char *)&cancelled,
+                                     TCL_LINK_BOOLEAN)) != TCL_OK) {
+            Tcl_SetResult(interp, "Tcl_LinkVar failed", TCL_STATIC);
+            break;
+        }
+
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
 
@@ -634,6 +644,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			fd_set errorfds;
 			struct timeval timeout;
 
+            if (cancelled) {
+                /* Something requested to cancel the transfer */
+                Tcl_SetResult(interp, "Transfer cancelled", TCL_STATIC);
+                theResult = TCL_ERROR;
+				break;
+            }
+
 			long curl_timeout = -1;
 
 			/* curl_multi_timeout introduced in libcurl 7.15.4 */
@@ -695,7 +712,11 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 					break;
 				}
 			}
+			/* Service any pending events */
+			while (Tcl_DoOneEvent((TCL_ALL_EVENTS & ~TCL_IDLE_EVENTS)|TCL_DONT_WAIT)) {}
 		} while (running > 0);
+
+        Tcl_UnlinkVar(interp, "::pextlib::curl::cancelled");
 
 		/* Find out whether the transfer succeeded or failed. */
 		info = curl_multi_info_read(theMHandle, &running);
@@ -1078,6 +1099,16 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		char theSizeString[32];
 		double theFileSize;
 
+        /* allow cancelling asynchronous transfers */
+		int cancelled = 0;
+        if ((theResult = Tcl_LinkVar(interp,
+                                     "::pextlib::curl::cancelled",
+                                     (char *)&cancelled,
+                                     TCL_LINK_BOOLEAN)) != TCL_OK) {
+            Tcl_SetResult(interp, "Tcl_LinkVar failed", TCL_STATIC);
+            break;
+        }
+
 		optioncrsr = 2;
 		lastoption = objc - 2;
 		while (optioncrsr <= lastoption) {
@@ -1300,6 +1331,13 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			fd_set errorfds;
 			struct timeval timeout;
 
+            if (cancelled) {
+                /* Something requested to cancel the transfer */
+                Tcl_SetResult(interp, "Transfer cancelled", TCL_STATIC);
+                theResult = TCL_ERROR;
+				break;
+            }
+
 			long curl_timeout = -1;
 
 			/* curl_multi_timeout introduced in libcurl 7.15.4 */
@@ -1362,6 +1400,8 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				}
 			}
 		} while (running > 0);
+
+        Tcl_UnlinkVar(interp, "::pextlib::curl::cancelled");
 
         /* Find out whether the transfer succeeded or failed. */
 		info = curl_multi_info_read(theMHandle, &running);

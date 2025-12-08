@@ -674,6 +674,14 @@ namespace eval restore {
         variable mports [dict create]
         lassign [resolve_dependencies $snapshot $include_unrequested] sorted_snapshot_portlist dependencies
 
+        # Start asynchronously fetching files
+        foreach port $sorted_snapshot_portlist {
+            set portname [lindex $port 0]
+            if {[dict exists $mports $portname]} {
+                macports::async_fetch_mport [dict get $mports $portname]
+            }
+        }
+
         # map from port name to an entry describing why the port failed or was
         # skipped
         set failed [dict create]

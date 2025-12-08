@@ -1203,6 +1203,9 @@ int Pextlib_Init(Tcl_Interp *interp)
     if (Tcl_InitStubs(interp, "8.6-", 0) == NULL)
         return TCL_ERROR;
 
+    Tcl_CreateNamespace(interp, "::pextlib", NULL, NULL);
+    Tcl_CreateNamespace(interp, "::pextlib::curl", NULL, NULL);
+
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "adv-flock", AdvFlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);

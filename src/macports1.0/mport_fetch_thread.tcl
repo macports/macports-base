@@ -51,6 +51,29 @@ namespace eval mport_fetch_thread {
             package require Thread
             package require Pextlib
 
+            proc progress_handler {action args} {
+                global progress_tid
+                switch -- $action {
+                    debug -
+                    notice {
+                        thread::send -async $progress_tid [list ui_${action} {*}$args]
+                    }
+                    default {
+                        global show_progress
+                        if {$show_progress} {
+                            global progress_inited
+                            if {!$progress_inited} {
+                                global current_url
+                                thread::send -async $progress_tid [list ui_notice "Attempting to fetch $current_url"]
+                                thread::send -async $progress_tid [list ui_progress_download start]
+                                set progress_inited 1
+                            }
+                            thread::send -async $progress_tid [list ui_progress_download $action {*}$args]
+                        }
+                    }
+                }
+            }
+
             # Perform a curl-based operation and return the result.
             # Result format: 2 element list: status, body
             # status = 0: success, body is the actual result
@@ -58,10 +81,15 @@ namespace eval mport_fetch_thread {
             proc do_curl {op opargs result_tid result_var} {
                 set result {}
                 try {
+                    global ::pextlib::curl::cancelled
+                    set cancelled 0
+                    # Tell client which thread is handling this request, so it can send
+                    # cancellation requests.
+                    thread::send -async $result_tid [list set ${result_var}_tid [thread::id]]
                     switch -- $op {
-                        # Check if an archive and matching signature exist at
-                        # any of the given URLs.
                         archive_exists {
+                            # Check if an archive and matching signature exist at
+                            # any of the given URLs.
                             set result [list 0 0]
                             lassign $opargs fixed_args credential_args urls
                             foreach {url sigurl} $urls {creds sigcreds} $credential_args {
@@ -72,6 +100,106 @@ namespace eval mport_fetch_thread {
                                     set result [list 0 1]
                                     break
                                 }
+                                if {$cancelled} {
+                                    break
+                                }
+                            }
+                        }
+                        fetch_archive {
+                            # Try fetching an archive and signature from the given URLs,
+                            # saving the results to outpath, until one of them succeeds.
+                            global show_progress progress_tid progress_inited current_url
+                            # Start silent, may be changed during the transfer.
+                            set show_progress 0
+                            set progress_inited 0
+                            set progress_tid $result_tid
+                            lassign $opargs fixed_args credential_args urls outpath sigtypes maxfails
+                            set archive_fetched 0
+                            set sig_fetched 0
+                            set failed_sites 0
+                            foreach url $urls creds $credential_args {
+                                if {!$archive_fetched} {
+                                    try {
+                                        if {$show_progress} {
+                                            progress_handler notice "Attempting to fetch $url"
+                                        } else {
+                                            set current_url $url
+                                        }
+                                        curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
+                                        set archive_fetched 1
+                                    } on error {eMessage} {
+                                        progress_handler debug "Fetching $url failed: $eMessage"
+                                        file delete -force ${outpath}.TMP
+                                        set result [list 1 $eMessage]
+                                        incr failed_sites
+                                        if {$cancelled || ($maxfails > 0 && $failed_sites >= $maxfails)} {
+                                            break
+                                        }
+                                    }
+                                }
+                                if {$archive_fetched} {
+                                    # fetch signature
+                                    foreach sigtype $sigtypes {
+                                        set sigurl ${url}.${sigtype}
+                                        set signature ${outpath}.${sigtype}
+                                        try {
+                                            if {$show_progress} {
+                                                progress_handler notice "Attempting to fetch $sigurl"
+                                            } else {
+                                                set current_url $sigurl
+                                            }
+                                            curl fetch --progress progress_handler {*}$creds {*}$fixed_args $sigurl $signature
+                                            set sig_fetched 1
+                                            set result [list 0 1]
+                                            break
+                                        } on error {eMessage} {
+                                            progress_handler debug "Fetching $sigurl failed: $eMessage"
+                                            set result [list 1 $eMessage]
+                                            file delete -force $signature
+                                            if {$cancelled} {
+                                                file delete -force ${outpath}.TMP
+                                                break
+                                            }
+                                        }
+                                    }
+                                    if {$sig_fetched} {
+                                        break
+                                    }
+                                }
+                                if {$cancelled} {
+                                    break
+                                }
+                            }
+                        }
+                        fetch_file {
+                            # Try fetching the given URLs, saving the result to outpath, until
+                            # one of them succeeds.
+                            global show_progress progress_tid progress_inited current_url
+                            # Start silent, may be changed during the transfer.
+                            set show_progress 0
+                            set progress_inited 0
+                            set progress_tid $result_tid
+                            lassign $opargs fixed_args credential_args urls outpath
+                            foreach url $urls creds $credential_args {
+                                try {
+                                    if {$show_progress} {
+                                        progress_handler notice "Attempting to fetch $url"
+                                    } else {
+                                        set current_url $url
+                                    }
+                                    curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
+                                    file rename -force ${outpath}.TMP ${outpath}
+                                    set result [list 0 1]
+                                    break
+                                } on error {eMessage} {
+                                    progress_handler debug "Fetching $url failed: $eMessage"
+                                    set result [list 1 $eMessage]
+                                    if {$cancelled} {
+                                        break
+                                    }
+                                } finally {
+                                    file delete -force ${outpath}.TMP
+                                }
                             }
                         }
                         default {
@@ -81,6 +209,9 @@ namespace eval mport_fetch_thread {
                 } on error {err} {
                     set result [list 1 $err]
                 } finally {
+                    if {$op eq "fetch_file"} {
+                        tsv::incr mport_fetch_thread::fetch cur_count -1
+                    }
                     tsv::set mport_fetch_thread::thread_busy [thread::id] 0
                     # Set the result in the thread that wants it
                     thread::send -async $result_tid [list set $result_var $result]
@@ -91,17 +222,13 @@ namespace eval mport_fetch_thread {
         }
         # End worker_init_script
 
-        proc init_max_threads {} {
-            global max_threads
-            if {![catch {sysctl hw.activecpu} ncpus]} {
-                set max_threads [expr {$ncpus * 2}]
-            } else {
-                set max_threads 8
-            }
+        if {![catch {sysctl hw.activecpu} ncpus]} {
+            set max_threads [expr {$ncpus * 2}]
+        } else {
+            set max_threads 8
         }
-        init_max_threads
-
         set active_threads [dict create]
+        tsv::set mport_fetch_thread::fetch cur_count 0
 
         # Return the ID of a thread that is available for use, or an empty
         # string if no threads are available. Creates new threads up to the
@@ -163,15 +290,22 @@ namespace eval mport_fetch_thread {
         # and handles results of completed ones. Wakes up whenever a thread
         # completes its task or a new request is queued.
         proc main {} {
-            global request_queue main_wakeup
+            global request_queue main_wakeup max_fetches
             while {1} {
                 for {set i 0} {$i < [llength $request_queue]} {incr i} {
+                    lassign [lindex $request_queue $i] op opargs result_tid result_var
+                    if {$op eq "fetch_file" && [tsv::get mport_fetch_thread::fetch cur_count] >= $max_fetches} {
+                        # Theoretically there could be other op types further back in the queue that we could
+                        # still dispatch, but that's unlikely in practice since fetching happens last.
+                        break
+                    }
                     set tid [get_available_thread]
                     if {$tid eq {}} {
                         break
                     }
-                    set req [lindex $request_queue $i]
-                    lassign $req op opargs result_tid result_var
+                    if {$op eq "fetch_file"} {
+                        tsv::incr mport_fetch_thread::fetch cur_count
+                    }
                     thread::send -async $tid [list do_curl $op $opargs $result_tid $result_var] main_wakeup
                 }
                 if {$i > 0} {
@@ -192,6 +326,9 @@ proc mport_fetch_thread::init_management_thread {args} {
     trace remove variable management_thread read mport_fetch_thread::init_management_thread
     variable init_script
     set management_thread [thread::create -preserved $init_script]
+    global macports::fetch_threads
+    set max_fetches [expr {[info exists fetch_threads] ? $fetch_threads : 2}]
+    thread::send -async $management_thread [list set max_fetches $max_fetches]
 }
 
 # Queue a fetch operation to be performed on a thread in the background.
@@ -220,12 +357,42 @@ proc mport_fetch_thread::get_result {id} {
             vwait $id
         }
         set result [set $id]
-        unset $id
+        unset -nocomplain $id ${id}_tid
         macports::check_signals
         return $result
     } else {
         error "No pending request with id $id"
     }
+}
+
+# Return true if a result is available for the operation identified by
+# id, false otherwise.
+proc mport_fetch_thread::is_complete {id} {
+    variable active_requests
+    if {[dict exists $active_requests $id]} {
+        variable $id
+        if {![info exists $id]} {
+            update
+            macports::check_signals
+        }
+        return [info exists $id]
+    } else {
+        error "No pending request with id $id"
+    }
+}
+
+# Start displaying progress for the operation identified by id.
+proc mport_fetch_thread::show_progress {id} {
+    variable active_requests
+    if {![dict exists $active_requests $id]} {
+        error "No pending request with id $id"
+    }
+    variable ${id}_tid
+    if {![info exists ${id}_tid]} {
+        # Wait for the worker thread to tell us its id
+        vwait ${id}_tid
+    }
+    thread::send -async [set ${id}_tid] [list set show_progress 1]
 }
 
 # Cancel the operation identified by id.
@@ -239,7 +406,7 @@ proc mport_fetch_thread::cancel {id} {
     variable $id
     if {[info exists $id]} {
         # Already complete
-        unset $id
+        unset -nocomplain $id ${id}_tid
         return
     }
     # Try to remove it from the queue
@@ -248,11 +415,17 @@ proc mport_fetch_thread::cancel {id} {
     if {$was_unqueued} {
         return
     }
-    # Already dispatched. thread::cancel is tricky, so just wait for the result
+    # Already dispatched. Send cancellation request and wait for the result
     # (so we can clean up the result variable)
+    variable ${id}_tid
+    if {![info exists ${id}_tid]} {
+        # Wait for the worker thread to tell us its id
+        vwait ${id}_tid
+    }
+    thread::send [set ${id}_tid] [list set ::pextlib::curl::cancelled 1]
     if {![info exists $id]} {
         vwait $id
     }
-    unset $id
+    unset -nocomplain $id ${id}_tid
     macports::check_signals
 }

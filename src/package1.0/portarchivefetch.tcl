@@ -231,13 +231,36 @@ proc portarchivefetch::verify_signature {archive_path sig_path} {
 
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
-proc portarchivefetch::fetchfiles {args} {
+proc portarchivefetch::fetchfiles {{async no} args} {
     global UI_PREFIX archivefetch.fulldestpath archivefetch.user \
            archivefetch.password archivefetch.use_epsv \
            archivefetch.ignore_sslcert archive.subdir portverbose \
            ports_binary_only portdbpath force_archive_refresh
     variable archivefetch_urls
     variable ::portfetch::urlmap
+    variable async_job
+
+    if {[info exists async_job]} {
+        if {$async} {
+            # Async fetch already started
+            return 0
+        }
+        # Fetch was started asynchronously, wait for job to finish
+        if {![curlwrap_async_is_complete $async_job]} {
+            # Display progress for this fetch while waiting for it to finish
+            curlwrap_async_show_progress $async_job
+        }
+        # Will block until the fetch is done
+        lassign [curlwrap_async_result $async_job] status result
+        unset async_job
+        if {$status != 0 && (([info exists ports_binary_only] \
+            && $ports_binary_only eq "yes") || [_archive_available])} {
+            error "Failed to fetch archive for [option subport]: $result"
+        }
+        set async_done 1
+    } else {
+        set async_done 0
+    }
 
     if {![file isdirectory ${archivefetch.fulldestpath}]} {
         if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
@@ -265,12 +288,14 @@ proc portarchivefetch::fetchfiles {args} {
     if {${archivefetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
-    if {$portverbose eq "yes"} {
-        lappend fetch_options "--progress"
-        lappend fetch_options "builtin"
-    } else {
-        lappend fetch_options "--progress"
-        lappend fetch_options "ui_progress_download"
+    if {!$async} {
+        if {$portverbose eq "yes"} {
+            lappend fetch_options "--progress"
+            lappend fetch_options "builtin"
+        } else {
+            lappend fetch_options "--progress"
+            lappend fetch_options "ui_progress_download"
+        }
     }
     set sorted no
 
@@ -282,7 +307,9 @@ proc portarchivefetch::fetchfiles {args} {
 
     foreach {url_var archive} $archivefetch_urls {
         if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
-            ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
+            if {!$async && !$async_done} {
+                ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
+            }
             if {![file writable ${archivefetch.fulldestpath}]} {
                 return -code error [format [msgcat::mc "%s must be writable"] ${archivefetch.fulldestpath}]
             }
@@ -302,83 +329,101 @@ proc portarchivefetch::fetchfiles {args} {
             }
             set archive_tmp_path ${incoming_path}/${archive}.TMP
             set failed_sites 0
-            set archive_fetched 0
+            set archive_fetched [expr {$async_done ? [file isfile $archive_tmp_path] : 0}]
             set lastError ""
             set sig_fetched 0
-            foreach site $urlmap($url_var) {
-                set orig_site $site
-                if {[string index $site end] ne "/"} {
-                    append site /
-                }
-                append site ${archive.subdir}
-                set file_url [portfetch::assemble_url $site $archive]
-                # fetch archive
-                if {!$archive_fetched} {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
-                    try {
-                        curlwrap fetch $orig_site $credentials {*}$fetch_options $file_url $archive_tmp_path
-                        set archive_fetched 1
-                    } trap {POSIX SIG SIGINT} {_ eOptions} {
-                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
-                        file delete -force $archive_tmp_path
-                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                    } trap {POSIX SIG SIGTERM} {_ eOptions} {
-                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
-                        file delete -force $archive_tmp_path
-                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                    } on error {eMessage} {
-                        ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
-                        set lastError $eMessage
-                        file delete -force $archive_tmp_path
-                        incr failed_sites
-                        if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
-                            break
-                        }
-                    }
-                }
-                # fetch signature
-                if {$archive_fetched} {
-                    # TODO: record signature type for each URL somehow
-                    foreach sigtype $sigtypes {
-                        set signature ${incoming_path}/${archive}.${sigtype}
-                        ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.${sigtype} $site]"
-                        try {
-                            curlwrap fetch $orig_site $credentials {*}$fetch_options ${file_url}.${sigtype} $signature
-                            set sig_fetched 1
-                            break
-                        } trap {POSIX SIG SIGINT} {_ eOptions} {
-                            ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
-                            file delete -force $archive_tmp_path $signature
-                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                        } trap {POSIX SIG SIGTERM} {_ eOptions} {
-                            ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
-                            file delete -force $archive_tmp_path $signature
-                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                        } on error {eMessage} {
-                            ui_debug [msgcat::mc "Fetching archive signature failed: %s" $eMessage]
-                            set lastError $eMessage
-                            file delete -force $signature
-                        }
-                    }
-                    if {$sig_fetched} {
+            if {$async_done} {
+                foreach sigtype $sigtypes {
+                    set signature ${incoming_path}/${archive}.${sigtype}
+                    if {[file isfile $signature]} {
+                        set sig_fetched 1
                         break
                     }
                 }
             }
-            if {$archive_fetched && $sig_fetched} {
-                set verified [verify_signature $archive_tmp_path $signature]
-                file delete -force $signature
-                if {!$verified} {
-                    # fall back to building from source (or error out later if binary only mode)
-                    ui_warn "Failed to verify signature for archive!"
-                    file delete -force $archive_tmp_path
-                    break
-                } elseif {[catch {file rename -force $archive_tmp_path ${archivefetch.fulldestpath}/${archive}} result]} {
-                    ui_debug "$::errorInfo"
-                    return -code error "Failed to move downloaded archive into place: $result"
+            if {$async} {
+                set maxfails [expr {[tbool ports_binary_only] || [_archive_available] ? 0 : 3}]
+                set async_job [curlwrap_async fetch_archive $credentials $fetch_options $urlmap($url_var) \
+                        [lmap site $urlmap($url_var) {portfetch::assemble_url \
+                        [expr {[string index $site end] eq "/" ? $site : "${site}/"}]${archive.subdir} $archive}] \
+                        ${incoming_path}/${archive} $sigtypes $maxfails]
+                return 0
+            } else {
+                foreach site $urlmap($url_var) {
+                    set orig_site $site
+                    if {[string index $site end] ne "/"} {
+                        append site /
+                    }
+                    append site ${archive.subdir}
+                    set file_url [portfetch::assemble_url $site $archive]
+                    # fetch archive
+                    if {!$archive_fetched} {
+                        ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
+                        try {
+                            curlwrap fetch $orig_site $credentials {*}$fetch_options $file_url $archive_tmp_path
+                            set archive_fetched 1
+                        } trap {POSIX SIG SIGINT} {_ eOptions} {
+                            ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                            file delete -force $archive_tmp_path
+                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                        } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                            ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                            file delete -force $archive_tmp_path
+                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                        } on error {eMessage} {
+                            ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
+                            set lastError $eMessage
+                            file delete -force $archive_tmp_path
+                            incr failed_sites
+                            if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
+                                break
+                            }
+                        }
+                    }
+                    # fetch signature
+                    if {$archive_fetched && !$sig_fetched} {
+                        # TODO: record signature type for each URL somehow
+                        foreach sigtype $sigtypes {
+                            set signature ${incoming_path}/${archive}.${sigtype}
+                            ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.${sigtype} $site]"
+                            try {
+                                curlwrap fetch $orig_site $credentials {*}$fetch_options ${file_url}.${sigtype} $signature
+                                set sig_fetched 1
+                                break
+                            } trap {POSIX SIG SIGINT} {_ eOptions} {
+                                ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                                file delete -force $archive_tmp_path $signature
+                                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                            } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                                ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                                file delete -force $archive_tmp_path $signature
+                                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                            } on error {eMessage} {
+                                ui_debug [msgcat::mc "Fetching archive signature failed: %s" $eMessage]
+                                set lastError $eMessage
+                                file delete -force $signature
+                            }
+                        }
+                        if {$sig_fetched} {
+                            break
+                        }
+                    }
                 }
-                set archive_exists 1
-                break
+                if {$archive_fetched && $sig_fetched} {
+                    set verified [verify_signature $archive_tmp_path $signature]
+                    file delete -force $signature
+                    if {!$verified} {
+                        # fall back to building from source (or error out later if binary only mode)
+                        ui_warn "Failed to verify signature for archive!"
+                        file delete -force $archive_tmp_path
+                        break
+                    } elseif {[catch {file rename -force $archive_tmp_path ${archivefetch.fulldestpath}/${archive}} result]} {
+                        ui_debug "$::errorInfo"
+                        return -code error "Failed to move downloaded archive into place: $result"
+                    }
+                    set archive_exists 1
+                    break
+                }
             }
         } else {
             set archive_exists 1
@@ -405,25 +450,51 @@ proc portarchivefetch::fetchfiles {args} {
     }
 }
 
+# Start asynchronous fetch of archive
+proc portarchivefetch::archivefetch_async_start {} {
+    global all_archive_files
+    _archivefetch_start yes
+    if {![info exists all_archive_files]} {
+        # No files to fetch
+        return 0
+    }
+    fetchfiles yes
+}
+
+proc portarchivefetch::_async_cleanup {} {
+    variable async_job
+    if {[info exists async_job]} {
+        curlwrap_async_cancel $async_job
+        unset async_job
+    }
+}
+
 # Initialize archivefetch target and call checkfiles.
 #proc portarchivefetch::archivefetch_init {args} {
 #    return 0
 #}
 
-proc portarchivefetch::archivefetch_start {args} {
+proc portarchivefetch::_archivefetch_start {quiet} {
     variable archivefetch_urls
     global UI_PREFIX subport all_archive_files destroot target_state_fd \
            ports_source_only ports_binary_only
     if {![tbool ports_source_only] && ([tbool ports_binary_only] ||
-            !([check_statefile target org.macports.destroot $target_state_fd] && [file isdirectory $destroot]))} {
+            !([info exists target_state_fd] && [file isdirectory $destroot]
+              && [check_statefile target org.macports.destroot $target_state_fd]))} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+        if {!$quiet} {
+            ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+        }
     } elseif {[tbool ports_binary_only]} {
         error "Binary-only mode requested with no usable archive sites configured"
     }
     portfetch::check_dns
+}
+
+proc portarchivefetch::archivefetch_start {args} {
+    _archivefetch_start no
 }
 
 # Main archive fetch routine
