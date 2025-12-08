@@ -209,7 +209,7 @@ namespace eval mport_fetch_thread {
                 } on error {err} {
                     set result [list 1 $err]
                 } finally {
-                    if {$op eq "fetch_file"} {
+                    if {$op in {fetch_archive fetch_file}} {
                         tsv::incr mport_fetch_thread::fetch cur_count -1
                     }
                     tsv::set mport_fetch_thread::thread_busy [thread::id] 0
@@ -294,7 +294,8 @@ namespace eval mport_fetch_thread {
             while {1} {
                 for {set i 0} {$i < [llength $request_queue]} {incr i} {
                     lassign [lindex $request_queue $i] op opargs result_tid result_var
-                    if {$op eq "fetch_file" && [tsv::get mport_fetch_thread::fetch cur_count] >= $max_fetches} {
+                    set limit_concurrency [expr {$op in {fetch_archive fetch_file}}]
+                    if {$limit_concurrency && [tsv::get mport_fetch_thread::fetch cur_count] >= $max_fetches} {
                         # Theoretically there could be other op types further back in the queue that we could
                         # still dispatch, but that's unlikely in practice since fetching happens last.
                         break
@@ -303,7 +304,7 @@ namespace eval mport_fetch_thread {
                     if {$tid eq {}} {
                         break
                     }
-                    if {$op eq "fetch_file"} {
+                    if {$limit_concurrency} {
                         tsv::incr mport_fetch_thread::fetch cur_count
                     }
                     thread::send -async $tid [list do_curl $op $opargs $result_tid $result_var] main_wakeup
