@@ -678,7 +678,7 @@ namespace eval restore {
         foreach port $sorted_snapshot_portlist {
             set portname [lindex $port 0]
             if {[dict exists $mports $portname]} {
-                macports::async_fetch_mport [dict get $mports $portname]
+                macports::async_fetch_mport activate [dict get $mports $portname]
             }
         }
 

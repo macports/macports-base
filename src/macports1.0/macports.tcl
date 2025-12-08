@@ -5617,7 +5617,7 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     }
                     if {$opname in {activate install}} {
                         # Start background fetch of files
-                        async_fetch_mport $mport
+                        async_fetch_mport activate $mport
                     }
                     dict set all_mports $mport 0
                 }
