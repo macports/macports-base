@@ -2,6 +2,47 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.12.0 (unreleased)
+    - Files are now downloaded in background threads, so downloads
+      needed for upcoming port installations can progress while other
+      ports are being installed. The new fetch_threads macports.conf
+      option controls the maximum number of simultaneous downloads.
+      (jmr in 632eab5)
+
+    - Performance of dependency calculation is improved by checking
+      availability of archives in background threads, and by processing
+      ports that don't need that check first.
+      (jmr in 2eed186, e668a7b, e83422f)
+
+    - 'port upgrade' now displays the list of ports that will be
+      upgraded or installed before starting, and asks for confirmation
+      if running interactively. (jmr in e3def17)
+
+    - 'port upgrade' now has a progress counter showing the total
+      number of ports to be upgraded and the current port's position in
+      the list. (#5001, jmr in 82964b8)
+
+    - Syncing the ports tree via rsync should now perform better by
+      only extracting updated files from the tarball. (jmr in df4d61b)
+
+    - Updated the bundled Tcl to 8.6.17. (jmr in 1555f20)
+
+    - The use_* options related to the type of distfile (use_bzip2,
+      use_xz, etc) have been reworked. Setting one of them now unsets
+      the rest. The extract.cmd, extract.pre_args, extract.post_args,
+      and extract.suffix options now have dynamic defaults based on
+      which of the use_* options are set (if any). Extract dependencies
+      are now added in a callback at the end of Portfile parsing,
+      rather than immediately on setting a use_* option, so the
+      dependencies reflect the final option values.
+      (#64960, jmr in 4d1304b)
+
+    - Timestamps in logs now have millisecond precision.
+      (#72600, jmr in 871d039)
+
+    - Fixed error when running 'port info --index --fullname'.
+      (jmr in b413e63)
+
 Release 2.11.6 (2025-10-29 by jmr)
     - Fixed possible failure of (x)install -d when something else
       creates the directory while it is running.
