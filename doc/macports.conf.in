@@ -239,6 +239,10 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 #host_blacklist      	badhost1 badhost2
 #preferred_hosts     	preferredhost1 preferredhost2 *.de.*.macports.org
 
+# Maximum number of downloads to run simultaneously in the background.
+# Set to 0 to disable background downloading.
+#fetch_threads          2
+
 # Whether MacPorts should automatically run rev-upgrade after upgrading
 # ports.
 #revupgrade_autorun  	yes
