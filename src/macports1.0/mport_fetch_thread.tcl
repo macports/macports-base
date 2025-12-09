@@ -328,7 +328,7 @@ proc mport_fetch_thread::init_management_thread {args} {
     variable init_script
     set management_thread [thread::create -preserved $init_script]
     global macports::fetch_threads
-    set max_fetches [expr {[info exists fetch_threads] ? $fetch_threads : 2}]
+    set max_fetches [expr {[info exists fetch_threads] && $fetch_threads > 1 ? $fetch_threads : 1}]
     thread::send -async $management_thread [list set max_fetches $max_fetches]
 }
 
