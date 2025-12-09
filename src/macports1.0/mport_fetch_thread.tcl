@@ -40,6 +40,7 @@ namespace eval mport_fetch_thread {
     variable next_id 0
     variable management_thread
     trace add variable management_thread read mport_fetch_thread::init_management_thread
+    variable timeout_script_template {if {![info exists %s]} {set %s timeout}}
 
     # Management thread code
     variable init_script {
@@ -367,13 +368,27 @@ proc mport_fetch_thread::get_result {id} {
 }
 
 # Return true if a result is available for the operation identified by
-# id, false otherwise.
-proc mport_fetch_thread::is_complete {id} {
+# id, false otherwise. If timeout is > 0, wait up to that many ms for
+# the result to become available before returning.
+proc mport_fetch_thread::is_complete {id {timeout 0}} {
     variable active_requests
     if {[dict exists $active_requests $id]} {
         variable $id
         if {![info exists $id]} {
-            update
+            if {$timeout > 0} {
+                variable timeout_script_template
+                set timeout_script [string map [list %s $id] \
+                    $timeout_script_template]
+                set timeout_eventid [after $timeout $timeout_script]
+                vwait $id
+                if {[set $id] eq "timeout"} {
+                    unset $id
+                } else {
+                    after cancel $timeout_eventid
+                }
+            } else {
+                update
+            }
             macports::check_signals
         }
         return [info exists $id]
@@ -392,6 +407,7 @@ proc mport_fetch_thread::show_progress {id} {
     if {![info exists ${id}_tid]} {
         # Wait for the worker thread to tell us its id
         vwait ${id}_tid
+        macports::check_signals
     }
     thread::send -async [set ${id}_tid] [list set show_progress 1]
 }

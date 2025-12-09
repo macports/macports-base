@@ -2269,8 +2269,8 @@ proc macports::curlwrap_async_cancel {id} {
 }
 
 # Check if a curlwrap_async operation is complete.
-proc macports::curlwrap_async_is_complete {id} {
-    return [mport_fetch_thread::is_complete $id]
+proc macports::curlwrap_async_is_complete {id args} {
+    return [mport_fetch_thread::is_complete $id {*}$args]
 }
 
 # Start displaying progress for an operation.

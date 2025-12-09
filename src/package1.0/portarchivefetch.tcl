@@ -249,8 +249,10 @@ proc portarchivefetch::fetchfiles {{async no} args} {
         if {![curlwrap_async_is_complete $async_job]} {
             # Display progress for this fetch while waiting for it to finish
             curlwrap_async_show_progress $async_job
+            # Loop with a reasonable timeout so we don't wait too long
+            # to handle events like signals.
+            while {![curlwrap_async_is_complete $async_job 500]} {}
         }
-        # Will block until the fetch is done
         lassign [curlwrap_async_result $async_job] status result
         unset async_job
         if {$status != 0 && (([info exists ports_binary_only] \

@@ -471,8 +471,10 @@ proc portfetch::fetchfiles {{async no} args} {
             if {![curlwrap_async_is_complete $jobid]} {
                 # Display progress for this fetch while waiting for it to finish
                 curlwrap_async_show_progress $jobid
+                # Loop with a reasonable timeout so we don't wait too long
+                # to handle events like signals.
+                while {![curlwrap_async_is_complete $jobid 500]} {}
             }
-            # Will block until the fetch is done
             lassign [curlwrap_async_result $jobid] status result
             if {$status != 0} {
                 error "Failed to fetch ${distfile}: $result"
