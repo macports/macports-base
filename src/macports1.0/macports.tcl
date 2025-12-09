@@ -2888,9 +2888,13 @@ proc macports::async_fetch_mport {target mport} {
     }
     variable no_build_targets
     set workername [ditem_key $mport workername]
-    if {[dict exists $no_build_targets $target] && ![global_option_isset ports_source_only] && [$workername eval [list _archive_available]]} {
+    if {[dict exists $no_build_targets $target] && ![global_option_isset ports_source_only]
+        && ![_mportinstalled $mport] && [$workername eval [list _archive_available]]
+    } then {
         $workername eval [list portarchivefetch::archivefetch_async_start]
-    } elseif {[_target_needs_deps $target] && (![dict exists $no_build_targets $target] || ![global_option_isset ports_binary_only])} {
+    } elseif {[_target_needs_deps $target] && (![dict exists $no_build_targets $target]
+              || (![global_option_isset ports_binary_only] && ![_mportinstalled $mport]))
+    } then {
         $workername eval [list portfetch::fetch_async_start]
     }
 }
