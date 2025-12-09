@@ -2886,6 +2886,10 @@ proc macports::async_fetch_mport {target mport} {
     if {[global_option_isset ports_dryrun]} {
         return
     }
+    variable fetch_threads
+    if {$fetch_threads == 0} {
+        return
+    }
     variable no_build_targets
     set workername [ditem_key $mport workername]
     if {[dict exists $no_build_targets $target] && ![global_option_isset ports_source_only]
