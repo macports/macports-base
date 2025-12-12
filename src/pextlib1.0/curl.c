@@ -275,13 +275,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
         /* allow cancelling asynchronous transfers */
 		int cancelled = 0;
-        if ((theResult = Tcl_LinkVar(interp,
-                                     "::pextlib::curl::cancelled",
-                                     (char *)&cancelled,
-                                     TCL_LINK_BOOLEAN)) != TCL_OK) {
-            Tcl_SetResult(interp, "Tcl_LinkVar failed", TCL_STATIC);
-            break;
-        }
+		if ((theResult = Tcl_LinkVar(interp,
+									 "::pextlib::curl::cancelled",
+									 (char *)&cancelled,
+									 TCL_LINK_BOOLEAN)) != TCL_OK) {
+			/* Tcl_LinkVar already sets an error message */
+			break;
+		}
 
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -1103,13 +1103,13 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
         /* allow cancelling asynchronous transfers */
 		int cancelled = 0;
-        if ((theResult = Tcl_LinkVar(interp,
-                                     "::pextlib::curl::cancelled",
-                                     (char *)&cancelled,
-                                     TCL_LINK_BOOLEAN)) != TCL_OK) {
-            Tcl_SetResult(interp, "Tcl_LinkVar failed", TCL_STATIC);
-            break;
-        }
+		if ((theResult = Tcl_LinkVar(interp,
+									 "::pextlib::curl::cancelled",
+									 (char *)&cancelled,
+									 TCL_LINK_BOOLEAN)) != TCL_OK) {
+			/* Tcl_LinkVar already sets an error message */
+			break;
+		}
 
 		optioncrsr = 2;
 		lastoption = objc - 2;
