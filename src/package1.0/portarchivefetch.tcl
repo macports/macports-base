@@ -344,6 +344,16 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                 }
             }
             if {$async} {
+                if {[file exists ${incoming_path}/${archive}.TMP]} {
+                    file delete ${incoming_path}/${archive}.TMP
+                }
+                touch ${incoming_path}/${archive}.TMP
+                foreach sigtype $sigtypes {
+                    if {[file exists ${incoming_path}/${archive}.${sigtype}]} {
+                        file delete ${incoming_path}/${archive}.${sigtype}
+                    }
+                    touch ${incoming_path}/${archive}.${sigtype}
+                }
                 set maxfails [expr {[tbool ports_binary_only] || [_archive_available] ? 0 : 3}]
                 set async_job [curlwrap_async fetch_archive $credentials $fetch_options $urlmap($url_var) \
                         [lmap site $urlmap($url_var) {portfetch::assemble_url \

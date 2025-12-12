@@ -479,6 +479,7 @@ proc portfetch::fetchfiles {{async no} args} {
             if {$status != 0} {
                 error "Failed to fetch ${distfile}: $result"
             }
+            file rename -force ${distpath}/${distfile}.TMP ${distpath}/${distfile}
         }
         return 0
     }
@@ -529,6 +530,10 @@ proc portfetch::fetchfiles {{async no} args} {
                 set urlmap($url_var) $urlmap(master_sites)
             }
             if {$async} {
+                if {[file exists ${distpath}/${distfile}.TMP]} {
+                    file delete ${distpath}/${distfile}.TMP
+                }
+                touch ${distpath}/${distfile}.TMP
                 lappend async_jobs $distfile \
                     [curlwrap_async fetch_file $credentials $fetch_options $urlmap($url_var) \
                         [lmap site $urlmap($url_var) {portfetch::assemble_url $site $distfile}] \

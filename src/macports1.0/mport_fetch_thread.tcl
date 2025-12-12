@@ -130,7 +130,6 @@ namespace eval mport_fetch_thread {
                                         set archive_fetched 1
                                     } on error {eMessage} {
                                         progress_handler debug "Fetching $url failed: $eMessage"
-                                        file delete -force ${outpath}.TMP
                                         set result [list 1 $eMessage]
                                         incr failed_sites
                                         if {$cancelled || ($maxfails > 0 && $failed_sites >= $maxfails)} {
@@ -151,14 +150,13 @@ namespace eval mport_fetch_thread {
                                             }
                                             curl fetch --progress progress_handler {*}$creds {*}$fixed_args $sigurl $signature
                                             set sig_fetched 1
+                                            set fetched_sigtype $sigtype
                                             set result [list 0 1]
                                             break
                                         } on error {eMessage} {
                                             progress_handler debug "Fetching $sigurl failed: $eMessage"
                                             set result [list 1 $eMessage]
-                                            file delete -force $signature
                                             if {$cancelled} {
-                                                file delete -force ${outpath}.TMP
                                                 break
                                             }
                                         }
@@ -171,6 +169,14 @@ namespace eval mport_fetch_thread {
                                     break
                                 }
                             }
+                            foreach sigtype $sigtypes {
+                                if {!$sig_fetched || $sigtype ne $fetched_sigtype} {
+                                    catch {file delete ${outpath}.${sigtype}}
+                                }
+                            }
+                            if {!$archive_fetched} {
+                                catch {file delete ${outpath}.TMP}
+                            }
                         }
                         fetch_file {
                             # Try fetching the given URLs, saving the result to outpath, until
@@ -181,6 +187,7 @@ namespace eval mport_fetch_thread {
                             set progress_inited 0
                             set progress_tid $result_tid
                             lassign $opargs fixed_args credential_args urls outpath
+                            set fetched 0
                             foreach url $urls creds $credential_args {
                                 try {
                                     if {$show_progress} {
@@ -189,7 +196,7 @@ namespace eval mport_fetch_thread {
                                         set current_url $url
                                     }
                                     curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
-                                    file rename -force ${outpath}.TMP ${outpath}
+                                    set fetched 1
                                     set result [list 0 1]
                                     break
                                 } on error {eMessage} {
@@ -198,9 +205,10 @@ namespace eval mport_fetch_thread {
                                     if {$cancelled} {
                                         break
                                     }
-                                } finally {
-                                    file delete -force ${outpath}.TMP
                                 }
+                            }
+                            if {!$fetched} {
+                                catch {file delete ${outpath}.TMP}
                             }
                         }
                         default {
