@@ -1401,8 +1401,6 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			}
 		} while (running > 0);
 
-        Tcl_UnlinkVar(interp, "::pextlib::curl::cancelled");
-
         /* Find out whether the transfer succeeded or failed. */
 		info = curl_multi_info_read(theMHandle, &running);
 		if (running > 0) {
@@ -1466,6 +1464,8 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			"%.0f", theFileSize);
 		Tcl_SetResult(interp, theSizeString, TCL_VOLATILE);
 	} while (0);
+
+    Tcl_UnlinkVar(interp, "::pextlib::curl::cancelled");
 
     if (handleAdded) {
 		/* Remove the handle from the multi handle, but ignore errors to avoid
