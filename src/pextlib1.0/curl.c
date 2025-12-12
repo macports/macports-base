@@ -402,7 +402,9 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		/* Open the file */
 		theFile = fopen(theFilePath, "w");
 		if (theFile == NULL) {
-			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+			int errsave = errno;
+			Tcl_SetResult(interp, "Failed to open file ", TCL_STATIC);
+			Tcl_AppendResult(interp, theFilePath, " for writing: ", strerror(errsave), NULL);
 			theResult = TCL_ERROR;
 			break;
 		}
