@@ -248,8 +248,6 @@ proc add_to_portlist_with_defaults {listname portentry} {
 }
 
 proc url_to_portname { url {quiet 0} } {
-    # Save directory and restore the directory, since mportopen changes it
-    set savedir [pwd]
     set portname ""
     if {[catch {set ctx [mportopen $url]} result]} {
         ui_debug "$::errorInfo"
@@ -261,7 +259,6 @@ proc url_to_portname { url {quiet 0} } {
         set portname [dict get [mportinfo $ctx] name]
         mportclose $ctx
     }
-    cd $savedir
     return $portname
 }
 
@@ -1626,7 +1623,7 @@ proc action_log { action portlist opts } {
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq ""} {
-        # Verify the portname, getting portinfo to map to a porturl
+            # Verify the portname, getting portinfo to map to a porturl
             if {[catch {mportlookup $portname} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "lookup of portname $portname failed: $result" 1 status
@@ -1636,31 +1633,8 @@ proc action_log { action portlist opts } {
             }
             lassign $result portname portinfo
             set porturl [dict get $portinfo porturl]
-            set portdir [dict get $portinfo portdir]
-        } elseif {$porturl ne "file://."} {
-            # Extract the portdir from porturl and use it to search PortIndex.
-            # Only the last two elements of the path (porturl) make up the
-            # portdir.
-            set portdir [file split [macports::getportdir $porturl]]
-            set lsize [llength $portdir]
-            set portdir \
-                [file join [lindex $portdir [expr {$lsize - 2}]] \
-                           [lindex $portdir [expr {$lsize - 1}]]]
-            if {[catch {mportsearch $portdir no exact portdir} result]} {
-                ui_debug "$::errorInfo"
-                break_softcontinue "Portdir $portdir not found" 1 status
-            }
-            if {[llength $result] < 2} {
-                break_softcontinue "Portdir $portdir not found" 1 status
-            }
-            set matchindex [lsearch -exact -nocase $result $portname]
-            if {$matchindex != -1} {
-                set portinfo [lindex $result [incr matchindex]]
-            } else {
-                ui_warn "Portdir $portdir doesn't seem to belong to portname $portname"
-                set portinfo [lindex $result 1]
-            }
-            set portname [dict get $portinfo name]
+        } elseif {$portname eq ""} {
+            set portname [url_to_portname $porturl]
         }
         set portpath [macports::getportdir $porturl]
         set logfile [file join [macports::getportlogpath $portpath $portname] "main.log"]
@@ -5711,7 +5685,15 @@ if {[info exists global_options(ports_dir)]} {
 }
 
 # Set up some global state for our code
-set current_portdir [pwd]
+
+# Handle missing or inaccessible current working directory
+if {[catch {pwd} current_portdir]} {
+    # Use somewhere that will exist and won't contain a Portfile (which
+    # would make the 'current' pseudoport behave unexpectedly)
+    set current_portdir $::macports::portdbpath
+    ui_warn "Unable to access current working directory, changing to $current_portdir"
+    cd $current_portdir
+}
 
 # Remove question settings from ui_options - these are only used via 
 # macports::ui_options and could be removed internally, and we don't

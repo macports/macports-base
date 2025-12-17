@@ -1260,11 +1260,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 26]macports/
     close $fd
 
     if {![info exists sources]} {
-        if {[file isdirectory ports]} {
-            set sources file://[pwd]/ports
-        } else {
-            return -code error "No sources defined in $sources_conf"
-        }
+        return -code error "No sources defined in $sources_conf"
     }
     # Make sure the default port source is defined. Otherwise
     # [macports::getportresourcepath] fails when the first source doesn't
@@ -2318,9 +2314,6 @@ proc macports::fetch_port {url {local 0}} {
         }
     }
 
-    set oldpwd [pwd]
-    cd $fetchdir
-
     # check if this is a binary archive or just the port dir by checking
     # whether the file "+CONTENTS" exists.
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
@@ -2342,8 +2335,8 @@ proc macports::fetch_port {url {local 0}} {
         ui_debug "port name is '$portname'"
 
         # create a correctly-named directory and put the Portfile there
-        file mkdir $portname
-        cd $portname
+        set extract_dir [file join $fetchdir $portname]
+        file mkdir $extract_dir
     } else {
         # the file is not a valid binary archive, assume it's an archive just
         # containing Portfile and the files directory
@@ -2352,11 +2345,11 @@ proc macports::fetch_port {url {local 0}} {
     }
 
     # extract the portfile (and possibly files dir if not a binary archive)
-    ui_debug "extracting port archive to [pwd]"
+    ui_debug "extracting port archive to $extract_dir"
     if {$binary} {
-        set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath ./+PORTFILE > Portfile]
+        set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath ./+PORTFILE > [file join $extract_dir Portfile]]
     } else {
-        set cmdline [list $tarcmd ${tarflags}xf $filepath]
+        set cmdline [list $tarcmd -C ${fetchdir} ${tarflags}xf $filepath]
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
@@ -2364,8 +2357,6 @@ proc macports::fetch_port {url {local 0}} {
             # clean up the archive, we don't need it anymore
             file delete [file join $fetchdir $fetchfile]
         }
-
-        cd $oldpwd
         return -code error "Port extract failed: $result"
     }
 
@@ -2374,7 +2365,6 @@ proc macports::fetch_port {url {local 0}} {
         file delete [file join $fetchdir $fetchfile]
     }
 
-    cd $oldpwd
     return [file join $fetchdir $portname]
 }
 
@@ -2649,11 +2639,10 @@ proc mportopen_installed {name version revision variants options} {
 #           category/port/ as its parameter)
 # root:     the directory with all the categories directories.
 proc mporttraverse {func {root .}} {
-    # Save the current directory
-    set pwd [pwd]
-
-    # Join the root.
-    set pathToRoot [file join $pwd $root]
+    if {[catch {pwd} oldpwd]} {
+        set oldpwd {}
+    }
+    set pathToRoot [file normalize $root]
 
     # Go to root because some callers expects us to be there.
     cd $pathToRoot
@@ -2679,7 +2668,9 @@ proc mporttraverse {func {root .}} {
     }
 
     # Restore the current directory.
-    cd $pwd
+    if {$oldpwd ne {}} {
+        cd $oldpwd
+    }
 }
 
 ### _mportsearchpath is private; subject to change without notice
@@ -3392,40 +3383,46 @@ proc macports::VCSCleanup {statevar} {
 #
 proc macports::GetVCSUpdateCmd {portDir} {
 
-    set oldPWD [pwd]
+    if {[catch {pwd} oldPWD]} {
+        set oldPWD {}
+    }
     cd $portDir
+    set ret {}
 
     # Subversion
     if {![catch {macports::findBinary svn} svn] &&
         ([file exists .svn] ||
          ![catch {exec $svn info >/dev/null 2>@1}])
     } then {
-        return [list Subversion "$svn update --non-interactive" $portDir]
+        set ret [list Subversion "$svn update --non-interactive" $portDir]
     }
 
     # Git
-    if {![catch {macports::findBinary git} git] &&
+    if {$ret eq {} && ![catch {macports::findBinary git} git] &&
         ![catch {exec $git rev-parse --is-inside-work-tree}]
     } then {
         if {![catch {exec $git config --local --get svn-remote.svn.url}]} {
             # git-svn repository
-            return [list git-svn "$git svn rebase" $portDir]
+            set ret [list git-svn "$git svn rebase" $portDir]
+        } else {
+            # regular git repository
+            set autostash ""
+            if {![catch {exec $git --version} git_version_string] && \
+                [regexp -nocase "git version (\[^ ]+)" $git_version_string -> gitversion] && \
+                [vercmp $gitversion 2.9.0] >= 0} {
+                # https://github.com/git/git/blob/v2.9.0/Documentation/RelNotes/2.9.0.txt#L84-L86
+                set autostash " --autostash"
+            }
+            set ret [list Git "$git pull --rebase${autostash}" $portDir]
         }
-        # regular git repository
-        set autostash ""
-        if {![catch {exec $git --version} git_version_string] && \
-            [regexp -nocase "git version (\[^ ]+)" $git_version_string -> gitversion] && \
-            [vercmp $gitversion 2.9.0] >= 0} {
-            # https://github.com/git/git/blob/v2.9.0/Documentation/RelNotes/2.9.0.txt#L84-L86
-            set autostash " --autostash"
-        }
-        return [list Git "$git pull --rebase${autostash}" $portDir]
     }
 
     # Add new VCSes here!
 
-    cd $oldPWD
-    return [list]
+    if {$oldPWD ne {}} {
+        cd $oldPWD
+    }
+    return $ret
 }
 
 # macports::UpdateVCS --

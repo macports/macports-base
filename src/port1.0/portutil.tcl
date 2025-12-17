@@ -1416,7 +1416,9 @@ proc target_run {ditem} {
                 # cd somewhere readable in tracemode to avoid error, e.g. with
                 # find. Make sure to use a path that also exists when executing
                 # Portfiles from registry, i.e., _not_ $workpath.
-                set oldpwd [pwd]
+                if {[catch {pwd} oldpwd]} {
+                    set oldpwd {}
+                }
                 _cd $portdbpath
                 # change current phase shown in log
                 set_phase $target
@@ -1571,7 +1573,9 @@ proc target_run {ditem} {
 
                 # $oldpwd is deleted while uninstalling a port, changing back
                 # _will_ fail
-                catch {_cd $oldpwd}
+                if {$oldpwd ne {}} {
+                    catch {_cd $oldpwd}
+                }
             }
         }
         if {[exists copy_log_files]} {

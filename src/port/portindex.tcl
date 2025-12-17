@@ -329,7 +329,11 @@ proc parse_args {} {
             -o { # Set output directory
                 incr i
                 global outdir
-                set outdir [file join [pwd] [lindex $argv $i]]
+                if {[string index [lindex $argv $i] 0] ne "/"} {
+                    set outdir [file join [pwd] [lindex $argv $i]]
+                } else {
+                    set outdir [lindex $argv $i]
+                }
             }
             -p { # Simulate platform
                 global var_overrides

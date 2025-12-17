@@ -434,13 +434,8 @@ proc extract_archive_to_imagedir {location} {
     } else {
         file mkdir $extractdir
     }
-    set startpwd [pwd]
 
     try {
-        if {[catch {cd $extractdir} err]} {
-            throw MACPORTS $err
-        }
-
         # clagged straight from unarchive... this really needs to be factored
         # out, but it's a little tricky as the places where it's used run in
         # different interpreter contexts with access to different packages.
@@ -590,12 +585,10 @@ proc extract_archive_to_imagedir {location} {
         } else {
             set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
         }
-        system -callback portimage::_extract_progress $cmdstring
+        system -W $extractdir -callback portimage::_extract_progress $cmdstring
     } on error {_ eOptions} {
         ::file delete -force $extractdir
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-    } finally {
-        cd $startpwd
     }
 
     return $extractdir

@@ -121,14 +121,9 @@ proc foreachport {portlist block} {
         # Invoke block
         uplevel 1 $block
 
-        # Restore cwd after each port, since mportopen changes it, and otherwise relative
-        # urls would break on subsequent passes
-        if {[file exists $savedir]} {
-            cd $savedir
-        } else {
-            # XXX Tcl9 unsafe
-            cd ~
-        }
+        # Restore cwd after each port, since some operations may change it,
+        # and otherwise relative urls would break on subsequent passes
+        catch {cd $savedir}
     }
 }
 

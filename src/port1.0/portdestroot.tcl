@@ -278,7 +278,9 @@ proc portdestroot::destroot_finish {args} {
                 if {![regexp ${gzext_re} ${manlinksrc}]} {
                     set mandir [file dirname $manlink]
                     set mandirpath [file join $manpath $mandir]
-                    set pwd [pwd]
+                    if {[catch {pwd} oldpwd]} {
+                        set oldpwd {}
+                    }
                     if {[catch {_cd $mandirpath} err]} {
                         puts $err
                         return
@@ -302,7 +304,9 @@ proc portdestroot::destroot_finish {args} {
                         file delete $manlinkpath
                         ln -s "${manlinksrc}.gz" "${manlinkpath}"
                     }
-                    _cd $pwd
+                    if {$oldpwd ne {}} {
+                        _cd $oldpwd
+                    }
                 }
             }
         } else {
