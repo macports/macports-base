@@ -234,7 +234,8 @@ proc add_to_portlist_with_defaults {listname portentry} {
     # If neither portname nor url is specified, then default to the current port
     if {(![dict exists $portentry url] || [dict get $portentry url] eq "")
              && (![dict exists $portentry name] || [dict get $portentry name] eq "")} {
-        set url file://.
+        global current_portdir
+        set url file://${current_portdir}
         set portname [url_to_portname $url]
         dict set portentry url $url
         dict set portentry name $portname
@@ -500,7 +501,8 @@ proc get_current_ports {} {
 
 
 proc get_current_port {} {
-    set url file://.
+    global current_portdir
+    set url file://${current_portdir}
     set portname [url_to_portname $url]
     if {$portname eq ""} {
         ui_msg "To use the current port, you must be in a port's directory."
@@ -1299,11 +1301,12 @@ proc add_ports_to_portlist_with_defaults {listname ports {overrides ""}} {
             incr i
         }
     }
+    global current_portdir
     set i 0
     foreach port $ports {
         if {(![dict exists $port url] || [dict get $port url] eq "")
                 && (![dict exists $port name] || [dict get $port name] eq "")} {
-            set url file://.
+            set url file://${current_portdir}
             set portname [url_to_portname $url]
             dict set port url $url
             dict set port name $portname
