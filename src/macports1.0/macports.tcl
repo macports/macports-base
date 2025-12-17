@@ -2342,6 +2342,7 @@ proc macports::fetch_port {url {local 0}} {
         # containing Portfile and the files directory
         set binary 0
         set portname [file rootname [file tail $filepath]]
+        set extract_dir $fetchdir
     }
 
     # extract the portfile (and possibly files dir if not a binary archive)
@@ -2349,7 +2350,7 @@ proc macports::fetch_port {url {local 0}} {
     if {$binary} {
         set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath ./+PORTFILE > [file join $extract_dir Portfile]]
     } else {
-        set cmdline [list $tarcmd -C ${fetchdir} ${tarflags}xf $filepath]
+        set cmdline [list $tarcmd -C ${extract_dir} ${tarflags}xf $filepath]
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
