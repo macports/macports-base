@@ -126,6 +126,7 @@ proc portextract::get_extract_post_args {} {
         return {}
     } elseif {[tbool use_dmg]} {
         global distname extract.cmd
+        variable dmg_mount
         return "-private -readonly -nobrowse -mountpoint [shellescape ${dmg_mount}] && cd [shellescape ${dmg_mount}] && [findBinary find ${portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${portutil::autoconf::cpio_path}] -0 -p -d -m -u [shellescape ${extract.dir}/${distname}]; status=\$?; cd / && ${extract.cmd} detach [shellescape ${dmg_mount}] && [findBinary rmdir ${portutil::autoconf::rmdir_path}] [shellescape ${dmg_mount}]; exit \$status"
     }
     return "| ${portutil::autoconf::tar_command} -xf -"
