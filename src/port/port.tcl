@@ -1639,6 +1639,9 @@ proc action_log { action portlist opts } {
         } elseif {$portname eq ""} {
             set portname [url_to_portname $porturl]
         }
+        if {[dict exists $options subport]} {
+            set portname [dict get $options subport]
+        }
         set portpath [macports::getportdir $porturl]
         set logfile [file join [macports::getportlogpath $portpath $portname] "main.log"]
         if {[file exists $logfile]} {
@@ -3829,6 +3832,9 @@ proc action_portcmds { action portlist opts } {
                 }
 
                 work {
+                    if {[dict exists $options subport]} {
+                        set portname [dict get $options subport]
+                    }
                     # output the path to the port's work directory
                     set workpath [macports::getportworkpath_from_portdir $portdir $portname]
                     if {[file exists $workpath]} {
@@ -3853,6 +3859,9 @@ proc action_portcmds { action portlist opts } {
                 }
 
                 logfile {
+                    if {[dict exists $options subport]} {
+                        set portname [dict get $options subport]
+                    }
                     set logfile [file join [macports::getportlogpath $portdir $portname] "main.log"]
                     if {[file isfile $logfile]} {
                         puts $logfile
