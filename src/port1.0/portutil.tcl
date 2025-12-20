@@ -1481,35 +1481,34 @@ proc target_run {ditem} {
                     # Gather the dependencies for deptypes
                     foreach deptype $deptypes {
                         # Add to the list of dependencies if the option exists and isn't empty.
-                        if {[info exists PortInfo($deptype)] && $PortInfo($deptype) ne ""} {
-                            set depends [concat $depends $PortInfo($deptype)]
-                        }
-                    }
-
-                    # Recursively collect all dependencies from registry for tracing
-                    set deplist [list]
-                    foreach depspec $depends {
-                        # Resolve dependencies to actual ports
-                        set name [_get_dep_port $depspec]
-
-                        # If portname is empty, the dependency is already satisfied by other means,
-                        # for example a bin: dependency on a file not installed by MacPorts
-                        if {$name ne "" && $name ni $deplist} {
-                            lappend deplist $name
-                            set deplist [recursive_collect_deps $name $deplist]
+                        if {[info exists PortInfo($deptype)]} {
+                            lappend depends {*}$PortInfo($deptype)
                         }
                     }
 
                     # Add ccache port for access to ${prefix}/bin/ccache binary if it exists
                     if {[option configure.ccache] && [file exists ${prefix_frozen}/bin/ccache]} {
-                        set name [_get_dep_port path:bin/ccache:ccache]
-                        lappend deplist $name
-                        set deplist [recursive_collect_deps $name $deplist]
+                        lappend depends path:bin/ccache:ccache
                     }
 
-                    ui_debug "Tracemode will respect recursively collected port dependencies: [lsort $deplist]"
+                    # Recursively collect all dependencies from registry for tracing
+                    set depset [dict create]
+                    foreach depspec $depends {
+                        # Resolve dependencies to actual ports
+                        set name [string tolower [_get_dep_port $depspec]]
 
-                    if {[llength $deptypes] > 0} {tracelib setdeps $deplist}
+                        # If portname is empty, the dependency is already satisfied by other means,
+                        # for example a bin: dependency on a file not installed by MacPorts
+                        if {$name ne "" && ![dict exists $depset $name]} {
+                            dict set depset $name 1
+                            set depset [recursive_collect_deps $name $depset]
+                        }
+                    }
+
+                    set deplist [lsort [dict keys $depset]]
+                    ui_debug "Tracemode will respect recursively collected port dependencies: $deplist"
+
+                    tracelib setdeps $deplist
                 }
 
                 # For {} blocks in the Portfile, export DEVELOPER_DIR to prevent Xcode binaries if shouldn't be used
@@ -1646,9 +1645,9 @@ proc recursive_collect_deps {portname {depsfound {}}} \
     set deplist [registry_list_depends [lindex $regentry 0] [lindex $regentry 1] [lindex $regentry 2] [lindex $regentry 3]]
 
     foreach item $deplist {
-        set name [lindex $item 0]
-        if {$name ni $depsfound} {
-            lappend depsfound $name
+        set name [string tolower [lindex $item 0]]
+        if {![dict exists $depsfound $name]} {
+            dict set depsfound $name 1
             set depsfound [recursive_collect_deps $name $depsfound]
         }
     }
