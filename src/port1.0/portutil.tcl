@@ -606,9 +606,9 @@ proc variant {args} {
     ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
 
     if {![regexp {^[A-Za-z0-9_.]+$} [ditem_key $ditem provides]]} {
-        set name [ditem_key $ditem provides] 
+        set vname [ditem_key $ditem provides]
         ditem_delete $ditem
-        return -code error "Variant name $name contains invalid characters"
+        return -code error "Variant name $vname contains invalid characters"
     }
 
     # make a user procedure named variant-blah-blah
@@ -673,9 +673,9 @@ proc variant {args} {
 
 # variant_isset name
 # Returns 1 if variant name selected, otherwise 0
-proc variant_isset {name} {
+proc variant_isset {vname} {
     global variations
-    if {[info exists variations($name)] && $variations($name) eq "+"} {
+    if {[info exists variations($vname)] && $variations($vname) eq "+"} {
         return 1
     }
     return 0
@@ -683,19 +683,19 @@ proc variant_isset {name} {
 
 # variant_set name
 # Sets variant to run for current portfile
-proc variant_set {name} {
+proc variant_set {vname} {
     global variations
-    set variations($name) +
+    set variations($vname) +
 }
 
 # variant_remove_ditem name
 # Remove variant name's ditem from the all_variants dlist
-proc variant_remove_ditem {name} {
+proc variant_remove_ditem {vname} {
     global portutil::all_variants
     set item_index 0
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
-        if {$item_provides eq $name} {
+        if {$item_provides eq $vname} {
             set all_variants [lreplace ${all_variants}[set all_variants {}] $item_index $item_index]
             break
         }
@@ -706,22 +706,22 @@ proc variant_remove_ditem {name} {
 
 # variant_delete name
 # completely delete the named variant from the port
-proc variant_delete {name} {
+proc variant_delete {vname} {
     global PortInfo
-    variant_remove_ditem $name
+    variant_remove_ditem $vname
     if {[info exists PortInfo(variants)]} {
-        set PortInfo(variants) [ldelete $PortInfo(variants) $name]
+        set PortInfo(variants) [ldelete $PortInfo(variants) $vname]
     }
     if {[info exists PortInfo(vinfo)]} {
-        dict unset PortInfo(vinfo) $name
+        dict unset PortInfo(vinfo) $vname
     }
 }
 
 # variant_exists name
 # determine if a variant exists.
-proc variant_exists {name} {
+proc variant_exists {vname} {
     global PortInfo
-    if {[info exists PortInfo(variants)] && $name in $PortInfo(variants)} {
+    if {[info exists PortInfo(variants)] && $vname in $PortInfo(variants)} {
         return 1
     }
 
@@ -906,8 +906,8 @@ proc environment_array_to_string {environment_array} {
 # Given a distribution file name, return the appended tag
 # Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
 # / isn't included in the regexp, thus allowing port specification in URLs.
-proc getdisttag {name} {
-    if {[regexp {.+:([0-9A-Za-z_-]+)$} $name match tag]} {
+proc getdisttag {filename} {
+    if {[regexp {.+:([0-9A-Za-z_-]+)$} $filename match tag]} {
         return $tag
     } else {
         return ""
@@ -917,9 +917,9 @@ proc getdisttag {name} {
 # Given a distribution file name, return the name without an attached tag
 # Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
 # / isn't included in the regexp, thus allowing port specification in URLs.
-proc getdistname {name} {
-    regexp {(.+):[0-9A-Za-z_-]+$} $name match name
-    return $name
+proc getdistname {filename} {
+    regexp {(.+):[0-9A-Za-z_-]+$} $filename match filename
+    return $filename
 }
 
 ########### Misc Utility Functions ###########
@@ -1316,9 +1316,9 @@ proc ln {args} {
 # This procedure re-writes the user-defined custom target to include
 # all the globals in its scope.  This is undeniably ugly, but I haven't
 # thought of any other way to do this.
-proc makeuserproc {name body} {
+proc makeuserproc {procname body} {
     append modified_body {global {*}[info globals]} \n $body
-    proc $name {} $modified_body
+    proc $procname {} $modified_body
 }
 
 # backup
@@ -1495,13 +1495,13 @@ proc target_run {ditem} {
                     set depset [dict create]
                     foreach depspec $depends {
                         # Resolve dependencies to actual ports
-                        set name [string tolower [_get_dep_port $depspec]]
+                        set depname [string tolower [_get_dep_port $depspec]]
 
-                        # If portname is empty, the dependency is already satisfied by other means,
+                        # If depname is empty, the dependency is already satisfied by other means,
                         # for example a bin: dependency on a file not installed by MacPorts
-                        if {$name ne "" && ![dict exists $depset $name]} {
-                            dict set depset $name 1
-                            set depset [recursive_collect_deps $name $depset]
+                        if {$depname ne "" && ![dict exists $depset $depname]} {
+                            dict set depset $depname 1
+                            set depset [recursive_collect_deps $depname $depset]
                         }
                     }
 
@@ -1645,10 +1645,10 @@ proc recursive_collect_deps {portname {depsfound {}}} \
     set deplist [registry_list_depends [lindex $regentry 0] [lindex $regentry 1] [lindex $regentry 2] [lindex $regentry 3]]
 
     foreach item $deplist {
-        set name [string tolower [lindex $item 0]]
-        if {![dict exists $depsfound $name]} {
-            dict set depsfound $name 1
-            set depsfound [recursive_collect_deps $name $depsfound]
+        set depname [string tolower [lindex $item 0]]
+        if {![dict exists $depsfound $depname]} {
+            dict set depsfound $depname 1
+            set depsfound [recursive_collect_deps $depname $depsfound]
         }
     }
 
@@ -1908,11 +1908,11 @@ proc get_statefile_value {class fd result} {
 }
 
 # check_statefile
-# Check completed/selected state of target/variant $name
-proc check_statefile {class name fd} {
+# Check completed/selected state of target/variant $id
+proc check_statefile {class id fd} {
     seek $fd 0
     while {[gets $fd line] >= 0} {
-        if {$line eq "$class: $name"} {
+        if {$line eq "$class: $id"} {
             return 1
         }
     }
@@ -1920,19 +1920,19 @@ proc check_statefile {class name fd} {
 }
 
 # write_statefile
-# Set target $name completed in the state file
-proc write_statefile {class name fd} {
-    if {[check_statefile $class $name $fd]} {
+# Set target $id completed in the state file
+proc write_statefile {class id fd} {
+    if {[check_statefile $class $id $fd]} {
         return 0
     }
     seek $fd 0 end
-    puts $fd "$class: $name"
+    puts $fd "$class: $id"
     flush $fd
 }
 
 # Change the value of an existing statefile key
 # caller must call open_statefile after this
-proc update_statefile {class name path} {
+proc update_statefile {class id path} {
     set fd [open $path r]
     while {[gets $fd line] >= 0} {
         if {[lindex $line 0] ne "${class}:"} {
@@ -1942,7 +1942,7 @@ proc update_statefile {class name path} {
     close $fd
     # truncate
     set fd [open $path w]
-    puts $fd "$class: $name"
+    puts $fd "$class: $id"
     foreach line $lines {
         puts $fd $line
     }
@@ -1968,8 +1968,8 @@ proc check_statefile_variants {variations oldvariations fd} {
     set target_re "target: .*"
     seek $fd 0
     while {[gets $fd line] >= 0} {
-        if {[regexp $variant_re $line match name]} {
-            dict set upoldvariations [string range $name 1 end] [string range $name 0 0]
+        if {[regexp $variant_re $line match vname]} {
+            dict set upoldvariations [string range $vname 1 end] [string range $vname 0 0]
             set variants_found yes
         }
         if {[regexp $target_re $line]} {
@@ -2035,21 +2035,21 @@ proc choose_variants {dlist variations} {
 }
 
 proc variant_run {ditem} {
-    set name [ditem_key $ditem name]
-    ui_debug "Executing variant $name provides [ditem_key $ditem provides]"
+    set vname [ditem_key $ditem name]
+    ui_debug "Executing variant $vname provides [ditem_key $ditem provides]"
 
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
         if {[variant_isset $v]} {
-            ui_error "[option subport]: Variant $name conflicts with $v"
+            ui_error "[option subport]: Variant $vname conflicts with $v"
             return 1
         }
     }
 
     # execute proc with same name as variant.
-    if {[catch "variant-${name}" result]} {
+    if {[catch "variant-${vname}" result]} {
         ui_debug $::errorInfo
-        ui_error "[option subport]: Error executing $name: $result"
+        ui_error "[option subport]: Error executing $vname: $result"
         return 1
     }
     return 0
@@ -2240,11 +2240,11 @@ proc universal_setup {args} {
 # Target class definition.
 
 # constructor for target object
-proc target_new {name procedure} {
+proc target_new {tname procedure} {
     global portutil::targets
     set ditem [ditem_create]
 
-    ditem_key $ditem name $name
+    ditem_key $ditem name $tname
     ditem_key $ditem procedure $procedure
 
     lappend targets $ditem
@@ -2341,9 +2341,9 @@ proc target_init {ditem args} {
 ##### variant class #####
 
 # constructor for variant objects
-proc variant_new {name} {
+proc variant_new {vname} {
     set ditem [ditem_create]
-    ditem_key $ditem name $name
+    ditem_key $ditem name $vname
     return $ditem
 }
 
@@ -2394,19 +2394,19 @@ proc handle_add_users {} {
     }
 }
 
-proc adduser {name args} {
+proc adduser {username args} {
     global os.platform
 
     if {[getuid] != 0} {
         ui_warn "adduser only works when running as root."
-        ui_warn "The requested user '$name' was not created."
+        ui_warn "The requested user '$username' was not created."
         return
     }
 
     set passwd {*}
     set uid [nextuid]
     set gid [existsgroup nogroup]
-    set realname ${name}
+    set realname ${username}
     set home /var/empty
     set shell /usr/bin/false
 
@@ -2417,7 +2417,7 @@ proc adduser {name args} {
         }
     }
 
-    if {[existsuser ${name}] != -1 || [existsuser ${uid}] != -1} {
+    if {[existsuser ${username}] != -1 || [existsuser ${uid}] != -1} {
         return
     }
 
@@ -2430,22 +2430,22 @@ proc adduser {name args} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         macports_try {
-            exec -ignorestderr $dscl . -create /Users/${name} UniqueID ${uid}
+            exec -ignorestderr $dscl . -create /Users/${username} UniqueID ${uid}
 
             # These are implicitly added on Mac OS X Lion.  AuthenticationAuthority
             # causes the user to be visible in the Users & Groups Preference Pane,
             # and the others are just noise, so delete them.
             # https://trac.macports.org/ticket/30168
-            exec -ignorestderr $dscl . -delete /Users/${name} AuthenticationAuthority
-            exec -ignorestderr $dscl . -delete /Users/${name} PasswordPolicyOptions
-            exec -ignorestderr $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
-            exec -ignorestderr $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
+            exec -ignorestderr $dscl . -delete /Users/${username} AuthenticationAuthority
+            exec -ignorestderr $dscl . -delete /Users/${username} PasswordPolicyOptions
+            exec -ignorestderr $dscl . -delete /Users/${username} dsAttrTypeNative:KerberosKeys
+            exec -ignorestderr $dscl . -delete /Users/${username} dsAttrTypeNative:ShadowHashData
 
-            exec -ignorestderr $dscl . -create /Users/${name} RealName ${realname}
-            exec -ignorestderr $dscl . -create /Users/${name} Password ${passwd}
-            exec -ignorestderr $dscl . -create /Users/${name} PrimaryGroupID ${gid}
-            exec -ignorestderr $dscl . -create /Users/${name} NFSHomeDirectory ${home}
-            exec -ignorestderr $dscl . -create /Users/${name} UserShell ${shell}
+            exec -ignorestderr $dscl . -create /Users/${username} RealName ${realname}
+            exec -ignorestderr $dscl . -create /Users/${username} Password ${passwd}
+            exec -ignorestderr $dscl . -create /Users/${username} PrimaryGroupID ${gid}
+            exec -ignorestderr $dscl . -create /Users/${username} NFSHomeDirectory ${home}
+            exec -ignorestderr $dscl . -create /Users/${username} UserShell ${shell}
         } on error {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
             # seem to have lassign
@@ -2474,12 +2474,12 @@ proc adduser {name args} {
                 # creating the user properly failed and we're bailing out
                 # anyway, try to delete the half-created user to revert to the
                 # state before the error
-                ui_debug "Attempting to clean up failed creation of user $name"
+                ui_debug "Attempting to clean up failed creation of user $username"
                 macports_try {
-                    exec -ignorestderr $dscl . -delete /Users/${name}
+                    exec -ignorestderr $dscl . -delete /Users/${username}
                 } on error {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
-                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $name."
+                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $username."
                         ui_debug "dscl printed: $eMessage"
                     }
                 } on error {{CHILDSTATUS *} eCode eMessage} {
@@ -2487,7 +2487,7 @@ proc adduser {name args} {
                     # the first call failed and the user wasn't even created
                 } on error {{POSIX *} eCode eMessage} {
                     foreach {- errName msg} {
-                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $name."
+                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $username."
                         ui_debug "dscl printed: $eMessage"
                     }
                 }
@@ -2498,13 +2498,13 @@ proc adduser {name args} {
                 }
 
                 # and raise an error to abort
-                error "dscl failed to create required user $name."
+                error "dscl failed to create required user $username."
             }
         }
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "adduser is not implemented on ${os.platform}."
-        ui_warn "The requested user '$name' was not created."
+        ui_warn "The requested user '$username' was not created."
     }
 
     if {[info exists escalated]} {
@@ -2512,17 +2512,17 @@ proc adduser {name args} {
     }
 }
 
-proc addgroup {name args} {
+proc addgroup {groupname args} {
     global os.platform
 
     if {[getuid] != 0} {
         ui_warn "addgroup only works when running as root."
-        ui_warn "The requested group '$name' was not created."
+        ui_warn "The requested group '$groupname' was not created."
         return
     }
 
     set gid [nextgid]
-    set realname ${name}
+    set realname ${groupname}
     set passwd {*}
     set users ""
 
@@ -2533,7 +2533,7 @@ proc addgroup {name args} {
         }
     }
 
-    if {[existsgroup ${name}] != -1 || [existsgroup ${gid}] != -1} {
+    if {[existsgroup ${groupname}] != -1 || [existsgroup ${gid}] != -1} {
         return
     }
 
@@ -2546,11 +2546,11 @@ proc addgroup {name args} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         macports_try {
-            exec -ignorestderr $dscl . -create /Groups/${name} Password ${passwd}
-            exec -ignorestderr $dscl . -create /Groups/${name} RealName ${realname}
-            exec -ignorestderr $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+            exec -ignorestderr $dscl . -create /Groups/${groupname} Password ${passwd}
+            exec -ignorestderr $dscl . -create /Groups/${groupname} RealName ${realname}
+            exec -ignorestderr $dscl . -create /Groups/${groupname} PrimaryGroupID ${gid}
             if {${users} ne ""} {
-                exec -ignorestderr $dscl . -create /Groups/${name} GroupMembership ${users}
+                exec -ignorestderr $dscl . -create /Groups/${groupname} GroupMembership ${users}
             }
         } on error {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
@@ -2580,12 +2580,12 @@ proc addgroup {name args} {
                 # creating the user properly failed and we're bailing out
                 # anyway, try to delete the half-created user to revert to the
                 # state before the error
-                ui_debug "Attempting to clean up failed creation of group $name"
+                ui_debug "Attempting to clean up failed creation of group $groupname"
                 macports_try {
-                    exec -ignorestderr $dscl . -delete /Groups/${name}
+                    exec -ignorestderr $dscl . -delete /Groups/${groupname}
                 } on error {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
-                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $name."
+                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $groupname."
                         ui_debug "dscl printed: $eMessage"
                     }
                 } on error {{CHILDSTATUS *} eCode eMessage} {
@@ -2593,7 +2593,7 @@ proc addgroup {name args} {
                     # the first call failed and the user wasn't even created
                 } on error {{POSIX *} eCode eMessage} {
                     foreach {- errName msg} {
-                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $name."
+                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $groupname."
                         ui_debug "dscl printed: $eMessage"
                     }
                 }
@@ -2603,7 +2603,7 @@ proc addgroup {name args} {
                 }
 
                 # and raise an error to abort
-                error "dscl failed to create required group $name."
+                error "dscl failed to create required group $groupname."
             }
         }
     } else {
