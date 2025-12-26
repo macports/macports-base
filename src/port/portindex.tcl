@@ -47,17 +47,10 @@ package require Thread
 proc _read_index {idx} {
     global qindex oldfd
     set offset [dict get $qindex $idx]
-    thread::mutex lock [tsv::get mutexes PortIndex]
-    try {
-        seek $oldfd $offset
-        gets $oldfd in_line
-
-        set len [lindex $in_line 1]
-        set out_line [read $oldfd [expr {$len - 1}]]
-    } finally {
-        thread::mutex unlock [tsv::get mutexes PortIndex]
-    }
-    set name [lindex $in_line 0]
+    seek $oldfd $offset
+    gets $oldfd in_line
+    lassign $in_line name len
+    set out_line [read $oldfd [expr {$len - 1}]]
 
     return [list $name $len $out_line]
 }
@@ -220,7 +213,6 @@ proc init_threads {} {
     set poolid [tpool::create -minworkers 1 -maxworkers $maxjobs -initcmd $worker_init_script]
     set pending_jobs [dict create]
     set nextjobnum 0
-    tsv::set mutexes PortIndex [thread::mutex create]
 }
 
 proc handle_completed_jobs {} {
@@ -301,7 +293,6 @@ proc process_remaining {} {
         handle_completed_jobs
     }
     tpool::release $poolid
-    thread::mutex destroy [tsv::get mutexes PortIndex]
 }
 
 if {$argc > 8} {
