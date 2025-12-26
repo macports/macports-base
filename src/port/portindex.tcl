@@ -76,7 +76,7 @@ proc _open_port {portdir absportdir {subport {}}} {
     # portable across prefixes, see https://trac.macports.org/ticket/53169 and
     # https://trac.macports.org/ticket/17182.
     set save_prefix $prefix
-    macports_try -pass_signal {
+    try {
         set prefix {${prefix}}
         if {$subport ne {}} {
             set port_options [dict create subport $subport]
@@ -111,7 +111,7 @@ proc pindex {portdir jobnum {subport {}}} {
         }
         # try to reuse the existing entry if it's still valid
         if {$full_reindex != 1 && [dict exists $qindex $qname]} {
-            macports_try -pass_signal {
+            try {
                 set mtime [file mtime $portfile]
                 if {$oldmtime >= $mtime} {
                     lassign [_read_index $qname] name len portinfo
@@ -143,7 +143,7 @@ proc pindex {portdir jobnum {subport {}}} {
             }
         }
 
-        macports_try -pass_signal {
+        try {
             set portinfo [_open_port $portdir $absportdir $subport]
             if {$is_subport} {
                 puts "Adding subport $subport"
@@ -169,12 +169,6 @@ proc pindex {portdir jobnum {subport {}}} {
 
         tsv::set status $jobnum 0
         return
-    } trap {POSIX SIG SIGINT} {} {
-        puts stderr "SIGINT received, terminating."
-        tsv::set status $jobnum 99
-    } trap {POSIX SIG SIGTERM} {} {
-        puts stderr "SIGTERM received, terminating."
-        tsv::set status $jobnum 99
     }
 }
 
