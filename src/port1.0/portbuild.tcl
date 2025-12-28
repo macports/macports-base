@@ -205,6 +205,11 @@ proc portbuild::build_start {args} {
     global UI_PREFIX subport
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Building %s"] ${subport}]"
+
+    global portconfigure::no_default_compiler_allowed
+    if {$no_default_compiler_allowed} {
+        ui_warn_once no_default_compiler_allowed "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
+    }
 }
 
 proc portbuild::build_main {args} {
