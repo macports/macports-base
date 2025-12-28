@@ -80,6 +80,7 @@ namespace eval mport_fetch_thread {
             # status = 0: success, body is the actual result
             # status = 1: error, body is error message
             proc do_curl {op opargs result_tid result_var} {
+                global management_tid
                 set result {}
                 try {
                     global ::pextlib::curl::cancelled
@@ -218,12 +219,11 @@ namespace eval mport_fetch_thread {
                 } on error {err} {
                     set result [list 1 $err]
                 } finally {
-                    if {$op in {fetch_archive fetch_file}} {
-                        tsv::incr mport_fetch_thread::fetch cur_count -1
-                    }
-                    tsv::set mport_fetch_thread::thread_busy [thread::id] 0
                     # Set the result in the thread that wants it
                     thread::send -async $result_tid [list set $result_var $result]
+                    # Tell the management thread we're done
+                    set was_fetch [expr {$op in {fetch_archive fetch_file}}]
+                    thread::send -async $management_tid [list thread_done [thread::id] $was_fetch]
                 }
             }
 
@@ -236,40 +236,41 @@ namespace eval mport_fetch_thread {
         } else {
             set max_threads 8
         }
-        set active_threads [dict create]
-        tsv::set mport_fetch_thread::fetch cur_count 0
+        set available_threads [list]
+        set thread_count 0
+        set fetch_count 0
+
+        # Worker threads call this when they have completed a job
+        proc thread_done {tid was_fetch} {
+            global available_threads
+            lappend available_threads $tid
+            if {$was_fetch} {
+                global fetch_count
+                incr fetch_count -1
+            }
+        }
 
         # Return the ID of a thread that is available for use, or an empty
         # string if no threads are available. Creates new threads up to the
         # maximum if needed.
         proc get_available_thread {} {
-            global active_threads
-            set free_tid {}
-            # See if any threads in the list have completed - those nearer the
-            # start were started first and so more likely to be free.
-            foreach tid [dict keys $active_threads] {
-                if {[tsv::get mport_fetch_thread::thread_busy $tid] != 1} {
-                    # Unset so it goes to the end of the list
-                    dict unset active_threads $tid
-                    set free_tid $tid
-                    break
-                }
+            global available_threads
+            # Look for an idle thread.
+            if {[llength $available_threads] > 0} {
+                set free_tid [lindex $available_threads end]
+                set available_threads [lreplace $available_threads end end]
+                return $free_tid
             }
-            if {$free_tid eq {}} {
-                # Create a new thread if possible.
-                global max_threads
-                if {[dict size $active_threads] < $max_threads} {
-                    global worker_init_script
-                    set free_tid [thread::create -preserved $worker_init_script]
-                }
+            # Create a new thread if possible.
+            global max_threads thread_count
+            if {$thread_count < $max_threads} {
+                global worker_init_script
+                set free_tid [thread::create -preserved $worker_init_script]
+                thread::send -async $free_tid [list set management_tid [thread::id]]
+                incr thread_count
+                return $free_tid
             }
-
-            if {$free_tid ne {}} {
-                # Add thread to the active list and mark as busy.
-                dict set active_threads $free_tid 1
-                tsv::set mport_fetch_thread::thread_busy $free_tid 1
-            }
-            return $free_tid
+            return {}
         }
 
         set request_queue [list]
@@ -299,12 +300,12 @@ namespace eval mport_fetch_thread {
         # and handles results of completed ones. Wakes up whenever a thread
         # completes its task or a new request is queued.
         proc main {} {
-            global request_queue main_wakeup max_fetches
+            global request_queue main_wakeup max_fetches fetch_count
             while {1} {
                 for {set i 0} {$i < [llength $request_queue]} {incr i} {
                     lassign [lindex $request_queue $i] op opargs result_tid result_var
                     set limit_concurrency [expr {$op in {fetch_archive fetch_file}}]
-                    if {$limit_concurrency && [tsv::get mport_fetch_thread::fetch cur_count] >= $max_fetches} {
+                    if {$limit_concurrency && $fetch_count >= $max_fetches} {
                         # Theoretically there could be other op types further back in the queue that we could
                         # still dispatch, but that's unlikely in practice since fetching happens last.
                         break
@@ -314,7 +315,7 @@ namespace eval mport_fetch_thread {
                         break
                     }
                     if {$limit_concurrency} {
-                        tsv::incr mport_fetch_thread::fetch cur_count
+                        incr fetch_count
                     }
                     thread::send -async $tid [list do_curl $op $opargs $result_tid $result_var] main_wakeup
                 }
