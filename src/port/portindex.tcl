@@ -187,8 +187,7 @@ proc init_threads {} {
         [list array set global_options [array get global_options]] \n \
         [list set directory $directory] \n \
         [list set full_reindex $full_reindex] \n \
-        [list mportinit ui_options global_options] \n \
-        [list signal default {TERM INT}]
+        [list mportinit ui_options global_options]
     if {[info exists oldfd]} {
         global outpath
         append worker_init_script \n \
@@ -212,6 +211,7 @@ proc init_threads {} {
 proc handle_completed_jobs {} {
     global poolid pending_jobs stats
     set completed_jobs [tpool::wait $poolid [dict keys $pending_jobs]]
+    macports::check_signals
     foreach completed_job $completed_jobs {
         lassign [dict get $pending_jobs $completed_job] jobnum portdir subport
         dict unset pending_jobs $completed_job
