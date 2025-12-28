@@ -29,6 +29,7 @@ proc print_usage {} {
     puts "-f:\tDo a full re-index instead of updating"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
+    puts "-q:\tQuiet mode - only output errors and summary"
     puts "-x:\tInclude extra (optional) information in the PortIndex, like variant description and port notes."
 }
 
@@ -202,7 +203,7 @@ proc init_threads {} {
 }
 
 proc handle_completed_jobs {} {
-    global poolid pending_jobs stats
+    global poolid pending_jobs stats ui_options
     set completed_jobs [tpool::wait $poolid [dict keys $pending_jobs]]
     macports::check_signals
     foreach completed_job $completed_jobs {
@@ -231,8 +232,10 @@ proc handle_completed_jobs {} {
             if {$status == -1} {
                 dict incr stats skipped
             } else {
-                set port_term [expr {$subport ne {} ? "subport $subport" : "port $portdir"}]
-                puts "Adding $port_term"
+                if {![info exists ui_options(ports_quiet)]} {
+                    set port_term [expr {$subport ne {} ? "subport $subport" : "port $portdir"}]
+                    puts "Adding $port_term"
+                }
                 global newest
                 dict incr stats total
                 if {$mtime > $newest} {
@@ -334,6 +337,10 @@ proc parse_args {} {
                                           os_version ${os_major}.0.0 \
                                           os_arch $os_arch
                 }
+            }
+            -q { # Enable quiet mode
+                global ui_options
+                set ui_options(ports_quiet) yes
             }
             -x { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
                 global extended_mode
