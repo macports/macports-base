@@ -173,8 +173,8 @@ proc pindex {portdir {subport {}}} {
 
 proc init_threads {} {
     global worker_init_script qindex keepkeys ui_options \
-           global_options var_overrides directory \
-           full_reindex oldfd oldmtime maxjobs poolid pending_jobs
+           global_options var_overrides directory full_reindex oldfd \
+           oldmtime maxjobs poolid pending_jobs subports_todo
     append worker_init_script \
         [list set qindex $qindex] \n \
         [list set keepkeys $keepkeys] \n \
@@ -200,12 +200,14 @@ proc init_threads {} {
     set maxjobs [macports::get_parallel_jobs no]
     set poolid [tpool::create -minworkers 1 -maxworkers $maxjobs -initcmd $worker_init_script]
     set pending_jobs [dict create]
+    set subports_todo [list]
 }
 
 proc handle_completed_jobs {} {
-    global poolid pending_jobs stats ui_options
+    global poolid pending_jobs maxjobs subports_todo stats ui_options
     set completed_jobs [tpool::wait $poolid [dict keys $pending_jobs]]
     macports::check_signals
+    set subports_done 0
     foreach completed_job $completed_jobs {
         lassign [dict get $pending_jobs $completed_job] portdir subport
         dict unset pending_jobs $completed_job
@@ -225,8 +227,7 @@ proc handle_completed_jobs {} {
             # queue jobs for subports
             if {$subport eq {}} {
                 foreach nextsubport $subports {
-                    set jobid [tpool::post $poolid [list pindex $portdir $nextsubport]]
-                    dict set pending_jobs $jobid [list $portdir $nextsubport]
+                    lappend subports_todo [list $portdir $nextsubport]
                 }
             }
             if {$status == -1} {
@@ -246,6 +247,21 @@ proc handle_completed_jobs {} {
         } else {
             error "Unknown status for job $completed_job (${portdir} $subport): $status"
         }
+        if {[llength $subports_todo] > $subports_done} {
+            set next_subport_info [lindex $subports_todo $subports_done]
+            set jobid [tpool::post $poolid [list pindex {*}$next_subport_info]]
+            dict set pending_jobs $jobid $next_subport_info
+            incr subports_done
+        }
+    }
+    while {[llength $subports_todo] > $subports_done && [dict size $pending_jobs] < $maxjobs} {
+        set next_subport_info [lindex $subports_todo $subports_done]
+        set jobid [tpool::post $poolid [list pindex {*}$next_subport_info]]
+        dict set pending_jobs $jobid $next_subport_info
+        incr subports_done
+    }
+    if {$subports_done > 0} {
+        set subports_todo [lrange $subports_todo $subports_done end]
     }
 }
 
