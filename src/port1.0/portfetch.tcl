@@ -653,7 +653,12 @@ proc portfetch::_fetch_start {} {
 }
 
 proc portfetch::fetch_start {args} {
-    global subport UI_PREFIX
+    global subport UI_PREFIX portarchivefetch::attempted
+
+    if {[tbool attempted]} {
+        ui_notice "$UI_PREFIX [format [msgcat::mc "Archive not available for %s, building locally"] $subport]"
+    }
+
     ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching distfiles for %s"] $subport]"
     _fetch_start
 }

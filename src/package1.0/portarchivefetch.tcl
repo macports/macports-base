@@ -42,7 +42,11 @@ target_runtype ${org.macports.archivefetch} always
 target_prerun ${org.macports.archivefetch} portarchivefetch::archivefetch_start
 
 namespace eval portarchivefetch {
+    # List of URLs to attempt, filled in by checkarchivefiles
     variable archivefetch_urls {}
+    # Whether fetching an archive has been attempted. Used to print an
+    # explanatory message when an archive was not available.
+    variable attempted 0
 }
 
 options archive_sites archivefetch.user archivefetch.password \
@@ -255,9 +259,13 @@ proc portarchivefetch::fetchfiles {{async no} args} {
         }
         lassign [curlwrap_async_result $async_job] status result
         unset async_job
-        if {$status != 0 && (([info exists ports_binary_only] \
-            && $ports_binary_only eq "yes") || [_archive_available])} {
-            error "Failed to fetch archive for [option subport]: $result"
+        if {$status != 0} {
+            if {[tbool ports_binary_only] || [_archive_available]} {
+                error "Failed to fetch archive for [option subport]: $result"
+            } else {
+                variable attempted 1
+                return 0
+            }
         }
         set async_done 1
     } else {
@@ -352,9 +360,15 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                     touch ${incoming_path}/${archive}.${sigtype}
                     chownAsRoot ${incoming_path}/${archive}.${sigtype}
                 }
-                set maxfails [expr {[tbool ports_binary_only] || [_archive_available] ? 0 : 3}]
-                set async_job [curlwrap_async fetch_archive $credentials $fetch_options $urlmap($url_var) \
-                        [lmap site $urlmap($url_var) {portfetch::assemble_url \
+                if {[tbool ports_binary_only] || [_archive_available]} {
+                    set this_urlmap $urlmap($url_var)
+                    set maxfails 0
+                } else {
+                    set this_urlmap [lrange $urlmap($url_var) 0 2]
+                    set maxfails 3
+                }
+                set async_job [curlwrap_async fetch_archive $credentials $fetch_options $this_urlmap \
+                        [lmap site $this_urlmap {portfetch::assemble_url \
                         [expr {[string index $site end] eq "/" ? $site : "${site}/"}]${archive.subdir} $archive}] \
                         ${incoming_path}/${archive} $sigtypes $maxfails]
                 return 0
@@ -446,9 +460,11 @@ proc portarchivefetch::fetchfiles {{async no} args} {
         foreach target {archivefetch fetch checksum extract patch configure build destroot} {
             write_statefile target "org.macports.${target}" $target_state_fd
         }
+        # Cancel any async distfile fetch that may be in progress
+        portfetch::_async_cleanup
         return 0
     }
-    if {([info exists ports_binary_only] && $ports_binary_only eq "yes") || [_archive_available]} {
+    if {[tbool ports_binary_only] || [_archive_available]} {
         global version revision portvariants
         if {[info exists lastError] && $lastError ne ""} {
             error [msgcat::mc "version @${version}_${revision}${portvariants}: %s" $lastError]
@@ -456,6 +472,7 @@ proc portarchivefetch::fetchfiles {{async no} args} {
             error "version @${version}_${revision}${portvariants}"
         }
     } else {
+        variable attempted 1
         return 0
     }
 }
