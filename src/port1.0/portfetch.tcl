@@ -479,7 +479,9 @@ proc portfetch::fetchfiles {{async no} args} {
             if {$status != 0} {
                 error "Failed to fetch ${distfile}: $result"
             }
-            file rename -force ${distpath}/${distfile}.TMP ${distpath}/${distfile}
+            if {![file exists ${distpath}/${distfile}]} {
+                file rename -force ${distpath}/${distfile}.TMP ${distpath}/${distfile}
+            }
         }
         return 0
     }
