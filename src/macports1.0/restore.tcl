@@ -563,7 +563,7 @@ namespace eval restore {
             }
              foreach deptypes $deptypes_lists check_archive {no yes} {
                 # Skip build-time deps if an archive will be used
-                if {$check_archive && ($deptypes eq {} || ![_mport_has_deptypes $mport $deptypes]
+                if {$check_archive && ($deptypes eq {} || ![macports::_mport_has_deptypes $mport $deptypes]
                     || [$workername eval {registry_exists $subport $version $revision $portvariants}]
                     || (![macports::global_option_isset ports_source_only] && [$workername eval [list _archive_available]]))
                 } then {
