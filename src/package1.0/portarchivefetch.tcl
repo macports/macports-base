@@ -449,6 +449,8 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                     break
                 }
             }
+        } elseif {$async} {
+            return 0
         } else {
             set archive_exists 1
             break
