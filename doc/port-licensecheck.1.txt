@@ -1,0 +1,69 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-licensecheck(1)
+====================
+
+NAME
+----
+port-licensecheck - Check whether a port is disbributable
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vd*] [*-D* 'portdir'] *licensecheck*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+
+*port licensecheck* checks whether a port is distributable, meaning
+that not only does the license allow distribution, but so do its
+dependencies, and none of those dependencies cause license conflicts.
+
+By default, it is assumed that ports may use libraries or headers from
+their dependencies and thus form a derivative work. A dependency with
+an incompatible license thus prevents the port from being distributed
+in binary form. If a dependency with an incompatible license is not
+used in such a way that a derivative work is formed, or should not
+prevent binary distribution for any other reason, list it in
++license_noconflict+, see man:portfile[7].
+
+As an example, assume a port, A, is licensed under the GNU General
+Public License and depends on B, which is licensed under a BSD
+license. Now, if B depends on OpenSSL, we have a conflict, as the GPL
+conflicts with its license. In this case, we _could_ list port B in
++license_noconflict+, but this requires careful inspection, and at the
+very least a comment in the `Portfile`. The most common case where it
+is safe to mark a license as non-conflicting are:
+
+* If a port only a invokes a dependency as a build tool, it is most
+  likely safe to list.
+* If a port invokes a dependency as a tool, i.e. by executing its
+  binaries, it may be safe to list.
+* If a port links against a dependency using dynamic linking or some
+  form of higher-level object oriented environment, it is probably not
+  safe to list.
+
+The above points should only be taken as examples and general
+guidelines; any addition of `license_noconflict` should probably go
+through a review on GitHub to ensure that the change is safe.
+
+The MacPorts infrastructure only offers binary archives that pass this
+test.
+
+include::global-flags.txt[]
+
+*-v*::
+    Print a message if the port is up to date.
+
+*-d*::
+    Print debugging information such as the regular expression and all matches.
+
+SEE ALSO
+--------
+man:port[1], man:portfile[7], man:port-upgrade[7],
+guide:using.binaries[Using Binaries in the MacPorts Guide]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
