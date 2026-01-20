@@ -1911,6 +1911,9 @@ proc action_info { action portlist opts } {
                 if {[dict exists $portinfo categories]} {
                     append inf " ([join [dict get $portinfo categories] ", "])"
                 }
+                if {![catch {registry::installed $portinfo(name) {}}]} {
+                    append inf " \[installed\]"
+                }
             } elseif {$opt eq "fullname"} {
                 set inf "[dict get $portinfo name] @"
                 append inf [composite_version [dict get $portinfo version] [expr {[dict exists $portinfo active_variants] ? [dict get $portinfo active_variants] : {}}]]
@@ -3645,6 +3648,9 @@ proc action_search { action portlist opts } {
                     }
                     if {[dict exists $portinfo categories]} {
                         puts -nonewline " ([join [dict get $portinfo categories] ", "])"
+                    }
+                    if {![catch {registry::installed $portinfo(name) {}}]} {
+                        puts -nonewline " \[installed\]"
                     }
                     puts ""
                     puts [wrap [join $res_description] 0 [string repeat " " 4]]
