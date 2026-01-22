@@ -3868,19 +3868,19 @@ proc mportsync {{options {}}} {
                     incr numfailed
                     continue
                 }
-                # TODO: signatures are not yet deployed for daily tarball
-                #macports_try -pass_signal {
-                #    curl fetch {*}$progressflag ${source}.sig ${tarpath}.sig
-                #} on error {eMessage} {
-                #    ui_error [msgcat::mc "Fetching %s failed: %s" ${source}.sig $eMessage]
-                #    incr numfailed
-                #    continue
-                #}
-                #if {[catch {macports::verify_ports_signature $tarpath}]} {
-                #    ui_error "Verifying signature failed for ${source}"
-                #    incr numfailed
-                #    continue
-                #}
+
+                macports_try -pass_signal {
+                    curl fetch {*}$progressflag ${source}.sig ${tarpath}.sig
+                } on error {eMessage} {
+                    ui_error [msgcat::mc "Fetching %s failed: %s" ${source}.sig $eMessage]
+                    incr numfailed
+                    continue
+                }
+                if {[catch {macports::verify_ports_signature $tarpath}]} {
+                    ui_error "Verifying signature failed for ${source}"
+                    incr numfailed
+                    continue
+                }
 
                 set extflag {}
                 switch -- $extension {
