@@ -3629,6 +3629,9 @@ proc mportsync {{options {}}} {
                 set destdir [file dirname $indexfile]
                 set is_tarball [_source_is_snapshot $source filename extension rooturl]
                 file mkdir $destdir
+                if {[file attributes $destdir -owner] ne $macportsuser} {
+                    macports::chown $destdir $macportsuser
+                }
 
                 if {$is_tarball} {
                     set exclude_option "--exclude=*"
@@ -3640,6 +3643,7 @@ proc mportsync {{options {}}} {
                     set extractdir [file dirname $destdir]
                     set destdir [file join $extractdir remote]
                     file mkdir $destdir
+                    macports::chown $destdir $macportsuser
                     set srcstr $rooturl
                     set old_tarball_path [file join $extractdir $filename]
                     if {[file isfile $old_tarball_path]} {
@@ -3658,7 +3662,6 @@ proc mportsync {{options {}}} {
                     set include_option {}
                     set srcstr $source
                 }
-                macports::chown $destdir $macportsuser
                 # Do rsync fetch
                 set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                 macports_try -pass_signal {
@@ -3710,9 +3713,7 @@ proc mportsync {{options {}}} {
                     }
                     set zflag [expr {[file extension $tarball] eq ".gz" ? "z" : ""}]
                     # Simply extract if there is no existing ports tree
-                    if {![file isdirectory ${extractdir}/ports]} {
-                        # Make sure there's not some other kind of file there
-                        file delete -force ${extractdir}/ports
+                    if {[llength [glob -nocomplain -directory ${extractdir}/ports *]] == 0} {
                         set kflag {}
                     } else {
                         # Extract only updated files, and delete ones not in the tarball.
