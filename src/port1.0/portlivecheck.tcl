@@ -77,7 +77,7 @@ proc portlivecheck::livecheck_main {args} {
         set livecheck.url {}
     }
 
-    set tempfile [mktemp "/tmp/mports.livecheck.XXXXXXXX"]
+    set tempfd [file tempfile tempfilename mports.livecheck]
 
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
@@ -155,16 +155,15 @@ proc portlivecheck::livecheck_main {args} {
             ui_debug "Fetching ${livecheck.url}"
             ui_debug "Using CURL options ${curl_options}"
             set updated -1
-            if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfile} error]} {
+            if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfilename} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
             } else {
                 # let's extract the version from the file.
-                set chan [open $tempfile "r"]
                 set foundmatch 0
                 set the_re [join ${livecheck.regex}]
                 ui_debug "The regex is \"$the_re\""
                 if {${livecheck.type} eq "regexm"} {
-                    set data [read $chan]
+                    set data [read $tempfd]
                     if {[regexp -nocase $the_re $data matched updated_version]} {
                         set foundmatch 1
                         ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
@@ -180,7 +179,7 @@ proc portlivecheck::livecheck_main {args} {
                     }
                 } else {
                     set updated_version 0
-                    while {[gets $chan line] >= 0} {
+                    while {[gets $tempfd line] >= 0} {
                         set lastoff 0
                         while {$lastoff >= 0 && [regexp -nocase -start $lastoff -indices $the_re $line offsets]} {
                             regexp -nocase -start $lastoff $the_re $line matched upver
@@ -204,7 +203,7 @@ proc portlivecheck::livecheck_main {args} {
                         }
                     }
                 }
-                close $chan
+                close $tempfd
                 if {!$foundmatch} {
                     ui_error "cannot check if $subport was updated (regex didn't match)"
                 }
@@ -212,12 +211,12 @@ proc portlivecheck::livecheck_main {args} {
         }
         "md5" {
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfile} error]} {
+            if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfilename} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
                 set updated -1
             } else {
                 # let's compute the md5 sum.
-                set dist_md5 [md5 file $tempfile]
+                set dist_md5 [md5 file $tempfilename]
                 if {$dist_md5 ne ${livecheck.md5}} {
                     ui_debug "md5sum for ${livecheck.url}: $dist_md5"
                     set updated 1
@@ -258,7 +257,7 @@ proc portlivecheck::livecheck_main {args} {
         }
     }
 
-    file delete -force $tempfile
+    file delete -force $tempfilename
 
     if {${livecheck.type} ne "none"} {
         if {$updated > 0} {
