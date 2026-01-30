@@ -2889,9 +2889,10 @@ proc macports::async_fetch_mport {target mport} {
     } then {
         $workername eval [list portarchivefetch::archivefetch_async_start]
     }
-    if {[_target_needs_deps $target] && (![dict exists $no_build_targets $target]
+    if {([_target_needs_deps $target] && (![dict exists $no_build_targets $target]
          || (![global_option_isset ports_binary_only] && ![_mportinstalled $mport]
-         && ![$workername eval [list _archive_available]]))
+         && ![$workername eval [list _archive_available]])))
+         || $target eq "mirror"
     } then {
         $workername eval [list portfetch::fetch_async_start]
     }
