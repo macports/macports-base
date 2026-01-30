@@ -20,7 +20,7 @@ if {[catch {set sourcesConfChannel [open $sourcesConf r]}]} {
    exit 0
 }
 
-set tempfileChannel [file tempfile tempfile macports_sources_upgrade.XXXXXXXXXX]
+set tempfileChannel [file tempfile tempfile macports_sources_upgrade]
 set defaultSeen false
 set defaultWritten false
 
