@@ -2834,6 +2834,22 @@ proc _mportcheck_known_fail {options portinfo} {
     return 0
 }
 
+# Hint that a target is going to be run on an mport. This
+# enables performance enhancements in some cases.
+proc macports::target_hint {mport target} {
+    if {$target eq "livecheck"} {
+        if {[global_option_isset ports_dryrun]} {
+            return
+        }
+        variable fetch_threads
+        if {$fetch_threads == 0} {
+            return
+        }
+        set workername [ditem_key $mport workername]
+        $workername eval [list portlivecheck::livecheck_async_start]
+    }
+}
+
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {

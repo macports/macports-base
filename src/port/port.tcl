@@ -3930,6 +3930,7 @@ proc action_target { action portlist opts } {
     set status 0
     global global_variations macports::ui_options
     set gvariations [dict create {*}[array get global_variations]]
+    set ops [list]
     foreachport $portlist {
         set portinfo ""
         # If we have a url, use that, since it's most specific
@@ -4019,22 +4020,27 @@ proc action_target { action portlist opts } {
         if {![dict exists $options subport]} {
             dict set options subport $portname
         }
-        if {[catch {set workername [mportopen $porturl $options $requested_variations]} result]} {
+        if {[catch {set mport [mportopen $porturl $options $requested_variations]} result]} {
             ui_debug $::errorInfo
             break_softcontinue "Unable to open port $portname: $result" 1 status
         }
-        if {[catch {mportexec $workername $target} result]} {
-            ui_debug $::errorInfo
-            mportclose $workername
-            break_softcontinue "Unable to execute port $portname: $result" 1 status
-        }
+        macports::target_hint $mport $target
+        lappend ops $mport $portname $target
+    }
+    if {$status == 0} {
+        foreach {mport portname target} $ops {
+            if {[catch {mportexec $mport $target} result]} {
+                ui_debug $::errorInfo
+                mportclose $mport
+                break_softcontinue "Unable to execute port $portname: $result" 1 status
+            }
+            mportclose $mport
 
-        mportclose $workername
-
-        # Process any error that wasn't thrown and handled already
-        if {$result} {
-            print_tickets_url
-            break_softcontinue "Processing of port $portname failed" 1 status
+            # Process any error that wasn't thrown and handled already
+            if {$result} {
+                print_tickets_url
+                break_softcontinue "Processing of port $portname failed" 1 status
+            }
         }
     }
 

@@ -3484,6 +3484,7 @@ proc portutil::_async_cleanup {} {
     }
     portfetch::_async_cleanup
     portarchivefetch::_async_cleanup
+    portlivecheck::_async_cleanup
 }
 
 proc portutil::_archive_available_ready {} {
