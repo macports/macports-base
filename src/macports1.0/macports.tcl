@@ -1818,8 +1818,8 @@ match macports.conf.default."
         set fetch_credentials {}
     }
 
-    if {[info exists fetch_threads] && (![string is integer -strict $fetch_threads] || $fetch_threads < 1)} {
-        ui_error "fetch_threads must be a positive integer"
+    if {[info exists fetch_threads] && (![string is integer -strict $fetch_threads] || $fetch_threads < 0)} {
+        ui_error "fetch_threads must be a non-negative integer"
         unset fetch_threads
     }
     if {![info exists fetch_threads]} {
