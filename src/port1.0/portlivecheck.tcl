@@ -106,7 +106,9 @@ proc portlivecheck::_livecheck_main {{async no}} {
             unset tempfilename
             return 0
         }
-        file rename -force -- ${tempfilename}.TMP $tempfilename
+        # Async fetch code appends .TMP for in-progress files. No real
+        # need to rename it here when it's done.
+        append tempfilename .TMP
         set async_done 1
     } else {
         set async_done 0
