@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.12.0 (unreleased)
+Release 2.12.0 (2026-02-03 by jmr)
     - Files are now downloaded in background threads, so downloads
       needed for upcoming port installations can progress while other
       ports are being installed. The new fetch_threads macports.conf
