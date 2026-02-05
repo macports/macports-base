@@ -718,6 +718,7 @@ CFLAGS_WERROR
 CFLAGS_PEDANTIC
 CFLAGS_QUICHEEATERS
 TAR_CMD
+TAR_K
 TAR_Q
 ZIP
 XZ
@@ -6449,6 +6450,23 @@ printf "%s\n" "yes (bsdtar)" >&6; }
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no (gnutar)" >&5
 printf "%s\n" "no (gnutar)" >&6; }
 		TAR_Q=
+	fi
+
+
+
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether tar -k works" >&5
+printf %s "checking whether tar -k works... " >&6; }
+	mkdir -p conftest_dir
+	touch conftest_dir/file
+	$TAR -cf conftest.tar conftest_dir
+	if $TAR -xkf conftest.tar </dev/null 2>/dev/null ; then
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+		TAR_K='k'
+	else
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+		TAR_K=
 	fi
 
 

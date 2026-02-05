@@ -1043,6 +1043,23 @@ AC_DEFUN([MP_TAR_FAST_READ],[
 	AC_SUBST(TAR_Q)
 ])
 
+dnl This macro tests for tar support of -k (keep existing files)
+dnl without erroring when files exist.
+AC_DEFUN([MP_TAR_KEEP_OLD],[
+	AC_MSG_CHECKING([whether tar -k works])
+	mkdir -p conftest_dir
+	touch conftest_dir/file
+	$TAR -cf conftest.tar conftest_dir
+	if $TAR -xkf conftest.tar </dev/null 2>/dev/null ; then
+		AC_MSG_RESULT([yes])
+		TAR_K='k'
+	else
+		AC_MSG_RESULT([no])
+		TAR_K=
+	fi
+	AC_SUBST(TAR_K)
+])
+
 dnl This macro tests for tar support of --no-same-owner
 AC_DEFUN([MP_TAR_NO_SAME_OWNER],[
 	AC_PATH_PROG(TAR, [tar])
