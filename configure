@@ -6459,7 +6459,7 @@ printf %s "checking whether tar -k works... " >&6; }
 	mkdir -p conftest_dir
 	touch conftest_dir/file
 	$TAR -cf conftest.tar conftest_dir
-	if $TAR -xkf conftest.tar </dev/null 2>/dev/null ; then
+	if $TAR -xkf conftest.tar >/dev/null 2>&1 ; then
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 		TAR_K='k'

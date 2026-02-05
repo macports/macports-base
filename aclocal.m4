@@ -1050,7 +1050,7 @@ AC_DEFUN([MP_TAR_KEEP_OLD],[
 	mkdir -p conftest_dir
 	touch conftest_dir/file
 	$TAR -cf conftest.tar conftest_dir
-	if $TAR -xkf conftest.tar </dev/null 2>/dev/null ; then
+	if $TAR -xkf conftest.tar >/dev/null 2>&1 ; then
 		AC_MSG_RESULT([yes])
 		TAR_K='k'
 	else
