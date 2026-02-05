@@ -3772,8 +3772,13 @@ proc mportsync {{options {}}} {
                             }
                         }
                         file delete -force ${extractdir}/tmp
-                        # use -k to skip extracting files that exist
-                        set kflag k
+                        # use -k if supported to skip extracting files that exist
+                        global macports::prefix_frozen
+                        if {[string match ${prefix_frozen}/bin/* $tar]} {
+                            set kflag k
+                        } else {
+                            set kflag $macports::autoconf::tar_k
+                        }
                     }
 
                     set tar_cmd "$tar -C ${extractdir} -x${zflag}${kflag}f $tarball"
