@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.12.1 (unreleased)
+Release 2.12.1 (2026-02-06 by jmr)
     - Fixed error extracting ports synced with rsync on systems with an
       older version of tar. (#73467, jmr in cf8e6d5)
 
