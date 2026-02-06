@@ -2,6 +2,18 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.12.1 (unreleased)
+    - Fixed error extracting ports synced with rsync on systems with an
+      older version of tar. (#73467, jmr in cf8e6d5)
+
+    - Fixed 'port upgrade' not respecting the -p option.
+      (#73472, jmr in c81f3d6)
+
+    - Enabled signature verification for the daily tarball, now that a
+      signature is being published for it. (jmr in a472c5a)
+
+    - Enabled threaded fetching for 'port mirror'. (jmr in be806ac)
+
 Release 2.12.0 (2026-02-03 by jmr)
     - Files are now downloaded in background threads, so downloads
       needed for upcoming port installations can progress while other
