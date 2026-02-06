@@ -5685,11 +5685,15 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         ui_debug $::errorInfo
                         ui_error "Unable to exec port: $result"
                         set status 1
-                        break
+                        if {![macports::ui_isset ports_processall]} {
+                            break
+                        }
                     } elseif {$result != 0} {
                         ui_error "Problem while installing $portname @$port_full_vers"
                         set status $result
-                        break
+                        if {![macports::ui_isset ports_processall]} {
+                            break
+                        }
                     }
                 }
                 activate_only {
@@ -5714,7 +5718,9 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         set port_full_vers [dict get $portinfo version]_[dict get $portinfo revision][dict get $portinfo canonical_active_variants]
                         ui_error "Couldn't activate $portname @${port_full_vers}: $result"
                         set status 1
-                        break
+                        if {![macports::ui_isset ports_processall]} {
+                            break
+                        }
                     }
                 }
                 deactivate {
@@ -5728,7 +5734,9 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         ui_debug $::errorInfo
                         ui_error "Deactivating $portname @${version}_${revision}${variants} failed: $result"
                         set status 1
-                        break
+                        if {![macports::ui_isset ports_processall]} {
+                            break
+                        }
                     }
                 }
                 install {
@@ -5766,15 +5774,21 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                             set binary_only [lindex $op 4]
                             if {$binary_only} {
                                 set status 1
-                                break
+                                if {![macports::ui_isset ports_processall]} {
+                                    break
+                                }
                             }
                             if {[catch {mportexec $mport destroot} result]} {
                                 ui_debug $::errorInfo
                                 set status 1
-                                break
+                                if {![macports::ui_isset ports_processall]} {
+                                    break
+                                }
                             } elseif {$result != 0} {
                                 set status 1
-                                break
+                                if {![macports::ui_isset ports_processall]} {
+                                    break
+                                }
                             }
                         }
                     } else {
@@ -5783,10 +5797,14 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         if {[catch {mportexec $mport install} result]} {
                             ui_debug $::errorInfo
                             set status 1
-                            break
+                            if {![macports::ui_isset ports_processall]} {
+                                break
+                            }
                         } elseif {$result != 0} {
                             set status 1
-                            break
+                            if {![macports::ui_isset ports_processall]} {
+                                break
+                            }
                         }
                     }
                 }
@@ -5843,7 +5861,9 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         ui_debug $::errorInfo
                         ui_error "Uninstall $portname ${version}_${revision}${variants} failed: $result"
                         set status 1
-                        break
+                        if {![macports::ui_isset ports_processall]} {
+                            break
+                        }
                     }
                 }
                 uninstall_other_vers {
@@ -5852,6 +5872,9 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     if {[catch {registry::entry imaged $portname} ilist]} {
                         ui_error "Checking installed version of $portname failed: $ilist"
                         set status 1
+                        if {[macports::ui_isset ports_processall]} {
+                            continue
+                        }
                         break
                     }
                     foreach i $ilist {
@@ -5874,6 +5897,9 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                                 break
                             }
                         }
+                    }
+                    if {$status != 0 && ![macports::ui_isset ports_processall]} {
+                        break
                     }
                 }
             }
