@@ -324,6 +324,7 @@ proc portlivecheck::_livecheck_main {{async no}} {
             }
         }
         "none" {
+            ui_debug "Livecheck.type is 'none'.  That's all."
         }
         default {
             ui_error "unknown livecheck.type ${livecheck.type}"
