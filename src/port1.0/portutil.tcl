@@ -3565,19 +3565,25 @@ proc portutil::_eval_archive_available {{async no}} {
     set primary_mirror [lindex $portfetch::mirror_sites::sites($mirrors) 0]
     # Find mirror with fastest cached ping time
     global portfetch::hostregex
-    regexp $hostregex $primary_mirror -> primary_host
+    if {[regexp $hostregex $primary_mirror -> primary_host]} {
+        set best_ping [get_pingtime $primary_host]
+    } elseif {[string match file://* $primary_mirror]} {
+        set best_ping 0
+    } else {
+        set best_ping {}
+    }
     set fastest_mirror {}
-    set best_ping [get_pingtime $primary_host]
     set best_ping [expr {$best_ping ne {} && $best_ping != -1 ? $best_ping : 10000}]
     if {$best_ping > 0} {
         foreach mirror [lrange $portfetch::mirror_sites::sites($mirrors) 1 end] {
-            regexp $hostregex $mirror -> cur_host
-            set cur_ping [get_pingtime $cur_host]
-            if {$cur_ping ne {} && $cur_ping >= 0 && $cur_ping < $best_ping} {
-                set best_ping $cur_ping
-                set fastest_mirror $mirror
-                if {$cur_ping == 0} {
-                    break
+            if {[regexp $hostregex $mirror -> cur_host]} {
+                set cur_ping [get_pingtime $cur_host]
+                if {$cur_ping ne {} && $cur_ping >= 0 && $cur_ping < $best_ping} {
+                    set best_ping $cur_ping
+                    set fastest_mirror $mirror
+                    if {$cur_ping == 0} {
+                        break
+                    }
                 }
             }
         }
