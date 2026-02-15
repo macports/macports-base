@@ -200,17 +200,32 @@ static void cleanup_handle_if_needed(const char *theURL, curl_interpdata_t *inte
             char *current_host = NULL;
             char *previous_host = NULL;
             int must_recreate_handle = 0;
+
             if (curl_url_get(interpdata->previousURLHandle, CURLUPART_SCHEME, &previous_scheme, 0) == CURLUE_OK
                 && curl_url_get(interpdata->currentURLHandle, CURLUPART_SCHEME, &current_scheme, 0) == CURLUE_OK
                 && 0 != strcasecmp(previous_scheme, current_scheme)) {
                 must_recreate_handle = 1;
             }
+            if (current_scheme != NULL) {
+                curl_free(current_scheme);
+            }
+            if (previous_scheme != NULL) {
+                curl_free(previous_scheme);
+            }
+
             if (!must_recreate_handle
                 && curl_url_get(interpdata->previousURLHandle, CURLUPART_HOST, &previous_host, 0) == CURLUE_OK
                 && curl_url_get(interpdata->currentURLHandle, CURLUPART_HOST, &current_host, 0) == CURLUE_OK
                 && 0 != strcasecmp(previous_host, current_host)) {
                 must_recreate_handle = 1;
             }
+            if (current_host != NULL) {
+                curl_free(current_host);
+            }
+            if (previous_host != NULL) {
+                curl_free(previous_host);
+            }
+
             if (must_recreate_handle) {
                 /* deallocate the handle and start again */
                 curl_multi_cleanup(interpdata->theMHandle);
