@@ -21,6 +21,7 @@ OBJS= \
 	sha256cmd.o \
 	strsed.o \
 	system.o \
+	time_connect.o \
 	tracelib.o \
 	tty.o \
 	uid.o \

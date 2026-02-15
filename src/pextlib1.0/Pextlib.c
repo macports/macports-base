@@ -107,6 +107,7 @@
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
+#include "time_connect.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -1265,6 +1266,8 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "fs_clone_capable", FSCloneCapableCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "clonefile", ClonefileCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "time_connect", TimeConnectCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;
