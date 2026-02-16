@@ -33,8 +33,6 @@
 
 /* required for getaddrinfo(3) on Linux */
 #define _XOPEN_SOURCE 600L
-/* required to make the above not break macOS */
-#define _DARWIN_C_SOURCE
 
 #include "time_connect.h"
 
@@ -42,6 +40,7 @@
 #include <string.h>
 #include <sys/errno.h>
 #include <sys/types.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
