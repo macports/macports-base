@@ -231,7 +231,6 @@ proc portfetch::checksites {sitelists mirrorfile} {
 proc portfetch::sortsites {urls default_listvar} {
     upvar $urls fetch_urls
     variable urlmap
-    variable hostregex
 
     foreach {url_var distfile} $fetch_urls {
         if {![info exists urlmap($url_var)]} {
@@ -242,107 +241,13 @@ proc portfetch::sortsites {urls default_listvar} {
                 set urlmap($url_var) {}
             }
         }
-        set urllist $urlmap($url_var)
 
-        if {[llength $urllist] <= 1} {
+        if {[llength $urlmap($url_var)] <= 1} {
             # there is only one mirror, no need to ping or sort
             continue
         }
 
-        set hosts [list]
-        foreach site $urllist {
-            if {[string range $site 0 6] eq "file://"} {
-                set pingtimes(localhost) 0
-                continue
-            }
-            
-            regexp $hostregex $site -> host
-            
-            if { [info exists seen($host)] } {
-                continue
-            }
-            # first check the persistent cache
-            set pingtimes($host) [get_pingtime $host]
-            if {$pingtimes($host) eq {}} {
-                set seen($host) yes
-                lappend hosts $host
-            }
-        }
-
-        set max_hosts_to_ping 50
-        set len [llength $hosts]
-        if {$len > $max_hosts_to_ping} {
-            # randomize them
-            # shuffle10a from https://wiki.tcl-lang.org/page/Shuffle+a+list
-            while {$len} {
-                set n [expr {int($len*rand())}]
-                set tmp [lindex $hosts $n]
-                lset hosts $n [lindex $hosts [incr len -1]]
-                lset hosts $len $tmp
-            }
-        }
-
-        # can't do the ping with dropped privileges (though it works fine if we didn't start as root)
-        if {[getuid] == 0 && [geteuid] != 0} {
-            set oldeuid [geteuid]
-            set oldegid [getegid]
-            seteuid 0; setegid 0
-        }
-
-        set pinged_hosts [list]
-        foreach host $hosts {
-            if {[llength $pinged_hosts] < $max_hosts_to_ping} {
-                if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
-                    ui_debug "Spawning ping for $host failed"
-                } else {
-                    lappend pinged_hosts $host
-                    continue
-                }
-            }
-            # will end up after all hosts that were pinged OK but before those that didn't respond
-            set pingtimes($host) 5000
-        }
-
-        foreach host $pinged_hosts {
-            set pingtimes($host) ""
-            while {[gets $fds($host) pingline] >= 0} {
-                if {[string match round-trip* $pingline]} {
-                    set pingtimes($host) [lindex [split $pingline /] 4]
-                    break
-                }
-            }
-            if { [catch { close $fds($host) }] || ![string is double -strict $pingtimes($host)] } {
-                # ping failed, so put it last in the list
-                set pingtimes($host) 10000
-            }
-            # cache it
-            set_pingtime $host $pingtimes($host)
-        }
-
-        if {[info exists oldeuid]} {
-            setegid $oldegid
-            seteuid $oldeuid
-        }
-
-        set pinglist [list]
-        foreach site $urllist {
-            if {[string range $site 0 6] eq "file://"} {
-                set host localhost
-            } else {
-                regexp $hostregex $site -> host
-            }
-            # -1 means blacklisted
-            if {$pingtimes($host) != "-1"} {
-                lappend pinglist [ list $site $pingtimes($host) ]
-            }
-        }
-
-        set pinglist [ lsort -real -index 1 $pinglist ]
-
-        set urlmap($url_var) {}
-        foreach pair $pinglist {
-            lappend urlmap($url_var) [lindex $pair 0]
-        }
+        set urlmap($url_var) [lsort -command compare_pingtimes $urlmap($url_var)]
     }
 }
 

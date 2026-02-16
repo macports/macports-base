@@ -618,6 +618,26 @@ proc portfetch::_async_cleanup {} {
     }
 }
 
+proc portfetch::start_pings {} {
+    variable fetch_urls
+    variable urlmap
+    # ping hosts that are not in the cache yet
+    async_ping_start $urlmap(master_sites)
+    foreach {url_var archive} $fetch_urls {
+        if {$url_var ne "master_sites" && [info exists urlmap($url_var)]} {
+            async_ping_start $urlmap($url_var)
+        }
+    }
+    # wait until we have a result for at least the main mirror
+    global global_mirror_site
+    if {[info exists portfetch::mirror_sites::sites($global_mirror_site)]} {
+        set primary_mirror [lindex $portfetch::mirror_sites::sites($global_mirror_site) 0]
+        if {$primary_mirror ne {}} {
+            wait_for_pingtime $primary_mirror
+        }
+    }
+}
+
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
     variable fetch_urls
@@ -628,7 +648,11 @@ proc portfetch::fetch_init {args} {
 }
 
 proc portfetch::_fetch_start {} {
-    global UI_PREFIX distpath
+    global UI_PREFIX distpath all_dist_files
+
+    if {[info exists all_dist_files]} {
+        start_pings
+    }
 
     # create and chown $distpath
     if {![file isdirectory $distpath]} {

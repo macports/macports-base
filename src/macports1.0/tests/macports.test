@@ -491,7 +491,7 @@ test mportshutdown {
     set macports::ping_cache [dict create]
 
     set time [expr [clock seconds] - 86100]
-    set time_exp [expr [clock seconds] - 87000]
+    set time_exp [expr [clock seconds] - 605000]
     set macports::portdbpath $pwd/portdbpath
     dict set macports::ping_cache host1 [list test $time]
     dict set macports::ping_cache host2 [list test $time_exp]
@@ -964,17 +964,21 @@ test get_pingtime {
     Get ping time unit test.
 } -setup {
     set time [expr [clock seconds] - 86300]
-    dict set macports::ping_cache macports.org [list MacPorts $time]
+    dict set macports::ping_cache macports.org [list 50.0 $time]
     set macports::host_blacklist macports_blacklist
     set macports::preferred_hosts macports_pref
 } -body {
-    if {[macports::get_pingtime macports.org] ne "MacPorts"} {
-        return "FAIL: wrong ping time"
+    lassign [macports::get_pingtime macports.org] status pingtime
+    if {$status != 1} {
+        return "FAIL: wrong status ($status)"
     }
-    if {[macports::get_pingtime macports_blacklist] != -1} {
+    if {$pingtime != 50.0} {
+        return "FAIL: wrong ping time ($pingtime)"
+    }
+    if {[macports::get_pingtime macports_blacklist] != -2} {
         return "FAIL: wrong time for blacklisted host"
     }
-    if {[macports::get_pingtime macports_pref] != 0} {
+    if {[macports::get_pingtime macports_pref] != 2} {
         return "FAIL: wrong time for preferred host"
     }
     return "Get ping time successful."
@@ -986,7 +990,7 @@ test set_pingtime {
 } -body {
     dict set macports::ping_cache macports {}
     macports::set_pingtime macports 007
-    if {[macports::get_pingtime macports] != 007} {
+    if {[lindex [macports::get_pingtime macports] 1] != 007} {
         return "FAIL: ping time not set"
     }
     return "Set ping time successful."

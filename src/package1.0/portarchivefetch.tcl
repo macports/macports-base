@@ -498,6 +498,30 @@ proc portarchivefetch::_async_cleanup {} {
     }
 }
 
+proc portarchivefetch::start_pings {} {
+    variable archivefetch_urls
+    variable ::portfetch::urlmap
+    # ping hosts that are not in the cache yet
+    foreach {url_var archive} $archivefetch_urls {
+        if {[info exists urlmap($url_var)]} {
+            async_ping_start $urlmap($url_var)
+        }
+    }
+    # wait until we have a result for at least the main mirror
+    global archive_sites
+    if {[lsearch $archive_sites macports_archives::*] != -1} {
+        set mirrors macports_archives
+    } else {
+        set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
+    }
+    if {[info exists portfetch::mirror_sites::sites($mirrors)]} {
+        set primary_mirror [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+        if {$primary_mirror ne {}} {
+            wait_for_pingtime $primary_mirror
+        }
+    }
+}
+
 # Initialize archivefetch target and call checkfiles.
 #proc portarchivefetch::archivefetch_init {args} {
 #    return 0
@@ -513,6 +537,7 @@ proc portarchivefetch::_archivefetch_start {quiet} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
+        start_pings
         if {!$quiet} {
             ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
         }

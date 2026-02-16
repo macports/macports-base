@@ -227,6 +227,20 @@ namespace eval mport_fetch_thread {
                 }
             }
 
+            # Perform a ping operation and return the result by calling a proc.
+            # Result format: 2 args: host, pingtime
+            proc do_ping {op opargs result_tid result_proc} {
+                global management_tid
+                lassign $opargs host scheme
+                if {[catch {time_connect $host $scheme} pingtime]} {
+                    set pingtime 10000
+                }
+                # Set the result in the thread that wants it
+                thread::send -async $result_tid [list $result_proc $host $pingtime]
+                # Tell the management thread we're done
+                thread::send -async $management_tid [list thread_done [thread::id] 0]
+            }
+
             thread::wait
         }
         # End worker_init_script
@@ -317,7 +331,12 @@ namespace eval mport_fetch_thread {
                     if {$limit_concurrency} {
                         incr fetch_count
                     }
-                    thread::send -async $tid [list do_curl $op $opargs $result_tid $result_var] main_wakeup
+                    if {$op eq "ping"} {
+                        set worker_proc do_ping
+                    } else {
+                        set worker_proc do_curl
+                    }
+                    thread::send -async $tid [list $worker_proc $op $opargs $result_tid $result_var] main_wakeup
                 }
                 if {$i > 0} {
                     set request_queue [lrange $request_queue $i end]
@@ -355,6 +374,15 @@ proc mport_fetch_thread::queue {op opargs} {
     variable active_requests
     dict set active_requests $id 1
     return $id
+}
+
+# Queue a fetch operation to be performed on a thread in the background.
+# Does not return a result id, so the job's completion cannot be waited
+# on with get_result, nor can it be cancelled. The supplied proc is
+# called upon completion.
+proc mport_fetch_thread::queue_procresult {op opargs completion_proc} {
+    variable management_thread
+    thread::send -async $management_thread [list queue_request $op $opargs [thread::id] $completion_proc]
 }
 
 # Get the result of the operation identified by id, waiting until it

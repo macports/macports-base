@@ -43,6 +43,7 @@ package require snapshot 1.0
 package require restore 1.0
 package require migrate 1.0
 package require Tclx
+package require uri
 
 # catch wrapper shared with port1.0
 package require mpcommon 1.0
@@ -109,6 +110,7 @@ namespace eval macports {
     variable ui_prefix {---> }
 
     variable cache_dirty [dict create]
+    variable pending_pings [dict create]
     variable tool_path_cache [dict create]
     variable variant_descriptions [dict create]
 
@@ -1929,10 +1931,10 @@ proc mportshutdown {} {
                macports::cache_dirty
         # Only save the cache if it was updated
         if {[dict exists $cache_dirty pingtimes]} {
-            # don't save expired entries
+            # don't save entries more than a week old
             set now [clock seconds]
             set pinglist_fresh [dict filter $ping_cache script {host entry} {
-                expr {$now - [lindex $entry 1] < 86400}
+                expr {$now - [lindex $entry 1] < 604800}
             }]
             macports::save_cache pingtimes $pinglist_fresh
         }
@@ -2108,7 +2110,9 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     # ping cache
     $workername alias get_pingtime macports::get_pingtime
-    $workername alias set_pingtime macports::set_pingtime
+    $workername alias async_ping_start macports::async_ping_start
+    $workername alias wait_for_pingtime macports::wait_for_pingtime
+    $workername alias compare_pingtimes macports::compare_pingtimes
 
     # archive_sites.conf handling
     $workername alias get_archive_sites_conf_values macports::get_archive_sites_conf_values
@@ -6989,6 +6993,12 @@ proc macports::load_ping_cache {name1 name2 op} {
 }
 
 # get cached ping time for host, modified by blacklist and preferred list
+# return status:
+# -2 blacklisted
+# -1 not in cache
+#  0 cached, stale
+#  1 cached, fresh
+#  2 preferred
 proc macports::get_pingtime {host} {
     variable host_cache
 
@@ -6996,15 +7006,15 @@ proc macports::get_pingtime {host} {
         variable host_blacklist
         foreach pattern $host_blacklist {
             if {[string match -nocase $pattern $host]} {
-                dict set host_cache $host -1
-                return -1
+                dict set host_cache $host -2
+                return -2
             }
         }
         variable preferred_hosts
         foreach pattern $preferred_hosts {
             if {[string match -nocase $pattern $host]} {
-                dict set host_cache $host 0
-                return 0
+                dict set host_cache $host 2
+                return 2
             }
         }
         dict set host_cache $host {}
@@ -7015,20 +7025,92 @@ proc macports::get_pingtime {host} {
 
     variable ping_cache
     if {[dict exists $ping_cache $host]} {
-        # expire entries after 1 day
-        if {[clock seconds] - [lindex [dict get $ping_cache $host] 1] <= 86400} {
-            return [lindex [dict get $ping_cache $host] 0]
-        }
+        # consider entries stale after 1 day
+        set status [expr {[clock seconds] - [lindex [dict get $ping_cache $host] 1] <= 86400}]
+        return [list $status [lindex [dict get $ping_cache $host] 0]]
     }
-    return {}
+    return -1
+}
+
+# wait until the host of the given url is present in the ping cache
+proc macports::wait_for_pingtime {url} {
+    set url_parts [::uri::split $url]
+    if {![dict exists $url_parts host]} {
+        return
+    }
+    set host [dict get $url_parts host]
+    set status [lindex [get_pingtime $host] 0]
+    while {$status == -1 || $status == 0} {
+        vwait ::macports::ping_cache
+        set status [lindex [get_pingtime $host] 0]
+    }
 }
 
 # cache a ping time of ms for host
 proc macports::set_pingtime {host ms} {
     variable ping_cache
     dict set ping_cache $host [list $ms [clock seconds]]
+    variable pending_pings
+    dict unset pending_pings $host
     variable cache_dirty
     dict set cache_dirty pingtimes 1
+}
+
+# Start asynchronous pings of the hosts in a list of URLs if there is
+# not a fresh cache entry for them.
+proc macports::async_ping_start {urls} {
+    variable pending_pings
+    foreach url $urls {
+        set url_parts [::uri::split $url]
+        # skip if required components are not present
+        if {![dict exists $url_parts scheme] || ![dict exists $url_parts host]} {
+            continue
+        }
+        set host [dict get $url_parts host]
+        # skip if a ping is already pending for this host
+        if {[dict exists $pending_pings $host]} {
+            continue
+        }
+        # skip if the cache entry is not missing or stale
+        set status [lindex [get_pingtime $host] 0]
+        if {$status != 0 && $status != -1} {
+            continue
+        }
+        ui_debug "starting ping of $host"
+        dict set pending_pings $host 1
+        mport_fetch_thread::queue_procresult ping [list $host [dict get $url_parts scheme]] macports::set_pingtime
+    }
+}
+
+# Compare two URLs according to the ping times of the hosts.
+# Suitable for use with lsort -command.
+proc macports::compare_pingtimes {a b} {
+    set a_parts [::uri::split $a]
+    set b_parts [::uri::split $b]
+
+    set a_scheme [expr {[dict exists $a_parts scheme] ? [dict get $a_parts scheme] : {}}]
+    set b_scheme [expr {[dict exists $b_parts scheme] ? [dict get $b_parts scheme] : {}}]
+    # file:// can't be pinged and is assumed to be faster
+    if {$a_scheme eq "file"} {
+        return [expr {$b_scheme eq "file" ? 0 : -1}]
+    } elseif {$b_scheme eq "file"} {
+        return 1
+    }
+
+    if {![dict exists $a_parts host]} {
+        return [dict exists $b_parts host]
+    } elseif {![dict exists $b_parts host]} {
+        return -1
+    }
+    lassign [get_pingtime [dict get $a_parts host]] a_status a_pingtime
+    lassign [get_pingtime [dict get $b_parts host]] b_status b_pingtime
+    if {($a_status != 1 || $b_status != 1) && !($a_status == 0 && $b_status == 0)} {
+        # not both stale and at least one not cached and fresh, best status wins
+        return [expr {$b_status - $a_status}]
+    }
+
+    # compare actual ping times (make sure to return an integer)
+    return [expr {round($a_pingtime - $b_pingtime)}]
 }
 
 # Deferred loading of compiler version cache
