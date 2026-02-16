@@ -1928,7 +1928,11 @@ proc mportshutdown {} {
     # save cached values
     if {[file writable $portdbpath]} {
         global macports::ping_cache macports::compiler_version_cache \
-               macports::cache_dirty
+               macports::cache_dirty macports::pending_pings
+        # Wait for all async pings to finish
+        while {[dict size $pending_pings] > 0} {
+            vwait ::macports::pending_pings
+        }
         # Only save the cache if it was updated
         if {[dict exists $cache_dirty pingtimes]} {
             # don't save entries more than a week old
