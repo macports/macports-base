@@ -622,9 +622,8 @@ proc portfetch::start_pings {} {
     variable fetch_urls
     variable urlmap
     # ping hosts that are not in the cache yet
-    async_ping_start $urlmap(master_sites)
     foreach {url_var archive} $fetch_urls {
-        if {$url_var ne "master_sites" && [info exists urlmap($url_var)]} {
+        if {[info exists urlmap($url_var)]} {
             async_ping_start $urlmap($url_var)
         }
     }
