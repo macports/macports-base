@@ -68,6 +68,7 @@ proc macports_worker_init {} {
 proc init_tmp_prefix {srcpath dstpath} {
     global env
 
+    umask 022
     # use custom macports.conf and sources.conf
     makeDirectory $dstpath
     makeDirectory $dstpath/share
