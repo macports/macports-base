@@ -30,6 +30,10 @@
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/* required for getaddrinfo(3) on Linux */
+#define _XOPEN_SOURCE 600L
+
 #include "time_connect.h"
 
 #include <fcntl.h>
