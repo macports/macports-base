@@ -287,25 +287,40 @@ namespace eval mport_fetch_thread {
             return {}
         }
 
-        set request_queue [list]
+        # Queues of incoming requests. These have different priorities,
+        # fetch being highest and ping lowest.
+        set fetch_request_queue [list]
+        set exists_request_queue [list]
+        set ping_request_queue [list]
+        # Map ops to their queue
+        set queue_for_op [dict create fetch_archive fetch_request_queue \
+                                      fetch_file fetch_request_queue \
+                                      archive_exists exists_request_queue \
+                                      ping ping_request_queue]
+        # Variable waited on for events by the management thread.
         set main_wakeup {}
 
-        # Add a request to the queue and arrange for the main loop to
-        # wake up and process it.
+        # Add a request to the appropriate queue and arrange for the
+        # main loop to wake up and process it.
         proc queue_request {op opargs result_tid result_var} {
-            global request_queue main_wakeup
-            lappend request_queue [list $op $opargs $result_tid $result_var]
+            global queue_for_op main_wakeup
+            set request_queue [dict get $queue_for_op $op]
+            global $request_queue
+            lappend $request_queue [list $op $opargs $result_tid $result_var]
             set main_wakeup 1
         }
 
         # Remove a request from the queue.
         # Returns 1 if the request was in the queue, 0 otherwise.
         proc unqueue_request {id} {
-            global request_queue
-            set index [lsearch -exact -dictionary -sorted -index 3 $request_queue $id]
-            if {$index != -1} {
-                set request_queue [lreplace ${request_queue}[set request_queue {}] $index $index]
-                return 1
+            foreach qtype {fetch exists ping} {
+                set request_queue ${qtype}_request_queue
+                global $request_queue
+                set index [lsearch -exact -dictionary -sorted -index 3 [set $request_queue] $id]
+                if {$index != -1} {
+                    set $request_queue [lreplace [set $request_queue][set request_queue {}] $index $index]
+                    return 1
+                }
             }
             return 0
         }
@@ -314,33 +329,54 @@ namespace eval mport_fetch_thread {
         # and handles results of completed ones. Wakes up whenever a thread
         # completes its task or a new request is queued.
         proc main {} {
-            global request_queue main_wakeup max_fetches fetch_count
+            global fetch_request_queue exists_request_queue ping_request_queue \
+                   main_wakeup max_fetches fetch_count \
+                   available_threads thread_count max_threads
+
             while {1} {
-                for {set i 0} {$i < [llength $request_queue]} {incr i} {
-                    lassign [lindex $request_queue $i] op opargs result_tid result_var
-                    set limit_concurrency [expr {$op in {fetch_archive fetch_file}}]
-                    if {$limit_concurrency && $fetch_count >= $max_fetches} {
-                        # Theoretically there could be other op types further back in the queue that we could
-                        # still dispatch, but that's unlikely in practice since fetching happens last.
+                # Fetches have highest priority
+                for {set i 0} {$i < [llength $fetch_request_queue]} {incr i} {
+                    if {$fetch_count >= $max_fetches} {
                         break
                     }
                     set tid [get_available_thread]
                     if {$tid eq {}} {
                         break
                     }
-                    if {$limit_concurrency} {
-                        incr fetch_count
-                    }
-                    if {$op eq "ping"} {
-                        set worker_proc do_ping
-                    } else {
-                        set worker_proc do_curl
-                    }
-                    thread::send -async $tid [list $worker_proc $op $opargs $result_tid $result_var] main_wakeup
+                    incr fetch_count
+                    thread::send -async $tid [list do_curl {*}[lindex $fetch_request_queue $i]] main_wakeup
                 }
                 if {$i > 0} {
-                    set request_queue [lrange $request_queue $i end]
+                    set fetch_request_queue [lrange $fetch_request_queue $i end]
                 }
+                # Archive existence checks are slightly lower priority,
+                # but more can be in progress at once.
+                for {set i 0} {$i < [llength $exists_request_queue]} {incr i} {
+                    set tid [get_available_thread]
+                    if {$tid eq {}} {
+                        break
+                    }
+                    thread::send -async $tid [list do_curl {*}[lindex $exists_request_queue $i]] main_wakeup
+                }
+                if {$i > 0} {
+                    set exists_request_queue [lrange $exists_request_queue $i end]
+                }
+                # Pings are lowest priority and must leave one thread free
+                # for higher priority operations.
+                for {set i 0} {$i < [llength $ping_request_queue]} {incr i} {
+                    if {$max_threads - $thread_count + [llength $available_threads] < 2} {
+                        break
+                    }
+                    set tid [get_available_thread]
+                    if {$tid eq {}} {
+                        break
+                    }
+                    thread::send -async $tid [list do_ping {*}[lindex $ping_request_queue $i]] main_wakeup
+                }
+                if {$i > 0} {
+                    set ping_request_queue [lrange $ping_request_queue $i end]
+                }
+                # Sleep until something happens
                 vwait main_wakeup
             }
         }
