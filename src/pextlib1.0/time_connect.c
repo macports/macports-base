@@ -40,10 +40,15 @@
 #include <string.h>
 #include <sys/errno.h>
 #include <sys/types.h>
-#include <sys/select.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#ifdef HAVE_KQUEUE
+#include <sys/event.h>
+#include <sys/time.h>
+#else
+#include <sys/select.h>
+#endif
 
 int
 TimeConnectCmd(
@@ -76,18 +81,36 @@ TimeConnectCmd(
         status = TCL_ERROR;
     }
 
+#ifdef HAVE_KQUEUE
+    struct timespec tv;
+    struct kevent changelist, eventlist;
+    int event_queue;
+    if (status == TCL_OK) {
+        event_queue = kqueue();
+        if (event_queue < 0) {
+            status = TCL_ERROR;
+        }
+    }
+#else
     struct timeval tv;
     fd_set fdset;
+#endif
     Tcl_Time start, finish;
     if (status == TCL_OK) {
         /* set as non-blocking so we can use a custom timeout */
         fcntl(sock, F_SETFL, O_NONBLOCK);
         /* set up timeout */
         tv.tv_sec = 3;
+#ifdef HAVE_KQUEUE
+        tv.tv_nsec = 0;
+        /* prepare for kevent() use */
+        EV_SET(&changelist, sock, EVFILT_WRITE, EV_ADD|EV_ONESHOT, 0, 0, NULL);
+#else
         tv.tv_usec = 0;
         /* prepare for select() use */
         FD_ZERO(&fdset);
         FD_SET(sock, &fdset);
+#endif
         /* record start time */
         Tcl_GetTime(&start);
         if (connect(sock, res->ai_addr, res->ai_addrlen) < 0 && (errno != EINPROGRESS)) {
@@ -96,12 +119,21 @@ TimeConnectCmd(
     }
 
     if (status == TCL_OK) {
-        int select_result;
+        /* Conveniently, kevent and select return values mean the same things. */
+        int wait_result;
+#ifdef HAVE_KQUEUE
+        /* run kevent, retrying if it is interrupted due to signal etc */
+        do {
+            wait_result = kevent(event_queue, &changelist, 1,
+                                    &eventlist, 1, &tv);
+        } while (wait_result == -1 && errno == EINTR);
+#else
         /* run select, retrying if it is interrupted due to signal etc */
         do {
-            select_result = select(sock + 1, NULL, &fdset, NULL, &tv);
-        } while (select_result == -1 && (errno == EAGAIN || errno == EINTR));
-        if (select_result > 0) {
+            wait_result = select(sock + 1, NULL, &fdset, NULL, &tv);
+        } while (wait_result == -1 && (errno == EAGAIN || errno == EINTR));
+#endif
+        if (wait_result > 0) {
             /* socket is connected, record finishing time */
             Tcl_GetTime(&finish);
             /* check if there is a socket error */
@@ -118,15 +150,20 @@ TimeConnectCmd(
                 /* socket error */
                 status = TCL_ERROR;
             }
-        } else if (select_result == 0) {
+        } else if (wait_result == 0) {
             /* timed out */
             status = TCL_ERROR;
         } else {
-            /* select failed */
+            /* kevent/select failed */
             status = TCL_ERROR;
         }
     }
 
+#ifdef HAVE_KQUEUE
+    if (event_queue >= 0) {
+        close(event_queue);
+    }
+#endif
     if (sock >= 0) {
         close(sock);
     }
