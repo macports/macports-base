@@ -177,17 +177,17 @@ proc portfetch::checksites {sitelists mirrorfile} {
         set untagged_env_sites [list]
         if {[llength $extras] >= 2} {
             lassign $extras sglobal senv
-            if {$sglobal ne ""} {
-                lappend full_list $sglobal
-                set global_sites [mirror_sites $sglobal "" "" $mirrorfile]
-            }
             if {[info exists env($senv)]} {
+                set full_list [list {*}$env($senv) {*}$full_list]
                 foreach env_site $env($senv) {
-                    lappend full_list $env_site
                     if {![regexp $tagged_url_re $env_site]} {
                         lappend untagged_env_sites $env_site
                     }
                 }
+            }
+            if {$sglobal ne ""} {
+                set full_list [list $sglobal {*}$full_list]
+                set global_sites [mirror_sites $sglobal "" "" $mirrorfile]
             }
         }
 
@@ -222,7 +222,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         foreach tag [dict keys $tags] {
             # Only add untagged sites from the environment here.
             # Tagged ones will already be in the list.
-            lappend urlmap($tag) {*}$untagged_env_sites {*}$global_sites
+            set urlmap($tag) [list {*}$global_sites {*}$untagged_env_sites {*}$urlmap($tag)]
         }
     }
 }
