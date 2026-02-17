@@ -501,8 +501,8 @@ test mportshutdown {
     close [open ${macports::portdbpath}/cache/pingtimes w+]
 
 } -body {
-    if {[mportshutdown] ne ""} {
-        return "FAIL: errors occurred"
+    if {[catch {mportshutdown} err]} {
+        return "FAIL: errors occurred: $err"
     }
 
     set res ""
