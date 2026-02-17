@@ -592,6 +592,18 @@ proc portfetch::fetch_addfilestomap {filemapname} {
     }
 }
 
+# Check if all distfiles are already present.
+proc portfetch::files_present {} {
+    global distpath
+    variable fetch_urls
+    foreach {url_var distfile} $fetch_urls {
+        if {![file isfile ${distpath}/${distfile}]} {
+            return 0
+        }
+    }
+    return 1
+}
+
 # Start asynchronous fetch of distfiles
 proc portfetch::fetch_async_start {} {
     global all_dist_files fetch.type
@@ -602,6 +614,10 @@ proc portfetch::fetch_async_start {} {
     fetch_init
     if {![info exists all_dist_files]} {
         # No files to fetch
+        return 0
+    }
+    if {[files_present]} {
+        # Already fetched
         return 0
     }
     _fetch_start
@@ -622,7 +638,7 @@ proc portfetch::start_pings {} {
     variable fetch_urls
     variable urlmap
     # ping hosts that are not in the cache yet
-    foreach {url_var archive} $fetch_urls {
+    foreach {url_var distfile} $fetch_urls {
         if {[info exists urlmap($url_var)]} {
             async_ping_start $urlmap($url_var)
         }
@@ -685,6 +701,10 @@ proc portfetch::fetch_start {args} {
     }
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching distfiles for %s"] $subport]"
+    if {[files_present]} {
+        # Already fetched
+        return 0
+    }
     _fetch_start
 }
 

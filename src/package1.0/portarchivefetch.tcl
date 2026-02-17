@@ -479,6 +479,25 @@ proc portarchivefetch::fetchfiles {{async no} args} {
     }
 }
 
+# Check if all archives are already present.
+proc portarchivefetch::archives_present {} {
+    global archivefetch.fulldestpath force_archive_refresh
+    variable archivefetch_urls
+
+    set existing_archive [find_portarchive_path]
+    if {$existing_archive eq "" && ![tbool force_archive_refresh]
+        && [file isdirectory [file rootname [get_portimage_path]]]} {
+        set existing_archive yes
+    }
+
+    foreach {url_var archive} $archivefetch_urls {
+        if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
+            return 0
+        }
+    }
+    return 1
+}
+
 # Start asynchronous fetch of archive
 proc portarchivefetch::archivefetch_async_start {} {
     global all_archive_files
@@ -537,7 +556,9 @@ proc portarchivefetch::_archivefetch_start {quiet} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
-        start_pings
+        if {![archives_present]} {
+            start_pings
+        }
         if {!$quiet} {
             ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
         }
