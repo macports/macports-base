@@ -1925,10 +1925,15 @@ match macports.conf.default."
 # call this just before you exit
 proc mportshutdown {} {
     global macports::portdbpath
+    # close the registry down so the cleanup stuff is called, e.g. vacuuming the db
+    registry::close
     # save cached values
     if {[file writable $portdbpath]} {
         global macports::ping_cache macports::compiler_version_cache \
                macports::cache_dirty macports::pending_pings
+        if {[dict exists $cache_dirty compiler_versions]} {
+            macports::save_cache compiler_versions $compiler_version_cache
+        }
         # Wait for all async pings to finish
         while {[dict size $pending_pings] > 0} {
             vwait ::macports::pending_pings
@@ -1942,13 +1947,7 @@ proc mportshutdown {} {
             }]
             macports::save_cache pingtimes $pinglist_fresh
         }
-        if {[dict exists $cache_dirty compiler_versions]} {
-            macports::save_cache compiler_versions $compiler_version_cache
-        }
     }
-
-    # close it down so the cleanup stuff is called, e.g. vacuuming the db
-    registry::close
 }
 
 # Override variables. Used by portindex to evaluate Portfiles as though
