@@ -2235,23 +2235,16 @@ static int socket_callback(CURL *easy UNUSED,
     }
     curl_poll_info_t *state = (curl_poll_info_t *)clientp;
 #ifdef HAVE_KQUEUE
-    /* Only actually do the adds, since closing a file auto-removes
-     * its events from the kqueue. */
+    /* Always add both read and write filters, but disable those that
+       are not requested by curl. No need to explicitly handle
+       CURL_POLL_REMOVE since filters are automatically cleaned up when
+       closing the file descriptors. */
     struct kevent changelist[2];
-    int nchanges = 0;
-    if ((what & CURL_POLL_IN)) {
-        EV_SET(&changelist[nchanges++], s, EVFILT_READ, EV_ADD|EV_RECEIPT, 0, 0, NULL);
-    }
-    if ((what & CURL_POLL_OUT)) {
-        EV_SET(&changelist[nchanges++], s, EVFILT_WRITE, EV_ADD|EV_RECEIPT, 0, 0, NULL);
-    }
-    kevent(state->eventfd, changelist, nchanges, changelist, nchanges, NULL);
-    for (int i = 0; i < nchanges; i++) {
-        if (changelist[i].data != 0) {
-            /* adding this filter failed */
-            return -1;
-        }
-    }
+    uint16_t enableflag = (what & CURL_POLL_IN) ? EV_ENABLE : EV_DISABLE;
+    EV_SET(&changelist[0], s, EVFILT_READ, enableflag|EV_ADD, 0, 0, NULL);
+    enableflag = (what & CURL_POLL_OUT) ? EV_ENABLE : EV_DISABLE;
+    EV_SET(&changelist[1], s, EVFILT_WRITE, enableflag|EV_ADD, 0, 0, NULL);
+    return kevent(state->eventfd, changelist, 2, NULL, 0, NULL);
 #else
     if (what == CURL_POLL_REMOVE && s < FD_SETSIZE) {
         FD_CLR(s, &(state->readfds));
@@ -2280,8 +2273,8 @@ static int socket_callback(CURL *easy UNUSED,
             FD_SET(s, &(state->errorfds));
         }
     }
-#endif
     return 0;
+#endif
 }
 
 static int timer_callback(CURLM *multi UNUSED,
