@@ -2292,9 +2292,12 @@ static int timer_callback(CURLM *multi UNUSED,
         return -1;
     }
     curl_poll_info_t *state = (curl_poll_info_t *)clientp;
-    /* Limit timeout to 1 second, and avoid underflow */
-    if (timeout_ms > 1000 || timeout_ms < 0) {
+    /* Limit timeout to 1 second */
+    if (timeout_ms > 1000) {
         timeout_ms = 1000;
+    } else if (timeout_ms < 0) {
+        /* -1 means disable the timer */
+        timeout_ms = 0;
     }
     state->timeout.tv_sec = timeout_ms / 1000;
 #ifdef HAVE_KQUEUE
