@@ -231,10 +231,17 @@ namespace eval mport_fetch_thread {
         }
         # End worker_init_script
 
-        if {![catch {sysctl hw.activecpu} ncpus]} {
-            set max_threads [expr {$ncpus * 2}]
-        } else {
-            set max_threads 8
+        proc init_max_threads {fetch_threads} {
+            global max_threads max_fetches
+            if {![catch {sysctl hw.activecpu} ncpus] && $ncpus > $fetch_threads} {
+                set max_threads [expr {$ncpus * 2}]
+            } else {
+                set max_threads [expr {$fetch_threads * 2}]
+            }
+            if {$max_threads < 8} {
+                set max_threads 8
+            }
+            set max_fetches $fetch_threads
         }
         set available_threads [list]
         set thread_count 0
@@ -339,7 +346,7 @@ proc mport_fetch_thread::init_management_thread {args} {
     set management_thread [thread::create -preserved $init_script]
     global macports::fetch_threads
     set max_fetches [expr {[info exists fetch_threads] && $fetch_threads > 1 ? $fetch_threads : 1}]
-    thread::send -async $management_thread [list set max_fetches $max_fetches]
+    thread::send -async $management_thread [list init_max_threads $max_fetches]
 }
 
 # Queue a fetch operation to be performed on a thread in the background.
