@@ -88,7 +88,7 @@ proc portconfigure::should_add_stdlib {} {
     # GCC also supports -stdlib starting with GCC 10 (and devel), but
     # not with PPC builds
     global configure.build_arch
-    if {[string match *g*-mp-* ${configure.cxx}]
+    if {[string match *g*-mp-* ${configure.cxx}] || [string match *mpi*-gcc* ${configure.cxx}]
             && ${configure.build_arch} ni {ppc ppc64}} {
         # Do not pass stdlib to gcc if it is MacPorts custom macports-libstdc++ setting
         # as gcc does not uderstand this. Instead do nothing, which means gcc will
