@@ -6,6 +6,12 @@ Release 2.12.2 (unreleased)
     - Files in the destroot owned by the unprivileged macports user are
       now chowned to ${install.user}. (#73516, jmr in a1223b7, fc5a3d6)
 
+    - Fixed error when starting archive fetch under some circumstances.
+      (jmr in 4508cb3)
+
+    - Fixed downloading an archive when a port has already been
+      destrooted locally. (jmr in bbca8be)
+
 Release 2.12.1 (2026-02-06 by jmr)
     - Fixed error extracting ports synced with rsync on systems with an
       older version of tar. (#73467, jmr in cf8e6d5)
