@@ -1617,6 +1617,7 @@ proc target_run {ditem} {
 
     if {[ditem_key $ditem state] ne "no"} {
         close $target_state_fd
+        unset target_state_fd
     }
 
     set env(HOME) $savedhome
