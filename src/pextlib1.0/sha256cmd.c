@@ -82,7 +82,6 @@ int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	char *file, *action;
 	char buf[2*SHA256_DIGEST_LENGTH + 1];
 	const char usage_message[] = "Usage: sha256 file";
-	const char error_message[] = "Could not open file: ";
 	Tcl_Obj *tcl_result;
 
 	if (objc != 3) {
@@ -102,9 +101,9 @@ int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	file = Tcl_GetString(objv[2]);
 
 	if (!SHA256_File(file, buf)) {
-		tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
-		Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(file, -1));
-		Tcl_SetObjResult(interp, tcl_result);
+		int errsave = errno;
+		Tcl_SetResult(interp, "Could not open file: ", TCL_STATIC);
+		Tcl_AppendResult(interp, file, ": ", strerror(errsave), NULL);
 		return TCL_ERROR;
 	}
 	tcl_result = Tcl_NewStringObj(buf, sizeof(buf) - 1);
