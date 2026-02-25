@@ -503,13 +503,30 @@ proc portarchivefetch::_async_cleanup {} {
 #    return 0
 #}
 
+proc portarchivefetch::check_destroot_done {} {
+    global destroot
+    set ret 0
+    if {[file isdirectory $destroot]} {
+        global target_state_fd
+        if {![info exists target_state_fd]} {
+            set target_state_fd [open_statefile]
+            set closefd 1
+        }
+        set ret [check_statefile target org.macports.destroot $target_state_fd]
+        if {[info exists closefd]} {
+            close $target_state_fd
+            unset target_state_fd
+        }
+    }
+    return $ret
+}
+
 proc portarchivefetch::_archivefetch_start {quiet} {
     variable archivefetch_urls
-    global UI_PREFIX subport all_archive_files destroot target_state_fd \
+    global UI_PREFIX subport all_archive_files \
            ports_source_only ports_binary_only
     if {![tbool ports_source_only] && ([tbool ports_binary_only] ||
-            !([info exists target_state_fd] && [file isdirectory $destroot]
-              && [check_statefile target org.macports.destroot $target_state_fd]))} {
+            ![check_destroot_done])} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
