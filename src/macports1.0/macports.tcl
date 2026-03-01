@@ -3113,6 +3113,7 @@ proc macports::_upgrade_mport_deps {mport target} {
 
     set depnames_to_upgrade [list]
     set depdict [dict create]
+    set msg_printed 0
 
     try {
     foreach deptypes $deptypes_lists check_archive {no yes} {
@@ -3216,7 +3217,10 @@ proc macports::_upgrade_mport_deps {mport target} {
         if {[llength $depnames_to_upgrade] > 0} {
             variable ui_prefix
             set portname [dict get $portinfo name]
-            ui_msg "$ui_prefix Upgrading already installed dependencies of $portname"
+            if {!$msg_printed} {
+                ui_msg "$ui_prefix Upgrading already installed dependencies of $portname"
+                set msg_printed 1
+            }
             set status [macports::upgrade_multi $depnames_to_upgrade $depdict $options]
             if {$status != 0 && ![macports::ui_isset ports_processall]} {
                 return -code error "upgrading deps for $portname failed"
