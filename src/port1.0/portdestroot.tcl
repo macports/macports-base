@@ -175,14 +175,14 @@ proc portdestroot::destroot_finish {args} {
                 set new_owner ${install.user}
             } else {
                 # only group needs to be changed
-                set new_owner [name_to_uid $statinfo(uid)]
+                set new_owner -1
             }
             if {$statinfo(gid) == $macports_gid} {
                 ui_debug "Changing group to ${install.group} for $fullpath"
                 set new_group ${install.group}
             } else {
                 # only owner needs to be changed
-                set new_group [name_to_gid $statinfo(gid)]
+                set new_group -1
             }
             # Changing owner may also change permissions, so we restore
             # them afterwards. 'file attributes' doesn't work on links
