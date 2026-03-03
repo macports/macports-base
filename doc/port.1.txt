@@ -728,7 +728,7 @@ man:portstyle[7], man:porthier[7]
 AUTHORS
 -------
  (C) 2002-2003 Apple Inc.
- (C) 2004-2018 The MacPorts Project
+ (C) 2004-2026 The MacPorts Project
  Landon Fuller <landonf@macports.org>
  James Berry <jberry@macports.org>
  Jordan K. Hubbard <jkh@macports.org>
