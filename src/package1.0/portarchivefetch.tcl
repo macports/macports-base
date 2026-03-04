@@ -353,9 +353,9 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                 }
             }
             if {$async} {
-                file delete -force ${incoming_path}/${archive}.TMP
-                touch ${incoming_path}/${archive}.TMP
-                chownAsRoot ${incoming_path}/${archive}.TMP
+                file delete -force $archive_tmp_path
+                touch $archive_tmp_path
+                chownAsRoot $archive_tmp_path
                 foreach sigtype $sigtypes {
                     file delete -force ${incoming_path}/${archive}.${sigtype}
                     touch ${incoming_path}/${archive}.${sigtype}
