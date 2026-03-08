@@ -5702,6 +5702,7 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
     set status 0
     set upgrade_index 0
     set all_mports [dict create]
+    set fetched_mports [dict create]
     set loaded_startupitems [dict create]
     set ports_to_upgrade [list]
     set ports_to_install [list]
@@ -5721,14 +5722,16 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     } elseif {$opname in {activate_only install} && ![dict exists $all_mports $mport]} {
                         lappend ports_to_upgrade [ditem_key $mport provides]
                     }
-                    if {$opname in {activate install}} {
+                    if {$opname in {activate install} && ![dict exists $fetched_mports $mport]} {
                         # Start background fetch of files
                         async_fetch_mport activate $mport
+                        dict set fetched_mports $mport 1
                     }
                     dict set all_mports $mport 0
                 }
             }
         }
+        unset fetched_mports
 
         set to_install_len [llength $ports_to_install]
         set to_upgrade_len [llength $ports_to_upgrade]
