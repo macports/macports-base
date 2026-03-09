@@ -466,7 +466,7 @@ proc portfetch::fetchfiles {{async no} args} {
         # Fetch was started asynchronously, wait for jobs to finish
         set async_jobs_copy $async_jobs
         # Ensure we don't try to get results for jobs twice
-        set async_jobs [list]
+        unset async_jobs
         foreach {distfile jobid} $async_jobs_copy {
             if {![curlwrap_async_is_complete $jobid]} {
                 # Display progress for this fetch while waiting for it to finish
