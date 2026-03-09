@@ -2132,6 +2132,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias curlwrap_async_cancel macports::curlwrap_async_cancel
     $workername alias curlwrap_async_is_complete macports::curlwrap_async_is_complete
     $workername alias curlwrap_async_show_progress macports::curlwrap_async_show_progress
+    $workername alias curlwrap_async_file_is_in_progress macports::curlwrap_async_file_is_in_progress
 
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
@@ -2272,6 +2273,11 @@ proc macports::curlwrap_async_is_complete {id args} {
 # Start displaying progress for an operation.
 proc macports::curlwrap_async_show_progress {id} {
     return [mport_fetch_thread::show_progress $id]
+}
+
+# Check if a transfer is in progress for a file
+proc macports::curlwrap_async_file_is_in_progress {path} {
+    return [mport_fetch_thread::file_is_in_progress $path]
 }
 
 ##
