@@ -37,6 +37,7 @@ package require Thread
 
 namespace eval mport_fetch_thread {
     variable active_requests [dict create]
+    variable active_files [dict create]
     variable next_id 0
     variable management_thread
     trace add variable management_thread read mport_fetch_thread::init_management_thread
@@ -413,6 +414,19 @@ proc mport_fetch_thread::init_management_thread {args} {
     thread::send -async $management_thread [list init_max_threads $max_fetches]
 }
 
+proc mport_fetch_thread::record_request {op opargs id} {
+    variable active_requests
+    if {$op eq "fetch_file"} {
+        # record the file path
+        set val [lindex $opargs 3]
+        variable active_files
+        dict set active_files $val 1
+    } else {
+        set val {}
+    }
+    dict set active_requests $id $val
+}
+
 # Queue a fetch operation to be performed on a thread in the background.
 # Returns an id that can be used with the get_result command.
 proc mport_fetch_thread::queue {op opargs} {
@@ -423,8 +437,7 @@ proc mport_fetch_thread::queue {op opargs} {
     set id [namespace which -variable $result_name]
     variable management_thread
     thread::send -async $management_thread [list queue_request $op $opargs [thread::id] $id]
-    variable active_requests
-    dict set active_requests $id 1
+    record_request $op $opargs $id
     return $id
 }
 
@@ -442,6 +455,11 @@ proc mport_fetch_thread::queue_procresult {op opargs completion_proc} {
 proc mport_fetch_thread::get_result {id} {
     variable active_requests
     if {[dict exists $active_requests $id]} {
+        set filepath [dict get $active_requests $id]
+        if {$filepath ne {}} {
+            variable active_files
+            dict unset active_files $filepath
+        }
         dict unset active_requests $id
         variable $id
         if {![info exists $id]} {
@@ -486,6 +504,12 @@ proc mport_fetch_thread::is_complete {id {timeout 0}} {
     }
 }
 
+# Check if a fetch is in progress for the given file path
+proc mport_fetch_thread::file_is_in_progress {path} {
+    variable active_files
+    return [dict exists $active_files $path]
+}
+
 # Start displaying progress for the operation identified by id.
 proc mport_fetch_thread::show_progress {id} {
     variable active_requests
@@ -507,6 +531,11 @@ proc mport_fetch_thread::cancel {id} {
     if {![dict exists $active_requests $id]} {
         # Not in progress, guess it's fine?
         return
+    }
+    set filepath [dict get $active_requests $id]
+    if {$filepath ne {}} {
+        variable active_files
+        dict unset active_files $filepath
     }
     dict unset active_requests $id
     variable $id

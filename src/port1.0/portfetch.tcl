@@ -533,6 +533,10 @@ proc portfetch::fetchfiles {{async no} args} {
                 set urlmap($url_var) $urlmap(master_sites)
             }
             if {$async} {
+                # Skip if something else is already fetching this file
+                if {[curlwrap_async_file_is_in_progress ${distpath}/${distfile}]} {
+                    continue
+                }
                 file delete -force ${distpath}/${distfile}.TMP
                 touch ${distpath}/${distfile}.TMP
                 chownAsRoot ${distpath}/${distfile}.TMP
