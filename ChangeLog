@@ -2,6 +2,13 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.12.3 (unreleased)
+    - Fixed checksum mismatch when ports that share one or more
+      distfiles are fetched by an action. (#73587, jmr in c4d2176)
+
+    - Fixed duplicate "Upgrading already installed dependencies"
+      message. (jmr in dcbe314)
+
 Release 2.12.2 (2026-02-28 by jmr)
     - Files in the destroot owned by the unprivileged macports user are
       now chowned to ${install.user}. (#73516, jmr in a1223b7, fc5a3d6)
