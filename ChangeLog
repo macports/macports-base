@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.12.3 (unreleased)
+Release 2.12.3 (2026-03-09 by jmr)
     - Fixed checksum mismatch when ports that share one or more
       distfiles are fetched by an action. (#73587, jmr in c4d2176)
 
