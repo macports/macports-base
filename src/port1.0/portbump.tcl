@@ -31,6 +31,8 @@
 package provide portbump 1.0
 package require portutil 1.0
 package require portchecksum 1.0
+package require portprovenance 1.0
+package require portsource 1.0
 
 set org.macports.bump [target_new org.macports.bump portbump::bump_main]
 target_provides ${org.macports.bump} bump
@@ -39,6 +41,395 @@ target_requires ${org.macports.bump} main fetch
 target_prerun ${org.macports.bump} portbump::bump_start
 
 namespace eval portbump {
+}
+
+portprovenance::track_option checksums
+portprovenance::track_option revision
+
+# build_checksum_replacements
+#
+# Build regex replacements for one checksum command while preserving distfile context.
+#
+proc portbump::build_checksum_replacements {command_name checksums_str all_dist_files calculated_checksums_array_name} {
+    upvar 1 $calculated_checksums_array_name calculated_checksums_array
+
+    set replacements [list]
+    # Grow the regex context as we walk the command so repeated values such as
+    # identical sizes only match within the intended distfile/type block.
+    set prefix_patterns [list [quotemeta $command_name]]
+    set whitespace {[[:space:]\\]+}
+    set distfile_pattern {[^[:space:]\\]+}
+
+    set single_file_format [portchecksum::uses_single_file_checksum_format $checksums_str $all_dist_files]
+
+    foreach checksum_entry [portchecksum::parse_checksum_entries $checksums_str $all_dist_files] {
+        lassign $checksum_entry distfile checksum_values
+
+        if {!$single_file_format} {
+            lappend prefix_patterns $distfile_pattern
+        }
+
+        if {[info exists calculated_checksums_array($distfile)]} {
+            set new_checksums $calculated_checksums_array($distfile)
+        } else {
+            set new_checksums [list]
+        }
+
+        foreach {type old_sum} $checksum_values {
+            lappend prefix_patterns [quotemeta $type]
+
+            set new_sum_index [lsearch -exact $new_checksums $type]
+            if {$new_sum_index >= 0} {
+                set new_sum [lindex $new_checksums [expr {$new_sum_index + 1}]]
+
+                lappend replacements [list \
+                    [format {(%s%s)%s} [join $prefix_patterns $whitespace] $whitespace [quotemeta $old_sum]] \
+                    "\\1${new_sum}"]
+            }
+
+            lappend prefix_patterns [quotemeta $old_sum]
+        }
+    }
+
+    # Apply the most specific replacements first so earlier edits do not
+    # invalidate broader patterns that still need to match the original text.
+    return [lreverse $replacements]
+}
+
+# parse_recorded_checksum_entries
+#
+# Parse one recorded checksum mutation into ordered distfile entries.
+#
+proc portbump::parse_recorded_checksum_entries {command_record all_dist_files} {
+    if {![dict exists $command_record args]} {
+        return -code error "missing checksum provenance arguments"
+    }
+
+    return [portchecksum::parse_checksum_entries [dict get $command_record args] $all_dist_files]
+}
+
+# checksum_record_applies
+#
+# Return whether one recorded checksum mutation applies to the selected distfiles.
+#
+proc portbump::checksum_record_applies {command_record all_dist_files selected_subport} {
+    if {![portprovenance::record_applies_to_subport $command_record $selected_subport]} {
+        return no
+    }
+
+    # A checksum command is relevant if it belongs to the selected scope and
+    # contributes at least one of the distfiles being bumped.
+    foreach checksum_entry [parse_recorded_checksum_entries $command_record $all_dist_files] {
+        if {[lindex $checksum_entry 0] in $all_dist_files} {
+            return yes
+        }
+    }
+
+    return no
+}
+
+# get_active_checksum_records
+#
+# Return the recorded checksum mutations that apply to this Portfile.
+#
+proc portbump::get_active_checksum_records {portfile all_dist_files} {
+    global subport
+
+    if {[info exists subport]} {
+        set selected_subport $subport
+    } else {
+        set selected_subport {}
+    }
+
+    set records [list]
+    set normalized_portfile [file normalize $portfile]
+
+    foreach command_record [portprovenance::get_option_provenance checksums] {
+        if {[dict get $command_record file] ne $normalized_portfile} {
+            continue
+        }
+        if {![checksum_record_applies $command_record $all_dist_files $selected_subport]} {
+            continue
+        }
+
+        lappend records $command_record
+    }
+
+    return $records
+}
+
+# get_active_revision_records
+#
+# Return the recorded revision mutations that apply to the selected subport.
+#
+proc portbump::get_active_revision_records {portfile} {
+    global subport
+
+    set global_records [list]
+    set matching_records [list]
+    set normalized_portfile [file normalize $portfile]
+
+    if {[info exists subport]} {
+        set selected_subport $subport
+    } else {
+        set selected_subport {}
+    }
+
+    foreach command_record [portprovenance::get_option_provenance revision] {
+        if {[dict get $command_record file] ne $normalized_portfile} {
+            continue
+        }
+
+        # Top-level revisions are inherited by subports unless a matching
+        # subport-local revision executed and overrides them.
+        if {[portprovenance::record_scope $command_record] eq "subport"} {
+            if {[portprovenance::record_applies_to_subport $command_record $selected_subport]} {
+                lappend matching_records $command_record
+            }
+        } else {
+            lappend global_records $command_record
+        }
+    }
+
+    if {[llength $matching_records]} {
+        set selected_records $matching_records
+    } else {
+        set selected_records $global_records
+    }
+
+    set active_records [list]
+    foreach command_record $selected_records {
+        if {[dict exists $command_record args]} {
+            set revision_args [dict get $command_record args]
+            if {[llength $revision_args] == 1
+                && [string is wideinteger -strict [lindex $revision_args 0]]
+                && [lindex $revision_args 0] <= 0} {
+                continue
+            }
+        }
+
+        lappend active_records $command_record
+    }
+
+    return $active_records
+}
+
+# evaluate_checksum_command
+#
+# Evaluate one checksum command with wrappers so we can recover its argument words.
+#
+proc portbump::evaluate_checksum_command {command_text} {
+    variable captured_checksum_command
+
+    unset -nocomplain captured_checksum_command
+
+    # Replace the public checksum commands temporarily so Tcl expansion runs as
+    # usual and we can still recover the fully evaluated argument words.
+    foreach command_name {checksums checksums-append} {
+        set saved_command ::portbump::saved-${command_name}
+        if {[llength [info commands ::${command_name}]]} {
+            rename ::${command_name} ${saved_command}
+        }
+    }
+
+    proc ::checksums {args} {
+        set ::portbump::captured_checksum_command [list checksums $args]
+    }
+    proc ::checksums-append {args} {
+        set ::portbump::captured_checksum_command [list checksums-append $args]
+    }
+
+    try {
+        namespace eval :: $command_text
+    } finally {
+        rename ::checksums {}
+        rename ::checksums-append {}
+
+        foreach command_name {checksums checksums-append} {
+            set saved_command ::portbump::saved-${command_name}
+            if {[llength [info commands ${saved_command}]]} {
+                rename ${saved_command} ::${command_name}
+            }
+        }
+    }
+
+    if {![info exists captured_checksum_command]} {
+        return -code error "failed to evaluate checksum command"
+    }
+
+    return $captured_checksum_command
+}
+
+# build_checksum_edits
+#
+# Plan the checksum edits for the active Portfile checksum commands.
+#
+proc portbump::build_checksum_edits {portfile portfile_contents all_dist_files calculated_checksums_array_name} {
+    upvar 1 $calculated_checksums_array_name calculated_checksums_array
+
+    set edits [list]
+    set command_records [get_active_checksum_records $portfile $all_dist_files]
+
+    if {![llength $command_records]} {
+        return $edits
+    }
+
+    # Match only the checksum commands that actually executed for this port,
+    # then rewrite those source spans in place.
+    foreach command_record [portsource::match_recorded_commands $portfile_contents $command_records] {
+        set replacements [build_checksum_replacements \
+            [dict get $command_record command_name] \
+            [dict get $command_record args] \
+            $all_dist_files \
+            calculated_checksums_array]
+        set command_text [dict get $command_record text]
+
+        if {![llength $replacements]} {
+            continue
+        }
+
+        foreach replacement $replacements {
+            lassign $replacement pattern replacement_string
+
+            if {![regsub -- $pattern $command_text $replacement_string command_text]} {
+                return -code error "failed to locate checksum in Portfile"
+            }
+        }
+
+        lappend edits [list \
+            [dict get $command_record start] \
+            [dict get $command_record end] \
+            $command_text]
+    }
+
+    return $edits
+}
+
+# build_checksum_fallback_edits
+#
+# Plan checksum edits by rescanning the source when no checksum provenance exists.
+#
+proc portbump::build_checksum_fallback_edits {portfile_contents all_dist_files calculated_checksums_array_name} {
+    upvar 1 $calculated_checksums_array_name calculated_checksums_array
+
+    set edits [list]
+
+    # Tests can inject raw Portfile text without provenance, so keep a narrow
+    # source-scan fallback for that case.
+    foreach command [portsource::find_portfile_commands $portfile_contents {checksums checksums-append}] {
+        if {[catch {lassign [evaluate_checksum_command [dict get $command text]] command_name command_args}]} {
+            continue
+        }
+
+        set replacements [build_checksum_replacements \
+            $command_name \
+            $command_args \
+            $all_dist_files \
+            calculated_checksums_array]
+        set command_text [dict get $command text]
+
+        if {![llength $replacements]} {
+            continue
+        }
+
+        foreach replacement $replacements {
+            lassign $replacement pattern replacement_string
+
+            if {![regsub -- $pattern $command_text $replacement_string command_text]} {
+                return -code error "failed to locate checksum in Portfile"
+            }
+        }
+
+        lappend edits [list \
+            [dict get $command start] \
+            [dict get $command end] \
+            $command_text]
+    }
+
+    return $edits
+}
+
+# build_revision_edits
+#
+# Plan the revision edits for the active Portfile revision commands.
+#
+proc portbump::build_revision_edits {portfile portfile_contents} {
+    set edits [list]
+    set command_records [get_active_revision_records $portfile]
+
+    if {![llength $command_records]} {
+        return $edits
+    }
+
+    foreach command_record [portsource::match_recorded_commands $portfile_contents $command_records] {
+        set command_text [dict get $command_record text]
+
+        if {![regexp -- {revision[[:space:]\\]+([0-9]+)} $command_text -> old_revision]} {
+            return -code error "failed to locate revision in Portfile"
+        }
+
+        set pattern [format {(revision[[:space:]\\]+)%s} [quotemeta $old_revision]]
+        if {![regsub -- $pattern $command_text {\10} command_text]} {
+            return -code error "failed to locate revision in Portfile"
+        }
+
+        lappend edits [list \
+            [dict get $command_record start] \
+            [dict get $command_record end] \
+            $command_text]
+    }
+
+    return $edits
+}
+
+# apply_source_edits
+#
+# Apply source replacements from the end of the Portfile toward the beginning.
+#
+proc portbump::apply_source_edits {portfile_contents edits} {
+    foreach edit [lreverse $edits] {
+        lassign $edit start end replacement_text
+        set portfile_contents [string replace $portfile_contents $start $end $replacement_text]
+    }
+
+    return $portfile_contents
+}
+
+# rewrite_portfile
+#
+# Rewrite the Portfile checksums and reset the revision in a temporary file.
+#
+proc portbump::rewrite_portfile {portfile tmpfd all_dist_files calculated_checksums_array_name} {
+    upvar 1 $calculated_checksums_array_name calculated_checksums_array
+
+    set portfd [open $portfile r]
+    set portfile_contents [read $portfd]
+    close $portfd
+
+    set checksum_edits [build_checksum_edits $portfile $portfile_contents $all_dist_files calculated_checksums_array]
+    if {![llength $checksum_edits] && ![portprovenance::has_option_provenance checksums $portfile]} {
+        set checksum_edits [build_checksum_fallback_edits $portfile_contents $all_dist_files calculated_checksums_array]
+    }
+
+    set revision_edits [build_revision_edits $portfile $portfile_contents]
+    set use_revision_fallback [expr {![llength $revision_edits] && ![portprovenance::has_option_provenance revision $portfile]}]
+
+    set edits [concat $checksum_edits $revision_edits]
+
+    if {![llength $edits] && !$use_revision_fallback} {
+        return -code error "failed to locate checksum or revision in Portfile"
+    }
+
+    set portfile_contents [apply_source_edits $portfile_contents $edits]
+
+    # Older simple Portfiles may still have no revision provenance at all, so
+    # keep the legacy one-shot reset as a compatibility fallback.
+    if {$use_revision_fallback
+        && [regsub -- {(revision[[:space:]\\]+)[0-9]+} $portfile_contents {\10} portfile_contents]} {
+    }
+
+    puts -nonewline $tmpfd $portfile_contents
+    close $tmpfd
 }
 
 # bump_start
@@ -96,14 +487,12 @@ proc portbump::bump_main {args} {
                 # Retrieve the list of types/values from the array.
                 set portfile_checksums $checksums_array($distfile)
                 set calculated_checksums [list]
-                set both_checksums [list]
 
                 # Iterate on this list to check the actual values.
                 foreach {type sum} $portfile_checksums {
                     set calculated_sum [portchecksum::calc_$type $fullpath]
                     lappend calculated_checksums $type
                     lappend calculated_checksums $calculated_sum
-                    lappend both_checksums $type $sum $calculated_sum
 
                     if {$sum eq $calculated_sum} {
                         ui_debug "[format [msgcat::mc "Correct (%s) bump for %s"] $type $distfile]"
@@ -152,35 +541,33 @@ proc portbump::bump_main {args} {
         ui_notice "The file has been moved to: $htmlfile_path"
         
         return -code error "[msgcat::mc "Unable to verify file checksums"]"
-    } elseif {![info exists both_checksums]} {
-        return -code error "[msgcat::mc "No checksums found in Portfile"]"
     } else {
         # Show the desired checksum line for easy cut-paste
         # based on the previously calculated values, plus our default types
 
-        global version revision subport
+        global version subport
 
         ui_msg "We will bump these:"
-        foreach {type sum calculated_sum} $both_checksums {
-            ui_msg [format "Old %-8s %s" ${type}: $sum]
-            ui_msg [format "New %-8s %s" ${type}: $calculated_sum]
-        }
+        foreach distfile $all_dist_files {
+            if {![info exists checksums_array($distfile)] || ![info exists calculated_checksums_array($distfile)]} {
+                continue
+            }
 
-        set patterns [list]
+            if {[llength $all_dist_files] > 1} {
+                ui_msg $distfile
+            }
 
-        set whitespace {[[:space:]\\]+}
-        # Create substitution pattern(s) for checksum
-        foreach {type sum calculated_sum} $both_checksums {
-            lappend patterns "s/(${type}${whitespace})${sum}/\\1${calculated_sum}/g"
-        }
-        # Create substitution pattern for revision (reset to 0)
-        lappend patterns {s/(revision[[:space:]\\]+)[0-9]+/\10/g}
+            set portfile_checksums $checksums_array($distfile)
+            set calculated_checksums $calculated_checksums_array($distfile)
 
-        # Construct sed command
-        set cmdline [list]
-        lappend cmdline $portutil::autoconf::sed_command -E
-        foreach pattern $patterns {
-            lappend cmdline -e $pattern
+            for {set checksum_index 0} {$checksum_index < [llength $portfile_checksums]} {incr checksum_index 2} {
+                set type [lindex $portfile_checksums $checksum_index]
+                set sum [lindex $portfile_checksums [expr {$checksum_index + 1}]]
+                set calculated_sum [lindex $calculated_checksums [expr {$checksum_index + 1}]]
+
+                ui_msg [format "Old %-8s %s" ${type}: $sum]
+                ui_msg [format "New %-8s %s" ${type}: $calculated_sum]
+            }
         }
 
         # Get the uid of Portfile owner
@@ -198,18 +585,16 @@ proc portbump::bump_main {args} {
             # Get Portfile attributes
             set attributes [file attributes $portfile]
 
-            # Direct sed command output to tempfile
-            lappend cmdline "<${portfile}" ">@$tmpfd"
-
-            # Run sed command and write to Portfile.bump
-            ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] $portfile $patterns]"
-            if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
+            # Rewrite Portfile checksums and write to Portfile.bump
+            if {[catch {rewrite_portfile $portfile $tmpfd $all_dist_files calculated_checksums_array} error]} {
                 ui_debug $::errorInfo
-                ui_error "sed: $error"
+                ui_error "bump: $error"
                 file delete "$tmpfile"
-                close $tmpfd
-                return -code error "sed sed(1) failed"
+                catch {close $tmpfd}
+                return -code error "bump rewrite failed"
             }
+
+            ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s"] $portfile]"
 
             if {[tbool ports_bump_patch]} {
                 # Patch mode

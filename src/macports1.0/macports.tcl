@@ -2079,8 +2079,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
                      portdmg portextract portfetch portimage portinstall
                      portlint portlivecheck portload portmain portmdmg
                      portmirror portmpkg portpatch portpkg portprogress
-                     portreload portsandbox portstartupitem porttest
-                     porttrace portunarchive portuninstall portunload
+                     portprovenance portreload portsource portsandbox portstartupitem
+                     porttest porttrace portunarchive portuninstall portunload
                      portutil cmdline fetch_common fileutil machista msgcat
                      Pextlib macports_dlist macports_util mpcommon
                      mp_package signalcatch Thread} {

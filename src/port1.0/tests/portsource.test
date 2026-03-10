@@ -1,0 +1,114 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+set dir [file normalize [file join $pwd ..]]
+source [file join $dir pkgIndex.tcl]
+unset dir
+
+package require portsource 1.0
+package require portprovenance 1.0
+
+proc make_portsource_record {option action line cmd} {
+    return [dict create \
+        option $option \
+        action $action \
+        line $line \
+        cmd $cmd]
+}
+
+
+test normalize_command_text_drops_continuations {
+    Port source normalization drops standalone continuation tokens.
+} -body {
+    set command_text "checksums       \\\n    foo.tar.xz  rmd160 1111111111111111111111111111111111111111 \\\n    size        1"
+
+    set normalized [portsource::normalize_command_text $command_text]
+    if {$normalized ne "checksums foo.tar.xz rmd160 1111111111111111111111111111111111111111 size 1"} {
+        return "FAIL: normalized command text mismatch"
+    }
+
+    return "Port source normalization matched the expected command text."
+} -result "Port source normalization matched the expected command text."
+
+
+test find_portfile_commands_records_multiline_spans {
+    Port source scanning returns multiline command spans and line numbers.
+} -body {
+    set portfile_contents "checksums       \\\n    foo.tar.xz  rmd160 1111111111111111111111111111111111111111 \\\n    size        1\nrevision        2\n"
+
+    set commands [portsource::find_portfile_commands $portfile_contents {checksums revision}]
+    if {[llength $commands] != 2} {
+        return "FAIL: incorrect number of source commands"
+    }
+
+    set checksum_command [lindex $commands 0]
+    if {[dict get $checksum_command command_name] ne "checksums"} {
+        return "FAIL: checksum command name mismatch"
+    }
+    if {[dict get $checksum_command line] != 1} {
+        return "FAIL: checksum command line mismatch"
+    }
+    if {[dict get $checksum_command normalized] ne "checksums foo.tar.xz rmd160 1111111111111111111111111111111111111111 size 1"} {
+        return "FAIL: checksum command normalization mismatch"
+    }
+
+    set revision_command [lindex $commands 1]
+    if {[dict get $revision_command command_name] ne "revision"} {
+        return "FAIL: revision command name mismatch"
+    }
+    if {[dict get $revision_command line] != 4} {
+        return "FAIL: revision command line mismatch"
+    }
+
+    return "Port source scanning recorded multiline command spans."
+} -result "Port source scanning recorded multiline command spans."
+
+
+test match_recorded_commands_matches_provenance_to_source {
+    Port source matching resolves recorded mutations back to source commands.
+} -body {
+    set portfile_contents "checksums       \\\n    foo.tar.xz  rmd160 1111111111111111111111111111111111111111 \\\n    size        1\nchecksums-append \\\n    docs.tar.xz rmd160 2222222222222222222222222222222222222222 \\\n    size        2\n"
+
+    set command_records [list \
+        [make_portsource_record checksums set 1 {checksums foo.tar.xz rmd160 1111111111111111111111111111111111111111 size 1}] \
+        [make_portsource_record checksums append 4 {checksums-append docs.tar.xz rmd160 2222222222222222222222222222222222222222 size 2}]]
+
+    set matched_commands [portsource::match_recorded_commands $portfile_contents $command_records]
+    if {[llength $matched_commands] != 2} {
+        return "FAIL: incorrect number of matched source commands"
+    }
+
+    set checksum_command [lindex $matched_commands 0]
+    if {[dict get $checksum_command command_name] ne "checksums"} {
+        return "FAIL: matched checksum command name mismatch"
+    }
+    if {[string first "foo.tar.xz" [dict get $checksum_command text]] < 0} {
+        return "FAIL: matched checksum command text mismatch"
+    }
+
+    set append_command [lindex $matched_commands 1]
+    if {[dict get $append_command command_name] ne "checksums-append"} {
+        return "FAIL: matched appended command name mismatch"
+    }
+    if {[string first "docs.tar.xz" [dict get $append_command text]] < 0} {
+        return "FAIL: matched appended command text mismatch"
+    }
+
+    return "Port source matching resolved recorded commands back to source."
+} -result "Port source matching resolved recorded commands back to source."
+
+
+cleanupTests

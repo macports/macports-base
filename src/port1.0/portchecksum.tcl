@@ -95,6 +95,65 @@ proc portchecksum::verify_checksum_format {type value} {
     return $result
 }
 
+# uses_single_file_checksum_format
+#
+# Return whether the checksums string uses the implicit single-distfile format.
+#
+proc portchecksum::uses_single_file_checksum_format {checksums_str all_dist_files} {
+    variable checksum_types
+
+    set nb_checksum [llength $checksums_str]
+
+    return [expr {[llength $all_dist_files] == 1
+        && ($nb_checksum % 2) == 0
+        && ($nb_checksum / 2) <= [llength $checksum_types]
+        && [lindex $checksums_str 0] in $checksum_types}]
+}
+
+# parse_checksum_entries
+#
+# Parse checksums into an ordered list of distfiles and their type/value pairs.
+#
+proc portchecksum::parse_checksum_entries {checksums_str all_dist_files} {
+    variable checksum_types
+
+    set parsed_entries [list]
+    set nb_checksum [llength $checksums_str]
+
+    if {[uses_single_file_checksum_format $checksums_str $all_dist_files]} {
+        return [list [list [lindex $all_dist_files 0] $checksums_str]]
+    }
+
+    for {set ix_checksum 0} {$ix_checksum < $nb_checksum} {incr ix_checksum} {
+        set checksum_filename [lindex $checksums_str $ix_checksum]
+        set checksum_values [list]
+
+        incr ix_checksum
+        while {1} {
+            set checksum_type [lindex $checksums_str $ix_checksum]
+            if {$checksum_type in $checksum_types} {
+                incr ix_checksum
+                set checksum_value [lindex $checksums_str $ix_checksum]
+                incr ix_checksum
+
+                lappend checksum_values $checksum_type
+                lappend checksum_values $checksum_value
+            } else {
+                incr ix_checksum -1
+                break
+            }
+
+            if {$ix_checksum == $nb_checksum} {
+                break
+            }
+        }
+
+        lappend parsed_entries [list $checksum_filename $checksum_values]
+    }
+
+    return $parsed_entries
+}
+
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
 #
@@ -111,20 +170,6 @@ proc portchecksum::verify_checksum_format {type value} {
 # return yes if the syntax was correct, no if there was a problem.
 proc portchecksum::parse_checksums {checksums_str} {
     global checksums_array all_dist_files
-    variable checksum_types
-
-    # Parse the string of checksums.
-    set nb_checksum [llength $checksums_str]
-
-    if {[llength $all_dist_files] == 1
-        && [expr {$nb_checksum % 2}] == 0
-        && [expr {$nb_checksum / 2}] <= [llength $checksum_types]
-        && [lindex $checksums_str 0] in $checksum_types} {
-        # Convert to format #2
-        set checksums_str [linsert $checksums_str 0 [lindex $all_dist_files 0]]
-        # We increased the size.
-        incr nb_checksum
-    }
 
     # Create the array with the checksums.
     array set checksums_array {}
@@ -133,39 +178,11 @@ proc portchecksum::parse_checksums {checksums_str} {
 
     # Catch out of bounds errors (they're syntax errors).
     if {[catch {
-        # Parse the string as if it was in format #2.
-        for {set ix_checksum 0} {$ix_checksum < $nb_checksum} {incr ix_checksum} {
-            # first word is the file.
-            set checksum_filename [lindex $checksums_str $ix_checksum]
-
+        foreach checksum_entry [parse_checksum_entries $checksums_str $all_dist_files] {
+            lassign $checksum_entry checksum_filename checksum_values
             # retrieve the list of values we already know for this file.
-            set checksum_values {}
             if {[info exists checksums_array($checksum_filename)]} {
-                set checksum_values $checksums_array($checksum_filename)
-            }
-
-            # append the new value
-            incr ix_checksum
-            while {1} {
-                set checksum_type [lindex $checksums_str $ix_checksum]
-                if {$checksum_type in $checksum_types} {
-                    # append the type and the value.
-                    incr ix_checksum
-                    set checksum_value [lindex $checksums_str $ix_checksum]
-                    incr ix_checksum
-
-                    lappend checksum_values $checksum_type
-                    lappend checksum_values $checksum_value
-                } else {
-                    # this wasn't a type but the next dist file.
-                    incr ix_checksum -1
-                    break
-                }
-
-                # stop if we exhausted all the items in the list.
-                if {$ix_checksum == $nb_checksum} {
-                    break
-                }
+                set checksum_values [concat $checksums_array($checksum_filename) $checksum_values]
             }
 
             # set the values in the array.

@@ -91,7 +91,11 @@ proc handle_option {option args} {
     global user_options
     if {![info exists user_options($option)]} {
         global $option
-        set $option $args
+        set result [set $option $args]
+        if {[llength [info commands ::portprovenance::record_option_provenance]]} {
+            portprovenance::record_option_provenance $option set {*}$args
+        }
+        return $result
     }
 }
 
@@ -104,7 +108,11 @@ proc handle_option-append {option args} {
     global user_options
     if {![info exists user_options($option)]} {
         global $option
-        lappend $option {*}$args
+        set result [lappend $option {*}$args]
+        if {[llength [info commands ::portprovenance::record_option_provenance]]} {
+            portprovenance::record_option_provenance $option append {*}$args
+        }
+        return $result
     }
 }
 
@@ -118,10 +126,14 @@ proc handle_option-prepend {option args} {
     if {![info exists user_options($option)]} {
         global $option
         if {[info exists $option]} {
-            set $option [concat $args [set $option]]
+            set result [set $option [concat $args [set $option]]]
         } else {
-            set $option $args
+            set result [set $option $args]
         }
+        if {[llength [info commands ::portprovenance::record_option_provenance]]} {
+            portprovenance::record_option_provenance $option prepend {*}$args
+        }
+        return $result
     }
 }
 
@@ -133,9 +145,14 @@ proc handle_option-prepend {option args} {
 proc handle_option-delete {option args} {
     global user_options $option
     if {![info exists user_options($option)] && [info exists $option]} {
+        set result {}
         foreach val $args {
-            set $option [ldelete [set $option][set $option {}] $val]
+            set result [set $option [ldelete [set $option][set $option {}] $val]]
         }
+        if {[llength [info commands ::portprovenance::record_option_provenance]]} {
+            portprovenance::record_option_provenance $option delete {*}$args
+        }
+        return $result
     }
 }
 
@@ -147,9 +164,14 @@ proc handle_option-delete {option args} {
 proc handle_option-strsed {option args} {
     global user_options $option
     if {![info exists user_options($option)] && [info exists $option]} {
+        set result {}
         foreach val $args {
-            set $option [strsed [set $option][set $option {}] $val]
+            set result [set $option [strsed [set $option][set $option {}] $val]]
         }
+        if {[llength [info commands ::portprovenance::record_option_provenance]]} {
+            portprovenance::record_option_provenance $option strsed {*}$args
+        }
+        return $result
     }
 }
 
@@ -161,12 +183,17 @@ proc handle_option-strsed {option args} {
 proc handle_option-replace {option args} {
     global user_options $option
     if {![info exists user_options($option)] && [info exists $option]} {
+        set result {}
         foreach {old new} $args {
             set index [lsearch -exact [set $option] $old]
             if {$index != -1} {
-                lset $option $index $new
+                set result [lset $option $index $new]
             }
         }
+        if {[llength [info commands ::portprovenance::record_option_provenance]]} {
+            portprovenance::record_option_provenance $option replace {*}$args
+        }
+        return $result
     }
 }
 
@@ -615,6 +642,13 @@ proc variant {args} {
     # we will call this procedure during variant-run
     makeuserproc variant-[ditem_key $ditem name] $code
 
+    if {[llength [info commands ::portprovenance::current_scope]]} {
+        set provenance_scope [portprovenance::current_scope]
+        if {[dict get $provenance_scope scope] ne "global"} {
+            ditem_key $ditem provenance_scope $provenance_scope
+        }
+    }
+
     # Export provided variant to PortInfo
     # (don't list it twice if the variant was already defined, which can happen
     # with universal or group code).
@@ -852,7 +886,20 @@ proc subport {subname body} {
     }
     if {[string equal -nocase $subname $subport]} {
         set PortInfo(name) $subname
-        uplevel 1 $body
+        set pushed_scope no
+        if {[llength [info commands ::portprovenance::push_scope]]
+            && [llength [info commands ::portprovenance::pop_scope]]} {
+            portprovenance::push_scope subport $subname
+            set pushed_scope yes
+        }
+
+        try {
+            uplevel 1 $body
+        } finally {
+            if {$pushed_scope} {
+                portprovenance::pop_scope
+            }
+        }
     }
 }
 
@@ -2047,11 +2094,25 @@ proc variant_run {ditem} {
         }
     }
 
-    # execute proc with same name as variant.
-    if {[catch "variant-${vname}" result]} {
-        ui_debug $::errorInfo
-        ui_error "[option subport]: Error executing $vname: $result"
-        return 1
+    set pushed_scope no
+    if {[ditem_contains $ditem provenance_scope]
+        && [llength [info commands ::portprovenance::push_scope_record]]
+        && [llength [info commands ::portprovenance::pop_scope]]} {
+        portprovenance::push_scope_record [ditem_key $ditem provenance_scope]
+        set pushed_scope yes
+    }
+
+    try {
+        # execute proc with same name as variant.
+        if {[catch "variant-${vname}" result]} {
+            ui_debug $::errorInfo
+            ui_error "[option subport]: Error executing $vname: $result"
+            return 1
+        }
+    } finally {
+        if {$pushed_scope} {
+            portprovenance::pop_scope
+        }
     }
     return 0
 }

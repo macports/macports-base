@@ -1,0 +1,1636 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+set dir [file normalize [file join $pwd ..]]
+source [file join $dir pkgIndex.tcl]
+unset dir
+
+package require portprovenance 1.0
+package require portchecksum 1.0
+package require portbump 1.0
+
+proc write_portbump_file {path contents} {
+    set fd [open $path w]
+    puts -nonewline $fd $contents
+    close $fd
+}
+
+proc read_portbump_file {path} {
+    set fd [open $path r]
+    set contents [read $fd]
+    close $fd
+    return $contents
+}
+
+proc append_portbump_option_provenance {option action path line cmd {portname {}} {scope {}} {scope_name {}}} {
+    set record [dict create \
+        option $option \
+        action $action \
+        file [file normalize $path] \
+        line $line \
+        cmd $cmd]
+
+    switch -- $option {
+        checksums {
+            if {![catch {lassign [portbump::evaluate_checksum_command $cmd] _ args}]} {
+                dict set record args $args
+            }
+        }
+        revision {
+            if {[regexp {revision[[:space:]\\]+([0-9]+)} $cmd -> revision]} {
+                dict set record args [list $revision]
+            }
+        }
+    }
+
+    if {$portname ne {}} {
+        dict set record portname $portname
+    }
+    if {$scope ne {}} {
+        dict set record scope $scope
+    }
+    if {$scope_name ne {}} {
+        dict set record scope_name $scope_name
+    }
+
+    lappend ::portprovenance::option_provenance $record
+}
+
+proc reset_portbump_test_state {} {
+    foreach var {
+        all_dist_files
+        checksums
+        distpath
+        htmlfile_path
+        name
+        portpath
+        ports_bump_patch
+        revision
+        subport
+        version
+        wrong_mimetype
+    } {
+        unset -nocomplain ::$var
+    }
+    catch {array unset ::checksums_array}
+    unset -nocomplain ::PortInfo(name)
+    unset -nocomplain ::PortInfo(subports)
+    unset -nocomplain ::PortInfo(variants)
+    unset -nocomplain ::PortInfo(vinfo)
+    unset -nocomplain ::portutil::all_variants
+    unset -nocomplain ::portutil::autoconf::diff_path
+    unset -nocomplain ::portutil::autoconf::file_path
+    portprovenance::reset_option_provenance
+    portprovenance::reset_scope
+}
+
+
+test bump_main_updates_all_distfiles {
+    Bump main updates every distfile checksum instead of only the last one.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-all-distfiles]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set first_distfile first.tar.gz
+    set second_distfile second.tar.gz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $first_distfile] alpha
+    write_portbump_file [file join $distpath $second_distfile] bravo
+
+    set first_md5 [portchecksum::calc_md5 [file join $distpath $first_distfile]]
+    set second_md5 [portchecksum::calc_md5 [file join $distpath $second_distfile]]
+    set shared_size [file size [file join $distpath $first_distfile]]
+
+    set first_old_md5 11111111111111111111111111111111
+    set second_old_md5 22222222222222222222222222222222
+
+    set all_dist_files [list $first_distfile $second_distfile]
+    set checksums [list \
+        $first_distfile md5 $first_old_md5 size $shared_size \
+        $second_distfile md5 $second_old_md5 size $shared_size]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 7
+
+    write_portbump_file [file join $portpath Portfile] [format {revision        7
+checksums       %s \
+                    md5     %s \
+                    size    %s \
+                %s \
+                    md5     %s \
+                    size    %s
+} $first_distfile $first_old_md5 $shared_size $second_distfile $second_old_md5 $shared_size]
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    if {![string match "*$first_md5*" $updated_portfile]} {
+        return "FAIL: first distfile checksum not updated"
+    }
+    if {![string match "*$second_md5*" $updated_portfile]} {
+        return "FAIL: second distfile checksum not updated"
+    }
+    if {[string match "*$first_old_md5*" $updated_portfile]} {
+        return "FAIL: stale checksum for first distfile still present"
+    }
+    if {[string match "*$second_old_md5*" $updated_portfile]} {
+        return "FAIL: stale checksum for second distfile still present"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main updated all distfiles."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-all-distfiles]
+} -result "Bump main updated all distfiles."
+
+
+test bump_main_updates_only_the_matching_size {
+    Bump main updates the right size field when multiple distfiles share an old size.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-only-the-matching-size]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set first_distfile first.tar.gz
+    set second_distfile second.tar.gz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $first_distfile] alpha
+    write_portbump_file [file join $distpath $second_distfile] bravo!
+
+    set first_md5 [portchecksum::calc_md5 [file join $distpath $first_distfile]]
+    set second_md5 [portchecksum::calc_md5 [file join $distpath $second_distfile]]
+    set first_size [file size [file join $distpath $first_distfile]]
+    set second_size [file size [file join $distpath $second_distfile]]
+
+    set all_dist_files [list $first_distfile $second_distfile]
+    set checksums [list \
+        $first_distfile md5 $first_md5 size $first_size \
+        $second_distfile md5 $second_md5 size $first_size]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 3
+
+    write_portbump_file [file join $portpath Portfile] [format {revision        3
+checksums       %s \
+                    md5     %s \
+                    size    %s \
+                %s \
+                    md5     %s \
+                    size    %s
+} $first_distfile $first_md5 $first_size $second_distfile $second_md5 $first_size]
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    if {[llength [regexp -all -inline [format {size[[:space:]]+%s} $second_size] $updated_portfile]] != 1} {
+        return "FAIL: incorrect number of updated size entries"
+    }
+    if {![regexp [format {size[[:space:]]+%s[[:space:]\\]+%s[[:space:]\\]+md5[[:space:]]+%s[[:space:]\\]+size[[:space:]]+%s} \
+            $first_size $second_distfile $second_md5 $second_size] $updated_portfile]} {
+        return "FAIL: second distfile size not updated"
+    }
+    if {![regexp [format {checksums[[:space:]\\]+%s[[:space:]\\]+md5[[:space:]]+%s[[:space:]\\]+size[[:space:]]+%s} \
+            $first_distfile $first_md5 $first_size] $updated_portfile]} {
+        return "FAIL: first distfile size changed"
+    }
+
+    return "Bump main updated only the matching size."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-only-the-matching-size]
+} -result "Bump main updated only the matching size."
+
+
+test bump_main_updates_variable_distfile_tokens {
+    Bump main rewrites checksums when the Portfile uses variable-expanded distfile names.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-variable-distfile-tokens]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set name pkg
+    set first_distfile ${name}-x86_64-apple-darwin.zip
+    set second_distfile ${name}-aarch64-apple-darwin.zip
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $first_distfile] x86-binary
+    write_portbump_file [file join $distpath $second_distfile] arm-binary
+
+    set first_rmd160 [portchecksum::calc_rmd160 [file join $distpath $first_distfile]]
+    set first_sha256 [portchecksum::calc_sha256 [file join $distpath $first_distfile]]
+    set first_size [file size [file join $distpath $first_distfile]]
+    set second_rmd160 [portchecksum::calc_rmd160 [file join $distpath $second_distfile]]
+    set second_sha256 [portchecksum::calc_sha256 [file join $distpath $second_distfile]]
+    set second_size [file size [file join $distpath $second_distfile]]
+
+    set all_dist_files [list $first_distfile $second_distfile]
+    set checksums [list \
+        $first_distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1 \
+        $second_distfile rmd160 3333333333333333333333333333333333333333 sha256 4444444444444444444444444444444444444444444444444444444444444444 size 2]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 0
+
+    write_portbump_file [file join $portpath Portfile] {checksums           ${name}-x86_64-apple-darwin.zip \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1 \
+                    ${name}-aarch64-apple-darwin.zip \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $first_rmd160 $first_sha256 $first_size $second_rmd160 $second_sha256 $second_size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated checksum missing from Portfile"
+        }
+    }
+    if {[string match *1111111111111111111111111111111111111111* $updated_portfile] ||
+        [string match *2222222222222222222222222222222222222222222222222222222222222222* $updated_portfile] ||
+        [string match *3333333333333333333333333333333333333333* $updated_portfile] ||
+        [string match *4444444444444444444444444444444444444444444444444444444444444444* $updated_portfile]} {
+        return "FAIL: stale checksum still present"
+    }
+
+    return "Bump main updated variable distfile tokens."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-variable-distfile-tokens]
+} -result "Bump main updated variable distfile tokens."
+
+
+test bump_main_updates_selected_distfile_from_multi_distfile_block {
+    Bump main updates the selected distfile even when earlier checksum blocks remain untouched.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-selected-distfile]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set name pkg
+    set first_distfile ${name}-x86_64-apple-darwin.zip
+    set second_distfile ${name}-aarch64-apple-darwin.zip
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $second_distfile] arm-binary
+
+    set second_rmd160 [portchecksum::calc_rmd160 [file join $distpath $second_distfile]]
+    set second_sha256 [portchecksum::calc_sha256 [file join $distpath $second_distfile]]
+    set second_size [file size [file join $distpath $second_distfile]]
+
+    set all_dist_files [list $second_distfile]
+    set checksums [list \
+        $first_distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1 \
+        $second_distfile rmd160 3333333333333333333333333333333333333333 sha256 4444444444444444444444444444444444444444444444444444444444444444 size 2]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 0
+
+    write_portbump_file [file join $portpath Portfile] {checksums           ${name}-x86_64-apple-darwin.zip \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1 \
+                    ${name}-aarch64-apple-darwin.zip \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $second_rmd160 $second_sha256 $second_size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: selected distfile checksum missing from Portfile"
+        }
+    }
+    if {![string match {*1111111111111111111111111111111111111111*} $updated_portfile] ||
+        ![string match {*2222222222222222222222222222222222222222222222222222222222222222*} $updated_portfile] ||
+        ![string match {*size    1*} $updated_portfile]} {
+        return "FAIL: untouched checksum block changed"
+    }
+    if {[string match {*3333333333333333333333333333333333333333*} $updated_portfile] ||
+        [string match {*4444444444444444444444444444444444444444444444444444444444444444*} $updated_portfile]} {
+        return "FAIL: stale checksum for selected distfile still present"
+    }
+
+    return "Bump main updated the selected distfile checksum block."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-selected-distfile]
+} -result "Bump main updated the selected distfile checksum block."
+
+
+test bump_main_updates_implicit_single_distfile_checksums {
+    Bump main rewrites single-distfile checksum blocks that omit the distfile name.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-implicit-single-distfile]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile archive.tar.gz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] single-distfile
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 9
+
+    write_portbump_file [file join $portpath Portfile] {revision        9
+checksums       rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+}
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated checksum missing from Portfile"
+        }
+    }
+    if {[string match *1111111111111111111111111111111111111111* $updated_portfile] ||
+        [string match *2222222222222222222222222222222222222222222222222222222222222222* $updated_portfile]} {
+        return "FAIL: stale checksum still present"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main updated implicit single-distfile checksums."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-implicit-single-distfile]
+} -result "Bump main updated implicit single-distfile checksums."
+
+
+test bump_main_updates_checksums_append_blocks {
+    Bump main rewrites checksums declared across checksums and checksums-append commands.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-checksums-append-blocks]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set release_distfile release.tar.xz
+    set manpages_distfile manpages.tar.xz
+    set docs_distfile docs.tar.xz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $release_distfile] release-data
+    write_portbump_file [file join $distpath $manpages_distfile] manpages-data
+    write_portbump_file [file join $distpath $docs_distfile] docs-data
+
+    set release_rmd160 [portchecksum::calc_rmd160 [file join $distpath $release_distfile]]
+    set release_sha256 [portchecksum::calc_sha256 [file join $distpath $release_distfile]]
+    set release_size [file size [file join $distpath $release_distfile]]
+    set manpages_rmd160 [portchecksum::calc_rmd160 [file join $distpath $manpages_distfile]]
+    set manpages_sha256 [portchecksum::calc_sha256 [file join $distpath $manpages_distfile]]
+    set manpages_size [file size [file join $distpath $manpages_distfile]]
+    set docs_rmd160 [portchecksum::calc_rmd160 [file join $distpath $docs_distfile]]
+    set docs_sha256 [portchecksum::calc_sha256 [file join $distpath $docs_distfile]]
+    set docs_size [file size [file join $distpath $docs_distfile]]
+
+    set all_dist_files [list $release_distfile $manpages_distfile $docs_distfile]
+    set checksums [list \
+        $release_distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1 \
+        $manpages_distfile rmd160 3333333333333333333333333333333333333333 sha256 4444444444444444444444444444444444444444444444444444444444444444 size 2 \
+        $docs_distfile rmd160 5555555555555555555555555555555555555555 sha256 6666666666666666666666666666666666666666666666666666666666666666 size 3]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 4
+
+    write_portbump_file [file join $portpath Portfile] {revision        4
+checksums       release.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1 \
+                manpages.tar.xz \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+
+variant doc description {Install docs} {
+    checksums-append    docs.tar.xz \
+                        rmd160  5555555555555555555555555555555555555555 \
+                        sha256  6666666666666666666666666666666666666666666666666666666666666666 \
+                        size    3
+}
+}
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list \
+            $release_rmd160 $release_sha256 $release_size \
+            $manpages_rmd160 $manpages_sha256 $manpages_size \
+            $docs_rmd160 $docs_sha256 $docs_size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated checksum missing from Portfile"
+        }
+    }
+    foreach stale_sum [list \
+            1111111111111111111111111111111111111111 \
+            2222222222222222222222222222222222222222222222222222222222222222 \
+            3333333333333333333333333333333333333333 \
+            4444444444444444444444444444444444444444444444444444444444444444 \
+            5555555555555555555555555555555555555555 \
+            6666666666666666666666666666666666666666666666666666666666666666] {
+        if {[string match "*$stale_sum*" $updated_portfile]} {
+            return "FAIL: stale checksum still present"
+        }
+    }
+    if {![regexp {checksums-append[[:space:]\\]+docs\.tar\.xz[[:space:]\\]+rmd160[[:space:]]+[0-9a-f]+[[:space:]\\]+sha256[[:space:]]+[0-9a-f]+[[:space:]\\]+size[[:space:]]+[0-9]+} $updated_portfile]} {
+        return "FAIL: checksums-append block not updated"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main updated checksums across checksums-append blocks."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-checksums-append-blocks]
+} -result "Bump main updated checksums across checksums-append blocks."
+
+
+test bump_main_updates_implicit_checksums_append_blocks {
+    Bump main rewrites single-distfile checksums split across checksums and checksums-append.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-implicit-checksums-append-blocks]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile archive.tar.xz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] implicit-append-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        rmd160 1111111111111111111111111111111111111111 \
+        sha256 2222222222222222222222222222222222222222222222222222222222222222 \
+        size 1]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 5
+
+    write_portbump_file [file join $portpath Portfile] {revision        5
+checksums       rmd160  1111111111111111111111111111111111111111
+checksums-append \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+}
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated checksum missing from Portfile"
+        }
+    }
+    if {[string match *1111111111111111111111111111111111111111* $updated_portfile] ||
+        [string match *2222222222222222222222222222222222222222222222222222222222222222* $updated_portfile]} {
+        return "FAIL: stale checksum still present"
+    }
+    if {![regexp {checksums-append[[:space:]\\]+sha256[[:space:]]+[0-9a-f]+[[:space:]\\]+size[[:space:]]+[0-9]+} $updated_portfile]} {
+        return "FAIL: implicit checksums-append block not updated"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main updated implicit checksums-append blocks."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-implicit-checksums-append-blocks]
+} -result "Bump main updated implicit checksums-append blocks."
+
+
+test bump_main_creates_patchfile_in_patch_mode {
+    Bump main writes Portfile.patch instead of overwriting Portfile when patch mode is enabled.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-creates-patchfile-in-patch-mode]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile release.tar.xz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] release-data
+
+    set new_md5 [portchecksum::calc_md5 [file join $distpath $distfile]]
+    set new_size [file size [file join $distpath $distfile]]
+    set old_md5 11111111111111111111111111111111
+    set old_size 1
+
+    set all_dist_files [list $distfile]
+    set checksums [list $distfile md5 $old_md5 size $old_size]
+    set ports_bump_patch yes
+    set subport bump-test
+    set version 1.2.3
+    set revision 4
+    namespace eval ::portutil::autoconf {
+        variable diff_path /usr/bin/diff
+    }
+
+    write_portbump_file [file join $portpath Portfile] [format {revision        4
+checksums       %s \
+                    md5     %s \
+                    size    %s
+} $distfile $old_md5 $old_size]
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+    set patchfile_path [file join $portpath Portfile.patch]
+
+    if {![file exists $patchfile_path]} {
+        return "FAIL: Portfile.patch was not created"
+    }
+
+    set patchfile_contents [read_portbump_file $patchfile_path]
+
+    if {![string match "*$old_md5*" $updated_portfile] || ![string match "*$old_size*" $updated_portfile]} {
+        return "FAIL: Portfile was modified in patch mode"
+    }
+    if {[string match "*$new_md5*" $updated_portfile] || [string match "*$new_size*" $updated_portfile]} {
+        return "FAIL: new checksums were written directly to Portfile"
+    }
+    if {![regexp {^revision[[:space:]]+4} $updated_portfile]} {
+        return "FAIL: revision changed in patch mode"
+    }
+
+    foreach expected_fragment [list \
+            "--- old/Portfile" \
+            "+++ new/Portfile" \
+            "-revision        4" \
+            "+revision        0" \
+            $old_md5 \
+            $new_md5 \
+            [format "size    %s" $old_size] \
+            [format "size    %s" $new_size]] {
+        if {![string match "*$expected_fragment*" $patchfile_contents]} {
+            return "FAIL: patchfile missing expected diff content"
+        }
+    }
+
+    return "Bump main created Portfile.patch in patch mode."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-creates-patchfile-in-patch-mode]
+} -result "Bump main created Portfile.patch in patch mode."
+
+
+test bump_main_renames_misfetched_html_distfile {
+    Bump main renames a mismatched HTML distfile and aborts with the checksum error.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-renames-misfetched-html-distfile]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile archive.tar.xz
+    set html_path [file join $distpath ${distfile}.html]
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] {<html><body>not the distfile</body></html>}
+
+    set all_dist_files [list $distfile]
+    set checksums [list $distfile md5 11111111111111111111111111111111 size 1]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 5
+    namespace eval ::portutil::autoconf {
+        variable file_path /usr/bin/file
+    }
+
+    write_portbump_file [file join $portpath Portfile] [format {revision        5
+checksums       %s \
+                    md5     %s \
+                    size    %s
+} $distfile 11111111111111111111111111111111 1]
+
+    if {![catch {portbump::bump_main} result]} {
+        return "FAIL: bump_main should have failed for a misfetched HTML file"
+    }
+    if {$result ne "Unable to verify file checksums"} {
+        return "FAIL: incorrect error returned for a misfetched HTML file"
+    }
+    if {[file exists [file join $distpath $distfile]]} {
+        return "FAIL: original distfile was not renamed"
+    }
+    if {![file exists $html_path]} {
+        return "FAIL: renamed HTML file was not created"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+    if {![string match "*11111111111111111111111111111111*" $updated_portfile]} {
+        return "FAIL: Portfile changed during HTML misfetch handling"
+    }
+    if {![regexp {^revision[[:space:]]+5} $updated_portfile]} {
+        return "FAIL: revision changed during HTML misfetch handling"
+    }
+
+    return "Bump main renamed a misfetched HTML distfile."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-renames-misfetched-html-distfile]
+} -result "Bump main renamed a misfetched HTML distfile."
+
+
+test checksum_option_provenance_records_only_executed_commands {
+    Option provenance records only checksum commands that actually execute.
+} -body {
+    reset_portbump_test_state
+
+    set script_path [file join $pwd checksum-option-provenance-records-only-executed-commands.tcl]
+    set subport bump-test
+    set name bump-test
+    set ::PortInfo(name) $subport
+
+    write_portbump_file $script_path {if {1} {
+    checksums       active.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+}
+if {0} {
+    checksums       inactive.tar.xz \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+subport bump-test-devel {
+    checksums       devel.tar.xz \
+                    rmd160  5555555555555555555555555555555555555555 \
+                    sha256  6666666666666666666666666666666666666666666666666666666666666666 \
+                    size    3
+}
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance checksums]
+
+    if {[llength $records] != 1} {
+        return "FAIL: incorrect number of recorded checksum commands"
+    }
+    set record [lindex $records 0]
+    if {![dict exists $record line]} {
+        return "FAIL: recorded checksum command line missing"
+    }
+    if {![dict exists $record portname] || [dict get $record portname] ne $subport} {
+        return "FAIL: recorded checksum command subport mismatch"
+    }
+    if {![string match {*active.tar.xz*} [dict get $record cmd]]} {
+        return "FAIL: active checksum command not recorded"
+    }
+
+    return "Option provenance recorded only executed checksum commands."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd checksum-option-provenance-records-only-executed-commands.tcl]
+} -result "Option provenance recorded only executed checksum commands."
+
+
+test checksum_option_provenance_records_subport_scope {
+    Option provenance distinguishes top-level and subport checksum commands.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd checksum-option-provenance-records-subport-scope]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+    set name bump-test
+    set subport bump-test-devel
+    set ::PortInfo(name) $name
+
+    file mkdir $tmpdir
+
+    write_portbump_file $script_path {checksums       release.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+subport bump-test-devel {
+    checksums       devel.tar.xz \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance checksums]
+
+    if {[llength $records] != 2} {
+        return "FAIL: incorrect number of recorded checksum commands"
+    }
+
+    set global_record [lindex $records 0]
+    if {![dict exists $global_record scope] || [dict get $global_record scope] ne "global"} {
+        return "FAIL: top-level checksum command scope mismatch"
+    }
+    if {[dict exists $global_record scope_name]} {
+        return "FAIL: top-level checksum command scope name should be absent"
+    }
+    if {![dict exists $global_record portname] || [dict get $global_record portname] ne $name} {
+        return "FAIL: top-level checksum command portname mismatch"
+    }
+
+    set subport_record [lindex $records 1]
+    if {![dict exists $subport_record scope] || [dict get $subport_record scope] ne "subport"} {
+        return "FAIL: subport checksum command scope mismatch"
+    }
+    if {![dict exists $subport_record scope_name] || [dict get $subport_record scope_name] ne $subport} {
+        return "FAIL: subport checksum command scope name mismatch"
+    }
+    if {![dict exists $subport_record portname] || [dict get $subport_record portname] ne $subport} {
+        return "FAIL: subport checksum command portname mismatch"
+    }
+
+    return "Option provenance recorded top-level and subport checksum scopes."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd checksum-option-provenance-records-subport-scope]
+} -result "Option provenance recorded top-level and subport checksum scopes."
+
+
+test checksum_option_provenance_records_active_variant_commands {
+    Option provenance records checksum commands executed inside active variant bodies.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd checksum-option-provenance-records-active-variant-commands]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+    set name bump-test
+    set subport bump-test
+    set ::PortInfo(name) $subport
+
+    file mkdir $tmpdir
+
+    write_portbump_file $script_path {variant doc description {Install docs} {
+    checksums-append    docs.tar.xz \
+                        rmd160  1111111111111111111111111111111111111111 \
+                        sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                        size    1
+}
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    array set variations {doc +}
+    if {[catch {eval_variants variations} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance checksums]
+
+    if {[llength $records] != 1} {
+        return "FAIL: incorrect number of recorded variant checksum commands"
+    }
+    set record [lindex $records 0]
+    if {[dict get $record action] ne "append"} {
+        return "FAIL: variant checksum command action mismatch"
+    }
+    if {[dict get $record file] ne [file normalize $script_path]} {
+        return "FAIL: variant checksum command file mismatch"
+    }
+    if {![string match {checksums-append*docs.tar.xz*} [dict get $record cmd]]} {
+        return "FAIL: variant checksum command text mismatch"
+    }
+    if {![dict exists $record args] || [dict get $record args] ne [list \
+            docs.tar.xz \
+            rmd160 1111111111111111111111111111111111111111 \
+            sha256 2222222222222222222222222222222222222222222222222222222222222222 \
+            size 1]} {
+        return "FAIL: variant checksum command arguments mismatch"
+    }
+
+    return "Option provenance recorded active variant checksum commands."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd checksum-option-provenance-records-active-variant-commands]
+} -result "Option provenance recorded active variant checksum commands."
+
+
+test checksum_option_provenance_records_subport_variant_scope {
+    Option provenance preserves subport scope for active variant checksum commands.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd checksum-option-provenance-records-subport-variant-scope]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+    set name bump-test
+    set subport bump-test-devel
+    set ::PortInfo(name) $name
+
+    file mkdir $tmpdir
+
+    write_portbump_file $script_path {subport bump-test-devel {
+    variant doc description {Install docs} {
+        checksums-append    docs.tar.xz \
+                            rmd160  1111111111111111111111111111111111111111 \
+                            sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                            size    1
+    }
+}
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    array set variations {doc +}
+    if {[catch {eval_variants variations} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance checksums]
+
+    if {[llength $records] != 1} {
+        return "FAIL: incorrect number of recorded subport variant checksum commands"
+    }
+
+    set record [lindex $records 0]
+    if {[dict get $record action] ne "append"} {
+        return "FAIL: subport variant checksum command action mismatch"
+    }
+    if {![dict exists $record scope] || [dict get $record scope] ne "subport"} {
+        return "FAIL: subport variant checksum command scope mismatch"
+    }
+    if {![dict exists $record scope_name] || [dict get $record scope_name] ne $subport} {
+        return "FAIL: subport variant checksum command scope name mismatch"
+    }
+    if {![dict exists $record portname] || [dict get $record portname] ne $subport} {
+        return "FAIL: subport variant checksum command portname mismatch"
+    }
+
+    return "Option provenance preserved subport scope for active variant checksum commands."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd checksum-option-provenance-records-subport-variant-scope]
+} -result "Option provenance preserved subport scope for active variant checksum commands."
+
+
+test bump_main_updates_active_variant_checksums_from_provenance {
+    Bump main rewrites checksums from active variant bodies using recorded provenance.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-active-variant-checksums-from-provenance]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set release_distfile release.tar.xz
+    set docs_distfile docs.tar.xz
+    set name bump-test
+    set subport bump-test
+    set version 1.2.3
+    set ::PortInfo(name) $subport
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $release_distfile] release-data
+    write_portbump_file [file join $distpath $docs_distfile] docs-data
+
+    set release_rmd160 [portchecksum::calc_rmd160 [file join $distpath $release_distfile]]
+    set release_sha256 [portchecksum::calc_sha256 [file join $distpath $release_distfile]]
+    set release_size [file size [file join $distpath $release_distfile]]
+    set docs_rmd160 [portchecksum::calc_rmd160 [file join $distpath $docs_distfile]]
+    set docs_sha256 [portchecksum::calc_sha256 [file join $distpath $docs_distfile]]
+    set docs_size [file size [file join $distpath $docs_distfile]]
+
+    set all_dist_files [list $release_distfile $docs_distfile]
+    set ports_bump_patch no
+
+    proc ::revision {value} {
+        set ::revision $value
+    }
+
+    write_portbump_file [file join $portpath Portfile] {revision        4
+checksums       release.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+
+variant doc description {Install docs} {
+    checksums-append    docs.tar.xz \
+                        rmd160  3333333333333333333333333333333333333333 \
+                        sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                        size    2
+}
+}
+
+    if {[catch {source [file join $portpath Portfile]} result]} {
+        return "FAIL: $result"
+    }
+
+    array set variations {doc +}
+    if {[catch {eval_variants variations} result]} {
+        return "FAIL: $result"
+    }
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list \
+            $release_rmd160 $release_sha256 $release_size \
+            $docs_rmd160 $docs_sha256 $docs_size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated checksum missing from Portfile"
+        }
+    }
+    foreach stale_sum [list \
+            1111111111111111111111111111111111111111 \
+            2222222222222222222222222222222222222222222222222222222222222222 \
+            3333333333333333333333333333333333333333 \
+            4444444444444444444444444444444444444444444444444444444444444444] {
+        if {[string match "*$stale_sum*" $updated_portfile]} {
+            return "FAIL: stale checksum still present"
+        }
+    }
+    if {![regexp {checksums-append[[:space:]\\]+docs\.tar\.xz[[:space:]\\]+rmd160[[:space:]]+[0-9a-f]+[[:space:]\\]+sha256[[:space:]]+[0-9a-f]+[[:space:]\\]+size[[:space:]]+[0-9]+} $updated_portfile]} {
+        return "FAIL: active variant checksum block not updated"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main updated active variant checksums from provenance."
+} -cleanup {
+    catch {rename ::revision {}}
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-active-variant-checksums-from-provenance]
+} -result "Bump main updated active variant checksums from provenance."
+
+
+test bump_main_matches_multiline_portfile_commands_from_provenance {
+    Bump main matches recorded multiline Portfile commands with line continuations.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-matches-multiline-portfile-commands-from-provenance]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set release_distfile release.tar.xz
+    set docs_distfile docs.tar.xz
+    set name bump-test
+    set subport bump-test
+    set version 1.2.3
+    set ::PortInfo(name) $subport
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $release_distfile] release-data
+    write_portbump_file [file join $distpath $docs_distfile] docs-data
+
+    set release_rmd160 [portchecksum::calc_rmd160 [file join $distpath $release_distfile]]
+    set release_sha256 [portchecksum::calc_sha256 [file join $distpath $release_distfile]]
+    set release_size [file size [file join $distpath $release_distfile]]
+    set docs_rmd160 [portchecksum::calc_rmd160 [file join $distpath $docs_distfile]]
+    set docs_sha256 [portchecksum::calc_sha256 [file join $distpath $docs_distfile]]
+    set docs_size [file size [file join $distpath $docs_distfile]]
+
+    set all_dist_files [list $release_distfile $docs_distfile]
+    set ports_bump_patch no
+
+    proc ::revision {value} {
+        set ::revision $value
+    }
+
+    set portfile_text "revision        4\n"
+    append portfile_text "checksums       release.tar.xz \\\n"
+    append portfile_text "                    rmd160  1111111111111111111111111111111111111111 \\\n"
+    append portfile_text "                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \\\n"
+    append portfile_text "                    size    1\n"
+    append portfile_text "\n"
+    append portfile_text "variant doc description {Install docs} {\n"
+    append portfile_text "    if {\${name} eq \${subport}} {\n"
+    append portfile_text "        checksums-append    docs.tar.xz \\\n"
+    append portfile_text "                            rmd160  3333333333333333333333333333333333333333 \\\n"
+    append portfile_text "                            sha256  4444444444444444444444444444444444444444444444444444444444444444 \\\n"
+    append portfile_text "                            size    2\n"
+    append portfile_text "    }\n"
+    append portfile_text "}\n"
+
+    write_portbump_file [file join $portpath Portfile] $portfile_text
+
+    if {[catch {source [file join $portpath Portfile]} result]} {
+        return "FAIL: $result"
+    }
+
+    array set variations {doc +}
+    if {[catch {eval_variants variations} result]} {
+        return "FAIL: $result"
+    }
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list \
+            $release_rmd160 $release_sha256 $release_size \
+            $docs_rmd160 $docs_sha256 $docs_size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated checksum missing from Portfile"
+        }
+    }
+    if {![regexp {checksums[[:space:]\\]+release\.tar\.xz[[:space:]\\]+rmd160[[:space:]]+[0-9a-f]+[[:space:]\\]+sha256[[:space:]]+[0-9a-f]+[[:space:]\\]+size[[:space:]]+[0-9]+} $updated_portfile]} {
+        return "FAIL: multiline checksums block not updated"
+    }
+    if {![regexp {checksums-append[[:space:]\\]+docs\.tar\.xz[[:space:]\\]+rmd160[[:space:]]+[0-9a-f]+[[:space:]\\]+sha256[[:space:]]+[0-9a-f]+[[:space:]\\]+size[[:space:]]+[0-9]+} $updated_portfile]} {
+        return "FAIL: multiline checksums-append block not updated"
+    }
+    if {[string match "*1111111111111111111111111111111111111111*" $updated_portfile]
+        || [string match "*2222222222222222222222222222222222222222222222222222222222222222*" $updated_portfile]
+        || [string match "*3333333333333333333333333333333333333333*" $updated_portfile]
+        || [string match "*4444444444444444444444444444444444444444444444444444444444444444*" $updated_portfile]} {
+        return "FAIL: stale checksum still present"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main matched recorded multiline Portfile commands."
+} -cleanup {
+    catch {rename ::revision {}}
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-matches-multiline-portfile-commands-from-provenance]
+} -result "Bump main matched recorded multiline Portfile commands."
+
+
+test bump_main_updates_only_active_checksum_commands {
+    Bump main rewrites only checksum commands that actually executed.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-only-active-checksum-commands]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile active.tar.xz
+    set inactive_distfile inactive.tar.xz
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] active-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+    set active_command {    checksums       active.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+}
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        $distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set subport bump-test
+    set version 1.2.3
+    set revision 6
+
+    write_portbump_file [file join $portpath Portfile] {revision        6
+if {1} {
+    checksums       active.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+} else {
+    checksums       inactive.tar.xz \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+}
+
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 3 $active_command
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated active checksum missing from Portfile"
+        }
+    }
+    foreach stale_sum [list \
+            1111111111111111111111111111111111111111 \
+            2222222222222222222222222222222222222222222222222222222222222222] {
+        if {[string match "*$stale_sum*" $updated_portfile]} {
+            return "FAIL: stale active checksum still present"
+        }
+    }
+    if {![string match {*3333333333333333333333333333333333333333*} $updated_portfile] ||
+        ![string match {*4444444444444444444444444444444444444444444444444444444444444444*} $updated_portfile] ||
+        ![string match {*inactive.tar.xz*} $updated_portfile]} {
+        return "FAIL: inactive checksum block changed"
+    }
+    if {![regexp {revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: revision not reset"
+    }
+
+    return "Bump main updated only the active checksum commands."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-only-active-checksum-commands]
+} -result "Bump main updated only the active checksum commands."
+
+
+test bump_main_updates_only_selected_subport_checksum_commands {
+    Bump main ignores recorded checksum commands for other subports in the same Portfile.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-only-selected-subport-checksum-commands]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile active.tar.xz
+    set devel_command {    checksums       devel.tar.xz \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+    set active_command {checksums       active.tar.xz \
+                rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+}
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] active-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        $distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set name bump-test
+    set subport bump-test
+    set version 1.2.3
+    set revision 2
+
+    write_portbump_file [file join $portpath Portfile] {revision        2
+checksums       active.tar.xz \
+                rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+
+subport bump-test-devel {
+    checksums       devel.tar.xz \
+                    rmd160  3333333333333333333333333333333333333333 \
+                    sha256  4444444444444444444444444444444444444444444444444444444444444444 \
+                    size    2
+}
+}
+
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 2 $active_command bump-test
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 8 $devel_command bump-test-devel
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated selected-subport checksum missing from Portfile"
+        }
+    }
+    foreach stale_sum [list \
+            1111111111111111111111111111111111111111 \
+            2222222222222222222222222222222222222222222222222222222222222222] {
+        if {[string match "*$stale_sum*" $updated_portfile]} {
+            return "FAIL: stale selected-subport checksum still present"
+        }
+    }
+    if {![string match {*3333333333333333333333333333333333333333*} $updated_portfile] ||
+        ![string match {*4444444444444444444444444444444444444444444444444444444444444444*} $updated_portfile] ||
+        ![string match {*devel.tar.xz*} $updated_portfile]} {
+        return "FAIL: other subport checksum block changed"
+    }
+
+    return "Bump main updated only the selected subport checksum commands."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-only-selected-subport-checksum-commands]
+} -result "Bump main updated only the selected subport checksum commands."
+
+
+test bump_main_updates_inherited_global_checksums_for_selected_subport {
+    Bump main rewrites a top-level checksum command inherited by the selected subport.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-updates-inherited-global-checksums-for-selected-subport]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile shared.tar.xz
+    set checksum_command {checksums       shared.tar.xz \
+                rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+}
+    set revision_command {revision        4}
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] shared-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        $distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set name bump-test
+    set subport bump-test-devel
+    set version 1.2.3
+    set revision 4
+
+    write_portbump_file [file join $portpath Portfile] {revision        4
+checksums       shared.tar.xz \
+                rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+
+subport bump-test-devel {
+    description     {Uses the top-level distfile and checksums.}
+}
+}
+
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 2 $checksum_command bump-test global
+    append_portbump_option_provenance revision set [file join $portpath Portfile] 1 $revision_command bump-test global
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated inherited checksum missing from Portfile"
+        }
+    }
+    foreach stale_sum [list \
+            1111111111111111111111111111111111111111 \
+            2222222222222222222222222222222222222222222222222222222222222222] {
+        if {[string match "*$stale_sum*" $updated_portfile]} {
+            return "FAIL: stale inherited checksum still present"
+        }
+    }
+    if {![regexp {^revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: inherited revision not reset"
+    }
+
+    return "Bump main updated inherited global checksums for the selected subport."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-updates-inherited-global-checksums-for-selected-subport]
+} -result "Bump main updated inherited global checksums for the selected subport."
+
+
+test bump_main_resets_only_selected_subport_revision {
+    Bump main resets only the revision associated with the selected subport.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-resets-only-selected-subport-revision]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile devel.tar.xz
+    set checksum_command {    checksums       devel.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+}
+    set base_revision_command {revision        4}
+    set devel_revision_command {    revision        7}
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] devel-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        $distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set name bump-test
+    set subport bump-test-devel
+    set version 1.2.3
+    set revision 7
+
+    write_portbump_file [file join $portpath Portfile] {revision        4
+
+subport bump-test-devel {
+    revision        7
+    checksums       devel.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+}
+}
+
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 4 $checksum_command bump-test-devel
+    append_portbump_option_provenance revision set [file join $portpath Portfile] 1 $base_revision_command bump-test global
+    append_portbump_option_provenance revision set [file join $portpath Portfile] 4 $devel_revision_command bump-test-devel subport bump-test-devel
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated selected-subport checksum missing from Portfile"
+        }
+    }
+    if {![regexp {^revision[[:space:]]+4} $updated_portfile]} {
+        return "FAIL: base revision changed"
+    }
+    if {![regexp {subport[[:space:]]+bump-test-devel[[:space:]]+\{[[:space:]\n]+revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: selected subport revision not reset"
+    }
+
+    return "Bump main reset only the selected subport revision."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-resets-only-selected-subport-revision]
+} -result "Bump main reset only the selected subport revision."
+
+
+test bump_main_resets_base_subport_revision {
+    Bump main resets the top-level revision for the selected base subport.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-resets-base-subport-revision]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile release.tar.xz
+    set checksum_command {checksums       release.tar.xz \
+                rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+}
+    set base_revision_command {revision        4}
+    set devel_revision_command {    revision        7}
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] release-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        $distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set name bump-test
+    set subport bump-test
+    set version 1.2.3
+    set revision 4
+
+    write_portbump_file [file join $portpath Portfile] {revision        4
+checksums       release.tar.xz \
+                rmd160  1111111111111111111111111111111111111111 \
+                sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                size    1
+
+subport bump-test-devel {
+    revision        7
+}
+}
+
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 2 $checksum_command bump-test
+    append_portbump_option_provenance revision set [file join $portpath Portfile] 1 $base_revision_command bump-test global
+    append_portbump_option_provenance revision set [file join $portpath Portfile] 7 $devel_revision_command bump-test-devel subport bump-test-devel
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated base-subport checksum missing from Portfile"
+        }
+    }
+    if {![regexp {^revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: base revision not reset"
+    }
+    if {![regexp {subport[[:space:]]+bump-test-devel[[:space:]]+\{[[:space:]\n]+revision[[:space:]]+7} $updated_portfile]} {
+        return "FAIL: other subport revision changed"
+    }
+
+    return "Bump main reset the base subport revision."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-resets-base-subport-revision]
+} -result "Bump main reset the base subport revision."
+
+
+test bump_main_resets_inherited_global_revision_for_selected_subport {
+    Bump main resets the inherited top-level revision for a selected subport without its own revision.
+} -body {
+    reset_portbump_test_state
+
+    set tmpdir [file join $pwd bump-main-resets-inherited-global-revision-for-selected-subport]
+    set portpath [file join $tmpdir port]
+    set distpath [file join $tmpdir distfiles]
+    set distfile devel.tar.xz
+    set checksum_command {    checksums       devel.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+}
+    set base_revision_command {revision        4}
+
+    file mkdir $portpath
+    file mkdir $distpath
+
+    write_portbump_file [file join $distpath $distfile] devel-data
+
+    set rmd160 [portchecksum::calc_rmd160 [file join $distpath $distfile]]
+    set sha256 [portchecksum::calc_sha256 [file join $distpath $distfile]]
+    set size [file size [file join $distpath $distfile]]
+
+    set all_dist_files [list $distfile]
+    set checksums [list \
+        $distfile rmd160 1111111111111111111111111111111111111111 sha256 2222222222222222222222222222222222222222222222222222222222222222 size 1]
+    set ports_bump_patch no
+    set name bump-test
+    set subport bump-test-devel
+    set version 1.2.3
+    set revision 4
+
+    write_portbump_file [file join $portpath Portfile] {revision        4
+
+subport bump-test-devel {
+    checksums       devel.tar.xz \
+                    rmd160  1111111111111111111111111111111111111111 \
+                    sha256  2222222222222222222222222222222222222222222222222222222222222222 \
+                    size    1
+}
+}
+
+    append_portbump_option_provenance checksums set [file join $portpath Portfile] 3 $checksum_command bump-test-devel
+    append_portbump_option_provenance revision set [file join $portpath Portfile] 1 $base_revision_command bump-test global
+
+    if {[catch {portbump::bump_main} result]} {
+        return "FAIL: $result"
+    }
+
+    set updated_portfile [read_portbump_file [file join $portpath Portfile]]
+
+    foreach sum [list $rmd160 $sha256 $size] {
+        if {![string match "*$sum*" $updated_portfile]} {
+            return "FAIL: updated selected-subport checksum missing from Portfile"
+        }
+    }
+    if {![regexp {^revision[[:space:]]+0} $updated_portfile]} {
+        return "FAIL: inherited global revision not reset"
+    }
+
+    return "Bump main reset the inherited global revision for the selected subport."
+} -cleanup {
+    reset_portbump_test_state
+    file delete -force [file join $pwd bump-main-resets-inherited-global-revision-for-selected-subport]
+} -result "Bump main reset the inherited global revision for the selected subport."
+
+
+cleanupTests

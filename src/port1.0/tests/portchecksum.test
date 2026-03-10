@@ -13,6 +13,10 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
+set dir [file normalize [file join $pwd ..]]
+source [file join $dir pkgIndex.tcl]
+unset dir
+
 package require portchecksum 1.0
 
 
@@ -32,6 +36,34 @@ test parse_checksum {
     }
     return "Parse checksum successful."
 } -result "Parse checksum successful."
+
+
+test uses_single_file_checksum_format {
+    Detect implicit single-distfile checksum syntax.
+} -body {
+    set all_dist_files {file}
+    set checksums_str {md5 1111 sha1 2222}
+
+    if {![portchecksum::uses_single_file_checksum_format $checksums_str $all_dist_files]} {
+        return "FAIL: implicit single-distfile syntax not detected"
+    }
+    return "Implicit single-distfile checksum syntax detected."
+} -result "Implicit single-distfile checksum syntax detected."
+
+
+test parse_checksum_entries_implicit_single_file {
+    Parse implicit single-distfile checksum syntax into ordered entries.
+} -body {
+    set all_dist_files {file}
+    set checksums_str {md5 1111 sha1 2222}
+
+    set entries [portchecksum::parse_checksum_entries $checksums_str $all_dist_files]
+
+    if {$entries ne {{file {md5 1111 sha1 2222}}}} {
+        return "FAIL: implicit single-distfile entries parsed incorrectly"
+    }
+    return "Implicit single-distfile checksum entries parsed successfully."
+} -result "Implicit single-distfile checksum entries parsed successfully."
 
 
 test calc_md5 {

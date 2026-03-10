@@ -25,6 +25,8 @@ package require macports_util 1.0
 package require msgcat
 package require porttrace 1.0
 
+source ../portprovenance.tcl
+
 proc init {} {
     global macports::registry.path
 
@@ -164,6 +166,80 @@ test handle_option-strsed {
 
 
 # test handle_option-replace # deprecated
+
+test handle_option_provenance_preserves_results {
+    Provenance tracking does not change representative handle_option* returns.
+} -body {
+    portprovenance::reset_option_provenance
+    unset -nocomplain tracked_option
+    unset -nocomplain user_options(tracked_option)
+
+    options tracked_option
+    portprovenance::track_option tracked_option
+
+    set result [tracked_option alpha]
+    if {$result ne $tracked_option} {
+        return "FAIL: tracked set returned the wrong value"
+    }
+    if {$tracked_option ne "alpha"} {
+        return "FAIL: tracked set stored the wrong value"
+    }
+    set result [tracked_option-append beta]
+    if {$result ne $tracked_option} {
+        return "FAIL: tracked append returned the wrong value"
+    }
+    if {$tracked_option ne "alpha beta"} {
+        return "FAIL: tracked append stored the wrong value"
+    }
+    set result [tracked_option-prepend zero]
+    if {$result ne $tracked_option} {
+        return "FAIL: tracked prepend returned the wrong value"
+    }
+    if {$tracked_option ne "zero alpha beta"} {
+        return "FAIL: tracked prepend stored the wrong value"
+    }
+
+    return "Handle_option provenance preserved mutation results."
+} -cleanup {
+    portprovenance::reset_option_provenance
+    unset -nocomplain tracked_option
+    unset -nocomplain user_options(tracked_option)
+} -result "Handle_option provenance preserved mutation results."
+
+
+test handle_option_provenance_failure_does_not_change_mutation {
+    Provenance failures do not change the underlying option mutation.
+} -body {
+    portprovenance::reset_option_provenance
+    unset -nocomplain failing_option
+    unset -nocomplain user_options(failing_option)
+
+    options failing_option
+    portprovenance::track_option failing_option
+
+    rename ::portprovenance::find_source_frame ::portprovenance::find_source_frame_real
+    proc ::portprovenance::find_source_frame {option action} {
+        return -code error "forced provenance failure"
+    }
+
+    if {[failing_option alpha] ne "alpha"} {
+        return "FAIL: option mutation returned the wrong value"
+    }
+    if {$failing_option ne "alpha"} {
+        return "FAIL: option mutation stored the wrong value"
+    }
+    if {[llength [portprovenance::get_option_provenance failing_option]] != 0} {
+        return "FAIL: failed provenance should not have recorded a mutation"
+    }
+
+    return "Handle_option tolerated provenance failure."
+} -cleanup {
+    catch {rename ::portprovenance::find_source_frame {}}
+    catch {rename ::portprovenance::find_source_frame_real ::portprovenance::find_source_frame}
+    portprovenance::reset_option_provenance
+    unset -nocomplain failing_option
+    unset -nocomplain user_options(failing_option)
+} -result "Handle_option tolerated provenance failure."
 
 
 test options {

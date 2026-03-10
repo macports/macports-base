@@ -1,0 +1,404 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+set dir [file normalize [file join $pwd ..]]
+source [file join $dir pkgIndex.tcl]
+unset dir
+
+package require portprovenance 1.0
+package require portutil 1.0
+
+options provenance_option untracked_option
+portprovenance::track_option provenance_option
+
+proc write_portprovenance_file {path contents} {
+    set fd [open $path w]
+    puts -nonewline $fd $contents
+    close $fd
+}
+
+proc reset_portprovenance_test_state {} {
+    foreach var {
+        name
+        portpath
+        provenance_option
+        subport
+        untracked_option
+    } {
+        unset -nocomplain ::$var
+    }
+
+    unset -nocomplain ::user_options(provenance_option)
+    unset -nocomplain ::user_options(untracked_option)
+    unset -nocomplain ::PortInfo(name)
+    unset -nocomplain ::PortInfo(subports)
+    unset -nocomplain ::PortInfo(variants)
+    unset -nocomplain ::PortInfo(vinfo)
+    unset -nocomplain ::portutil::all_variants
+    unset -nocomplain ::portvariants
+    catch {array unset ::variations}
+    portprovenance::reset_option_provenance
+    portprovenance::reset_scope
+}
+
+
+test record_option_provenance_ignores_untracked_options {
+    Option provenance ignores option mutations that were not registered.
+} -body {
+    reset_portprovenance_test_state
+
+    set tmpdir [file join $pwd record-option-provenance-ignores-untracked-options]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+
+    file mkdir $tmpdir
+
+    write_portprovenance_file $script_path {untracked_option    alpha}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    if {[llength [portprovenance::get_option_provenance untracked_option]] != 0} {
+        return "FAIL: provenance was recorded for an untracked option"
+    }
+    if {[llength $::portprovenance::option_provenance] != 0} {
+        return "FAIL: provenance record list should be empty"
+    }
+    if {[portprovenance::has_option_provenance untracked_option $script_path]} {
+        return "FAIL: untracked option should not report file provenance"
+    }
+
+    return "Option provenance ignored untracked option mutations."
+} -cleanup {
+    reset_portprovenance_test_state
+    file delete -force [file join $pwd record-option-provenance-ignores-untracked-options]
+} -result "Option provenance ignored untracked option mutations."
+
+
+test record_option_provenance_records_global_set {
+    Option provenance records one top-level set mutation with source details.
+} -body {
+    reset_portprovenance_test_state
+
+    set tmpdir [file join $pwd record-option-provenance-records-global-set]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+    set name provenance-test
+    set subport provenance-test
+    set ::PortInfo(name) $name
+
+    file mkdir $tmpdir
+
+    write_portprovenance_file $script_path {provenance_option    alpha}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance provenance_option]
+    if {[llength $records] != 1} {
+        return "FAIL: incorrect number of provenance records"
+    }
+
+    set record [lindex $records 0]
+    if {[dict get $record option] ne "provenance_option"} {
+        return "FAIL: provenance option mismatch"
+    }
+    if {[dict get $record action] ne "set"} {
+        return "FAIL: provenance action mismatch"
+    }
+    if {[dict get $record file] ne [file normalize $script_path]} {
+        return "FAIL: provenance file mismatch"
+    }
+    if {![dict exists $record line] || [dict get $record line] != 1} {
+        return "FAIL: provenance line mismatch"
+    }
+    if {[dict get $record cmd] ne {provenance_option    alpha}} {
+        return "FAIL: provenance command text mismatch"
+    }
+    if {![dict exists $record args] || [dict get $record args] ne {alpha}} {
+        return "FAIL: provenance arguments mismatch"
+    }
+    if {![dict exists $record portname] || [dict get $record portname] ne $name} {
+        return "FAIL: provenance portname mismatch"
+    }
+    if {![dict exists $record scope] || [dict get $record scope] ne "global"} {
+        return "FAIL: provenance scope mismatch"
+    }
+    if {[dict exists $record scope_name]} {
+        return "FAIL: global provenance should not have a scope name"
+    }
+    if {[portprovenance::record_scope $record] ne "global"} {
+        return "FAIL: record_scope returned the wrong global scope"
+    }
+    if {![portprovenance::record_applies_to_subport $record provenance-test-devel]} {
+        return "FAIL: global record should apply to subports"
+    }
+    if {![portprovenance::has_option_provenance provenance_option $script_path]} {
+        return "FAIL: tracked option should report file provenance"
+    }
+
+    return "Option provenance recorded a top-level set mutation."
+} -cleanup {
+    reset_portprovenance_test_state
+    file delete -force [file join $pwd record-option-provenance-records-global-set]
+} -result "Option provenance recorded a top-level set mutation."
+
+
+test get_option_provenance_filters_append_records {
+    Option provenance filters append mutations by action.
+} -body {
+    reset_portprovenance_test_state
+
+    set tmpdir [file join $pwd get-option-provenance-filters-append-records]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+
+    file mkdir $tmpdir
+
+    write_portprovenance_file $script_path {provenance_option            alpha
+provenance_option-append     beta gamma
+provenance_option-append     delta
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance provenance_option {action append}]
+    if {[llength $records] != 2} {
+        return "FAIL: incorrect number of append provenance records"
+    }
+
+    if {[dict get [lindex $records 0] args] ne {beta gamma}} {
+        return "FAIL: first append provenance arguments mismatch"
+    }
+    if {[dict get [lindex $records 1] args] ne {delta}} {
+        return "FAIL: second append provenance arguments mismatch"
+    }
+
+    return "Option provenance filtered append mutations."
+} -cleanup {
+    reset_portprovenance_test_state
+    file delete -force [file join $pwd get-option-provenance-filters-append-records]
+} -result "Option provenance filtered append mutations."
+
+
+test record_option_provenance_records_subport_scope {
+    Option provenance distinguishes top-level and selected subport mutations.
+} -body {
+    reset_portprovenance_test_state
+
+    set tmpdir [file join $pwd record-option-provenance-records-subport-scope]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+    set name provenance-test
+    set subport provenance-test-devel
+    set ::PortInfo(name) $name
+
+    file mkdir $tmpdir
+
+    write_portprovenance_file $script_path {provenance_option    alpha
+subport provenance-test-devel {
+    provenance_option    beta
+}
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance provenance_option]
+    if {[llength $records] != 2} {
+        return "FAIL: incorrect number of provenance records"
+    }
+
+    set global_record [lindex $records 0]
+    if {[dict get $global_record scope] ne "global"} {
+        return "FAIL: top-level provenance scope mismatch"
+    }
+    if {[dict exists $global_record scope_name]} {
+        return "FAIL: top-level provenance should not have a scope name"
+    }
+    if {[dict get $global_record portname] ne $name} {
+        return "FAIL: top-level provenance portname mismatch"
+    }
+
+    set subport_record [lindex $records 1]
+    if {[dict get $subport_record scope] ne "subport"} {
+        return "FAIL: subport provenance scope mismatch"
+    }
+    if {[dict get $subport_record scope_name] ne $subport} {
+        return "FAIL: subport provenance scope name mismatch"
+    }
+    if {[dict get $subport_record portname] ne $subport} {
+        return "FAIL: subport provenance portname mismatch"
+    }
+    if {[portprovenance::record_scope $subport_record] ne "subport"} {
+        return "FAIL: record_scope returned the wrong subport scope"
+    }
+    if {![portprovenance::record_applies_to_subport $subport_record $subport]} {
+        return "FAIL: subport record should apply to its selected subport"
+    }
+    if {[portprovenance::record_applies_to_subport $subport_record provenance-test]} {
+        return "FAIL: subport record should not apply to a different subport"
+    }
+
+    set scoped_records [portprovenance::get_option_provenance provenance_option [list scope subport scope_name $subport]]
+    if {[llength $scoped_records] != 1} {
+        return "FAIL: scoped provenance filter mismatch"
+    }
+
+    return "Option provenance recorded top-level and subport scopes."
+} -cleanup {
+    reset_portprovenance_test_state
+    file delete -force [file join $pwd record-option-provenance-records-subport-scope]
+} -result "Option provenance recorded top-level and subport scopes."
+
+
+test record_option_provenance_preserves_subport_scope_in_variant_body {
+    Option provenance preserves selected subport scope in active variant bodies.
+} -body {
+    reset_portprovenance_test_state
+
+    set tmpdir [file join $pwd record-option-provenance-preserves-subport-scope-in-variant-body]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+    set name provenance-test
+    set subport provenance-test-devel
+    set ::PortInfo(name) $name
+
+    file mkdir $tmpdir
+
+    write_portprovenance_file $script_path {subport provenance-test-devel {
+    variant doc description {Install docs} {
+        provenance_option-append    docs
+    }
+}
+}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    array set variations {doc +}
+    if {[catch {eval_variants variations} result]} {
+        return "FAIL: $result"
+    }
+
+    set records [portprovenance::get_option_provenance provenance_option]
+    if {[llength $records] != 1} {
+        return "FAIL: incorrect number of provenance records"
+    }
+
+    set record [lindex $records 0]
+    if {[dict get $record action] ne "append"} {
+        return "FAIL: variant provenance action mismatch"
+    }
+    if {[dict get $record file] ne [file normalize $script_path]} {
+        return "FAIL: variant provenance file mismatch"
+    }
+    if {[dict get $record args] ne {docs}} {
+        return "FAIL: variant provenance arguments mismatch"
+    }
+    if {[dict get $record scope] ne "subport"} {
+        return "FAIL: variant provenance scope mismatch"
+    }
+    if {[dict get $record scope_name] ne $subport} {
+        return "FAIL: variant provenance scope name mismatch"
+    }
+    if {[dict get $record portname] ne $subport} {
+        return "FAIL: variant provenance portname mismatch"
+    }
+
+    return "Option provenance preserved subport scope in variant bodies."
+} -cleanup {
+    reset_portprovenance_test_state
+    file delete -force [file join $pwd record-option-provenance-preserves-subport-scope-in-variant-body]
+} -result "Option provenance preserved subport scope in variant bodies."
+
+
+test reset_option_provenance_clears_records {
+    Option provenance reset clears recorded mutations.
+} -body {
+    reset_portprovenance_test_state
+
+    set tmpdir [file join $pwd reset-option-provenance-clears-records]
+    set script_path [file join $tmpdir Portfile]
+    set portpath $tmpdir
+
+    file mkdir $tmpdir
+
+    write_portprovenance_file $script_path {provenance_option    alpha}
+
+    if {[catch {source $script_path} result]} {
+        return "FAIL: $result"
+    }
+
+    if {[llength [portprovenance::get_option_provenance provenance_option]] != 1} {
+        return "FAIL: provenance record was not created"
+    }
+
+    portprovenance::reset_option_provenance
+    if {[llength [portprovenance::get_option_provenance provenance_option]] != 0} {
+        return "FAIL: provenance reset did not clear records"
+    }
+
+    return "Option provenance reset cleared records."
+} -cleanup {
+    reset_portprovenance_test_state
+    file delete -force [file join $pwd reset-option-provenance-clears-records]
+} -result "Option provenance reset cleared records."
+
+
+test scope_helpers_restore_global_scope {
+    Scope helpers push, pop, and reset the active provenance scope.
+} -body {
+    reset_portprovenance_test_state
+
+    if {[portprovenance::current_scope] ne {scope global}} {
+        return "FAIL: initial scope should be global"
+    }
+
+    portprovenance::push_scope subport provenance-test-devel
+    if {[dict get [portprovenance::current_scope] scope] ne "subport"} {
+        return "FAIL: pushed scope mismatch"
+    }
+    if {[dict get [portprovenance::current_scope] scope_name] ne "provenance-test-devel"} {
+        return "FAIL: pushed scope name mismatch"
+    }
+
+    portprovenance::pop_scope
+    if {[portprovenance::current_scope] ne {scope global}} {
+        return "FAIL: pop_scope did not restore the global scope"
+    }
+
+    portprovenance::push_scope_record [dict create scope subport scope_name provenance-test]
+    portprovenance::reset_scope
+    if {[portprovenance::current_scope] ne {scope global}} {
+        return "FAIL: reset_scope did not restore the global scope"
+    }
+
+    return "Scope helpers restored the global scope."
+} -cleanup {
+    reset_portprovenance_test_state
+} -result "Scope helpers restored the global scope."
+
+
+cleanupTests
