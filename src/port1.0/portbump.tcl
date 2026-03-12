@@ -41,6 +41,137 @@ target_prerun ${org.macports.bump} portbump::bump_start
 namespace eval portbump {
 }
 
+# replace_checksums
+#
+# Replace old checksum hash values with new ones in a list of lines.
+# Returns a list of two elements: the modified lines and a list of
+# line indices where replacements were made.
+#
+# Checksum values (hex hashes and integer sizes) are matched as whole
+# words using \y word-boundary anchors (Tcl ARE syntax), so a size
+# like 123 cannot accidentally match inside a larger value such as
+# 12345. All checksum values are alphanumeric ([0-9a-f]+ or [0-9]+)
+# and contain no regex metacharacters, so they are safe to interpolate
+# directly into the pattern.
+#
+#   lines          - list of Portfile lines
+#   both_checksums - list of {type old_sum new_sum} triples
+proc portbump::replace_checksums {lines both_checksums} {
+    set checksum_lines [list]
+    foreach {type sum calculated_sum} $both_checksums {
+        if {$sum eq $calculated_sum} {
+            continue
+        }
+        for {set i 0} {$i < [llength $lines]} {incr i} {
+            set line [lindex $lines $i]
+            if {[regsub -all "\\y${sum}\\y" $line $calculated_sum new_line]} {
+                lset lines $i $new_line
+                lappend checksum_lines $i
+            }
+        }
+    }
+    return [list $lines $checksum_lines]
+}
+
+# find_revision_line
+#
+# Find the line index of the revision that should be reset for the
+# given subport. Handles Portfiles with multiple revision lines across
+# subport blocks, conditional branches, or inline subport declarations
+# (e.g. "subport foo { revision 3 }").
+#
+# Strategy:
+# 1. If the current subport has an inline revision on its subport
+#    declaration line, use that.
+# 2. Otherwise, use the standalone revision line nearest to the
+#    anchor (typically the first checksum line that was modified).
+#    When bumping the parent port, revision lines inside subport { }
+#    blocks are excluded.
+#
+#   lines       - list of Portfile lines
+#   subport     - current subport name
+#   portname    - parent port name
+#   anchor      - line index to measure proximity from
+#
+# Returns: line index, or -1 if no revision line found
+proc portbump::find_revision_line {lines subport portname anchor} {
+    # For a subport, prefer an inline revision on its subport declaration line
+    # (e.g. "subport clang-16 { revision 9 }").
+    if {$subport ne $portname} {
+        set escaped_subport [string map {\\ \\\\ . \\. * \\* + \\+ ? \\? ( \\( ) \\) \{ \\\{ \} \\\} \[ \\\[ \] \\\]} $subport]
+        for {set i 0} {$i < [llength $lines]} {incr i} {
+            if {[regexp "^\\s*subport\\s+\\S*${escaped_subport}\\S*\\s+.*revision\\s+\\d+" [lindex $lines $i]]} {
+                return $i
+            }
+        }
+    }
+
+    # When bumping the parent port, build an exclusion set of lines inside
+    # subport { } blocks so their revision lines are not mistakenly targeted.
+    set in_subport_block [dict create]
+    if {$subport eq $portname} {
+        set brace_depth 0
+        set in_subport 0
+        for {set i 0} {$i < [llength $lines]} {incr i} {
+            set line [lindex $lines $i]
+            if {!$in_subport && [regexp {^\s*subport\s+} $line]} {
+                set in_subport 1
+                set opens [regexp -all {\{} $line]
+                set closes [regexp -all {\}} $line]
+                set brace_depth [expr {$opens - $closes}]
+                dict set in_subport_block $i 1
+                if {$brace_depth <= 0} {
+                    set in_subport 0
+                    set brace_depth 0
+                }
+            } elseif {$in_subport} {
+                dict set in_subport_block $i 1
+                set opens [regexp -all {\{} $line]
+                set closes [regexp -all {\}} $line]
+                incr brace_depth [expr {$opens - $closes}]
+                if {$brace_depth <= 0} {
+                    set in_subport 0
+                    set brace_depth 0
+                }
+            }
+        }
+    }
+
+    # Find the nearest standalone revision line, skipping any inside subport blocks.
+    set best_line -1
+    set best_dist 2147483647
+    for {set i 0} {$i < [llength $lines]} {incr i} {
+        if {[regexp {^\s*revision\s+\d+} [lindex $lines $i]]} {
+            if {[dict exists $in_subport_block $i]} {
+                continue
+            }
+            set dist [expr {abs($i - $anchor)}]
+            if {$dist < $best_dist} {
+                set best_dist $dist
+                set best_line $i
+            }
+        }
+    }
+
+    return $best_line
+}
+
+# reset_revision
+#
+# Reset the revision value to 0 on the specified line.
+# Returns the modified list of lines.
+#
+#   lines    - list of Portfile lines
+#   line_idx - index of the line to modify
+proc portbump::reset_revision {lines line_idx} {
+    set old_line [lindex $lines $line_idx]
+    set new_line [regsub {(revision\s+)\d+} $old_line {\10}]
+    if {$old_line ne $new_line} {
+        lset lines $line_idx $new_line
+    }
+    return $lines
+}
+
 # bump_start
 #
 # Target prerun procedure; simply prints a message about what we're doing.
@@ -67,18 +198,17 @@ proc portbump::bump_main {args} {
 
     # So far, no mismatches yet.
     set mismatch no
+    set wrong_mimetype no
 
-    # Set the list of checksums as the option checksums.
+    # Read the declared checksums from the port options.
     set checksums_str [option checksums]
-
-    # Store the calculated checksums to avoid repeated calculations
-    array set calculated_checksums_array {}
 
     # If everything is fine with the syntax, keep on and check the checksum of
     # the distfiles.
     if {[portchecksum::parse_checksums $checksums_str] eq "yes"} {
         global distpath
 
+        set both_checksums [list]
         foreach distfile $all_dist_files {
             ui_info "$UI_PREFIX [format [msgcat::mc "Checksumming %s"] $distfile]"
 
@@ -95,14 +225,10 @@ proc portbump::bump_main {args} {
             } else {
                 # Retrieve the list of types/values from the array.
                 set portfile_checksums $checksums_array($distfile)
-                set calculated_checksums [list]
-                set both_checksums [list]
 
                 # Iterate on this list to check the actual values.
                 foreach {type sum} $portfile_checksums {
                     set calculated_sum [portchecksum::calc_$type $fullpath]
-                    lappend calculated_checksums $type
-                    lappend calculated_checksums $calculated_sum
                     lappend both_checksums $type $sum $calculated_sum
 
                     if {$sum eq $calculated_sum} {
@@ -115,9 +241,6 @@ proc portbump::bump_main {args} {
                         set mismatch yes
                     }
                 }
-
-                # Save our calculated checksums in case we need them later
-                set calculated_checksums_array($distfile) $calculated_checksums
 
                 if {![regexp {\.html?$} ${distfile}] &&
                     ![catch {strsed [exec [findBinary file $portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
@@ -150,37 +273,18 @@ proc portbump::bump_main {args} {
         ui_notice "<https://trac.macports.org/wiki/MisbehavingServers>"
         ui_notice "***"
         ui_notice "The file has been moved to: $htmlfile_path"
-        
-        return -code error "[msgcat::mc "Unable to verify file checksums"]"
-    } elseif {![info exists both_checksums]} {
-        return -code error "[msgcat::mc "No checksums found in Portfile"]"
-    } else {
-        # Show the desired checksum line for easy cut-paste
-        # based on the previously calculated values, plus our default types
 
-        global version revision subport
+        return -code error "[msgcat::mc "Unable to verify file checksums"]"
+    } else {
+        global version subport
 
         ui_msg "We will bump these:"
         foreach {type sum calculated_sum} $both_checksums {
+            if {$sum eq $calculated_sum} {
+                continue
+            }
             ui_msg [format "Old %-8s %s" ${type}: $sum]
             ui_msg [format "New %-8s %s" ${type}: $calculated_sum]
-        }
-
-        set patterns [list]
-
-        set whitespace {[[:space:]\\]+}
-        # Create substitution pattern(s) for checksum
-        foreach {type sum calculated_sum} $both_checksums {
-            lappend patterns "s/(${type}${whitespace})${sum}/\\1${calculated_sum}/g"
-        }
-        # Create substitution pattern for revision (reset to 0)
-        lappend patterns {s/(revision[[:space:]\\]+)[0-9]+/\10/g}
-
-        # Construct sed command
-        set cmdline [list]
-        lappend cmdline $portutil::autoconf::sed_command -E
-        foreach pattern $patterns {
-            lappend cmdline -e $pattern
         }
 
         # Get the uid of Portfile owner
@@ -188,32 +292,42 @@ proc portbump::bump_main {args} {
 
         # root -> owner id
         exec_as_uid $owneruid {
-            # Create temporary Portfile_XXXXXX.bump
-            if {[catch {set tmpfd [file tempfile tmpfile ${portpath}/Portfile.bump]} error]} {
-                ui_debug $::errorInfo
-                ui_error "file tempfile: $error"
-                return -code error "file tempfile failed"
-            }
+            # Read the Portfile
+            set fd [open $portfile r]
+            set lines [split [read $fd] \n]
+            close $fd
 
             # Get Portfile attributes
             set attributes [file attributes $portfile]
 
-            # Direct sed command output to tempfile
-            lappend cmdline "<${portfile}" ">@$tmpfd"
-
-            # Run sed command and write to Portfile.bump
-            ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] $portfile $patterns]"
-            if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
-                ui_debug $::errorInfo
-                ui_error "sed: $error"
-                file delete "$tmpfile"
-                close $tmpfd
-                return -code error "sed sed(1) failed"
+            lassign [portbump::replace_checksums $lines $both_checksums] lines checksum_lines
+            foreach cl $checksum_lines {
+                ui_debug "Replaced checksum on line [expr {$cl + 1}]"
             }
+
+            if {[llength $checksum_lines] > 0} {
+                set rev_line [portbump::find_revision_line $lines $subport [option name] [lindex $checksum_lines 0]]
+                if {$rev_line >= 0} {
+                    set old_rev [lindex $lines $rev_line]
+                    set lines [portbump::reset_revision $lines $rev_line]
+                    if {[lindex $lines $rev_line] ne $old_rev} {
+                        ui_debug "Reset revision to 0 on line [expr {$rev_line + 1}]"
+                    }
+                }
+            }
+
+            set new_content [join $lines \n]
 
             if {[tbool ports_bump_patch]} {
                 # Patch mode
-                # Set Potfile.patch path
+                if {[catch {set tmpfd [file tempfile tmpfile ${portpath}/Portfile.bump]} error]} {
+                    ui_debug $::errorInfo
+                    ui_error "file tempfile: $error"
+                    return -code error "file tempfile failed"
+                }
+                puts -nonewline $tmpfd $new_content
+                close $tmpfd
+
                 set patchfile "${portpath}/Portfile.patch"
                 set patchfd [open $patchfile w]
 
@@ -224,17 +338,25 @@ proc portbump::bump_main {args} {
 
                 # Create and write diff to Portfile.patch
                 if {[catch {exec -ignorestderr -- {*}$diffcmd} error]} {
-                    # Copy Portfile attributes to Portfile.patch
-                    file attributes $portfile {*}$attributes
-                    ui_msg "Portfile.patch successfully created at $patchfile"    
+                    file attributes $patchfile {*}$attributes
+                    ui_msg "Portfile.patch successfully created at $patchfile"
                 } else {
                     ui_msg "No changes needed."
                     file delete "$patchfile"
                     close $patchfd
                 }
+
+                file delete "$tmpfile"
             } else {
                 # Overwrite mode
-                # Replace Portfile with Portfile.bump
+                if {[catch {set tmpfd [file tempfile tmpfile ${portpath}/Portfile.bump]} error]} {
+                    ui_debug $::errorInfo
+                    ui_error "file tempfile: $error"
+                    return -code error "file tempfile failed"
+                }
+                puts -nonewline $tmpfd $new_content
+                close $tmpfd
+
                 if {[catch {move -force $tmpfile $portfile} error]} {
                     ui_debug $::errorInfo
                     ui_error "bump: $error"
@@ -248,9 +370,6 @@ proc portbump::bump_main {args} {
                 ui_msg "Checksums successfully bumped. Suggested commit message:"
                 ui_msg [format "%-8s%s: update to %s" "" ${subport} $version]
             }
-
-            # Delete Portfile.bump
-            file delete "$tmpfile"
         }
 
         return 0
