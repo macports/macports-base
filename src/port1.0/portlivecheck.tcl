@@ -45,7 +45,7 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.branch livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.compression livecheck.curloptions
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.branch livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.compression livecheck.curloptions livecheck.user_agent
 
 # defaults
 default livecheck.url {$homepage}
@@ -59,6 +59,7 @@ default livecheck.version {$version}
 default livecheck.ignore_sslcert no
 default livecheck.compression yes
 default livecheck.curloptions [list --append-http-header "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"]
+default livecheck.user_agent {}
 
 proc portlivecheck::livecheck_async_start {} {
     _livecheck_main yes
@@ -82,6 +83,7 @@ proc portlivecheck::_livecheck_main {{async no}} {
            livecheck.ignore_sslcert \
            livecheck.compression \
            livecheck.curloptions \
+           livecheck.user_agent \
            git.cmd \
            homepage portpath \
            master_sites name subport
@@ -147,6 +149,10 @@ proc portlivecheck::_livecheck_main {{async no}} {
     }
     if {[tbool livecheck.compression]} {
         lappend curl_options "--enable-compression"
+    }
+    if {${livecheck.user_agent} ne ""} {
+        lappend curl_options "--user-agent"
+        lappend curl_options "${livecheck.user_agent}"
     }
 
     # Check _resources/port1.0/livecheck for available types.
