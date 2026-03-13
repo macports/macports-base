@@ -844,6 +844,7 @@ enable_flag_sanitization
 with_bsdmake
 with_bzip2_bin
 with_cvs
+with_git
 with_gnumake
 with_gnutar
 with_lzma
@@ -1518,6 +1519,7 @@ Optional Packages:
   --with-bsdmake=PATH     path to alternate bsdmake/pmake command
   --with-bzip2_bin=PATH   path to alternate bzip2 command
   --with-cvs=PATH         path to alternate cvs command
+  --with-git=PATH         path to alternate git command
   --with-gnumake=PATH     path to alternate gnumake command
   --with-gnutar=PATH      path to alternate gnutar command
   --with-lzma=PATH        path to alternate lzma command
@@ -4148,6 +4150,13 @@ fi
 if test ${with_cvs+y}
 then :
   withval=$with_cvs; CVS=$withval
+fi
+
+
+# Check whether --with-git was given.
+if test ${with_git+y}
+then :
+  withval=$with_git; GIT=$withval
 fi
 
 
