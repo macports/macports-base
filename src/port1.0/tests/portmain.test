@@ -35,6 +35,10 @@ set portpath .
 set portbuildpath ./build
 set macports::portdbpath .
 
+set test_tclsh [file normalize [file join $macports::autoconf::top_srcdir tests test-tclsh]]
+set port_script [file normalize [file join $pwd .. .. port port.tcl]]
+testConstraint portClientAvailable [expr {[file executable $test_tclsh] && [file readable $port_script]}]
+
 
 test get_default_subport {
     Get default subport unit test.
@@ -58,6 +62,14 @@ test get_subbuildpath {
     }
     return "Get subbuild path successful."
 } -result "Get subbuild path successful."
+
+test action_prefix {
+    `port prefix` prints the configured prefix and nothing else.
+} -constraints {
+    portClientAvailable
+} -body {
+    exec -ignorestderr $test_tclsh $port_script prefix
+} -result $pwd/tmpdir
 
 
 cleanupTests
