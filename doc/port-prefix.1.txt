@@ -1,0 +1,31 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-prefix(1)
+==============
+
+NAME
+----
+port-prefix - Print the prefix for which MacPorts was configured
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-q*] *prefix*
+
+DESCRIPTION
+-----------
+This command prints the installation prefix of your MacPorts installation, i.e.,
+the directory under which MacPorts and all ports are installed. The prefix is
+set at configure time and defaults to '/opt/local'.
+
+include::global-flags.txt[]
+
+*-q*::
+    Do not print the ``Prefix:'' prefix.
+
+SEE ALSO
+--------
+man:port[1]
+
+AUTHORS
+-------
+ (C) 2026 The MacPorts Project
