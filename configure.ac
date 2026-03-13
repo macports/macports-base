@@ -122,6 +122,7 @@ dnl named with a _BIN suffix here.
 MP_TOOL_PATH(BSDMAKE, [bsdmake/pmake])
 MP_TOOL_PATH(BZIP2_BIN, [bzip2])
 MP_TOOL_PATH(CVS, [cvs])
+MP_TOOL_PATH(GIT, [git])
 MP_TOOL_PATH(GNUMAKE, [gnumake])
 MP_TOOL_PATH(GNUTAR, [gnutar])
 MP_TOOL_PATH(LZMA, [lzma])
