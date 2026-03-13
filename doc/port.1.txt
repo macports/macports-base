@@ -539,6 +539,9 @@ mirror::
 version::
     Display the release number of the installed MacPorts infrastructure.
 
+prefix::
+    Display the prefix for which MacPorts was configured.
+
 selfupdate::
     Updates the MacPorts system, ports tree(s) and base tools if needed, from
     the MacPorts rsync server, installing the newest infrastructure available.
