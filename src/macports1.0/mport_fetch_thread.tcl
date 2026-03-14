@@ -177,14 +177,6 @@ namespace eval mport_fetch_thread {
                                     break
                                 }
                             }
-                            foreach sigtype $sigtypes {
-                                if {!$sig_fetched || $sigtype ne $fetched_sigtype} {
-                                    catch {file delete ${outpath}.${sigtype}}
-                                }
-                            }
-                            if {!$archive_fetched} {
-                                catch {file delete ${outpath}.TMP}
-                            }
                         }
                         fetch_file {
                             # Try fetching the given URLs, saving the result to outpath, until
@@ -217,9 +209,6 @@ namespace eval mport_fetch_thread {
                                         break
                                     }
                                 }
-                            }
-                            if {!$fetched} {
-                                catch {file delete ${outpath}.TMP}
                             }
                         }
                         default {

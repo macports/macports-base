@@ -261,6 +261,13 @@ proc portarchivefetch::fetchfiles {{async no} args} {
         lassign [curlwrap_async_result $async_job] status result
         unset async_job
         if {$status != 0} {
+            set incoming_path [file join ${portdbpath} incoming]
+            foreach {url_var archive} $archivefetch_urls {
+                catch {file delete ${incoming_path}/${archive}.TMP}
+                foreach sigtype [get_all_sigtypes] {
+                    catch {file delete ${incoming_path}/${archive}.${sigtype}}
+                }
+            }
             if {[tbool ports_binary_only] || [_archive_available]} {
                 error "Failed to fetch archive for [option subport]: $result"
             } else {
@@ -351,7 +358,7 @@ proc portarchivefetch::fetchfiles {{async no} args} {
             if {$async_done} {
                 foreach sigtype $sigtypes {
                     set signature ${incoming_path}/${archive}.${sigtype}
-                    if {[file isfile $signature]} {
+                    if {[file isfile $signature] && [file size $signature] > 0} {
                         set sig_fetched 1
                         break
                     }
@@ -442,6 +449,9 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                 if {$archive_fetched && $sig_fetched} {
                     set verified [verify_signature $archive_tmp_path $signature]
                     file delete -force $signature
+                    foreach sigtype $sigtypes {
+                        catch {file delete ${incoming_path}/${archive}.${sigtype}}
+                    }
                     if {!$verified} {
                         # fall back to building from source (or error out later if binary only mode)
                         ui_warn "Failed to verify signature for archive!"

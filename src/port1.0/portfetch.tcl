@@ -478,6 +478,7 @@ proc portfetch::fetchfiles {{async no} args} {
             }
             lassign [curlwrap_async_result $jobid] status result
             if {$status != 0} {
+                catch {file delete ${distpath}/${distfile}.TMP}
                 error "Failed to fetch ${distfile}: $result"
             }
             if {![file exists ${distpath}/${distfile}]} {

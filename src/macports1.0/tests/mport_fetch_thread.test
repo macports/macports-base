@@ -1,0 +1,120 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+::tcltest::configure {*}$::argv
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../macports_test_autoconf.tcl
+
+package require macports 1.0
+package require Thread
+package require Pextlib 1.0
+
+source ./library.tcl
+
+# clean leftovers from interrupted tests
+file delete -force $pwd/tmpdir
+# use a local, temporary prefix for testing
+init_tmp_prefix $pwd $pwd/tmpdir
+
+# Debug options
+array set ui_options {}
+set ui_options(ports_noninteractive) yes
+mportinit ui_options
+
+# portutil.tcl defines a Tcl chown proc (wrapping lchown + fs-traverse)
+# that overrides the Pextlib C chown command in port interpreters.
+# port1.0 is not loaded here, so define it for testing.
+proc chown {path user} {
+    lchown $path $user
+    if {[file isdirectory $path]} {
+        fs-traverse myfile [list $path] {
+            lchown $myfile $user
+        }
+    }
+}
+
+
+test chown_raises_on_vanishing_file {
+    Chown race condition unit test.
+} -setup {
+    set testdir [file join $pwd racetest]
+    file mkdir $testdir
+    for {set i 0} {$i < 10} {incr i} {
+        close [open ${testdir}/file_$i w]
+    }
+    close [open ${testdir}/vanishing_file w]
+
+    # Mock lchown to simulate a file deleted between fs-traverse
+    # enumeration and the lchown call.
+    rename lchown _real_lchown
+    proc lchown {path user} {
+        if {[file tail $path] eq "vanishing_file"} {
+            file delete $path
+        }
+        file lstat $path st
+    }
+} -body {
+    if {[catch {chown $testdir testuser}] == 0} {
+        return "FAIL: chown silently ignored the deleted file"
+    }
+    return "Chown race condition test successful."
+} -cleanup {
+    rename lchown ""
+    rename _real_lchown lchown
+    file delete -force $testdir
+} -result "Chown race condition test successful."
+
+
+test fetch_file_worker_no_delete {
+    Fetch file worker .TMP cleanup unit test.
+} -setup {
+    set testdir [file join $pwd tmpfetch]
+    file mkdir $testdir
+    close [open ${testdir}/testfile.TMP w]
+} -body {
+    set id [mport_fetch_thread::queue fetch_file \
+        [list {} {{}} {http://127.0.0.1:1/nosuchfile} ${testdir}/testfile {}]]
+    lassign [mport_fetch_thread::get_result $id] status result
+    if {$status == 0} {
+        return "FAIL: fetch unexpectedly succeeded"
+    }
+    if {![file exists ${testdir}/testfile.TMP]} {
+        return "FAIL: worker thread deleted .TMP file"
+    }
+    return "Fetch file worker cleanup successful."
+} -cleanup {
+    file delete -force $testdir
+} -result "Fetch file worker cleanup successful."
+
+
+test fetch_archive_worker_no_delete {
+    Fetch archive worker .TMP cleanup unit test.
+} -setup {
+    set testdir [file join $pwd tmpfetch]
+    file mkdir $testdir
+    close [open ${testdir}/testarchive.TMP w]
+    close [open ${testdir}/testarchive.sig w]
+    close [open ${testdir}/testarchive.rmd160 w]
+} -body {
+    set id [mport_fetch_thread::queue fetch_archive \
+        [list {} {{}} {http://127.0.0.1:1/nosucharchive} \
+            ${testdir}/testarchive {sig rmd160} 0 {}]]
+    lassign [mport_fetch_thread::get_result $id] status result
+    if {$status == 0} {
+        return "FAIL: fetch unexpectedly succeeded"
+    }
+    foreach f {testarchive.TMP testarchive.sig testarchive.rmd160} {
+        if {![file exists ${testdir}/$f]} {
+            return "FAIL: worker thread deleted $f"
+        }
+    }
+    return "Fetch archive worker cleanup successful."
+} -cleanup {
+    file delete -force $testdir
+} -result "Fetch archive worker cleanup successful."
+
+
+cleanupTests
