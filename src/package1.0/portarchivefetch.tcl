@@ -317,7 +317,12 @@ proc portarchivefetch::fetchfiles {{async no} args} {
 
     foreach {url_var archive} $archivefetch_urls {
         if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
-            if {!$async && !$async_done} {
+            if {$async} {
+                # Skip if something else is already fetching this file
+                if {[curlwrap_async_file_is_in_progress ${incoming_path}/${archive}]} {
+                    return 0
+                }
+            } elseif {!$async_done} {
                 ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
             }
             if {![file writable ${archivefetch.fulldestpath}]} {
