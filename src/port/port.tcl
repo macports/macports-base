@@ -2805,6 +2805,7 @@ proc action_deps { action portlist opts } {
         if {!([dict exists $options ports_${action}_no-test] && [string is true -strict [dict get $options ports_${action}_no-test]])} {
             lappend deptypes depends_test
         }
+        set index_only [expr {[dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes"}]
 
         set portinfo ""
         # If we have a url, use that, since it's most specific
@@ -2820,7 +2821,7 @@ proc action_deps { action portlist opts } {
             }
             lassign $result portname portinfo
             set porturl [dict get $portinfo porturl]
-        } elseif {$porturl ne "file://."} {
+        } elseif {$index_only} {
             # Extract the portdir from porturl and use it to search PortIndex.
             # Only the last two elements of the path (porturl) make up the
             # portdir.
@@ -2845,7 +2846,7 @@ proc action_deps { action portlist opts } {
             }
         }
 
-        if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
+        if {!$index_only} {
             # Add any global_variations to the variations
             # specified for the port, so we get dependencies right
             set merged_variations [dict merge $gvariations $variations]
@@ -2931,7 +2932,7 @@ proc action_deps { action portlist opts } {
                     dict set options subport [dict get $portinfo name]
 
                     # open the portfile if requested
-                    if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
+                    if {!$index_only} {
                         if {[catch {set mport [mportopen $porturl $options $merged_variations]} result]} {
                             ui_debug "$::errorInfo"
                             break_softcontinue "Unable to open port: $result" 1 status
