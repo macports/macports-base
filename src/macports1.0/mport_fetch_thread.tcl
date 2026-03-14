@@ -416,7 +416,7 @@ proc mport_fetch_thread::init_management_thread {args} {
 
 proc mport_fetch_thread::record_request {op opargs id} {
     variable active_requests
-    if {$op eq "fetch_file"} {
+    if {$op in {fetch_archive fetch_file}} {
         # record the file path
         set val [lindex $opargs 3]
         variable active_files
