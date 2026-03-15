@@ -244,22 +244,26 @@ proc portarchivefetch::fetchfiles {{async no} args} {
     variable ::portfetch::urlmap
     variable async_job
 
+    set incoming_path [file join ${portdbpath} incoming]
+
     if {[info exists async_job]} {
         if {$async} {
             # Async fetch already started
             return 0
         }
+        lassign $async_job jobid tmpfiles
+        unset async_job
         # Fetch was started asynchronously, wait for job to finish
-        if {![curlwrap_async_is_complete $async_job]} {
+        if {![curlwrap_async_is_complete $jobid]} {
             # Display progress for this fetch while waiting for it to finish
-            curlwrap_async_show_progress $async_job
+            curlwrap_async_show_progress $jobid
             # Loop with a reasonable timeout so we don't wait too long
             # to handle events like signals.
-            while {![curlwrap_async_is_complete $async_job 500]} {}
+            while {![curlwrap_async_is_complete $jobid 500]} {}
         }
-        lassign [curlwrap_async_result $async_job] status result
-        unset async_job
+        lassign [curlwrap_async_result $jobid] status result
         if {$status != 0} {
+            file delete {*}$tmpfiles
             if {[tbool ports_binary_only] || [_archive_available]} {
                 error "Failed to fetch archive for [option subport]: $result"
             } else {
@@ -281,7 +285,6 @@ proc portarchivefetch::fetchfiles {{async no} args} {
             }
         }
     }
-    set incoming_path [file join ${portdbpath} incoming]
     chownAsRoot $incoming_path
     if {[info exists elevated] && $elevated eq "yes"} {
         dropPrivileges
@@ -360,10 +363,13 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                 file delete -force $archive_tmp_path
                 touch $archive_tmp_path
                 chownAsRoot $archive_tmp_path
+                set tmpfiles [list $archive_tmp_path]
                 foreach sigtype $sigtypes {
-                    file delete -force ${incoming_path}/${archive}.${sigtype}
-                    touch ${incoming_path}/${archive}.${sigtype}
-                    chownAsRoot ${incoming_path}/${archive}.${sigtype}
+                    set sigpath ${incoming_path}/${archive}.${sigtype}
+                    lappend tmpfiles $sigpath
+                    file delete -force $sigpath
+                    touch $sigpath
+                    chownAsRoot $sigpath
                 }
                 if {[tbool ports_binary_only] || [_archive_available]} {
                     set this_urlmap $urlmap($url_var)
@@ -372,10 +378,11 @@ proc portarchivefetch::fetchfiles {{async no} args} {
                     set this_urlmap [lrange $urlmap($url_var) 0 2]
                     set maxfails 3
                 }
-                set async_job [curlwrap_async fetch_archive $credentials $fetch_options $this_urlmap \
+                set jobid [curlwrap_async fetch_archive $credentials $fetch_options $this_urlmap \
                         [lmap site $this_urlmap {portfetch::assemble_url \
                         [expr {[string index $site end] eq "/" ? $site : "${site}/"}]${archive.subdir} $archive}] \
                         ${incoming_path}/${archive} $sigtypes $maxfails]
+                set async_job [list $jobid $tmpfiles]
                 return 0
             } else {
                 foreach site $urlmap($url_var) {
@@ -498,7 +505,7 @@ proc portarchivefetch::archivefetch_async_start {} {
 proc portarchivefetch::_async_cleanup {} {
     variable async_job
     if {[info exists async_job]} {
-        curlwrap_async_cancel $async_job
+        curlwrap_async_cancel [lindex $async_job 0]
         unset async_job
     }
 }
