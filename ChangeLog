@@ -2,6 +2,18 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.12.4 (unreleased)
+    - Fixed occasional lchown errors when upgrading ports.
+      (#73514, jmr in 07ff611)
+
+    - Fixed occasional permissions errors when using a ports tree in a
+      git repo. (pguyot in b4709d0)
+
+    - Fixed 'port deps' error with unindexed ports. (jmr in 2dff719)
+
+    - Added --with-git option to configure.
+      (#72451, herbygillot in 3ea4d20)
+
 Release 2.12.3 (2026-03-09 by jmr)
     - Fixed checksum mismatch when ports that share one or more
       distfiles are fetched by an action. (#73587, jmr in c4d2176)
