@@ -245,8 +245,6 @@ proc portarchivefetch::fetchfiles {{async no} args} {
     variable async_job
     variable async_logid
 
-    set incoming_path [file join ${portdbpath} incoming]
-
     if {[info exists async_job]} {
         if {$async} {
             # Async fetch already started
@@ -286,6 +284,7 @@ proc portarchivefetch::fetchfiles {{async no} args} {
             }
         }
     }
+    set incoming_path [file join ${portdbpath} incoming]
     chownAsRoot $incoming_path
     if {[info exists elevated] && $elevated eq "yes"} {
         dropPrivileges
