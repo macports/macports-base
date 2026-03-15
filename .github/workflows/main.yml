@@ -27,8 +27,6 @@ jobs:
         if: startsWith(matrix.os,'macos')
         run: |
           case "$(uname -r)" in
-            22.*) sudo xcode-select --switch /Applications/Xcode_14.3.1.app/Contents/Developer
-                ;;
             23.*) sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
                 ;;
           esac
