@@ -26,7 +26,7 @@ jobs:
       - name: Select Xcode version
         if: startsWith(matrix.os,'macos')
         run: |
-          case "`uname -r`" in
+          case "$(uname -r)" in
             23.*) sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
                 ;;
           esac
@@ -51,9 +51,13 @@ jobs:
           set -eu
           platform=$(uname -s)
           case ${platform} in
-            Darwin) make -j$(sysctl -n hw.activecpu)
+            Darwin)
+              # shellcheck disable=2046
+              make -j$(sysctl -n hw.activecpu)
             ;;
-            Linux) make -j$(nproc)
+            Linux)
+              # shellcheck disable=2046
+              make -j$(nproc)
             ;;
           esac
       - name: Install MacPorts Base
