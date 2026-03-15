@@ -1,0 +1,45 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include pkg_version.inc]
+[manpage_begin critcl_application n [vset VERSION]]
+[include include/module.inc]
+[titledesc {CriTcl Application Reference}]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the [cmd critcl] command.
+Its intended audience are people having to build packages using
+[package critcl] for deployment. Writers of packages with embedded C
+code can ignore this document.
+
+[vset see_overview]
+
+[para]
+
+This application resides in the Application Layer of CriTcl.
+[para][image arch_application][para].
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+The application supports the following general command line:
+
+[list_begin definitions]
+[call [cmd critcl] [opt [arg option]...] [opt [arg file]...]]
+
+The exact set of options supported, their meaning, and interaction is
+detailed in section [sectref {Application Options}] below.
+
+For a larger set of examples please see section "Building CriTcl Packages"
+in the document about [manpage {Using CriTcl}].
+
+[list_end]
+
+
+[section {Application Options}]	[include include/aoptions.inc]
+[section {Package Structure}]	[include include/pstructure.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback.inc]
+[manpage_end]

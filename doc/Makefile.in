@@ -162,20 +162,7 @@ distclean: clean
 %.html: %.soelim
 	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
 
-# Define these rules only if asciidoc, xsltproc, and docbook_zsl are
-# all available. GNU Make 3.80 (MacOSX 10.4) 'and' does not work, so
-# do the check manually. 'and' works in GNU Make 3.81 (MacOSX 10.5+).
-ifeq ("$(MAKE_VERSION)","3.80")
- ifneq ($(ASCIIDOC),)
-  ifneq ($(XSLTPROC),)
-   ifneq ($(DOCBOOK_XSL),)
-    HAVE_DOCS_REQS= 1
-   endif
-  endif
- endif
-else
- HAVE_DOCS_REQS= $(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL))
-endif
+HAVE_DOCS_REQS= $(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL))
 ifneq ($(HAVE_DOCS_REQS),)
 %: %.xml manpage.xsl
 	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
@@ -206,11 +193,8 @@ install: all
 	< prefix.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 	< base.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 ifeq (darwin,@OS_PLATFORM@)
-ifneq (8,@OS_MAJOR@)
-# Tiger's chmod doesn't accept -h
 # mtree with umask 0077 doesn't get the permissions of the symlink right
 	chmod -h 755 "${DESTDIR}${INSTALLDIR}/man"
-endif
 endif
 
 	for f in ${CONF}; do \

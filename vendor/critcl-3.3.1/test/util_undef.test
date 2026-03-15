@@ -1,0 +1,64 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# critcl_util_undef.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+
+    useLocal lib/critcl/critcl.tcl critcl
+
+    # Helper procedures
+    useLocalFile test/support/crit_utils.tcl
+}
+testing {
+    useLocal lib/critcl-util/util.tcl critcl::util
+}
+
+overrides
+
+# -------------------------------------------------------------------------
+## util::undef syntax
+
+test critcl-util-undef-1.0 {util-undef, wrong\#args, not enough} -body {
+    critcl::util::undef
+} -returnCodes error -result {wrong # args: should be "critcl::util::undef configfile define"}
+
+test critcl-util-undef-1.1 {util-undef, wrong\#args, not enough} -body {
+    critcl::util::undef C
+} -returnCodes error -result {wrong # args: should be "critcl::util::undef configfile define"}
+
+test critcl-util-undef-1.2 {util-undef, wrong\#args, too many} -body {
+    critcl::util::undef C D X
+} -returnCodes error -result {wrong # args: should be "critcl::util::undef configfile define"}
+
+# -------------------------------------------------------------------------
+##
+
+test critcl-util-undef-2.0 {util-undef} -setup {
+    set here [critcl::cache]
+    file mkdir    $env(HOME)/.critcl-tests-[pid]
+    critcl::cache $env(HOME)/.critcl-tests-[pid]
+} -body {
+    critcl::util::undef C foo
+    inspect C
+} -cleanup {
+    critcl::cache $here
+    unset here
+    file delete -force $env(HOME)/.critcl-tests-[pid]
+} -result [viewFile [localPath test/assets/undef-2.0]]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

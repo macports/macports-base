@@ -36,8 +36,10 @@
 #endif
 
 #ifndef __APPLE__
-/* required for fdopen(3)/seteuid(2), among others */
-#define _XOPEN_SOURCE 600
+/* required for fdopen(3)/seteuid(2)/getline(3), among others */
+#define _XOPEN_SOURCE 700
+/* initgroups() */
+#define _DEFAULT_SOURCE
 #endif
 
 #include <tcl.h>
@@ -46,18 +48,21 @@
 #include <paths.h>
 #endif
 
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/resource.h>
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <grp.h>
+#include <limits.h>
+#include <pwd.h>
+#include <signal.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
-#include <limits.h>
-#include <errno.h>
-#include <signal.h>
 
 #include "system.h"
 #include "Pextlib.h"
@@ -441,7 +446,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         /* drop privileges entirely for child */
         if (getuid() == 0 && (euid = geteuid()) != 0) {
             gid_t egid = getegid();
-            if (seteuid(0) || setgid(egid) || setuid(euid)) {
+            struct passwd *pwent = getpwuid(euid);
+            if (!pwent || seteuid(0) || setgid(egid) || initgroups(pwent->pw_name, egid) || setuid(euid)) {
                 _exit(1);
             }
         }

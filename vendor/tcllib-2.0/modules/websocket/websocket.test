@@ -1,0 +1,207 @@
+# websocket.test - Copyright (c) 2022 Keith Nash
+#
+# The tests use the WebSocket Echo Server hosted at ws.ifelse.io.
+# ------------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+
+testing {
+    useLocal websocket.tcl websocket
+}
+
+# The commands ws*Handler* process responses from the server.
+
+proc wsResetHandler {} {
+    set ::wsMsgCounter 0
+    set ::wsOutput     {}
+    return
+}
+
+proc wsExpectHandler {lines} {
+    set ::wsMsgMax $lines
+    return
+}
+
+proc wsOutputHandler {args} {
+    append ::wsOutput $args \n
+
+    # Stop sleeping if we've had $wsMsgMax messages.
+    incr ::wsMsgCounter
+    if {$::wsMsgCounter == $::wsMsgMax} {
+        wsStopSleep 1
+    }
+    return
+}
+
+# - The commands ws*Sleep allow time for the server to responses to arrive and
+#   be processed by the output handler.
+# - The default value of delay is a worst case for a slow server: the test will
+#   time out if this value is reached.  The output handler counts the messages
+#   and interrupts the sleep when the expected number of messages has arrived.
+# - In the body of test, a second call to wsSleep gives the server the
+#   opportunity to send excess messages.
+
+proc wsSleep {{delay 10000}} {
+    if {$::wsWAITER != 0} {
+        # The wake-up call has arrived already.
+        return
+    }
+    set ev [after $delay set ::wsWAITER -1]
+    vwait ::wsWAITER
+    after cancel $ev
+    return
+}
+
+proc wsResetSleep {} {
+    set ::wsWAITER 0
+    return
+}
+
+proc wsStopSleep {val} {
+    set ::wsWAITER $val
+    return
+}
+
+set wsNum 0
+
+# Set the test URL.
+# The value of expectNum, and some of the result strings, depend on the
+# server configuration and therefore on the URL.
+set wsUrl ws://ws.ifelse.io
+set expectNum 2
+
+test example-1.1 "Open a websocket" -constraints {} -setup {
+    wsResetSleep
+    wsResetHandler
+} -body {
+    wsExpectHandler $expectNum
+    set ws1 [::websocket::open $wsUrl wsOutputHandler]
+    wsSleep
+    wsResetSleep
+    wsSleep 1000
+    string map [list $ws1 SOCKET] $wsOutput
+} -cleanup {
+    ::websocket::close $ws1
+    wsSleep
+    wsResetSleep
+    wsResetHandler
+} -match glob -result {SOCKET connect {}
+SOCKET text {Request served by *}
+}
+
+test example-1.2 "Close a websocket" -constraints {} -setup {
+    wsResetHandler
+    wsResetSleep
+    wsExpectHandler $expectNum
+    set ws1 [::websocket::open $wsUrl wsOutputHandler]
+    wsSleep
+    wsResetHandler
+    wsResetSleep
+} -body {
+    ::websocket::close $ws1
+    wsSleep
+    wsResetSleep
+    wsSleep 1000
+    string map [list $ws1 SOCKET] $wsOutput
+} -cleanup {
+    wsResetSleep
+    wsResetHandler
+} -match exact -result {SOCKET close {1000 {Normal closure}}
+SOCKET disconnect {Disconnected from remote end}
+}
+
+test example-1.3 "Open second websocket - require different socket" -constraints {} -setup {
+    wsResetSleep
+    wsResetHandler
+    wsExpectHandler $expectNum
+    set ws1 [::websocket::open $wsUrl wsOutputHandler]
+    wsSleep
+    wsResetSleep
+    wsResetHandler
+} -body {
+    wsExpectHandler $expectNum
+    set ws2 [::websocket::open $wsUrl wsOutputHandler]
+    if {$ws1 eq $ws2} {
+        set res "Both sockets are $ws1"
+    } else {
+        set res "Sockets differ: $ws1 and $ws2"
+    }
+} -cleanup {
+    catch {::websocket::close $ws1}
+    catch {::websocket::close $ws2}
+    wsResetSleep
+    wsResetHandler
+} -match glob -result {Sockets differ: *}
+
+test example-1.4 "Open second websocket - usual server return" -constraints {} -setup {
+    wsResetSleep
+    wsResetHandler
+    wsExpectHandler $expectNum
+    set ws1 [::websocket::open $wsUrl wsOutputHandler]
+    wsSleep
+    wsResetSleep
+    wsResetHandler
+} -body {
+    wsExpectHandler $expectNum
+    set ws2 [::websocket::open $wsUrl wsOutputHandler]
+    if {$ws1 eq $ws2} {
+        return -code error "Both sockets are $ws1"
+    }
+    wsSleep
+    wsResetSleep
+    wsSleep 1000
+    string map [list $ws2 SOCKET] $wsOutput
+} -cleanup {
+    catch {::websocket::close $ws1}
+    catch {::websocket::close $ws2}
+    wsResetSleep
+    wsResetHandler
+} -match glob -result {SOCKET connect {}
+SOCKET text {Request served by *}
+}
+
+test example-2.1 "Send a message" -constraints {} -setup {
+    wsResetHandler
+    wsResetSleep
+    wsExpectHandler $expectNum
+    set ws1 [::websocket::open $wsUrl wsOutputHandler]
+    wsSleep
+    wsResetHandler
+    wsResetSleep
+} -body {
+    wsExpectHandler 1
+    set ::newMessage "Hello this is message <[incr wsNum]>"
+    ::websocket::send $ws1 text $::newMessage
+    wsSleep
+    wsResetSleep
+    wsSleep 1000
+    string map [list $ws1 SOCKET <${wsNum}> NUMBER] $wsOutput
+} -cleanup {
+    wsExpectHandler $expectNum
+    ::websocket::close $ws1
+    wsSleep
+    wsResetSleep
+    wsResetHandler
+} -match exact -result {SOCKET text {Hello this is message NUMBER}
+}
+
+testsuiteCleanup
+unset -nocomplain wsNum wsMsgCounter wsOutput wsMsgMax wsWAITER wsUrl expectNum ws1 ws2 newMessage
+foreach pr {
+    wsResetHandler wsExpectHandler wsOutputHandler
+    wsSleep wsResetSleep wsStopSleep
+} {
+    rename $pr {}
+}
+
+
+# Local variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:
+

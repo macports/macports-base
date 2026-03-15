@@ -1,0 +1,273 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl::bitmap - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_bitmap.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl::bitmap.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl::bitmap(n) 1.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl::bitmap - CriTcl - Wrap Support - Bitset en- and decoding</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Example</a></li>
+<li class="doctools_section"><a href="#section4">Authors</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.2?</span></b></li>
+<li>package require <b class="pkgname">critcl::bitmap <span class="opt">?1.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::bitmap::def</b> <i class="arg">name</i> <i class="arg">definition</i> <span class="opt">?<i class="arg">exclusions</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is the reference manpage for the
+<b class="package">critcl::bitmap</b> package. This package provides convenience
+commands for advanced functionality built on top of both critcl core
+and package <b class="package"><a href="critcl_iassoc.html">critcl::iassoc</a></b>.</p>
+<p>C level libraries often use bit-sets to encode many flags into a
+single value. Tcl bindings to such libraries now have the task of
+converting a Tcl representation of such flags (like a list of strings)
+into such bit-sets, and back.
+<em>Note</em> here that the C-level information has to be something which
+already exists. The package does <em>not</em> create these values. This is
+in contrast to the package <b class="package"><a href="critcl_enum.html">critcl::enum</a></b> which creates an
+enumeration based on the specified symbolic names.</p>
+<p>This package was written to make the declaration and management
+of such bit-sets and their associated conversions functions easy,
+hiding all attendant complexity from the user.</p>
+<p>Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.</p>
+<p>This package resides in the Core Package Layer of CriTcl.</p>
+<p><img alt="arch_core" src="../image/arch_core.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::bitmap::def</b> <i class="arg">name</i> <i class="arg">definition</i> <span class="opt">?<i class="arg">exclusions</i>?</span></a></dt>
+<dd><p>This command defines two C functions for the conversion of the
+<i class="arg">name</i>d bit-set into Tcl lists, and vice versa.
+The underlying mapping tables are automatically initialized on first
+access, and finalized on interpreter destruction.</p>
+<p>The <i class="arg">definition</i> dictionary provides the mapping from the
+Tcl-level symbolic names of the flags to their C expressions (often
+the name of the macro specifying the actual value).
+<em>Note</em> here that the C-level information has to be something which
+already exists. The package does <em>not</em> create these values. This is
+in contrast to the package <b class="package"><a href="critcl_enum.html">critcl::enum</a></b> which creates an
+enumeration based on the specified symbolic names.</p>
+<p>The optional <i class="arg">exlusion</i> list is for the flags/bit-sets for
+which conversion from bit-set to flag, i.e. decoding makes no
+sense. One case for such, for example, are flags representing a
+combination of other flags.</p>
+<p>The package generates multiple things (declarations and
+definitions) with names derived from <i class="arg">name</i>, which has to be a
+proper C identifier.</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">name</i>_encode</dt>
+<dd><p>The function for encoding a Tcl list of strings into the equivalent
+bit-set.
+Its signature is</p>
+<pre class="doctools_example">
+int <i class="arg">name</i>_encode (Tcl_Interp* interp, Tcl_Obj* flags, int* result);
+</pre>
+<p>The return value of the function is a Tcl error code,
+i.e. <b class="const">TCL_OK</b>, <b class="const">TCL_ERROR</b>, etc.</p></dd>
+<dt><i class="arg">name</i>_decode</dt>
+<dd><p>The function for decoding a bit-set into the equivalent Tcl list of
+strings.
+Its signature is</p>
+<pre class="doctools_example">
+Tcl_Obj* <i class="arg">name</i>_decode (Tcl_Interp* interp, int flags);
+</pre>
+</dd>
+<dt><i class="arg">name</i>.h</dt>
+<dd><p>A header file containing the declarations for the two conversion
+functions, for use by other parts of the system, if necessary.</p>
+<p>The generated file is stored in a place where it will not
+interfere with the overall system outside of the package, yet also be
+available for easy inclusion by package files (<b class="cmd">csources</b>).</p></dd>
+<dt><i class="arg">name</i></dt>
+<dd><p>The name of a critcl argument type encapsulating the encoder function
+for use by <b class="cmd">critcl::cproc</b>.</p></dd>
+<dt><i class="arg">name</i></dt>
+<dd><p>The name of a critcl result type encapsulating the decoder function
+for use by <b class="cmd">critcl::cproc</b>.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Example</a></h2>
+<p>The example shown below is the specification of the event flags pulled
+from the draft work on a Tcl binding to Linux's inotify APIs.</p>
+<pre class="doctools_example">
+package require Tcl 8.6
+package require critcl 3.2
+critcl::buildrequirement {
+    package require critcl::bitmap
+}
+critcl::bitmap::def tcl_inotify_events {
+    accessed       IN_ACCESS
+    all            IN_ALL_EVENTS
+    attribute      IN_ATTRIB
+    closed         IN_CLOSE
+    closed-nowrite IN_CLOSE_NOWRITE
+    closed-write   IN_CLOSE_WRITE
+    created        IN_CREATE
+    deleted        IN_DELETE
+    deleted-self   IN_DELETE_SELF
+    dir-only       IN_ONLYDIR
+    dont-follow    IN_DONT_FOLLOW
+    modified       IN_MODIFY
+    move           IN_MOVE
+    moved-from     IN_MOVED_FROM
+    moved-self     IN_MOVE_SELF
+    moved-to       IN_MOVED_TO
+    oneshot        IN_ONESHOT
+    open           IN_OPEN
+    overflow       IN_Q_OVERFLOW
+    unmount        IN_UNMOUNT
+} {
+    all closed move oneshot
+}
+# Declarations:          tcl_inotify_events.h
+# Encoder:      int      tcl_inotify_events_encode (Tcl_Interp* interp, Tcl_Obj* flags, int* result);
+# Decoder:      Tcl_Obj* tcl_inotify_events_decode (Tcl_Interp* interp, int flags);
+# crit arg-type          tcl_inotify_events
+# crit res-type          tcl_inotify_events
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Authors</a></h2>
+<p>Andreas Kupries</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such at <a href="https://github.com/andreas-kupries/critcl">https://github.com/andreas-kupries/critcl</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#tcl_interp_association">Tcl Interp Association</a>, <a href="../index.html#bitmask">bitmask</a>, <a href="../index.html#bitset">bitset</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#flags">flags</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a>, <a href="../index.html#singleton">singleton</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

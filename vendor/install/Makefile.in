@@ -1,0 +1,38 @@
+srcdir     = @srcdir@
+VPATH      = @srcdir@
+
+include ../../Mk/macports.autoconf.mk
+
+SRCS		= xinstall.c
+OBJS		= xinstall.o
+PROGRAM		= build/install
+
+.PHONY: xinstall mkdirs
+
+all: xinstall
+
+xinstall: mkdirs ${PROGRAM}
+
+${PROGRAM}: ${OBJS}
+	${CC} ${CFLAGS} -o ${PROGRAM} ${LIBS} ${OBJS}
+
+mkdirs:
+	mkdir -p build
+
+clean:
+	rm -Rf build ${PROGRAM} ${OBJS}
+
+distclean: clean
+	rm -f Makefile
+
+install: xinstall
+	${INSTALL} -d -m 755 "${DESTDIR}${TCL_PREFIX}/clonebin"
+	${INSTALL} -m 555 "${PROGRAM}" "${DESTDIR}${TCL_PREFIX}/clonebin"
+
+test: xinstall
+	if which -s kyua > /dev/null ; then \
+		cd tests && env "PATH=../build:$$PATH" kyua test ; \
+	fi
+
+codesign:: ${PROGRAM}
+	../../codesign.sh $?

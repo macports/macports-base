@@ -79,7 +79,7 @@ install:: all
 	$(INSTALL)    -o "$(DSTUSR)" -g "$(DSTGRP)" -m 444 "$(SHLIB_NAME)" "$(DESTDIR)$(INSTALLDIR)"
 
 test::
-	$(MAKE) -C tests/ test
+	"$(MAKE)" -C tests/ test
 
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 # Include dependency information

@@ -554,12 +554,11 @@ AC_DEFUN([MP_CHECK_OLDLAYOUT],[
 AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 	dnl if the user specifies --with-no-root-privileges,
 	dnl use current user and group.
-	dnl use ~/Library/Tcl as Tcl package directory
 	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(no-root-privileges, [AS_HELP_STRING([--with-no-root-privileges],[specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
+	AC_ARG_WITH(no-root-privileges, [AS_HELP_STRING([--with-no-root-privileges],[specify that MacPorts should be installed in your home directory])], [NO_ROOTPRIVS=$withval] )
 
-	if test "${ROOTPRIVS+set}" = set; then
+	if test "${NO_ROOTPRIVS+set}" = set; then
 		# Set install-user to current user
 		AC_MSG_CHECKING([for install user])
 		DSTUSR=`id -un`
@@ -1042,6 +1041,23 @@ AC_DEFUN([MP_TAR_FAST_READ],[
 		TAR_Q=
 	fi
 	AC_SUBST(TAR_Q)
+])
+
+dnl This macro tests for tar support of -k (keep existing files)
+dnl without erroring when files exist.
+AC_DEFUN([MP_TAR_KEEP_OLD],[
+	AC_MSG_CHECKING([whether tar -k works])
+	mkdir -p conftest_dir
+	touch conftest_dir/file
+	$TAR -cf conftest.tar conftest_dir
+	if $TAR -xkf conftest.tar >/dev/null 2>&1 ; then
+		AC_MSG_RESULT([yes])
+		TAR_K='k'
+	else
+		AC_MSG_RESULT([no])
+		TAR_K=
+	fi
+	AC_SUBST(TAR_K)
 ])
 
 dnl This macro tests for tar support of --no-same-owner

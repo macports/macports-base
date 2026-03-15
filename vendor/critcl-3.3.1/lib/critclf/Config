@@ -1,0 +1,9 @@
+# Fortran-specific flags
+#
+fcompile        g95 -c
+fversion        g95 -v
+flink           g95 -shared
+finclude        -I
+foutput         -o $outfile
+foptimize       -O2
+fextra_cflags   -DFTN_UNDERSCORE -D__unix

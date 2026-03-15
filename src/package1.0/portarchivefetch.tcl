@@ -42,7 +42,11 @@ target_runtype ${org.macports.archivefetch} always
 target_prerun ${org.macports.archivefetch} portarchivefetch::archivefetch_start
 
 namespace eval portarchivefetch {
+    # List of URLs to attempt, filled in by checkarchivefiles
     variable archivefetch_urls {}
+    # Whether fetching an archive has been attempted. Used to print an
+    # explanatory message when an archive was not available.
+    variable attempted 0
 }
 
 options archive_sites archivefetch.user archivefetch.password \
@@ -72,7 +76,9 @@ proc portarchivefetch::filter_sites {} {
         portfetch::mirror_sites::archive_frameworks_dir \
         portfetch::mirror_sites::archive_applications_dir \
         portfetch::mirror_sites::archive_cxx_stdlib \
-        portfetch::mirror_sites::archive_delete_la_files
+        portfetch::mirror_sites::archive_delete_la_files  \
+        portfetch::mirror_sites::archive_sigtype \
+        portfetch::mirror_sites::archive_pubkey
 
     # get defaults from ports tree resources
     set mirrorfile [get_full_archive_sites_path]
@@ -164,15 +170,112 @@ proc portarchivefetch::checkfiles {urls} {
 }
 
 
+# Return all signature types that may be used with the configured sites
+proc portarchivefetch::get_all_sigtypes {} {
+    global archive_sites portfetch::mirror_sites::archive_sigtype
+    set sigtypes [dict create]
+    foreach site $archive_sites {
+        # If the entry is a URL rather than a mirror site name then
+        # this will actually extract the URL scheme, but that's OK
+        # since it won't exist in the array and will be skipped.
+        set site [lindex [split $site :] 0]
+        if {[info exists archive_sigtype($site)]} {
+            dict set sigtypes $archive_sigtype($site) 1
+        }
+    }
+    if {[dict size $sigtypes] > 0} {
+        return [dict keys $sigtypes]
+    } else {
+        # Legacy default
+        return rmd160
+    }
+}
+
+# Verify signature for a fetched archive using any of the public keys
+# set for each archive site or in pubkeys.conf.
+proc portarchivefetch::verify_signature {archive_path sig_path} {
+    global archive_sites archivefetch.pubkeys \
+           portfetch::mirror_sites::archive_sigtype \
+           portfetch::mirror_sites::archive_pubkey
+
+    # Chop off the .TMP before getting extension
+    set archivetype [file extension [file rootname $archive_path]]
+    set sigtype [file extension $sig_path]
+    set pubkeys [dict create]
+    foreach site $archive_sites {
+        set site_split [split $site :]
+        set site [lindex $site_split 0]
+        set tag [lindex $site_split end]
+        if {".$tag" eq $archivetype && [info exists archive_sigtype($site)]
+            && [info exists archive_pubkey($site)]
+            && ".$archive_sigtype($site)" eq $sigtype
+        } then {
+            # Use dict to avoid duplicates if a key is added in both
+            # the archive site definition and pubkeys.conf.
+            dict set pubkeys $archive_pubkey($site) 1
+        }
+    }
+    foreach pubkey ${archivefetch.pubkeys} {
+        set keytype [file extension $pubkey]
+        if {($keytype eq ".pub" && $sigtype eq ".sig") || ($keytype eq ".pem" && $sigtype eq ".rmd160")} {
+            dict set pubkeys $pubkey 1
+        }
+    }
+
+    # Succeed if the signature can be verified with any of the keys
+    foreach pubkey [dict keys $pubkeys] {
+        if {($sigtype eq ".sig" && [verify_signature_signify $archive_path $pubkey $sig_path])
+            || ($sigtype eq ".rmd160" && [verify_signature_openssl $archive_path $pubkey $sig_path])
+        } then {
+            return 1
+        }
+    }
+    return 0
+}
+
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
-proc portarchivefetch::fetchfiles {args} {
-    global UI_PREFIX archivefetch.fulldestpath \
-           archivefetch.user archivefetch.password archivefetch.use_epsv \
-           archivefetch.ignore_sslcert archive.subdir \
-           portverbose ports_binary_only portdbpath
+proc portarchivefetch::fetchfiles {{async no} args} {
+    global UI_PREFIX archivefetch.fulldestpath archivefetch.user \
+           archivefetch.password archivefetch.use_epsv \
+           archivefetch.ignore_sslcert archive.subdir portverbose \
+           ports_binary_only portdbpath force_archive_refresh
     variable archivefetch_urls
     variable ::portfetch::urlmap
+    variable async_job
+    variable async_logid
+
+    set incoming_path [file join ${portdbpath} incoming]
+
+    if {[info exists async_job]} {
+        if {$async} {
+            # Async fetch already started
+            return 0
+        }
+        lassign $async_job jobid tmpfiles
+        unset async_job
+        # Fetch was started asynchronously, wait for job to finish
+        if {![curlwrap_async_is_complete $jobid]} {
+            # Display progress for this fetch while waiting for it to finish
+            curlwrap_async_show_progress $jobid
+            # Loop with a reasonable timeout so we don't wait too long
+            # to handle events like signals.
+            while {![curlwrap_async_is_complete $jobid 500]} {}
+        }
+        lassign [curlwrap_async_result $jobid] status result
+        if {$status != 0} {
+            file delete {*}$tmpfiles
+            if {[tbool ports_binary_only] || [_archive_available]} {
+                error "Failed to fetch archive for [option subport]: $result"
+            } else {
+                variable attempted 1
+                return 0
+            }
+        }
+        set async_done 1
+    } else {
+        set async_done 0
+    }
 
     if {![file isdirectory ${archivefetch.fulldestpath}]} {
         if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
@@ -183,16 +286,15 @@ proc portarchivefetch::fetchfiles {args} {
             }
         }
     }
-    set incoming_path [file join ${portdbpath} incoming]
     chownAsRoot $incoming_path
     if {[info exists elevated] && $elevated eq "yes"} {
         dropPrivileges
     }
 
     set fetch_options [list]
+    set credentials {}
     if {[string length ${archivefetch.user}] || [string length ${archivefetch.password}]} {
-        lappend fetch_options -u
-        lappend fetch_options "${archivefetch.user}:${archivefetch.password}"
+        set credentials ${archivefetch.user}:${archivefetch.password}
     }
     if {${archivefetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
@@ -200,20 +302,33 @@ proc portarchivefetch::fetchfiles {args} {
     if {${archivefetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
-    if {$portverbose eq "yes"} {
-        lappend fetch_options "--progress"
-        lappend fetch_options "builtin"
-    } else {
-        lappend fetch_options "--progress"
-        lappend fetch_options "ui_progress_download"
+    if {!$async} {
+        if {$portverbose eq "yes"} {
+            lappend fetch_options "--progress"
+            lappend fetch_options "builtin"
+        } else {
+            lappend fetch_options "--progress"
+            lappend fetch_options "ui_progress_download"
+        }
     }
     set sorted no
 
     set existing_archive [find_portarchive_path]
+    if {$existing_archive eq "" && ![tbool force_archive_refresh]
+        && [file isdirectory [file rootname [get_portimage_path]]]} {
+        set existing_archive yes
+    }
 
     foreach {url_var archive} $archivefetch_urls {
         if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
-            ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
+            if {$async} {
+                # Skip if something else is already fetching this file
+                if {[curlwrap_async_file_is_in_progress ${incoming_path}/${archive}]} {
+                    return 0
+                }
+            } elseif {!$async_done} {
+                ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
+            }
             if {![file writable ${archivefetch.fulldestpath}]} {
                 return -code error [format [msgcat::mc "%s must be writable"] ${archivefetch.fulldestpath}]
             }
@@ -228,90 +343,127 @@ proc portarchivefetch::fetchfiles {args} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using archive_sites"] $url_var]
                 set urlmap($url_var) $urlmap(archive_sites)
             }
+            if {![info exists sigtypes]} {
+                set sigtypes [get_all_sigtypes]
+            }
+            set archive_tmp_path ${incoming_path}/${archive}.TMP
             set failed_sites 0
-            set archive_fetched 0
+            set archive_fetched [expr {$async_done ? [file isfile $archive_tmp_path] : 0}]
             set lastError ""
-            # there should be an rmd160 digest of the archive signed with one of the trusted keys
-            set signature ${incoming_path}/${archive}.rmd160
             set sig_fetched 0
-            foreach site $urlmap($url_var) {
-                if {[string index $site end] ne "/"} {
-                    append site /
+            if {$async_done} {
+                foreach sigtype $sigtypes {
+                    set signature ${incoming_path}/${archive}.${sigtype}
+                    if {[file isfile $signature]} {
+                        set sig_fetched 1
+                        break
+                    }
                 }
-                append site ${archive.subdir}
-                set file_url [portfetch::assemble_url $site $archive]
-                # fetch archive
-                if {!$archive_fetched} {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
-                    try {
-                        curl fetch {*}$fetch_options $file_url ${incoming_path}/${archive}.TMP
-                        set archive_fetched 1
-                    } trap {POSIX SIG SIGINT} {_ eOptions} {
-                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
-                        file delete -force ${incoming_path}/${archive}.TMP
-                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                    } trap {POSIX SIG SIGTERM} {_ eOptions} {
-                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
-                        file delete -force ${incoming_path}/${archive}.TMP
-                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                    } on error {eMessage} {
-                        ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
-                        set lastError $eMessage
-                        file delete -force ${incoming_path}/${archive}.TMP
-                        incr failed_sites
-                        if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
+            }
+            if {$async} {
+                file delete -force $archive_tmp_path
+                touch $archive_tmp_path
+                chownAsRoot $archive_tmp_path
+                set tmpfiles [list $archive_tmp_path]
+                foreach sigtype $sigtypes {
+                    set sigpath ${incoming_path}/${archive}.${sigtype}
+                    lappend tmpfiles $sigpath
+                    file delete -force $sigpath
+                    touch $sigpath
+                    chownAsRoot $sigpath
+                }
+                if {[tbool ports_binary_only] || [_archive_available]} {
+                    set this_urlmap $urlmap($url_var)
+                    set maxfails 0
+                } else {
+                    set this_urlmap [lrange $urlmap($url_var) 0 2]
+                    set maxfails 3
+                }
+                set jobid [curlwrap_async fetch_archive $credentials $fetch_options $this_urlmap \
+                        [lmap site $this_urlmap {portfetch::assemble_url \
+                        [expr {[string index $site end] eq "/" ? $site : "${site}/"}]${archive.subdir} $archive}] \
+                        ${incoming_path}/${archive} $sigtypes $maxfails $async_logid]
+                set async_job [list $jobid $tmpfiles]
+                return 0
+            } else {
+                foreach site $urlmap($url_var) {
+                    set orig_site $site
+                    if {[string index $site end] ne "/"} {
+                        append site /
+                    }
+                    append site ${archive.subdir}
+                    set file_url [portfetch::assemble_url $site $archive]
+                    # fetch archive
+                    if {!$archive_fetched} {
+                        ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
+                        try {
+                            curlwrap fetch $orig_site $credentials {*}$fetch_options $file_url $archive_tmp_path
+                            set archive_fetched 1
+                        } trap {POSIX SIG SIGINT} {_ eOptions} {
+                            ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                            file delete -force $archive_tmp_path
+                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                        } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                            ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                            file delete -force $archive_tmp_path
+                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                        } on error {eMessage} {
+                            ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
+                            set lastError $eMessage
+                            file delete -force $archive_tmp_path
+                            incr failed_sites
+                            if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
+                                break
+                            }
+                        }
+                    }
+                    # fetch signature
+                    if {$archive_fetched && !$sig_fetched} {
+                        # TODO: record signature type for each URL somehow
+                        foreach sigtype $sigtypes {
+                            set signature ${incoming_path}/${archive}.${sigtype}
+                            ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.${sigtype} $site]"
+                            try {
+                                curlwrap fetch $orig_site $credentials {*}$fetch_options ${file_url}.${sigtype} $signature
+                                set sig_fetched 1
+                                break
+                            } trap {POSIX SIG SIGINT} {_ eOptions} {
+                                ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                                file delete -force $archive_tmp_path $signature
+                                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                            } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                                ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                                file delete -force $archive_tmp_path $signature
+                                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                            } on error {eMessage} {
+                                ui_debug [msgcat::mc "Fetching archive signature failed: %s" $eMessage]
+                                set lastError $eMessage
+                                file delete -force $signature
+                            }
+                        }
+                        if {$sig_fetched} {
                             break
                         }
                     }
                 }
-                # fetch signature
-                if {$archive_fetched} {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
-                    try {
-                        curl fetch {*}$fetch_options ${file_url}.rmd160 $signature
-                        set sig_fetched 1
+                if {$archive_fetched && $sig_fetched} {
+                    set verified [verify_signature $archive_tmp_path $signature]
+                    file delete -force $signature
+                    if {!$verified} {
+                        # fall back to building from source (or error out later if binary only mode)
+                        ui_warn "Failed to verify signature for archive!"
+                        file delete -force $archive_tmp_path
                         break
-                    } trap {POSIX SIG SIGINT} {_ eOptions} {
-                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
-                        file delete -force ${incoming_path}/${archive}.TMP $signature
-                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                    } trap {POSIX SIG SIGTERM} {_ eOptions} {
-                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
-                        file delete -force ${incoming_path}/${archive}.TMP $signature
-                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                    } on error {eMessage} {
-                        ui_debug [msgcat::mc "Fetching archive signature failed: %s" $eMessage]
-                        set lastError $eMessage
-                        file delete -force $signature
+                    } elseif {[catch {file rename -force $archive_tmp_path ${archivefetch.fulldestpath}/${archive}} result]} {
+                        ui_debug "$::errorInfo"
+                        return -code error "Failed to move downloaded archive into place: $result"
                     }
-                }
-            }
-            if {$archive_fetched && $sig_fetched} {
-                set openssl [findBinary openssl $portutil::autoconf::openssl_path]
-                set verified 0
-                global archivefetch.pubkeys
-                foreach pubkey ${archivefetch.pubkeys} {
-                    if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature "${incoming_path}/${archive}.TMP"} result]} {
-                        set verified 1
-                        break
-                    } else {
-                        ui_debug "failed verification with key $pubkey"
-                        ui_debug "openssl output: $result"
-                    }
-                }
-                file delete -force $signature
-                if {!$verified} {
-                    # fall back to building from source (or error out later if binary only mode)
-                    ui_warn "Failed to verify signature for archive!"
-                    file delete -force "${incoming_path}/${archive}.TMP"
+                    set archive_exists 1
                     break
-                } elseif {[catch {file rename -force "${incoming_path}/${archive}.TMP" "${archivefetch.fulldestpath}/${archive}"} result]} {
-                    ui_debug "$::errorInfo"
-                    return -code error "Failed to move downloaded archive into place: $result"
                 }
-                set archive_exists 1
-                break
             }
+        } elseif {$async} {
+            return 0
         } else {
             set archive_exists 1
             break
@@ -323,9 +475,11 @@ proc portarchivefetch::fetchfiles {args} {
         foreach target {archivefetch fetch checksum extract patch configure build destroot} {
             write_statefile target "org.macports.${target}" $target_state_fd
         }
+        # Cancel any async distfile fetch that may be in progress
+        portfetch::_async_cleanup
         return 0
     }
-    if {([info exists ports_binary_only] && $ports_binary_only eq "yes") || [_archive_available]} {
+    if {[tbool ports_binary_only] || [_archive_available]} {
         global version revision portvariants
         if {[info exists lastError] && $lastError ne ""} {
             error [msgcat::mc "version @${version}_${revision}${portvariants}: %s" $lastError]
@@ -333,7 +487,71 @@ proc portarchivefetch::fetchfiles {args} {
             error "version @${version}_${revision}${portvariants}"
         }
     } else {
+        variable attempted 1
         return 0
+    }
+}
+
+# Check if all archives are already present.
+proc portarchivefetch::archives_present {} {
+    global archivefetch.fulldestpath force_archive_refresh
+    variable archivefetch_urls
+
+    set existing_archive [find_portarchive_path]
+    if {$existing_archive eq "" && ![tbool force_archive_refresh]
+        && [file isdirectory [file rootname [get_portimage_path]]]} {
+        set existing_archive yes
+    }
+
+    foreach {url_var archive} $archivefetch_urls {
+        if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
+            return 0
+        }
+    }
+    return 1
+}
+
+# Start asynchronous fetch of archive
+proc portarchivefetch::archivefetch_async_start {logid} {
+    global all_archive_files
+    _archivefetch_start yes
+    if {![info exists all_archive_files]} {
+        # No files to fetch
+        return 0
+    }
+    variable async_logid $logid
+    fetchfiles yes
+}
+
+proc portarchivefetch::_async_cleanup {} {
+    variable async_job
+    if {[info exists async_job]} {
+        curlwrap_async_cancel [lindex $async_job 0]
+        unset async_job
+    }
+}
+
+proc portarchivefetch::start_pings {} {
+    variable archivefetch_urls
+    variable ::portfetch::urlmap
+    # ping hosts that are not in the cache yet
+    foreach {url_var archive} $archivefetch_urls {
+        if {[info exists urlmap($url_var)]} {
+            async_ping_start $urlmap($url_var)
+        }
+    }
+    # wait until we have a result for at least the main mirror
+    global archive_sites
+    if {[lsearch $archive_sites macports_archives::*] != -1} {
+        set mirrors macports_archives
+    } else {
+        set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
+    }
+    if {[info exists portfetch::mirror_sites::sites($mirrors)]} {
+        set primary_mirror [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+        if {$primary_mirror ne {}} {
+            wait_for_pingtime $primary_mirror
+        }
     }
 }
 
@@ -342,20 +560,47 @@ proc portarchivefetch::fetchfiles {args} {
 #    return 0
 #}
 
-proc portarchivefetch::archivefetch_start {args} {
+proc portarchivefetch::check_destroot_done {} {
+    global destroot
+    set ret 0
+    if {[file isdirectory $destroot]} {
+        global target_state_fd
+        if {![info exists target_state_fd]} {
+            set target_state_fd [open_statefile]
+            set closefd 1
+        }
+        set ret [check_statefile target org.macports.destroot $target_state_fd]
+        if {[info exists closefd]} {
+            close $target_state_fd
+            unset target_state_fd
+        }
+    }
+    return $ret
+}
+
+proc portarchivefetch::_archivefetch_start {quiet} {
     variable archivefetch_urls
-    global UI_PREFIX subport all_archive_files destroot target_state_fd \
+    global UI_PREFIX subport all_archive_files \
            ports_source_only ports_binary_only
     if {![tbool ports_source_only] && ([tbool ports_binary_only] ||
-            !([check_statefile target org.macports.destroot $target_state_fd] && [file isdirectory $destroot]))} {
+            ![check_destroot_done])} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+        if {![archives_present]} {
+            start_pings
+        }
+        if {!$quiet} {
+            ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+        }
     } elseif {[tbool ports_binary_only]} {
         error "Binary-only mode requested with no usable archive sites configured"
     }
     portfetch::check_dns
+}
+
+proc portarchivefetch::archivefetch_start {args} {
+    _archivefetch_start no
 }
 
 # Main archive fetch routine

@@ -1,0 +1,47 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include pkg_version.inc]
+[manpage_begin critcl_package n [vset VERSION]]
+[include include/module.inc]
+[titledesc {CriTcl Package Reference}]
+[require Tcl 8.6]
+[require critcl [opt [vset VERSION]]]
+[require platform [opt 1.0.2]]
+[require md5 [opt 2]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+The [package critcl] package is the core of the system.  For an overview of the
+complete system, see [manpage {Introduction To CriTcl}].  For the usage of the
+standalone [cmd critcl] program, see [manpage {CriTcl Application}].
+
+This core package maybe be used to embed C code into Tcl scripts.  It also
+provides access to the internals that other parts of the core use and which
+are of interest to those wishing to understand the internal workings of the
+core and of the API it provides to the [manpage {CriTcl Application}].  These
+advanced sections are marked as such so that those simply wishing to use the
+package can skip them.
+
+
+[para]
+
+This package resides in the Core Package Layer of CriTcl.
+
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section API]		[include include/api.inc]
+[section {Concepts}]	[include include/concepts.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section Examples]
+
+See section "Embedding C" in [manpage {Using CriTcl}].
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback.inc]
+[manpage_end]

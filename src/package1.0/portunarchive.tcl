@@ -86,6 +86,11 @@ proc portunarchive::unarchive_init {args} {
         set unarchive.type [string range [file extension ${unarchive.file}] 1 end]
         if {${unarchive.path} ne ""} {
             ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
+        } elseif {[registry_exists $subport $version $revision $portvariants]
+                  && [file isdirectory [set unarchive.path [file rootname [get_portimage_path]]]]} {
+            set unarchive.type directory
+            set unarchive.file [file tail ${unarchive.path}]
+            ui_debug "Found extracted port image: ${unarchive.path}"
         } else {
             if {[info exists ports_binary_only] && $ports_binary_only eq "yes"} {
                 return -code error "Archive for ${subport} ${version}_${revision}${portvariants} not found, required when binary-only is set!"
@@ -255,26 +260,35 @@ proc portunarchive::unarchive_command_setup {args} {
 }
 
 proc portunarchive::unarchive_main {args} {
-    global UI_PREFIX unarchive.dir unarchive.file unarchive.pipe_cmd unarchive.skip
+    global UI_PREFIX unarchive.dir unarchive.file unarchive.path \
+           unarchive.pipe_cmd unarchive.skip
 
     if {${unarchive.skip}} {
         return 0
     }
 
-    # Setup unarchive command
-    unarchive_command_setup
+    if {[file isfile ${unarchive.path}]} {
+        # Setup unarchive command
+        unarchive_command_setup
 
-    # Create destination directory for unpacking
-    if {![file isdirectory ${unarchive.dir}]} {
-        file mkdir ${unarchive.dir}
-    }
+        # Create destination directory for unpacking
+        if {![file isdirectory ${unarchive.dir}]} {
+            file mkdir ${unarchive.dir}
+        }
 
-    # Unpack the archive
-    ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
-    if {${unarchive.pipe_cmd} eq ""} {
-        command_exec unarchive
+        # Unpack the archive
+        ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
+        if {${unarchive.pipe_cmd} eq ""} {
+            command_exec unarchive
+        } else {
+            command_exec unarchive "${unarchive.pipe_cmd} (" ")"
+        }
     } else {
-        command_exec unarchive "${unarchive.pipe_cmd} (" ")"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Copying %s to destroot"] ${unarchive.file}]"
+        if {[file exists ${unarchive.dir}]} {
+            delete ${unarchive.dir}
+        }
+        copy ${unarchive.path} ${unarchive.dir}
     }
 
     return 0

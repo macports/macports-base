@@ -2195,6 +2195,8 @@ tag of the freecode XML file),
 (retrieve the version by applying a regex to some URL resource),
 .Em regexm
 (retrieve the version by applying a multi-line regex to some URL resource),
+.Em git
+(retrieve the commit from a remote git branch),
 .Em md5
 (compares the md5 sum of some URL resource) or
 .Em none
@@ -2213,7 +2215,7 @@ is one of these, else
 .Em freecode
 .br
 .Sy Values:
-.Em freecode sourceforge googlecode moddate regex regexm md5 none
+.Em freecode sourceforge googlecode moddate regex regexm git md5 none
 .It Ic livecheck.name
 Name of the project for live checks (used for freecode, sourceforge, and googlecode checks).
 .br
@@ -2266,6 +2268,11 @@ or
 .It Ic livecheck.regex
 Regular expression to parse the resource for regex checks.
 Be sure to use a regular expression grouping around the version component.
+.br
+.Sy Type:
+.Em optional
+.It Ic livecheck.branch
+git branch to use for getting latest commit.
 .br
 .Sy Type:
 .Em optional

@@ -1,0 +1,62 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include pkg_version.inc]
+[manpage_begin critcl_application_package n [vset VERSION]]
+[include include/module.inc]
+[titledesc {CriTcl Application Package Reference}]
+[require Tcl 8.6]
+[require critcl::app [opt [vset VERSION]]]
+[require critcl [opt [vset VERSION]]]
+[require platform [opt 1.0.2]]
+[require cmdline]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the [package critcl::app]
+package. Its intended audience are developers working on critcl's
+internals.  [vset not_needed_for_critcl_script]
+
+[vset see_overview]
+
+[para]
+
+This package resides in the Application Layer of CriTcl.
+[para][image arch_application][para],
+
+implementing the functionality of the [manpage {CriTcl Application}],
+and through this, the mode [sectref {Modes Of Operation/Use} {generate package}].
+
+The actual application is (only) a shim wrapping around this
+package. It itself is build on top of the core package
+[package critcl].
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section API]
+
+The package exports a single command
+
+[list_begin definitions]
+[call [cmd ::critcl::app::main] [arg commandline]]
+
+The [arg commandline] is a list of zero or more options followed by zero or
+more [vset critcl_script] files.  By default, the [vset critcl_script] files
+are build and the results cached.   This cuts down on the time needed to
+load the package.  The last occurrence of [option -pkg] and [option -tea], if
+provided, selects the corresponding alternative mode of operations.
+
+For a larger set of examples please see section "Building CriTcl Packages"
+in the document about [manpage {Using CriTcl}].
+
+
+[list_end]
+
+The options are:
+[section {Options}]			[include include/aoptions.inc]
+[section {Modes Of Operation/Use}]	[include include/modes.inc]
+[section {Package Structure}]		[include include/pstructure.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback.inc]
+[manpage_end]

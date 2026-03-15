@@ -1,0 +1,17 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__command0 "::command"
+static int
+tcl__command0_actual(ClientData CD, Tcl_Interp *IP, Tcl_Size OC, Tcl_Obj *CONST OV[])
+{
+return TCL_OK;
+}
+
+static int
+tcl__command0(ClientData CD, Tcl_Interp *IP, Tcl_Size OC, Tcl_Obj *CONST OV[])
+{
+  int _rv;
+  critcl_trace_cmd_args (ns__command0, OC, OV);
+  _rv = tcl__command0_actual (CD, IP, OC, OV);
+  return critcl_trace_cmd_result (_rv, IP);
+}

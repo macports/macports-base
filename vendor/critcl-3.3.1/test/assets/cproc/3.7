@@ -1,0 +1,24 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static double c__aproc0()
+{
+return 0.;
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  double rv;
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return TCL_ERROR;
+  }
+
+  /* Call - - -- --- ----- -------- */
+  rv = c__aproc0();
+
+  /* (double return) - - -- --- ----- -------- */
+	Tcl_SetObjResult(interp, Tcl_NewDoubleObj(rv));
+	return TCL_OK;
+}

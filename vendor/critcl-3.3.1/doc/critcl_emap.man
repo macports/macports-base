@@ -1,0 +1,185 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset emap_version 1.3]
+[manpage_begin critcl::emap n [vset emap_version]]
+[include include/module2.inc]
+[keywords singleton {Tcl Interp Association}]
+[keywords bitmask bitset flags]
+[titledesc {CriTcl - Wrap Support - Enum en- and decoding}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::emap [opt [vset emap_version]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the
+[package critcl::emap] package. This package provides convenience
+commands for advanced functionality built on top of both critcl core
+and package [package critcl::iassoc].
+
+[para] C level libraries often use enumerations or integer values to encode
+information, like the state of a system. Tcl bindings to such libraries now
+have the task of converting a Tcl representation, i.e. a string into such
+state, and back.
+
+[emph Note] here that the C-level information has to be something which
+already exists. The package does [emph not] create these values. This is
+in contrast to the package [package critcl::enum] which creates an
+enumeration based on the specified symbolic names.
+
+[para] This package was written to make the declaration and management
+of such enumerations and their associated conversions functions easy,
+hiding all attendant complexity from the user.
+
+[para] Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.
+
+[para] This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::critcl::emap::def] [arg name] [arg definition] \
+     [opt [option -nocase]] \
+     [opt "[option -mode] [arg mode]"]]
+
+This command defines C functions for the conversion of the [arg name]d
+state code into a Tcl string, and vice versa.
+
+The underlying mapping tables are automatically initialized on first
+access (if not fully constant), and finalized on interpreter
+destruction.
+
+[para] The [arg definition] dictionary provides the mapping from the
+Tcl-level symbolic names of the state to their C expressions (often
+the name of the macro specifying the actual value).
+
+[emph Note] here that the C-level information has to be something which
+already exists. The package does [emph not] create these values. This is
+in contrast to the package [package critcl::enum] which creates an
+enumeration based on the specified symbolic names.
+
+[para] Further note that multiple strings can be mapped to the same C
+expression. When converting to Tcl the first string for the mapping is
+returned. An important thing to know: If all C expressions are
+recognizable as integer numbers and their covered range is not too
+large (at most 50) the package will generate code using direct and
+fast mapping tables instead of using a linear search.
+
+[para] If the option [option -nocase] is specified then the encoder
+will match strings case-insensitively, and the decoder will always
+return a lower-case string, regardless of the string's case in the
+[arg definition].
+
+[para] If the option [option -mode] is specified its contents will
+interpreted as a list of access modes to support.  The two allowed
+modes are [const c] and [const tcl]. Both modes can be used
+together. The default mode is [const tcl].
+
+[para] The package generates multiple things (declarations and
+definitions) with names derived from [arg name], which has to be a
+proper C identifier. Some of the things are generated conditional on
+the chosen [arg mode]s.
+
+[list_begin definitions]
+[def [arg name]_encode]
+The [const tcl]-mode function for encoding a Tcl string into the
+equivalent state code.
+
+Its signature is
+[para][example_begin]
+int [arg name]_encode (Tcl_Interp* interp, Tcl_Obj* state, int* result);
+[example_end]
+
+[para] The return value of the function is a Tcl error code,
+i.e. [const TCL_OK], [const TCL_ERROR], etc.
+
+[def [arg name]_encode_cstr]
+The [const c]-mode function for encoding a C string into the
+equivalent state code.
+
+Its signature is
+[para][example_begin]
+int [arg name]_encode_cstr (const char* state);
+[example_end]
+
+[para] The return value of the function is the encoded state, or -1 if
+the argument is not a vlaid state.
+
+[def [arg name]_decode]
+The [const tcl]-mode function for decoding a state code into the
+equivalent Tcl string.
+
+Its signature is
+[para][example_begin]
+Tcl_Obj* [arg name]_decode (Tcl_Interp* interp, int state);
+[example_end]
+
+[def [arg name]_decode_cstr]
+The [const c]-mode function for decoding a state code into the
+equivalent C string.
+
+Its signature is
+[para][example_begin]
+const char* [arg name]_decode_cstr (int state);
+[example_end]
+
+[para] The return value of the function is the C string for the state,
+or [const NULL] if the [arg state] argument does not contain a valid
+state value.
+
+
+[def [arg name].h]
+A header file containing the declarations for the conversion
+functions, for use by other parts of the system, if necessary.
+
+[para] The generated file is stored in a place where it will not
+interfere with the overall system outside of the package, yet also be
+available for easy inclusion by package files ([cmd csources]).
+
+[def [arg name]]
+For mode [const tcl] the command registers a new argument-type for
+[cmd critcl::cproc] with critcl, encapsulating the encoder function.
+
+[def [arg name]]
+For mode [const tcl] the command registers a new result-type for
+[cmd critcl::cproc] with critcl, encapsulating the decoder function.
+
+[list_end]
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Example]
+
+The example shown below is the specification for the possible modes of
+entry (normal, no feedback, stars) used by the Tcl binding to the
+linenoise library.
+
+[example {
+package require Tcl 8.6
+package require critcl 3.2
+
+critcl::buildrequirement {
+    package require critcl::emap
+}
+
+critcl::emap::def hiddenmode {
+            no  0 n 0 off 0 false 0 0 0
+    all   1 yes 1 y 1 on  1 true  1 1 1
+    stars 2
+} -nocase
+
+# Declarations: hiddenmode.h
+# Encoder:      int      hiddenmode_encode (Tcl_Interp* interp, Tcl_Obj* state, int* result);
+# Decoder:      Tcl_Obj* hiddenmode_decode (Tcl_Interp* interp, int state);
+# ResultType:   hiddenmode
+# ArgumentType: hiddenmode
+}]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

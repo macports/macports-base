@@ -1,0 +1,163 @@
+Add clonefile() support. Applies to original from file_cmds-457.100.3.
+
+--- xinstall.c.orig	2025-08-23 16:18:09
++++ xinstall.c	2025-08-23 18:22:31
+@@ -32,7 +32,7 @@
+ 
+ #ifdef __APPLE__
+ #ifdef TARGET_OS_OSX
+-#define	WITH_DIGESTS
++/*#define	WITH_DIGESTS*/
+ #endif
+ #include <sys/param.h>
+ #endif /* __APPLE__ */
+@@ -72,7 +72,8 @@
+ #ifdef __APPLE__
+ #include <TargetConditionals.h>
+ #include <copyfile.h>
+-#include "pathnames.h"
++#include <sys/attr.h>
++#include <sys/clonefile.h>
+ 
+ #define	st_atim	st_atimespec
+ #define	st_mtim	st_mtimespec
+@@ -165,6 +166,7 @@ static char *destdir, *fflags, *metafile, *tags;
+ static char *destdir, *fflags, *metafile, *tags;
+ #endif
+ 
++static int	clone(const char *, const char *, int, char *, size_t);
+ static int	compare(int, const char *, size_t, int, const char *, size_t,
+ 		    char **);
+ static char	*copy(int, const char *, int, const char *, off_t);
+@@ -196,6 +198,7 @@ static int	strip(const char *, int, const char *, char
+ 		    const char *, const char *, off_t);
+ static int	parseid(const char *, id_t *);
+ static int	strip(const char *, int, const char *, char **);
++static void tempfile_template (const char *, char *, size_t);
+ static void	usage(void);
+ 
+ #ifdef __APPLE__
+@@ -959,6 +962,16 @@ install(const char *from_name, const char *to_name, u_
+ 	}
+ 
+ 	if (!files_match) {
++		int done_clone = 0;
++		if (!devnull && !dostrip) {
++		    done_clone = (clone(from_name, to_name, 1, tempfile, sizeof(tempfile)) == 0);
++		}
++		if (done_clone &&
++		    (((to_fd = open(tempfile, O_RDONLY, 0)) < 0))) {
++		        (void)unlink(tempfile);
++		        done_clone = 0;
++		}
++		if (!done_clone) {
+ 		to_fd = create_tempfile(to_name, tempfile,
+ 		    sizeof(tempfile));
+ 		if (to_fd < 0)
+@@ -976,17 +989,29 @@ install(const char *from_name, const char *to_name, u_
+ 			 */
+ 			if (errno == EPERM) {
+ 				warnx("sandbox detected, falling back to direct copy");
+-				if ((!target || unlink(to_name) == 0 || errno == ENOENT) &&
+-				    (to_fd = open(to_name, O_RDWR|O_CREAT|O_EXCL, mode)) >= 0) {
+-					if (dostrip) {
+-						stripped = strip(to_name, to_fd, from_name,
+-						    &digestresult);
+-					}
+-					if (!stripped) {
+-						digestresult = copy(from_fd, from_name, to_fd,
+-						    to_name, from_sb.st_size);
++				if (!target || unlink(to_name) == 0 || errno == ENOENT) {
++				    if (!devnull && !dostrip) {
++				        done_clone = (clone(from_name, to_name, 0, NULL, 0) == 0);
++				        if (done_clone) {
++                            if ((to_fd = open(to_name, O_RDONLY, 0)) < 0) {
++                                (void)unlink(to_name);
++                            } else {
++                                digestresult = digest_file(to_name);
++                                goto copied;
++                            }
++                        }
++				    }
++				    if ((to_fd = open(to_name, O_RDWR|O_CREAT|O_EXCL, mode)) >= 0) {
++                        if (dostrip) {
++                            stripped = strip(to_name, to_fd, from_name,
++                                &digestresult);
++                        }
++                        if (!stripped) {
++                            digestresult = copy(from_fd, from_name, to_fd,
++                                to_name, from_sb.st_size);
++                        }
++                        goto copied;
+ 					}
+-					goto copied;
+ 				}
+ 				errno = EPERM;
+ 				/* fall through to err() below */
+@@ -1006,6 +1031,7 @@ install(const char *from_name, const char *to_name, u_
+ 				    tempfile, from_sb.st_size);
+ 			}
+ 		}
++		} /* !done_clone */
+ 	}
+ 
+ 	if (dostrip) {
+@@ -1292,11 +1318,11 @@ compare(int from_fd, const char *from_name __unused, s
+ }
+ 
+ /*
+- * create_tempfile --
+- *	create a temporary file based on path and open it
++ * tempfile_template --
++ *	prepare a template filename for use with mktemp/mkstemp.
+  */
+-static int
+-create_tempfile(const char *path, char *temp, size_t tsize)
++static void
++tempfile_template(const char *path, char *temp, size_t tsize)
+ {
+ 	char *p;
+ 
+@@ -1308,6 +1334,16 @@ create_tempfile(const char *path, char *temp, size_t t
+ 		p = temp;
+ 	(void)strncpy(p, "INS@XXXXXX", &temp[tsize - 1] - p);
+ 	temp[tsize - 1] = '\0';
++}
++
++/*
++ * create_tempfile --
++ *	create a temporary file based on path and open it
++ */
++static int
++create_tempfile(const char *path, char *temp, size_t tsize)
++{
++	tempfile_template(path, temp, tsize);
+ 	return (mkstemp(temp));
+ }
+ 
+@@ -1408,8 +1444,25 @@ done:
+ 		err(EX_OSERR, "fsync failed for %s", to_name);
+ 	}
+ 	return (digest_end(&ctx, NULL));
++}
++
++/*
++ * clone --
++ *	create a clone of a file
++ */
++static int
++clone(const char *from_name, const char *to_name,
++      int use_temp, char *temp_name, size_t tsize)
++{
++    if (use_temp) {
++        tempfile_template(to_name, temp_name, tsize);
++        quiet_mktemp(temp_name);
++        to_name = temp_name;
++    }
++    return clonefile(from_name, to_name, CLONE_NOOWNERCOPY);
+ }
+ 
++
+ /*
+  * strip --
+  *	Use strip(1) to strip the target file.

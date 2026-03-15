@@ -1,0 +1,326 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# emap.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+    useLocal lib/critcl/critcl.tcl             critcl
+    useLocal lib/critcl-iassoc/iassoc.tcl      critcl::iassoc
+
+    localcache-setup
+}
+testing {
+    useLocal lib/critcl-emap/emap.tcl critcl::emap
+}
+
+proc exE {args} {
+    list [catch {
+        uplevel 1 $args
+    } msg] [set msg]
+}
+
+# -------------------------------------------------------------------------
+##
+
+test emap-mode-tcl-1.0 {critcl-emap, mode: tcl (default)} -setup {
+    make-demo TL {
+        critcl::ccode {
+            #define STATE_INIT 0
+            #define STATE_MIX  1
+            #define STATE_DONE 2
+        }
+        critcl::emap::def demo {
+            init STATE_INIT
+            mix  STATE_MIX
+            done STATE_DONE
+        }
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            int scode;
+            if (demo_encode (ip, state, &scode) != TCL_OK) return -1;
+            return scode;
+        }
+        critcl::cproc decode {Tcl_Interp* ip int scode} object {
+            Tcl_Obj* res = demo_decode (ip, scode);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo state} int {
+            return state;
+        }
+        # Decode hidden in the resultype
+        critcl::cproc xdecode {Tcl_Interp* ip int state} demo {
+            return state;
+        }
+    }
+} -body {
+    res!
+    res+ [encode  mix]
+    res+ [xencode done]
+    res+ [decode  0]
+    res+ [xdecode 1]
+    res+ [encode  foo]
+    res+ [exE xencode bar]
+    res+ [exE xdecode -2]
+    res?
+} -result {1 2 init mix -1 {{1 {bad demo "bar": must be done, init, or mix}}} {{1 {Invalid demo state code -2}}}}
+
+test emap-mode-tcl-1.1 {critcl-emap, mode: tcl (default) +nocase} -setup {
+    make-demo TL {
+        critcl::ccode {
+            #define STATE_INIT 0
+            #define STATE_MIX  1
+            #define STATE_DONE 2
+        }
+        critcl::emap::def demo {
+            init STATE_INIT
+            mix  STATE_MIX
+            done STATE_DONE
+        } -nocase
+
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            int scode;
+            if (demo_encode (ip, state, &scode) != TCL_OK) {
+                return -1;
+            }
+            return scode;
+        }
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo state} int {
+            return state;
+        }
+    }
+} -body {
+    res!
+    res+ [encode  MIX]
+    res+ [xencode INIT]
+    res?
+} -result {1 0}
+
+test emap-mode-tcl-1.2 {critcl-emap, mode: tcl (default), int/direct} -setup {
+    make-demo TL {
+        critcl::emap::def demo {
+            init  0
+            mix   1
+            done  2
+        }
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            int scode;
+            if (demo_encode (ip, state, &scode) != TCL_OK) return -1;
+            return scode;
+        }
+        critcl::cproc decode {Tcl_Interp* ip int scode} object {
+            Tcl_Obj* res = demo_decode (ip, scode);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo state} int {
+            return state;
+        }
+        # Decode hidden in the resultype
+        critcl::cproc xdecode {Tcl_Interp* ip int state} demo {
+            return state;
+        }
+    }
+} -body {
+    res!
+    res+ [encode  mix]
+    res+ [xencode done]
+    res+ [decode  0]
+    res+ [xdecode 1]
+    res+ [encode  foo]
+    res+ [exE xencode bar]
+    res+ [exE xdecode -2]
+    res?
+} -result {1 2 init mix -1 {{1 {bad demo "bar": must be done, init, or mix}}} {{1 {Invalid demo state code -2}}}}
+
+# -------------------------------------------------------------------------
+##
+
+test emap-mode-c-1.0 {critcl-emap, mode: c} -setup {
+    make-demo TL {
+        critcl::ccode {
+            #define STATE_INIT 0
+            #define STATE_MIX  1
+            #define STATE_DONE 2
+        }
+        critcl::emap::def demo {
+            init STATE_INIT
+            mix  STATE_MIX
+            done STATE_DONE
+        } -mode c
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            return demo_encode_cstr (Tcl_GetString(state));
+        }
+        critcl::cproc decode {Tcl_Interp* ip int scode} object {
+            Tcl_Obj* res = Tcl_NewStringObj (demo_decode_cstr (scode), -1);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+    }
+} -body {
+    res!
+    res+ [encode mix]
+    res+ [encode foo]
+    res+ [decode 0]
+    res+ [decode 55]
+    res?
+} -result {1 -1 init {{}}}
+
+test emap-mode-c-1.2 {critcl-emap, mode: c, int/direct} -setup {
+    make-demo TL {
+        critcl::emap::def demo {
+            init 0
+            mix  1
+            done 2
+        } -mode c
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            return demo_encode_cstr (Tcl_GetString(state));
+        }
+        critcl::cproc decode {Tcl_Interp* ip int scode} object {
+            Tcl_Obj* res = Tcl_NewStringObj (demo_decode_cstr (scode), -1);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+    }
+} -body {
+    res!
+    res+ [encode mix]
+    res+ [encode foo]
+    res+ [decode 0]
+    res+ [decode 55]
+    res?
+} -result {1 -1 init {{}}}
+
+# -------------------------------------------------------------------------
+##
+
+test emap-mode-tcl+c-1.0 {critcl-emap, mode: tcl+c} -setup {
+    make-demo TL {
+        critcl::ccode {
+            #define STATE_INIT 0
+            #define STATE_MIX  1
+            #define STATE_DONE 2
+        }
+        critcl::emap::def demo {
+            init STATE_INIT
+            mix  STATE_MIX
+            done STATE_DONE
+        } -mode {c tcl}
+        # Add -nocase as last argument for case-insensitive Tcl strings.
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            return demo_encode_cstr (Tcl_GetString(state));
+        }
+        critcl::cproc decode {Tcl_Interp* ip int scode} object {
+            Tcl_Obj* res = Tcl_NewStringObj (demo_decode_cstr (scode), -1);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo state} int {
+            return state;
+        }
+        # Decode hidden in the resultype
+        critcl::cproc xdecode {Tcl_Interp* ip int state} demo {
+            return state;
+        }
+    }
+} -body {
+    res!
+    res+ [encode  mix]  ;# 1
+    res+ [xencode done] ;# 2
+    res+ [decode  0]    ;# init
+    res+ [xdecode 1]    ;# mix
+    res+ [encode  foo]  ;# -1
+    res+ [decode  55]
+    res+ [exE xencode bar]
+    res+ [exE xdecode -2]
+    res?
+} -result {1 2 init mix -1 {{}} {{1 {bad demo "bar": must be done, init, or mix}}} {{1 {Invalid demo state code -2}}}}
+
+test emap-mode-tcl+c-1.2 {critcl-emap, mode: tcl+c, int/direct} -setup {
+    make-demo TL {
+        critcl::emap::def demo {
+            init 0
+            mix  1
+            done 2
+        } -mode {c tcl}
+        # Add -nocase as last argument for case-insensitive Tcl strings.
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* state} int {
+            return demo_encode_cstr (Tcl_GetString(state));
+        }
+        critcl::cproc decode {Tcl_Interp* ip int scode} object {
+            Tcl_Obj* res = Tcl_NewStringObj (demo_decode_cstr (scode), -1);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo state} int {
+            return state;
+        }
+        # Decode hidden in the resultype
+        critcl::cproc xdecode {Tcl_Interp* ip int state} demo {
+            return state;
+        }
+    }
+} -body {
+    res!
+    res+ [encode  mix]  ;# 1
+    res+ [xencode done] ;# 2
+    res+ [decode  0]    ;# init
+    res+ [xdecode 1]    ;# mix
+    res+ [encode  foo]  ;# -1
+    res+ [decode  55]
+    res+ [exE xencode bar]
+    res+ [exE xdecode -2]
+    res?
+} -result {1 2 init mix -1 {{}} {{1 {bad demo "bar": must be done, init, or mix}}} {{1 {Invalid demo state code -2}}}}
+
+# -------------------------------------------------------------------------
+## Notes:
+# * `+list` is a decoder extension
+# * `-nocase` OTOH is an encoder tweak. No need to test here.
+
+test emap-mode-tcl+list-1.0 {critcl-emap, mode: +list (implies tcl)} -setup {
+    make-demo TL {
+        critcl::ccode {
+            #define STATE_INIT 0
+            #define STATE_MIX  1
+            #define STATE_DONE 2
+        }
+        critcl::emap::def demo {
+            init STATE_INIT
+            mix  STATE_MIX
+            done STATE_DONE
+        } -mode +list
+        critcl::cproc decode-list {Tcl_Interp* ip int args} object {
+            Tcl_Obj* res = demo_decode_list (ip, args.c, args.v);
+            if (res) { Tcl_IncrRefCount (res); }
+            return res;
+        }
+    }
+} -body {
+    res!
+    res+ [decode-list 2 0 1 0 0 1 2]
+    res+ [decode-list]
+    res+ [exE decode-list 0 3]
+    res?
+} -result {{{done init mix init init mix done}} {{}} {{1 {Invalid demo state code 3}}}}
+
+# -------------------------------------------------------------------------
+rename exE {}
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

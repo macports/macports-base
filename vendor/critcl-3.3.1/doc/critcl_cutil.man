@@ -1,0 +1,413 @@
+[vset VERSION 0.3]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin critcl::cutil n [vset VERSION]]
+[include include/module2.inc]
+[titledesc {CriTcl - C-level Utilities}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::cutil [opt [vset VERSION]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the [package critcl::cutil]
+package. This package encapsulates a number of C-level utilites for
+easier writing of memory allocations, assertions, and narrative tracing
+and provides convenience commands to make these utilities accessible
+to critcl projects.
+
+Its intended audience are mainly developers wishing to write Tcl
+packages with embedded C code.
+[para]
+
+This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+The reason for this is that the main [package critcl] package makes
+use of the facilities for narrative tracing when
+[cmd {critcl::config trace}] is set, to instrument commands and
+procedures.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section API]
+
+[list_begin definitions]
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::cutil::alloc]]
+
+This command provides a number C-preprocessor macros which make the
+writing of memory allocations for structures and arrays of structures
+easier.
+
+[para] When run the header file [file critcl_alloc.h] is directly made
+available to the [file .critcl] file containing the command, and
+becomes available for use in [cmd {#include}] directives of companion
+C code declared via [cmd critcl::csources].
+
+[para] The macros definitions and their signatures are:
+
+[example {
+    type* ALLOC (type)
+    type* ALLOC_PLUS (type, int n)
+    type* NALLOC (type, int n)
+    type* REALLOC (type* var, type, int n)
+    void  FREE (type* var)
+
+    void STREP    (Tcl_Obj* o, char* s, int len);
+    void STREP_DS (Tcl_Obj* o, Tcl_DString* ds);
+    void STRDUP   (varname, char* str);
+}]
+
+[para] The details of the semantics are explained in section
+[sectref Allocation].
+
+[para] The result of the command is an empty string.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::cutil::assertions] [opt [arg enable]]]
+
+This command provides a number C-preprocessor macros for the writing
+of assertions in C code.
+
+[para] When invoked the header file [file critcl_assert.h] is directly
+made available to the [file .critcl] file containing the command, and
+becomes available for use in [cmd {#include}] directives of companion
+C code declared via [cmd critcl::csources].
+
+[para] The macro definitions and their signatures are
+
+[example {
+    void ASSERT (expression, char* message);
+    void ASSERT_BOUNDS (int index, int size);
+
+    void STOPAFTER (int n);
+}]
+
+[para] Note that these definitions are conditional on the existence of
+the macro [const CRITCL_ASSERT]. 
+
+Without a [cmd {critcl::cflags -DCRITCL_ASSERT}] all assertions in the
+C code are quiescent and not compiled into the object file. In other
+words, assertions can be (de)activated at will during build time, as
+needed by the user.
+
+[para] For convenience this is controlled by [arg enable]. By default
+([const false]) the facility available, but not active.
+
+Using [const true] not only makes it available, but activates it as
+well.
+
+[para] The details of the semantics are explained in section
+[sectref Assertions].
+
+[para] The result of the command is an empty string.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::cutil::tracer] [opt [arg enable]]]
+
+This command provides a number C-preprocessor macros for tracing
+C-level internals.
+
+[para] When invoked the header file [file critcl_trace.h] is directly
+made available to the [file .critcl] file containing the command, and
+becomes available for use in [cmd {#include}] directives of companion
+C code declared via [cmd critcl::csources]. Furthermore the [file .c]
+file containing the runtime support is added to the set of C companion
+files
+
+[para] The macro definitions and their signatures are
+
+[example {
+    /* (de)activation of named logical streams.
+     * These are declarators, not statements.
+     */
+
+    TRACE_ON;
+    TRACE_OFF;
+    TRACE_TAG_ON  (tag_identifier);
+    TRACE_TAG_OFF (tag_identifier);
+
+    /*
+     * Higher level trace statements (convenience commands)
+     */
+
+    void TRACE_FUNC   (const char* format, ...);
+    void TRACE_FUNC_VOID;
+    any  TRACE_RETURN (const char* format, any x);
+    void TRACE_RETURN_VOID;
+    void TRACE (const char* format, ...);
+
+    /*
+     * Low-level trace statements the higher level ones above
+     * are composed from. Scope management and output management.
+     */
+
+    void TRACE_PUSH_SCOPE (const char* scope);
+    void TRACE_PUSH_FUNC;
+    void TRACE_POP;
+
+    void TRACE_HEADER (int indent);
+    void TRACE_ADD (const char* format, ...);
+    void TRACE_CLOSER;
+
+    /*
+     * Convert tag to the underlying status variable.
+     */
+
+    TRACE_TAG_VAR (tag)
+
+    /*
+     * Conditional use of arbitrary code.
+     */
+
+    TRACE_RUN (code);
+    TRACE_DO (code);
+    TRACE_TAG_DO (code);
+}]
+
+[para] Note that these definitions are conditional on the existence of
+the macro [const CRITCL_TRACER]. 
+
+Without a [cmd {critcl::cflags -DCRITCL_TRACER}] all trace
+functionality in the C code is quiescent and not compiled into the
+object file. In other words, tracing can be (de)activated at will
+during build time, as needed by the user.
+
+[para] For convenience this is controlled by [arg enable]. By default
+([const false]) the facility available, but not active.
+
+Using [const true] not only makes it available, but activates it as
+well.
+
+Further note that the command [cmd critcl::config] now accepts a
+boolean option [const trace]. Setting it activates enter/exit tracing
+in all commands based on [cmd critcl::cproc], with proper printing of
+arguments and results. This implicitly activates the tracing facility
+in general.
+
+[para] The details of the semantics are explained in section
+[sectref Tracing]
+
+[para] The result of the command is an empty string.
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Allocation]
+
+[list_begin definitions]
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {type* ALLOC (type)}]]
+
+This macro allocates a single element of the given [arg type] and
+returns a pointer to that memory.
+
+[call [cmd {type* ALLOC_PLUS (type, int n)}]]
+
+This macro allocates a single element of the given [arg type], plus an
+additional [arg n] bytes after the structure and returns a pointer to
+that memory.
+
+[para] This is for variable-sized structures of. An example of such
+could be a generic list element structure which stores management
+information in the structure itself, and the value/payload immediately
+after, in the same memory block.
+
+[call [cmd {type* NALLOC (type, int n)}]]
+
+This macro allocates [arg n] elements of the given [arg type] and
+returns a pointer to that memory.
+
+[call [cmd {type* REALLOC (type* var, type, int n)}]]
+
+This macro expands or shrinks the memory associated with the C
+variable [arg var] of type [arg type] to hold [arg n] elements of the
+type. It returns a pointer to that memory.
+
+Remember, a reallocation may move the data to a new location in memory
+to satisfy the request. Returning a pointer instead of immediately
+assigning it to the [arg var] allows the user to validate the new
+pointer before trying to use it.
+
+[call [cmd {void FREE (type* var)}]]
+
+This macro releases the memory referenced by the pointer variable
+[arg var].
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void STREP (Tcl_Obj* o, char* s, int len)}]]
+
+This macro properly sets the string representation of the Tcl object
+[arg o] to a copy of the string [arg s], expected to be of length
+[arg len].
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void STREP_DS (Tcl_Obj* o, Tcl_DString* ds)}]]
+
+This macro properly sets the string representation of the Tcl object
+[arg o] to a copy of the string held by the [type DString] [arg ds].
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void STRDUP (varname, char* str)}]]
+
+This macro duplicates the string [arg str] into the heap and stores
+the result into the named [type char*] variable [arg var].
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Assertions]
+
+[list_begin definitions]
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void ASSERT (expression, char* message}]]
+
+This macro tests the [arg expression] and panics if it does not hold.
+The specified [arg message] is used as part of the panic.
+The [arg message] has to be a static string, it cannot be a variable.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void ASSERT_BOUNDS (int index, int size)}]]
+
+This macro ensures that the [arg index] is in the
+range [const 0] to [const {size-1}].
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void STOPAFTER(n)}]]
+
+This macro throws a panic after it is called [arg n] times.
+Note, each separate instance of the macro has its own counter.
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Tracing]
+
+All output is printed to [const stdout].
+
+[list_begin definitions]
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd TRACE_ON]]
+[call [cmd TRACE_OFF]]
+[call [cmd {TRACE_TAG_ON  (identifier)}]]
+[call [cmd {TRACE_TAG_OFF (identifier)}]]
+
+These "commands" are actually declarators, for use outside of
+functions. They (de)activate specific logical streams, named either
+explicitly by the user, or implicitly, refering to the current file.
+
+[para] For example:
+[para][example {
+    TRACE_TAG_ON (lexer_in);
+}]
+
+[para] All high- and low-level trace commands producing output have
+the controlling tag as an implicit argument. The scope management
+commands do not take tags.
+
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE_FUNC}]]
+[call [cmd {void TRACE_TAG_FUNC (tag)}]]
+[call [cmd {void TRACE_FUNC_VOID}]]
+[call [cmd {void TRACE_TAG_FUNC_VOID (tag)}]]
+
+Use these macros at the beginning of a C function to record entry into
+it. The name of the entered function is an implicit argument
+([var __func__]), forcing users to have a C99 compiler..
+
+[para] The tracer's runtime maintains a stack of active functions and
+expects that function return is signaled by either [fun TRACE_RETURN],
+[fun TRACE_RETURN_VOID], or the equivalent forms taking a tag.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE_RETURN_VOID}]]
+[call [cmd {void TRACE_TAG_RETURN_VOID (tag)}]]
+
+Use these macros instead of [example {return}] to return from a void
+function. Beyond returning from the function this also signals the
+same to the tracer's runtime, popping the last entered function from
+its stack of active functions.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {any TRACE_RETURN     (     char* format, any x)}]]
+[call [cmd {any TRACE_TAG_RETURN (tag, char* format, any x)}]]
+
+Use this macro instead of [example {return x}] to return from a
+non-void function.
+
+Beyond returning from the function with value [arg x] this also
+signals the same to the tracer's runtime, popping the last entered
+function from its stack of active functions.
+
+The [arg format] is expected to be a proper formatting string for
+[fun printf] and analogues, able to stringify [arg x].
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE     (     char* format, ...)}]]
+[call [cmd {void TRACE_TAG (tag, char* format, ...)}]]
+
+This macro is the trace facilities' equivalent of [fun printf],
+printing arbitrary data under the control of the [arg format].
+
+[para] The printed text is closed with a newline, and indented as per
+the stack of active functions.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE_HEADER (int indent)}]]
+[call [cmd {void TRACE_TAG_HEADER (tag, int indent)}]]
+
+This is the low-level macro which prints the beginning of a trace
+line. This prefix consists of physical location (file name and line
+number), if available, indentation as per the stack of active scopes
+(if activated), and the name of the active scope.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE_CLOSER}]]
+[call [cmd {void TRACE_TAG_CLOSER (tag)}]]
+
+This is the low-level macro which prints the end of a trace
+line.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE_ADD          (const char* format, ...)}]]
+[call [cmd {void TRACE_TAG_ADD (tag, const char* format, ...)}]]
+
+This is the low-level macro which adds formatted data to the line.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {void TRACE_PUSH_SCOPE (const char* name)}]]
+[call [cmd {void TRACE_PUSH_FUNC}]]
+[call [cmd {void TRACE_PUSH_POP}]]
+
+These are the low-level macros for scope management. The first two
+forms push a new scope on the stack of active scopes, and the last
+forms pops the last scope pushed.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {TRACE_TAG_VAR (tag)}]]
+
+Helper macro converting from a tag identifier to the name of the
+underlying status variable.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {TRACE_RUN (code);}]]
+
+Conditionally insert the [arg code] at compile time when the tracing
+facility is activated.
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd {TRACE_DO (code);}]]
+[call [cmd {TRACE_TAG_DO (tag, code);}]]
+
+Insert the [arg code] at compile time when the tracing facility is
+activated, and execute the same when either the implicit tag for the
+file or the user-specified tag is active.
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

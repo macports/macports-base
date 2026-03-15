@@ -1,0 +1,374 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl_devguide - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_devguide.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl_devguide.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl_devguide(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl_devguide - Guide To The CriTcl Internals</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Audience</a></li>
+<li class="doctools_section"><a href="#section3">Playing with CriTcl</a></li>
+<li class="doctools_section"><a href="#section4">Developing for CriTcl</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Architecture &amp; Concepts</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Requirements</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Directory structure</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">Authors</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Audience</a></h2>
+<p>This document is a guide for developers working on CriTcl, i.e. maintainers fixing
+bugs, extending the package's functionality, etc.</p>
+<p>Please read</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term">CriTcl - License</i>,</p></li>
+<li><p><i class="term">CriTcl - How To Get The Sources</i>, and</p></li>
+<li><p><i class="term">CriTcl - The Installer's Guide</i></p></li>
+</ol>
+<p>first, if that was not done already.</p>
+<p>Here we assume that the sources are already available in a directory of the readers
+choice, and that the reader not only know how to build and install them, but also has all
+the necessary requisites to actually do so. The guide to the sources in particular also
+explains which source code management system is used, where to find it, how to set it up,
+etc.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Playing with CriTcl</a></h2>
+<p><em>Note</em> that the sources of CriTcl, should the reader have gotten them, also
+contain several examples show-casing various aspects of the system. These demonstration
+packages can all be found in the sub-directory &quot;<b class="file">examples/</b>&quot; of the sources.</p>
+<p>Lots of smaller examples can be found in the document
+<i class="term">Using CriTcl</i>, an introduction to CriTcl by way of a of
+examples. These focus more on specific critcl commands than the
+overall picture shown by the large examples mentioned in the previous
+paragraph.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Developing for CriTcl</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Architecture &amp; Concepts</a></h3>
+<p>The system consists of two main layers, as seen in the figure below,
+plus a support layer containing general packages the system uses during
+operation.</p>
+<p><img alt="architecture" src="../image/architecture.png"></p>
+<ol class="doctools_enumerated">
+<li><p>At the top we have an application built on top of the core packages,
+providing command line access to the second and third usage modes,
+i.e. <i class="term"><a href="../index.html#generate_package">Generate Package</a></i> and <i class="term">Generate TEA Package</i>.</p>
+<dl class="doctools_definitions">
+<dt><b class="syscmd"><a href="critcl.html">critcl</a></b></dt>
+<dd></dd>
+<dt><b class="package">critcl::app</b></dt>
+<dd></dd>
+</dl>
+</li>
+<li><p>Below that is the core package providing the essential functionality
+of the system, plus various utility packages which make common tasks
+more convenient.</p>
+<dl class="doctools_definitions">
+<dt><b class="package"><a href="critcl.html">critcl</a></b></dt>
+<dd></dd>
+<dt><b class="package"><a href="critcl_util.html">critcl::util</a></b></dt>
+<dd></dd>
+</dl>
+</li>
+<li><p>Lastly a layer of supporting packages, mostly external to critcl.</p>
+<dl class="doctools_definitions">
+<dt><b class="package">md5</b></dt>
+<dd><p>For this pure-Tcl package to be fast users should get one of several
+possible accelerator packages:</p>
+<ol class="doctools_enumerated">
+<li><p><b class="package">tcllibc</b></p></li>
+<li><p><b class="package">Trf</b></p></li>
+<li><p><b class="package">md5c</b></p></li>
+</ol></dd>
+<dt><b class="package">cmdline</b></dt>
+<dd></dd>
+<dt><b class="package">platform</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::container</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::reader</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::writer</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen::init</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen::header</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen::decl</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen::macro</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen::slot</b></dt>
+<dd></dd>
+<dt><b class="package">stubs::gen::lib</b></dt>
+<dd></dd>
+</dl>
+</li>
+</ol>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Requirements</a></h3>
+<p>To develop for critcl the following packages and applications must be available in the
+environment. These are all used by the <b class="cmd">build.tcl</b> helper application.</p>
+<dl class="doctools_definitions">
+<dt><b class="syscmd">dtplite</b></dt>
+<dd><p>A Tcl application provided by Tcllib, for the validation and conversion of
+<i class="term">doctools</i>-formatted text.</p></dd>
+<dt><b class="syscmd">dia</b></dt>
+<dd><p>A Tcl application provided by Tklib, for the validation and conversion
+of <b class="package">diagram</b>-formatted figures into raster images.</p>
+<p>Do not confuse this with the Gnome <b class="syscmd">dia</b> application, which is a graphical
+editor for figures and diagrams, and completely unrelated.</p></dd>
+<dt><b class="package">fileutil</b></dt>
+<dd><p>A Tcl package provided by Tcllib, providing file system utilities.</p></dd>
+<dt><b class="package">vfs::mk4</b>, <b class="package">vfs</b></dt>
+<dd><p>Tcl packages written in C providing access to Tcl's VFS facilities, required for the
+generation of critcl starkits and starpacks.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Directory structure</a></h3>
+<dl class="doctools_definitions">
+<dt>Helpers</dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">build.tcl</b>&quot;</dt>
+<dd><p>This helper application provides various operations needed by a developer for critcl, like
+regenerating the documentation, the figures, building and installing critcl, etc.</p>
+<p>Running the command like</p>
+<pre class="doctools_example">
+	./build.tcl help
+</pre>
+<p>will provide more details about the available operations and their arguments.</p></dd>
+</dl></dd>
+<dt>Documentation</dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">doc/</b>&quot;</dt>
+<dd><p>This directory contains the documentation sources, for both the text, and the figures.
+The texts are written in <i class="term">doctools</i> format, whereas the figures are written for
+tklib's <b class="package">dia</b>(gram) package and application.</p></dd>
+<dt>&quot;<b class="file">embedded/</b>&quot;</dt>
+<dd><p>This directory contains the documentation converted to regular manpages (nroff) and HTML.
+It is called embedded because these files, while derived, are part of the git repository,
+i.e. embedded into it. This enables us to place these files where they are visible when
+serving the prject's web interface.</p></dd>
+</dl></dd>
+<dt>Testsuite</dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">test/all.tcl</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">test/testutilities.tcl</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">test/*.test</b>&quot;</dt>
+<dd><p>These files are a standard testsuite based on Tcl's <b class="package">tcltest</b> package, with some
+utility code snarfed from <b class="package">Tcllib</b>.</p>
+<p>This currently tests only some of the <b class="package">stubs::*</b> packages.</p></dd>
+<dt>&quot;<b class="file">test/*.tcl</b>&quot;</dt>
+<dd><p>These files (except for &quot;<b class="file">all.tcl</b>&quot; and &quot;<b class="file">testutilities.tcl</b>&quot;) are example files
+(Tcl with embedded C) which can be run through critcl for testing.</p>
+<p><em>TODO</em> for a maintainers: These should be converted into a proper test suite.</p></dd>
+</dl></dd>
+<dt>Package Code, General structure</dt>
+<dd><dl class="doctools_definitions">
+</dl></dd>
+<dt>Package Code, Per Package</dt>
+<dd><dl class="doctools_definitions">
+<dt><b class="package"><a href="critcl.html">critcl</a></b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/critcl/critcl.tcl</b>&quot;</dt>
+<dd><p>The Tcl code implementing the package.</p></dd>
+<dt>&quot;<b class="file">lib/critcl/Config</b>&quot;</dt>
+<dd><p>The configuration file for the standard targets and their settings.</p></dd>
+<dt>&quot;<b class="file">lib/critcl/critcl_c/</b>&quot;</dt>
+<dd><p>Various C code snippets used by the package.
+This directory also contains the copies of the Tcl header files used to compile the
+assembled C code, for the major brnaches of Tcl, i.e. 8.4, 8.5, and 8.6.</p></dd>
+</dl></dd>
+<dt><b class="package"><a href="critcl_util.html">critcl::util</a></b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/critcl-util/util.tcl</b>&quot;</dt>
+<dd><p>The Tcl code implementing the package.</p></dd>
+</dl></dd>
+<dt><b class="package">critcl::app</b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/app-critcl/critcl.tcl</b>&quot;</dt>
+<dd><p>The Tcl code implementing the package.</p></dd>
+</dl></dd>
+<dt><b class="package"><a href="critcl_iassoc.html">critcl::iassoc</a></b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/critcl-iassoc/iassoc.tcl</b>&quot;</dt>
+<dd><p>The Tcl code implementing the package.</p></dd>
+<dt>&quot;<b class="file">lib/critcl-iassoc/iassoc.h</b>&quot;</dt>
+<dd><p>C code template used by the package.</p></dd>
+</dl></dd>
+<dt><b class="package"><a href="critcl_class.html">critcl::class</a></b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/critcl-class/class.tcl</b>&quot;</dt>
+<dd><p>The Tcl code implementing the package.</p></dd>
+<dt>&quot;<b class="file">lib/critcl-class/class.h</b>&quot;</dt>
+<dd><p>C code template used by the package.</p></dd>
+</dl></dd>
+<dt><b class="package">stubs::*</b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/stubs/*</b>&quot;</dt>
+<dd><p>A set of non-public (still) packages which provide read and write access to and represent
+Tcl stubs tables. These were created by taking the &quot;<b class="file">genStubs.tcl</b>&quot; helper application
+coming with the Tcl core sources apart along its internal logical lines.</p></dd>
+</dl></dd>
+<dt><b class="package">critclf</b></dt>
+<dd><dl class="doctools_definitions">
+<dt>&quot;<b class="file">lib/critclf/</b>&quot;</dt>
+<dd><p>Arjen Markus' work on a critcl/Fortran. The code is outdated and has not been adapted to
+the changes in critcl version 3 yet.</p></dd>
+</dl></dd>
+<dt><b class="package">md5</b></dt>
+<dd></dd>
+<dt><b class="package">md5c</b></dt>
+<dd></dd>
+<dt><b class="package">platform</b></dt>
+<dd><p>These are all external packages whose code has been inlined in the repository for easier
+development (less dependencies to pull), and quicker deployment from the repository
+(generation of starkit and -pack).</p>
+<p><em>TODO</em> for maintainers: These should all be checked against their origin for
+updates and changes since they were inlined.</p></dd>
+</dl></dd>
+</dl>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

@@ -77,7 +77,7 @@ proc selfupdate::get_current_version {mp_source_path} {
         if {[can_use_https letsencrypt]} {
             lappend release_version_urls \
                 "https://distfiles.macports.org/MacPorts/RELEASE_URL" \
-                "https://trac.macports.org/export/HEAD/macports-base/config/RELEASE_URL"
+                "https://trac.macports.org/export/master/macports-base/config/RELEASE_URL"
         } else {
             lappend release_version_urls \
                 "http://distfiles.macports.org/MacPorts/RELEASE_URL"
@@ -221,6 +221,13 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
         set signature_filename [file tail $signature_url]
         set signature_filepath [file join $mp_source_path $signature_filename]
 
+        if {[file isfile $filepath] && [file isfile $signature_filepath]
+            && ![catch {verify_signature $filepath $signature_filepath}]} {
+            ui_msg "Verified existing file for $release_url"
+            set tarball $filepath
+            break
+        }
+
         # Download source code tarball
         ui_msg "$ui_prefix Attempting to fetch MacPorts $macports_version_new source code from $release_url"
         macports_try -pass_signal {
@@ -241,7 +248,7 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
         }
 
         macports_try -pass_signal {
-            selfupdate::verify_signature $filepath $signature_filepath
+            verify_signature $filepath $signature_filepath
         } on error {eMessage} {
             set selfupdate_errors($release_url) "Error verifying signature for $release_url: $eMessage"
             ui_info [set selfupdate_errors($release_url)]
@@ -318,13 +325,15 @@ proc selfupdate::download_source_rsync {} {
     # verify signature for tarball
     set tarball ${mp_source_path}/${tarfile}
     set signature ${tarball}.rmd160
-    selfupdate::verify_signature_legacy $tarball $signature
+    verify_signature_legacy $tarball $signature
 
-    if {${hfscompression} && [getuid] == 0 &&
-            ![catch {macports::binaryInPath bsdtar}] &&
-            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+    set tar {}
+    if {${hfscompression} && [getuid] == 0} {
         ui_debug "Using bsdtar with HFS+ compression (if valid)"
-        set tar "bsdtar --hfsCompression"
+        set tar [macports::find_tar_with_hfscompression]
+    }
+    if {$tar ne {}} {
+        set tar "$tar --hfsCompression"
     } else {
         global macports::autoconf::tar_path
         set tar [macports::findBinary tar $tar_path]
@@ -407,6 +416,7 @@ proc selfupdate::verify_signature_legacy {path signature_path} {
 # @param source Path to the source code to be installed.
 proc selfupdate::install {source} {
     global \
+        macports::build_arch \
         macports::developer_dir \
         macports::macos_version_major \
         macports::os_major \
@@ -447,6 +457,7 @@ proc selfupdate::install {source} {
     # Choose a sane compiler and SDK
     set cc_arg {}
     set sdk_arg {}
+    set arch_arg {}
     set jobs [macports::get_parallel_jobs yes]
     if {$os_platform eq "darwin"} {
         catch {exec /usr/bin/cc 2>@1} output
@@ -481,12 +492,16 @@ proc selfupdate::install {source} {
                 }
             }
         }
+        if {$os_major >= 20 && $build_arch ne "x86_64" && ![catch {sysctl sysctl.proc_translated} translated] && $translated} {
+            # Force a native build
+            set arch_arg "/usr/bin/arch -arm64 /usr/bin/env "
+        }
     }
 
     # do the actual configure, build and installation of new base
     ui_msg "$ui_prefix Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}"
     macports_try -pass_signal {
-        system -W $source "${cc_arg}${sdk_arg}./configure $configure_args_string && ${sdk_arg}make -j${jobs} SELFUPDATING=1 && make install SELFUPDATING=1"
+        system -W $source "${arch_arg}${cc_arg}${sdk_arg}./configure $configure_args_string && ${arch_arg}${sdk_arg}make -j${jobs} SELFUPDATING=1 && ${arch_arg}make install SELFUPDATING=1"
     } on error {eMessage} {
         error "Error installing new MacPorts base: $eMessage"
     }
@@ -494,7 +509,8 @@ proc selfupdate::install {source} {
 
 proc selfupdate::cleanup_sources {mp_source_path} {
     global macports::portdbpath macports::rsync_server
-    file delete -force $mp_source_path [file join $portdbpath sources $rsync_server]
+    set rsync_base_files [glob -nocomplain -directory [file join $portdbpath sources $rsync_server] base*]
+    file delete -force $mp_source_path {*}$rsync_base_files
 }
 
 proc selfupdate::do_sync {options presync} {
@@ -540,6 +556,7 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
     }
     ui_debug "MacPorts sources location: $mp_source_path"
 
+    set prefer_rsync [expr {[dict exists $options ports_selfupdate_rsync] && [dict get $options ports_selfupdate_rsync]}]
     set rsync_fetched 0
     macports_try -pass_signal {
         set macports_version_new [get_current_version $mp_source_path]
@@ -583,23 +600,37 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
             ui_msg "$ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
 
             if {!$rsync_fetched} {
-                macports_try -pass_signal {
-                    set source_code [download_source $mp_source_path $macports_version_new]
-                } on error {eMessage} {
-                    ui_debug "download_source failed: $eMessage"
+                if {!$prefer_rsync} {
+                    macports_try -pass_signal {
+                        set source_code [download_source $mp_source_path $macports_version_new]
+                    } on error {eMessage} {
+                        ui_debug "download_source failed: $eMessage"
+                        set prefer_rsync 1
+                    }
+                }
+                if {$prefer_rsync} {
                     set source_code [download_source_rsync]
+                    set macports_version_downloaded [get_current_version_from_sources $source_code]
+                    set comp [vercmp $macports_version_downloaded $macports_version]
                 }
             }
-            install $source_code
+            if {$use_the_force_luke || $comp > 0 || ($comp == 0 && $migrating)} {
+                install $source_code
 
-            if {[info exists updatestatus]} {
-                dict set updatestatus base_updated yes
+                if {[info exists updatestatus]} {
+                    dict set updatestatus base_updated yes
+                }
+
+                # Keep sources for future syncing if preferring rsync
+                if {!$prefer_rsync} {
+                    cleanup_sources $mp_source_path
+                }
+                # Return here, port.tcl will re-execute selfupdate with the updated
+                # base to trigger sync and portindex with the new version
+                return 0
+            } else {
+                ui_msg "$ui_prefix HTTP download failed and rsync does not yet have version $macports_version_new"
             }
-
-            cleanup_sources $mp_source_path
-            # Return here, port.tcl will re-execute selfupdate with the updated
-            # base to trigger sync and portindex with the new version
-            return 0
         }
     } elseif {$comp < 0} {
         ui_msg "$ui_prefix MacPorts base is probably master or a release candidate"

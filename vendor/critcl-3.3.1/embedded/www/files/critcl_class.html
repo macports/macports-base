@@ -1,0 +1,685 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl::class - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_class.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl::class.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl::class(n) 1.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl::class - CriTcl - Code Gen - C Classes</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Class Specification API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">General configuration</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Class lifetime management</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Instance lifetime management</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Class variables and methods</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Instance variables and methods</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Context dependent interactions</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Example</a></li>
+<li class="doctools_section"><a href="#section5">Authors</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.2?</span></b></li>
+<li>package require <b class="pkgname">critcl::class <span class="opt">?1.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::class::define</b> <i class="arg">name</i> <i class="arg">script</i></a></li>
+<li><a href="#2"><b class="cmd">include</b> <i class="arg">path</i></a></li>
+<li><a href="#3"><b class="cmd">support</b> <i class="arg">code</i></a></li>
+<li><a href="#4"><b class="cmd">type</b> <i class="arg">name</i></a></li>
+<li><a href="#5"><b class="cmd">classconstructor</b> <i class="arg">body</i></a></li>
+<li><a href="#6"><b class="cmd">classdestructor</b> <i class="arg">body</i></a></li>
+<li><a href="#7"><b class="cmd">constructor</b> <i class="arg">body</i> <span class="opt">?<i class="arg">postbody</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">destructor</b> <i class="arg">body</i></a></li>
+<li><a href="#9"><b class="cmd">classvariable</b> <i class="arg">ctype</i> <i class="arg">name</i> <span class="opt">?<i class="arg">comment</i>?</span> <span class="opt">?<i class="arg">constructor</i>?</span> <span class="opt">?<i class="arg">destructor</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">classmethod</b> <i class="arg">name</i> <b class="method">command</b> <i class="arg">arguments</i> <i class="arg">body</i></a></li>
+<li><a href="#11"><b class="cmd">classmethod</b> <i class="arg">name</i> <b class="method">proc</b> <i class="arg">arguments</i> <i class="arg">resulttype</i> <i class="arg">body</i></a></li>
+<li><a href="#12"><b class="cmd">classmethod</b> <i class="arg">name</i> <b class="method">as</b> <i class="arg">funname</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#13"><b class="cmd">insvariable</b> <i class="arg">ctype</i> <i class="arg">name</i> <span class="opt">?<i class="arg">comment</i>?</span> <span class="opt">?<i class="arg">constructor</i>?</span> <span class="opt">?<i class="arg">destructor</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">method</b> <i class="arg">name</i> <b class="method">command</b> <i class="arg">arguments</i> <i class="arg">body</i></a></li>
+<li><a href="#15"><b class="cmd">method</b> <i class="arg">name</i> <b class="method">proc</b> <i class="arg">arguments</i> <i class="arg">resulttype</i> <i class="arg">body</i></a></li>
+<li><a href="#16"><b class="cmd">method</b> <i class="arg">name</i> <b class="method">as</b> <i class="arg">funname</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#17"><b class="cmd">method_introspection</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is the reference manpage for the <b class="package">critcl::class</b>
+package. This package provides convenience commands for advanced
+functionality built on top of the core.</p>
+<p>With it a user wishing to create a C level object with class
+and instance commands can concentrate on specifying the class- and
+instance-variables and -methods in a manner similar to a TclOO class,
+while all the necessary boilerplate around it is managed by this
+package.</p>
+<p>Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.</p>
+<p>This package resides in the Core Package Layer of CriTcl.</p>
+<p><img alt="arch_core" src="../image/arch_core.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::class::define</b> <i class="arg">name</i> <i class="arg">script</i></a></dt>
+<dd><p>This is the main command to define a new class <i class="arg">name</i>, where
+<i class="arg">name</i> is the name of the Tcl command representing the class,
+i.e. the <i class="term">class command</i>. The <i class="arg">script</i> provides the
+specification of the class, i.e. information about included headers,
+class- and instance variables, class- and instance-methods, etc.
+See the section <span class="sectref"><a href="#section3">Class Specification API</a></span> below for the
+detailed list of the available commands and their semantics.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Class Specification API</a></h2>
+<p>Here we documents all class specification commands available inside of
+the class definition script argument of <b class="cmd">::critcl::class::define</b>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">General configuration</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">include</b> <i class="arg">path</i></a></dt>
+<dd><p>This command specifies the path of a header file to include within the
+code generated for the class. This is separate from the <b class="cmd">support</b>
+because the generated include directives will be put at the very
+beginning of the generated code. This is done to allow the use of the
+imported declarations within the instance type, and elsewhere.</p>
+<p>Calls to this command are cumulative.
+It is of course possible to not use this command at all, for classes
+not making use of external definitions.</p>
+<p>The result is the empty string.</p></dd>
+<dt><a name="3"><b class="cmd">support</b> <i class="arg">code</i></a></dt>
+<dd><p>This command specifies supporting C code, i.e. any definitions (types,
+functions, etc.) needed by the <em>whole</em> class and not fitting into
+class- and instance-methods. The code is embedded at global level,
+outside of any function or other definition.</p>
+<p>Calls to this command are cumulative.
+It is of course possible to not use this command at all, for classes
+not requiring supporting code.</p>
+<p>The result of the command is the empty string.</p></dd>
+<dt><a name="4"><b class="cmd">type</b> <i class="arg">name</i></a></dt>
+<dd><p>This command specifies the name of an external C type to be used as
+the type of the instance structure.</p>
+<p>Initialization and release of the structure with the given type
+are the responsibility of the user, through <b class="cmd">constructor</b> and
+<b class="cmd">destructor</b> code fragments.</p>
+<p><em>Attention:</em> Using this command precludes the use of
+regular class- and instance variables. It further precludes the use of
+<b class="cmd">method-introspection</b> as well, as this make use of generated
+instance-variables.</p>
+<p>If class- and/or instance-variable have to be used in
+conjunction with an external C type, simply create and use a class- or
+instance-variable with that type.</p>
+<p>The result of the command is the empty string.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Class lifetime management</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="5"><b class="cmd">classconstructor</b> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies a C code block surrounding the initialization
+of the class variables, i.e. the fields of the class structure.
+<em>Note</em> that allocation and release of the class structure itself
+is done by the system andf not the responsibility of the user.</p>
+<p>For the initialization (and release) of a class variable it is
+recommended to use the <i class="arg">constructor</i> and <i class="arg">destructor</i>
+arguments of the variable's definition (See command
+<b class="cmd">classvariable</b>) for this instead of using a separate
+<b class="cmd">classconstructor</b>.</p>
+<p>This is an optional command. Using it more than once is allowed
+too and each use will add another C code fragment to use during
+construction. I.e. multiple calls aggregate.</p>
+<p>The C code blocks of multiple calls (including the constructors
+of classvariable definitions) are executed in order of specification.</p>
+<p>The result of the command is the empty string.</p>
+<p>The C code in <i class="arg">body</i> has access to the following
+environment:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+class structure will be associated with. It enables the generation
+of a Tcl error message should construction fail.</p></dd>
+<dt><b class="variable">class</b></dt>
+<dd><p>Pointer to the class structure to initialize.</p></dd>
+<dt>error</dt>
+<dd><p>A C code label the constructor can jump to should it have
+to signal a construction failure. It is the responsibility of the
+constructor to release any variables already initialized before
+jumping to this label. This also why the 'execution in order of
+specification' is documented and can be relied on. It gives us the
+knowledge which other constructors have already been run and
+initialized what other fields.</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">classdestructor</b> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies a C code block surrounding the release of the
+class variables, i.e. the fields of the class structure.
+<em>Note</em> that allocation and release of the class structure itself
+is done by the system and not the responsibility of the user.</p>
+<p>For the initialization (and release) of a class variable it is
+recommended to use the <i class="arg">constructor</i> and <i class="arg">destructor</i>
+arguments of the variable's definition (See command
+<b class="cmd">classvariable</b>) for this instead of using a separate
+<b class="cmd">classconstructor</b>.</p>
+<p>This is an optional command. Using it more than once is allowed
+too and each use will add another C code fragment to use during
+construction. I.e. multiple calls aggregate.</p>
+<p>The C code blocks of multiple calls (including the constructors
+of class variable definitions) are executed in order of specification.</p>
+<p>The result of the command is the empty string.</p>
+<p>The C code in <i class="arg">body</i> has access to the same
+environment as the class constructor code blocks.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Instance lifetime management</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="7"><b class="cmd">constructor</b> <i class="arg">body</i> <span class="opt">?<i class="arg">postbody</i>?</span></a></dt>
+<dd><p>This command specifies a C code block surrounding the initialization
+of the instance variables, i.e. the fields of the instance structure.
+<em>Note</em> that allocation and release of the instance structure
+itself is done by the system and not the responsibility of the user.
+<em>On the other hand</em>, if an external <b class="cmd">type</b> was specified
+for the instance structure, then instance variables are not possible,
+and the system has no knowledge of the type's structure. In that case
+it is the responsibility of the <i class="arg">body</i> to allocate and free the
+structure itself too.</p>
+<p>For the initialization (and release) of an instance variable it
+is recommended to use the <i class="arg">constructor</i> and <i class="arg">destructor</i>
+arguments of the variable's definition (See command <b class="cmd">insvariable</b>)
+for this instead of using a separate <b class="cmd">constructor</b>.</p>
+<p>This is an optional command. Using it more than once is allowed
+too and each use will add another C code fragment to use during
+construction. I.e. multiple calls aggregate.</p>
+<p>The C code blocks of multiple calls (including the constructors
+of instance variable definitions) are executed in order of specification.</p>
+<p>The result of the command is the empty string.</p>
+<p>The C code in <i class="arg">body</i> has access to the following
+environment:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+instance structure will be associated with. It enables the generation
+of a Tcl error message should construction fail.</p></dd>
+<dt><b class="variable">instance</b></dt>
+<dd><p>Pointer to the instance structure to initialize.</p></dd>
+<dt>error</dt>
+<dd><p>A C code label the constructor can jump to should it have
+to signal a construction failure. It is the responsibility of the
+constructor to release any variables already initialized before
+jumping to this label. This also why the 'execution in order of
+specification' is documented and can be relied on. It gives us the
+knowledge which other constructors have already been run and
+initialized what other fields.</p></dd>
+</dl>
+<p>The C code in <i class="arg">postbody</i> is responsible for construction
+actions to be done after the primary construction was done and the
+Tcl-level instance command was successfully created. It has access to
+a slightly different environment:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+instance structure will be associated with. It enables the generation
+of a Tcl error message should construction fail.</p></dd>
+<dt><b class="variable">instance</b></dt>
+<dd><p>Pointer to the instance structure to initialize.</p></dd>
+<dt><b class="variable">cmd</b></dt>
+<dd><p>The Tcl_Command token of the Tcl-level instance
+command.</p></dd>
+<dt><b class="variable">fqn</b></dt>
+<dd><p>The fully qualified name of the instance command,
+stored in a Tcl_Obj*.</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">destructor</b> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies a C code block surrounding the release of the
+instance variables, i.e. the fields of the instance structure.
+<em>Note</em> that allocation and release of the instance structure
+itself is done by the system and not the responsibility of the user.
+<em>On the other hand</em>, if an external <b class="cmd">type</b> was specified
+for the instance structure, then instance variables are not possible,
+and the system has no knowledge of the type's structure. In that case
+it is the responsibility of the <i class="arg">body</i> to allocate and free the
+structure itself too.</p>
+<p>For the initialization (and release) of an instance variable it
+is recommended to use the <i class="arg">constructor</i> and <i class="arg">destructor</i>
+arguments of the variable's definition (See command <b class="cmd">insvariable</b>)
+for this instead of using a separate <b class="cmd">constructor</b>.</p>
+<p>This is an optional command. Using it more than once is allowed
+too and each use will add another C code fragment to use during
+construction. I.e. multiple calls aggregate.</p>
+<p>The C code blocks of multiple calls (including the constructors
+of instance variable definitions) are executed in order of specification.</p>
+<p>The result of the command is the empty string.</p>
+<p>The C code in <i class="arg">body</i> has access to the following
+environment:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">instance</b></dt>
+<dd><p>Pointer to the instance structure to release.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Class variables and methods</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="9"><b class="cmd">classvariable</b> <i class="arg">ctype</i> <i class="arg">name</i> <span class="opt">?<i class="arg">comment</i>?</span> <span class="opt">?<i class="arg">constructor</i>?</span> <span class="opt">?<i class="arg">destructor</i>?</span></a></dt>
+<dd><p>This command specifies a field in the class structure of the class.
+Multiple fields can be specified, and are saved in the order
+specified.</p>
+<p><em>Attention:</em> Specification of a class variable precludes
+the use of an external C <b class="cmd">type</b> for the instance structure.</p>
+<p><em>Attention:</em> Specification of a class variable
+automatically causes the definition of an instance variable named
+<b class="const">class</b>, pointing to the class structure.</p>
+<p>Beyond the basic <i class="arg">name</i> and C type of the new variable the
+definition may also contain a <i class="arg">comment</i> describing it, and C code
+blocks to initialize and release the variable.
+These are effectively local forms of the commands
+<b class="cmd">classconstructor</b> and <b class="cmd">classdestructor</b>. Please read their
+descriptions for details regarding the C environment available to the
+code.</p>
+<p>The comment, if specified will be embedded into the generated C
+code for easier cross-referencing from generated &quot;<b class="file">.c</b>&quot; file to
+class specification.</p></dd>
+<dt><a name="10"><b class="cmd">classmethod</b> <i class="arg">name</i> <b class="method">command</b> <i class="arg">arguments</i> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies a class method and the C code block
+implementing its functionality. This is the first of three forms. The
+method is specified like a <b class="cmd">critcl::ccommand</b>, with a fixed set of
+C-level arguments. The <i class="arg">body</i> has to perform everything
+(i.e. argument extraction, checking, result return, and of course the
+actual functionality) by itself.</p>
+<p>For this the <i class="arg">body</i> has access to</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">class</b></dt>
+<dd><p>Pointer to the class structure.</p></dd>
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+class structure is associated with</p></dd>
+<dt><b class="variable">objc</b></dt>
+<dd><p>The number of method arguments.</p></dd>
+<dt><b class="variable">objv</b></dt>
+<dd><p>The method arguments, as C array of Tcl_Obj pointers.</p></dd>
+</dl>
+<p>The <i class="arg">arguments</i> of the definition are only a human readable form
+of the method arguments and syntax and are not used in the C code,
+except as comments put into the generated code. Again, it is the
+responsibility of the <i class="arg">body</i> to check the number of arguments,
+extract them, check their types, etc.</p></dd>
+<dt><a name="11"><b class="cmd">classmethod</b> <i class="arg">name</i> <b class="method">proc</b> <i class="arg">arguments</i> <i class="arg">resulttype</i> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies a class method and the C code block
+implementing its functionality.  This is the second of three forms. The
+method is specified like a <b class="cmd">critcl::cproc</b>.
+Contrary to the first variant here the <i class="arg">arguments</i> are computer
+readable, expected to be in the same format as the <i class="arg">arguments</i> of
+<b class="cmd">critcl::cproc</b>. The same is true for the <i class="arg">resulttype</i>.
+The system automatically generates a wrapper doing argument checking
+and conversion, and result conversion, like for <b class="cmd">critcl::cproc</b>.</p>
+<p>The <i class="arg">body</i> has access to</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">class</b></dt>
+<dd><p>Pointer to the class structure.</p></dd>
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+class structure is associated with</p></dd>
+<dt>...</dt>
+<dd><p>All <i class="arg">arguments</i> under their specified names and C types
+as per their definition.</p></dd>
+</dl></dd>
+<dt><a name="12"><b class="cmd">classmethod</b> <i class="arg">name</i> <b class="method">as</b> <i class="arg">funname</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>This command specifies a class method and the C code block
+implementing its functionality. This is the third and last of three
+forms.</p>
+<p>The class method is implemented by the external function
+<i class="arg">funname</i>, i.e. a function which is declared outside of the class
+code itself, or in a <b class="cmd">support</b> block.</p>
+<p>It is assumed that the first four arguments of that function
+represent the parameters</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">class</b></dt>
+<dd><p>Pointer to the class structure.</p></dd>
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+class structure is associated with</p></dd>
+<dt><b class="variable">objc</b></dt>
+<dd><p>The number of method arguments.</p></dd>
+<dt><b class="variable">objv</b></dt>
+<dd><p>The method arguments, as C array of Tcl_Obj pointers.</p></dd>
+</dl>
+<p>Any additional arguments specified will be added after these and are
+passed into the C code as is, i.e. are considered to be C expressions.</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Instance variables and methods</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="13"><b class="cmd">insvariable</b> <i class="arg">ctype</i> <i class="arg">name</i> <span class="opt">?<i class="arg">comment</i>?</span> <span class="opt">?<i class="arg">constructor</i>?</span> <span class="opt">?<i class="arg">destructor</i>?</span></a></dt>
+<dd><p>This command specifies a field in the instance structure of the class.
+Multiple fields can be specified, and are saved in the order
+specified.</p>
+<p><em>Attention:</em> Specification of an instance variable
+precludes the use of an external C <b class="cmd">type</b> for the instance
+structure.</p>
+<p><em>Attention:</em> Specification of an instance variable
+automatically causes the definition of an instance variable of type
+<b class="const">Tcl_Command</b>, and named <b class="const">cmd</b>, holding the token of the
+instance command, and the definition of an instance method named
+<b class="const">destroy</b>. This implicit instance variable is managed by the
+system.</p>
+<p>Beyond the basic <i class="arg">name</i> and C type of the new variable the
+definition may also contain a <i class="arg">comment</i> describing it, and C code
+blocks to initialize and release the variable.
+These are effectively local forms of the commands <b class="cmd">constructor</b>
+and <b class="cmd">destructor</b>. Please read their descriptions for details
+regarding the C environment available to the code.</p>
+<p>The comment, if specified will be embedded into the generated C
+code for easier cross-referencing from generated &quot;<b class="file">.c</b>&quot; file to
+class specification.</p></dd>
+<dt><a name="14"><b class="cmd">method</b> <i class="arg">name</i> <b class="method">command</b> <i class="arg">arguments</i> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies an instance method and the C code block
+implementing its functionality. This is the first of three forms. The
+method is specified like a <b class="cmd">critcl::ccommand</b>, with a fixed set of
+C-level arguments. The <i class="arg">body</i> has to perform everything
+(i.e. argument extraction, checking, result return, and of course the
+actual functionality) by itself.</p>
+<p>For this the <i class="arg">body</i> has access to</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">instance</b></dt>
+<dd><p>Pointer to the instance structure.</p></dd>
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+instance structure is associated with</p></dd>
+<dt><b class="variable">objc</b></dt>
+<dd><p>The number of method arguments.</p></dd>
+<dt><b class="variable">objv</b></dt>
+<dd><p>The method arguments, as C array of Tcl_Obj pointers.</p></dd>
+</dl>
+<p>The <i class="arg">arguments</i> of the definition are only a human readable form
+of the method arguments and syntax and are not used in the C code,
+except as comments put into the generated code. Again, it is the
+responsibility of the <i class="arg">body</i> to check the number of arguments,
+extract them, check their types, etc.</p></dd>
+<dt><a name="15"><b class="cmd">method</b> <i class="arg">name</i> <b class="method">proc</b> <i class="arg">arguments</i> <i class="arg">resulttype</i> <i class="arg">body</i></a></dt>
+<dd><p>This command specifies an instance method and the C code block
+implementing its functionality.  This is the second of three
+forms. The method is specified like a <b class="cmd">critcl::cproc</b>.
+Contrary to the first variant here the <i class="arg">arguments</i> are computer
+readable, expected to be in the same format as the <i class="arg">arguments</i> of
+<b class="cmd">critcl::cproc</b>. The same is true for the <i class="arg">resulttype</i>.
+The system automatically generates a wrapper doing argument checking
+and conversion, and result conversion, like for <b class="cmd">critcl::cproc</b>.</p>
+<p>The <i class="arg">body</i> has access to</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">instance</b></dt>
+<dd><p>Pointer to the instance structure.</p></dd>
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+instance structure is associated with</p></dd>
+<dt>...</dt>
+<dd><p>All <i class="arg">arguments</i> under their specified names and C types
+as per their definition.</p></dd>
+</dl></dd>
+<dt><a name="16"><b class="cmd">method</b> <i class="arg">name</i> <b class="method">as</b> <i class="arg">funname</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>This command specifies an instance method and the C code block
+implementing its functionality. This is the third and last of three
+forms.</p>
+<p>The instance method is implemented by the external function
+<i class="arg">funname</i>, i.e. a function which is declared outside of the instance
+code itself, or in a <b class="cmd">support</b> block.</p>
+<p>It is assumed that the first four arguments of that function
+represent the parameters</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">instance</b></dt>
+<dd><p>Pointer to the instance structure.</p></dd>
+<dt><b class="variable">interp</b></dt>
+<dd><p>Pointer to the Tcl interpreter (Tcl_Interp*) the
+instance structure is associated with</p></dd>
+<dt><b class="variable">objc</b></dt>
+<dd><p>The number of method arguments.</p></dd>
+<dt><b class="variable">objv</b></dt>
+<dd><p>The method arguments, as C array of Tcl_Obj pointers.</p></dd>
+</dl>
+<p>Any additional arguments specified will be added after these and are
+passed into the C code as is, i.e. are considered to be C expressions.</p></dd>
+<dt><a name="17"><b class="cmd">method_introspection</b></a></dt>
+<dd><p>This command generates one class- and one instance-method both of
+which will return a list of the instance methods of the class, and
+supporting structures, like the function to compute the information,
+and a class variable caching it.</p>
+<p>The two methods and the class variable are all named
+<b class="const">methods</b>.</p></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Context dependent interactions</a></h3>
+<p>This section documents the various interactions between the
+specification commands. While these are are all documented with the
+individual commands here they are pulled together to see at a glance.</p>
+<ol class="doctools_enumerated">
+<li><p>If you are using the command <b class="cmd">type</b> to specify an external
+	C type to use for the instance structure you are subject to
+	the following constraints and rules:</p>
+<ol class="doctools_enumerated">
+<li><p>You cannot define your own instance variables.</p></li>
+<li><p>You cannot define your own class variables.</p></li>
+<li><p>You cannot use <b class="cmd">method_introspection</b>.</p></li>
+<li><p>You have to allocate and release the instance structure on your
+	own, through <b class="cmd">constructor</b> and <b class="cmd">destructor</b> code blocks.</p></li>
+</ol>
+</li>
+<li><p>If you declare class variables you are subject to the
+	following constraints and rules:</p>
+<ol class="doctools_enumerated">
+<li><p>You cannot use <b class="cmd">type</b>.</p></li>
+<li><p>The system generates an instance variable <b class="const">class</b> for
+	you, which points from instance to class structure. This makes
+	you also subject to the rules below, for instance variables.</p></li>
+</ol>
+</li>
+<li><p>If you declare instance variables (possibly automatic, see
+	above) you are subject to following constraints and rules:</p>
+<ol class="doctools_enumerated">
+<li><p>You cannot use <b class="cmd">type</b>.</p></li>
+<li><p>The system generates and manages an instance variable
+	<b class="const">cmd</b> for you, which holds the Tcl_Command token
+	of the instance command.</p></li>
+<li><p>The system generates an instance method <b class="const">destroy</b> for
+	you.</p></li>
+<li><p>The system manages allocation and release of the instance
+	structure for you. You have to care only about the instance
+	variables themselves.</p></li>
+</ol>
+</li>
+</ol>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Example</a></h2>
+<p>The example shown below is the specification of queue data structure,
+with most of the method implementations and support code omitted to
+keep the size down.</p>
+<p>The full implementation can be found in the directory
+&quot;<b class="file">examples/queue</b>&quot; of the critcl source distribution/repository.</p>
+<pre class="doctools_example">
+package require Tcl 8.6
+package require critcl 3.2
+critcl::buildrequirement {
+    package require critcl::class ; # DSL, easy spec of Tcl class/object commands.
+}
+critcl::cheaders util.h
+critcl::class::define ::queuec {
+    include util.h
+    insvariable Tcl_Obj* unget {
+	List object unget elements
+    } {
+	instance-&gt;unget = Tcl_NewListObj (0,NULL);
+	Tcl_IncrRefCount (instance-&gt;unget);
+    } {
+	Tcl_DecrRefCount (instance-&gt;unget);
+    }
+    insvariable Tcl_Obj* queue {
+	List object holding the main queue
+    } {
+	instance-&gt;queue = Tcl_NewListObj (0,NULL);
+	Tcl_IncrRefCount (instance-&gt;queue);
+    } {
+	Tcl_DecrRefCount (instance-&gt;queue);
+    }
+    insvariable Tcl_Obj* append {
+	List object holding new elements
+    } {
+	instance-&gt;append = Tcl_NewListObj (0,NULL);
+	Tcl_IncrRefCount (instance-&gt;append);
+    } {
+	Tcl_DecrRefCount (instance-&gt;append);
+    }
+    insvariable int at {
+	Index of next element to return from the main queue
+    } {
+	instance-&gt;at = 0;
+    }
+    support {... queue_peekget, queue_size, etc.}
+    method clear {} {...}
+    method destroy {...}
+    method get  as queue_peekget 1
+    method peek as queue_peekget 0
+    method put {item ...}
+    method size {} {
+	if ((objc != 2)) {
+	    Tcl_WrongNumArgs (interp, 2, objv, NULL);
+	    return TCL_ERROR;
+	}
+	Tcl_SetObjResult (interp, Tcl_NewIntObj (queue_size (instance, NULL, NULL, NULL)));
+	return TCL_OK;
+    }
+    method unget {item} {...}
+}
+package provide queuec 1
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Authors</a></h2>
+<p>Andreas Kupries</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such at <a href="https://github.com/andreas-kupries/critcl">https://github.com/andreas-kupries/critcl</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_class">C class</a>, <a href="../index.html#c_code">C code</a>, <a href="../index.html#c_instance">C instance</a>, <a href="../index.html#c_object">C object</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

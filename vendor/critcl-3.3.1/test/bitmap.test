@@ -1,0 +1,69 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# bitmap.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+    useLocal lib/critcl/critcl.tcl             critcl
+    useLocal lib/critcl-iassoc/iassoc.tcl      critcl::iassoc
+
+    localcache-setup
+}
+testing {
+    useLocal lib/critcl-bitmap/bitmap.tcl critcl::bitmap
+}
+
+# -------------------------------------------------------------------------
+##
+
+test bitmap-mode-tcl-1.0 {critcl-bitmap} -setup {
+    make-demo TL {
+        critcl::bitmap::def demo {
+            global 1
+            exact  2
+            filler 4
+        }
+
+        critcl::cproc encode {Tcl_Interp* ip Tcl_Obj* flags} int {
+            int mask;
+            demo_encode (ip, flags, &mask);
+            return mask;
+        }
+        critcl::cproc decode {Tcl_Interp* ip int mask} object {
+            Tcl_Obj* res = demo_decode (ip, mask);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+        # Encode hidden in the argtype.
+        critcl::cproc xencode {Tcl_Interp* ip demo flags} int {
+            return flags;
+        }
+        # Decode hidden in the resultype
+        critcl::cproc xdecode {Tcl_Interp* ip int mask} demo {
+            return mask;
+        }
+    }
+} -body {
+    res!
+    res+ [encode {exact filler}]
+    res+ [lsort -dict [decode 5]]
+    res+ [xencode global]
+    res+ [lsort -dict [xdecode 6]]
+    res?
+} -result {6 {{filler global}} 1 {{exact filler}}}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

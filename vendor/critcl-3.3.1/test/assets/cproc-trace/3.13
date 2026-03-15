@@ -1,0 +1,27 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static Tcl_Channel c__aproc0()
+{
+return Tcl_GetStdChannel (0);
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  Tcl_Channel rv;
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  /* Call - - -- --- ----- -------- */
+  rv = c__aproc0();
+
+  /* (known-channel return) - - -- --- ----- -------- */
+	if (rv == NULL) { return critcl_trace_cmd_result (TCL_ERROR, interp); }
+	Tcl_SetObjResult (interp, Tcl_NewStringObj (Tcl_GetChannelName (rv), -1));
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

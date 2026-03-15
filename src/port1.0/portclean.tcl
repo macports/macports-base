@@ -175,7 +175,7 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath subbuildpath worksymlink
+    global portbuildpath subbuildpath worksymlink subport
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"
@@ -185,11 +185,36 @@ proc portclean::clean_work {args} {
             ui_debug "$::errorInfo"
             ui_error "$eMessage"
         }
-        # silently fail if non-empty (other subports might be using portbuildpath)
-        catch {file delete $portbuildpath}
     } else {
         ui_debug "No work directory found to remove at ${subbuildpath}"
     }
+
+    set old_buildpath [portutil::get_oldbuildpath]
+    set old_subbbuildpath [file join $old_buildpath $subport]
+    if {[catch {set old_subbbuildpath_norm [realpath $old_subbbuildpath]}]} {
+        set old_subbbuildpath_norm [file normalize $old_subbbuildpath]
+    }
+    if {$old_subbbuildpath_norm ne $old_subbbuildpath && [file isdirectory $old_subbbuildpath_norm]} {
+        ui_debug "Removing directory: ${old_subbbuildpath_norm}"
+        macports_try -pass_signal {
+            delete $old_subbbuildpath_norm
+        } on error {eMessage} {
+            ui_debug "$::errorInfo"
+            ui_error "$eMessage"
+        }
+    }
+
+    if {![catch {file type $old_subbbuildpath}]} {
+        ui_debug "Removing symlink: ${old_subbbuildpath}"
+        macports_try -pass_signal {
+            delete $old_subbbuildpath
+        } on error {eMessage} {
+            ui_debug "$::errorInfo"
+            ui_error "$eMessage"
+        }
+    }
+    # silently fail if non-empty (other subports might be using old_buildpath)
+    catch {file delete $old_buildpath}
 
     # Clean symlink, if necessary
     if {![catch {file type $worksymlink} result] && $result eq "link"} {
@@ -242,17 +267,19 @@ proc portclean::clean_archive {args} {
             # thus can't be checked and aren't useful anyway.
             set archivetype [string range [file extension $path] 1 end]
             if {[file isfile $path] && ($archivetype eq "TMP"
-                || [extract_archive_metadata $path $archivetype portname] eq $subport)} {
+                || [dict get [extract_archive_metadata $path $archivetype portname] portname] eq $subport)} {
                 ui_debug "Removing archive: $path"
                 if {[catch {delete $path} result]} {
                     ui_debug "$::errorInfo"
                     ui_error "$result"
                 }
-                if {[file isfile ${path}.rmd160]} {
-                    ui_debug "Removing archive signature: ${path}.rmd160"
-                    if {[catch {delete ${path}.rmd160} result]} {
-                        ui_debug "$::errorInfo"
-                        ui_error "$result"
+                foreach sigtype {rmd160 sig} {
+                    if {[file isfile ${path}.${sigtype}]} {
+                        ui_debug "Removing archive signature: ${path}.${sigtype}"
+                        if {[catch {delete ${path}.${sigtype}} result]} {
+                            ui_debug "$::errorInfo"
+                            ui_error "$result"
+                        }
                     }
                 }
                 incr count

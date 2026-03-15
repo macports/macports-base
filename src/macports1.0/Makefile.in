@@ -4,8 +4,8 @@ VPATH  = @srcdir@
 include ../../Mk/macports.autoconf.mk
 
 SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
-		macports_autoconf.tcl diagnose.tcl reclaim.tcl snapshot.tcl restore.tcl \
-		migrate.tcl selfupdate.tcl
+		macports_autoconf.tcl mport_fetch_thread.tcl diagnose.tcl \
+		reclaim.tcl snapshot.tcl restore.tcl migrate.tcl selfupdate.tcl
 OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
@@ -44,8 +44,6 @@ install:: all
 	$(SILENT) set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${DESTDIR}${INSTALLDIR}/$$file"; \
 	done
-
-	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${DESTDIR}${INSTALLDIR}"
 
 
 include $(srcdir)/../../Mk/macports.tea.mk

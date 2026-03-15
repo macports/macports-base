@@ -606,9 +606,9 @@ proc variant {args} {
     ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
 
     if {![regexp {^[A-Za-z0-9_.]+$} [ditem_key $ditem provides]]} {
-        set name [ditem_key $ditem provides] 
+        set vname [ditem_key $ditem provides]
         ditem_delete $ditem
-        return -code error "Variant name $name contains invalid characters"
+        return -code error "Variant name $vname contains invalid characters"
     }
 
     # make a user procedure named variant-blah-blah
@@ -673,9 +673,9 @@ proc variant {args} {
 
 # variant_isset name
 # Returns 1 if variant name selected, otherwise 0
-proc variant_isset {name} {
+proc variant_isset {vname} {
     global variations
-    if {[info exists variations($name)] && $variations($name) eq "+"} {
+    if {[info exists variations($vname)] && $variations($vname) eq "+"} {
         return 1
     }
     return 0
@@ -683,19 +683,19 @@ proc variant_isset {name} {
 
 # variant_set name
 # Sets variant to run for current portfile
-proc variant_set {name} {
+proc variant_set {vname} {
     global variations
-    set variations($name) +
+    set variations($vname) +
 }
 
 # variant_remove_ditem name
 # Remove variant name's ditem from the all_variants dlist
-proc variant_remove_ditem {name} {
+proc variant_remove_ditem {vname} {
     global portutil::all_variants
     set item_index 0
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
-        if {$item_provides eq $name} {
+        if {$item_provides eq $vname} {
             set all_variants [lreplace ${all_variants}[set all_variants {}] $item_index $item_index]
             break
         }
@@ -706,22 +706,22 @@ proc variant_remove_ditem {name} {
 
 # variant_delete name
 # completely delete the named variant from the port
-proc variant_delete {name} {
+proc variant_delete {vname} {
     global PortInfo
-    variant_remove_ditem $name
+    variant_remove_ditem $vname
     if {[info exists PortInfo(variants)]} {
-        set PortInfo(variants) [ldelete $PortInfo(variants) $name]
+        set PortInfo(variants) [ldelete $PortInfo(variants) $vname]
     }
     if {[info exists PortInfo(vinfo)]} {
-        dict unset PortInfo(vinfo) $name
+        dict unset PortInfo(vinfo) $vname
     }
 }
 
 # variant_exists name
 # determine if a variant exists.
-proc variant_exists {name} {
+proc variant_exists {vname} {
     global PortInfo
-    if {[info exists PortInfo(variants)] && $name in $PortInfo(variants)} {
+    if {[info exists PortInfo(variants)] && $vname in $PortInfo(variants)} {
         return 1
     }
 
@@ -906,8 +906,8 @@ proc environment_array_to_string {environment_array} {
 # Given a distribution file name, return the appended tag
 # Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
 # / isn't included in the regexp, thus allowing port specification in URLs.
-proc getdisttag {name} {
-    if {[regexp {.+:([0-9A-Za-z_-]+)$} $name match tag]} {
+proc getdisttag {filename} {
+    if {[regexp {.+:([0-9A-Za-z_-]+)$} $filename match tag]} {
         return $tag
     } else {
         return ""
@@ -917,9 +917,9 @@ proc getdisttag {name} {
 # Given a distribution file name, return the name without an attached tag
 # Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
 # / isn't included in the regexp, thus allowing port specification in URLs.
-proc getdistname {name} {
-    regexp {(.+):[0-9A-Za-z_-]+$} $name match name
-    return $name
+proc getdistname {filename} {
+    regexp {(.+):[0-9A-Za-z_-]+$} $filename match filename
+    return $filename
 }
 
 ########### Misc Utility Functions ###########
@@ -1010,7 +1010,7 @@ proc reinplace {args}  {
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
 
-        if {[catch {set tmpfd [file tempfile tmpfile "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
+        if {[catch {set tmpfd [file tempfile tmpfile ${tempdir}/[file tail $file].sed]} error]} {
             ui_debug $::errorInfo
             ui_error "reinplace: $error"
             return -code error "reinplace failed"
@@ -1316,9 +1316,9 @@ proc ln {args} {
 # This procedure re-writes the user-defined custom target to include
 # all the globals in its scope.  This is undeniably ugly, but I haven't
 # thought of any other way to do this.
-proc makeuserproc {name body} {
+proc makeuserproc {procname body} {
     append modified_body {global {*}[info globals]} \n $body
-    proc $name {} $modified_body
+    proc $procname {} $modified_body
 }
 
 # backup
@@ -1416,7 +1416,9 @@ proc target_run {ditem} {
                 # cd somewhere readable in tracemode to avoid error, e.g. with
                 # find. Make sure to use a path that also exists when executing
                 # Portfiles from registry, i.e., _not_ $workpath.
-                set oldpwd [pwd]
+                if {[catch {pwd} oldpwd]} {
+                    set oldpwd {}
+                }
                 _cd $portdbpath
                 # change current phase shown in log
                 set_phase $target
@@ -1431,10 +1433,9 @@ proc target_run {ditem} {
 
                 #start tracelib
                 set tracing no
-                if {($result == 0
+                if {$result == 0
                   && [tbool ports_trace]
-                  && $target ne "clean"
-                  && $target ne "uninstall")} {
+                  && $target ni {clean uninstall}} {
                     # uninstall will open a portfile from registry and call
                     # deactivate and uninstall there; if we enable trace mode
                     # for the first level the two trace threads will conflict
@@ -1443,10 +1444,7 @@ proc target_run {ditem} {
 
                     # Enable the fence to prevent any creation/modification
                     # outside the sandbox.
-                    if {$target ne "activate"
-                      && $target ne "deactivate"
-                      && $target ne "archive"
-                      && $target ne "install"} {
+                    if {$target ni {activate archive deactivate install}} {
                         porttrace::trace_enable_fence
                     }
 
@@ -1483,35 +1481,34 @@ proc target_run {ditem} {
                     # Gather the dependencies for deptypes
                     foreach deptype $deptypes {
                         # Add to the list of dependencies if the option exists and isn't empty.
-                        if {[info exists PortInfo($deptype)] && $PortInfo($deptype) ne ""} {
-                            set depends [concat $depends $PortInfo($deptype)]
-                        }
-                    }
-
-                    # Recursively collect all dependencies from registry for tracing
-                    set deplist [list]
-                    foreach depspec $depends {
-                        # Resolve dependencies to actual ports
-                        set name [_get_dep_port $depspec]
-
-                        # If portname is empty, the dependency is already satisfied by other means,
-                        # for example a bin: dependency on a file not installed by MacPorts
-                        if {$name ne "" && $name ni $deplist} {
-                            lappend deplist $name
-                            set deplist [recursive_collect_deps $name $deplist]
+                        if {[info exists PortInfo($deptype)]} {
+                            lappend depends {*}$PortInfo($deptype)
                         }
                     }
 
                     # Add ccache port for access to ${prefix}/bin/ccache binary if it exists
                     if {[option configure.ccache] && [file exists ${prefix_frozen}/bin/ccache]} {
-                        set name [_get_dep_port path:bin/ccache:ccache]
-                        lappend deplist $name
-                        set deplist [recursive_collect_deps $name $deplist]
+                        lappend depends path:bin/ccache:ccache
                     }
 
-                    ui_debug "Tracemode will respect recursively collected port dependencies: [lsort $deplist]"
+                    # Recursively collect all dependencies from registry for tracing
+                    set depset [dict create]
+                    foreach depspec $depends {
+                        # Resolve dependencies to actual ports
+                        set depname [string tolower [_get_dep_port $depspec]]
 
-                    if {[llength $deptypes] > 0} {tracelib setdeps $deplist}
+                        # If depname is empty, the dependency is already satisfied by other means,
+                        # for example a bin: dependency on a file not installed by MacPorts
+                        if {$depname ne "" && ![dict exists $depset $depname]} {
+                            dict set depset $depname 1
+                            set depset [recursive_collect_deps $depname $depset]
+                        }
+                    }
+
+                    set deplist [lsort [dict keys $depset]]
+                    ui_debug "Tracemode will respect recursively collected port dependencies: $deplist"
+
+                    tracelib setdeps $deplist
                 }
 
                 # For {} blocks in the Portfile, export DEVELOPER_DIR to prevent Xcode binaries if shouldn't be used
@@ -1551,8 +1548,7 @@ proc target_run {ditem} {
                 # Check dependencies & file creations outside workpath.
                 if {[tbool ports_trace]
                   && $tracing
-                  && $target ne "clean"
-                  && $target ne "uninstall"} {
+                  && $target ni {clean uninstall}} {
 
                     tracelib closesocket
 
@@ -1576,7 +1572,9 @@ proc target_run {ditem} {
 
                 # $oldpwd is deleted while uninstalling a port, changing back
                 # _will_ fail
-                catch {_cd $oldpwd}
+                if {$oldpwd ne {}} {
+                    catch {_cd $oldpwd}
+                }
             }
         }
         if {[exists copy_log_files]} {
@@ -1619,6 +1617,7 @@ proc target_run {ditem} {
 
     if {[ditem_key $ditem state] ne "no"} {
         close $target_state_fd
+        unset target_state_fd
     }
 
     set env(HOME) $savedhome
@@ -1647,10 +1646,10 @@ proc recursive_collect_deps {portname {depsfound {}}} \
     set deplist [registry_list_depends [lindex $regentry 0] [lindex $regentry 1] [lindex $regentry 2] [lindex $regentry 3]]
 
     foreach item $deplist {
-        set name [lindex $item 0]
-        if {$name ni $depsfound} {
-            lappend depsfound $name
-            set depsfound [recursive_collect_deps $name $depsfound]
+        set depname [string tolower [lindex $item 0]]
+        if {![dict exists $depsfound $depname]} {
+            dict set depsfound $depname 1
+            set depsfound [recursive_collect_deps $depname $depsfound]
         }
     }
 
@@ -1687,6 +1686,13 @@ proc eval_targets {target} {
                 }
                 return $result
             }
+        } elseif {$target eq "archive"} {
+            # run the archive target but ignore its (completed) dependencies
+            set result [target_run [lindex [dlist_search $dlist provides $target] 0]]
+            if {[getuid] == 0 && [geteuid] != 0} {
+                seteuid 0; setegid 0
+            }
+            return $result
         }
     }
 
@@ -1727,6 +1733,47 @@ proc eval_targets {target} {
     return $result
 }
 
+# Traditional build subdir based on portpath
+proc portutil::get_oldbuildpath {} {
+    global portbuildpath portpath
+    return [file join [file dirname $portbuildpath] [string map {:// . / _} $portpath]]
+}
+
+proc portutil::create_workpath {} {
+    global workpath subbuildpath subport
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot create_workpath
+    }
+    set old_buildpath [get_oldbuildpath]
+    set old_subbbuildpath [file join $old_buildpath $subport]
+    file mkdir $old_buildpath $subbuildpath
+    set norm_old_workpath [file normalize ${old_subbbuildpath}/work]
+    # Link and/or move build dir if link or link target are missing or incorrect.
+    if {$norm_old_workpath ne $workpath} {
+        if {![catch {file type $old_subbbuildpath} ftype]} {
+            if {$ftype eq "directory"} {
+                # pre-2.11 build dir, move to new location
+                delete $subbuildpath
+                file rename $old_subbbuildpath $subbuildpath
+            } elseif {$ftype eq "link" && [file isdirectory $old_subbbuildpath]} {
+                # link to older 2.11.x build dir, rename
+                delete $subbuildpath
+                file rename [realpath $old_subbbuildpath] $subbuildpath
+            } else {
+                # broken link or something unexpected
+                delete $old_subbbuildpath
+            }
+            file attributes $subbuildpath -permissions 0755
+        }
+        ln -sf $subbuildpath $old_subbbuildpath
+        chownAsRoot $old_subbbuildpath
+    }
+
+    file mkdir $workpath/.home $workpath/.tmp
+    file attributes $workpath -permissions 0755
+    chownAsRoot $subbuildpath
+}
+
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
@@ -1734,23 +1781,8 @@ proc open_statefile {args} {
            subbuildpath
 
     if {![tbool ports_dryrun]} {
-        set need_chown 0
-        if {![file isdirectory $workpath/.home]} {
-            if {[getuid] == 0 && [geteuid] != 0} {
-                elevateToRoot create_workpath
-            }
-            file mkdir $workpath/.home
-            set need_chown 1
-        }
-        if {![file isdirectory $workpath/.tmp]} {
-            if {[getuid] == 0 && [geteuid] != 0} {
-                elevateToRoot create_workpath
-            }
-            file mkdir $workpath/.tmp
-            set need_chown 1
-        }
-        if {$need_chown} {
-            chownAsRoot $subbuildpath
+        if {![file isdirectory $workpath/.home] || ![file isdirectory $workpath/.tmp]} {
+            portutil::create_workpath
         }
         # Create a symlink to the workpath for port authors
         if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
@@ -1877,11 +1909,11 @@ proc get_statefile_value {class fd result} {
 }
 
 # check_statefile
-# Check completed/selected state of target/variant $name
-proc check_statefile {class name fd} {
+# Check completed/selected state of target/variant $id
+proc check_statefile {class id fd} {
     seek $fd 0
     while {[gets $fd line] >= 0} {
-        if {$line eq "$class: $name"} {
+        if {$line eq "$class: $id"} {
             return 1
         }
     }
@@ -1889,19 +1921,19 @@ proc check_statefile {class name fd} {
 }
 
 # write_statefile
-# Set target $name completed in the state file
-proc write_statefile {class name fd} {
-    if {[check_statefile $class $name $fd]} {
+# Set target $id completed in the state file
+proc write_statefile {class id fd} {
+    if {[check_statefile $class $id $fd]} {
         return 0
     }
     seek $fd 0 end
-    puts $fd "$class: $name"
+    puts $fd "$class: $id"
     flush $fd
 }
 
 # Change the value of an existing statefile key
 # caller must call open_statefile after this
-proc update_statefile {class name path} {
+proc update_statefile {class id path} {
     set fd [open $path r]
     while {[gets $fd line] >= 0} {
         if {[lindex $line 0] ne "${class}:"} {
@@ -1911,7 +1943,7 @@ proc update_statefile {class name path} {
     close $fd
     # truncate
     set fd [open $path w]
-    puts $fd "$class: $name"
+    puts $fd "$class: $id"
     foreach line $lines {
         puts $fd $line
     }
@@ -1937,8 +1969,8 @@ proc check_statefile_variants {variations oldvariations fd} {
     set target_re "target: .*"
     seek $fd 0
     while {[gets $fd line] >= 0} {
-        if {[regexp $variant_re $line match name]} {
-            dict set upoldvariations [string range $name 1 end] [string range $name 0 0]
+        if {[regexp $variant_re $line match vname]} {
+            dict set upoldvariations [string range $vname 1 end] [string range $vname 0 0]
             set variants_found yes
         }
         if {[regexp $target_re $line]} {
@@ -2004,21 +2036,21 @@ proc choose_variants {dlist variations} {
 }
 
 proc variant_run {ditem} {
-    set name [ditem_key $ditem name]
-    ui_debug "Executing variant $name provides [ditem_key $ditem provides]"
+    set vname [ditem_key $ditem name]
+    ui_debug "Executing variant $vname provides [ditem_key $ditem provides]"
 
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
         if {[variant_isset $v]} {
-            ui_error "[option subport]: Variant $name conflicts with $v"
+            ui_error "[option subport]: Variant $vname conflicts with $v"
             return 1
         }
     }
 
     # execute proc with same name as variant.
-    if {[catch "variant-${name}" result]} {
+    if {[catch "variant-${vname}" result]} {
         ui_debug $::errorInfo
-        ui_error "[option subport]: Error executing $name: $result"
+        ui_error "[option subport]: Error executing $vname: $result"
         return 1
     }
     return 0
@@ -2156,7 +2188,11 @@ proc check_variants {target} {
     }
     if {$statereq} {
 
-        set state_fd [open_statefile]
+        if {[catch {set state_fd [open_statefile]} err]} {
+            ui_debug $::errorInfo
+            ui_error "Failed to open statefile for $PortInfo(name): $err"
+            return 1
+        }
 
         if {![tbool ports_force] && [check_statefile_variants variations oldvariations $state_fd]} {
             ui_error "Requested variants \"[canonicalize_variants $variations]\" do not match those the build was started with: \"[canonicalize_variants $oldvariations]\"."
@@ -2205,11 +2241,11 @@ proc universal_setup {args} {
 # Target class definition.
 
 # constructor for target object
-proc target_new {name procedure} {
+proc target_new {tname procedure} {
     global portutil::targets
     set ditem [ditem_create]
 
-    ditem_key $ditem name $name
+    ditem_key $ditem name $tname
     ditem_key $ditem procedure $procedure
 
     lappend targets $ditem
@@ -2306,9 +2342,9 @@ proc target_init {ditem args} {
 ##### variant class #####
 
 # constructor for variant objects
-proc variant_new {name} {
+proc variant_new {vname} {
     set ditem [ditem_create]
-    ditem_key $ditem name $name
+    ditem_key $ditem name $vname
     return $ditem
 }
 
@@ -2359,19 +2395,19 @@ proc handle_add_users {} {
     }
 }
 
-proc adduser {name args} {
+proc adduser {username args} {
     global os.platform
 
     if {[getuid] != 0} {
         ui_warn "adduser only works when running as root."
-        ui_warn "The requested user '$name' was not created."
+        ui_warn "The requested user '$username' was not created."
         return
     }
 
     set passwd {*}
     set uid [nextuid]
     set gid [existsgroup nogroup]
-    set realname ${name}
+    set realname ${username}
     set home /var/empty
     set shell /usr/bin/false
 
@@ -2382,7 +2418,7 @@ proc adduser {name args} {
         }
     }
 
-    if {[existsuser ${name}] != -1 || [existsuser ${uid}] != -1} {
+    if {[existsuser ${username}] != -1 || [existsuser ${uid}] != -1} {
         return
     }
 
@@ -2395,22 +2431,22 @@ proc adduser {name args} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         macports_try {
-            exec -ignorestderr $dscl . -create /Users/${name} UniqueID ${uid}
+            exec -ignorestderr $dscl . -create /Users/${username} UniqueID ${uid}
 
             # These are implicitly added on Mac OS X Lion.  AuthenticationAuthority
             # causes the user to be visible in the Users & Groups Preference Pane,
             # and the others are just noise, so delete them.
             # https://trac.macports.org/ticket/30168
-            exec -ignorestderr $dscl . -delete /Users/${name} AuthenticationAuthority
-            exec -ignorestderr $dscl . -delete /Users/${name} PasswordPolicyOptions
-            exec -ignorestderr $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
-            exec -ignorestderr $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
+            exec -ignorestderr $dscl . -delete /Users/${username} AuthenticationAuthority
+            exec -ignorestderr $dscl . -delete /Users/${username} PasswordPolicyOptions
+            exec -ignorestderr $dscl . -delete /Users/${username} dsAttrTypeNative:KerberosKeys
+            exec -ignorestderr $dscl . -delete /Users/${username} dsAttrTypeNative:ShadowHashData
 
-            exec -ignorestderr $dscl . -create /Users/${name} RealName ${realname}
-            exec -ignorestderr $dscl . -create /Users/${name} Password ${passwd}
-            exec -ignorestderr $dscl . -create /Users/${name} PrimaryGroupID ${gid}
-            exec -ignorestderr $dscl . -create /Users/${name} NFSHomeDirectory ${home}
-            exec -ignorestderr $dscl . -create /Users/${name} UserShell ${shell}
+            exec -ignorestderr $dscl . -create /Users/${username} RealName ${realname}
+            exec -ignorestderr $dscl . -create /Users/${username} Password ${passwd}
+            exec -ignorestderr $dscl . -create /Users/${username} PrimaryGroupID ${gid}
+            exec -ignorestderr $dscl . -create /Users/${username} NFSHomeDirectory ${home}
+            exec -ignorestderr $dscl . -create /Users/${username} UserShell ${shell}
         } on error {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
             # seem to have lassign
@@ -2439,12 +2475,12 @@ proc adduser {name args} {
                 # creating the user properly failed and we're bailing out
                 # anyway, try to delete the half-created user to revert to the
                 # state before the error
-                ui_debug "Attempting to clean up failed creation of user $name"
+                ui_debug "Attempting to clean up failed creation of user $username"
                 macports_try {
-                    exec -ignorestderr $dscl . -delete /Users/${name}
+                    exec -ignorestderr $dscl . -delete /Users/${username}
                 } on error {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
-                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $name."
+                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $username."
                         ui_debug "dscl printed: $eMessage"
                     }
                 } on error {{CHILDSTATUS *} eCode eMessage} {
@@ -2452,7 +2488,7 @@ proc adduser {name args} {
                     # the first call failed and the user wasn't even created
                 } on error {{POSIX *} eCode eMessage} {
                     foreach {- errName msg} {
-                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $name."
+                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $username."
                         ui_debug "dscl printed: $eMessage"
                     }
                 }
@@ -2463,13 +2499,13 @@ proc adduser {name args} {
                 }
 
                 # and raise an error to abort
-                error "dscl failed to create required user $name."
+                error "dscl failed to create required user $username."
             }
         }
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "adduser is not implemented on ${os.platform}."
-        ui_warn "The requested user '$name' was not created."
+        ui_warn "The requested user '$username' was not created."
     }
 
     if {[info exists escalated]} {
@@ -2477,17 +2513,17 @@ proc adduser {name args} {
     }
 }
 
-proc addgroup {name args} {
+proc addgroup {groupname args} {
     global os.platform
 
     if {[getuid] != 0} {
         ui_warn "addgroup only works when running as root."
-        ui_warn "The requested group '$name' was not created."
+        ui_warn "The requested group '$groupname' was not created."
         return
     }
 
     set gid [nextgid]
-    set realname ${name}
+    set realname ${groupname}
     set passwd {*}
     set users ""
 
@@ -2498,7 +2534,7 @@ proc addgroup {name args} {
         }
     }
 
-    if {[existsgroup ${name}] != -1 || [existsgroup ${gid}] != -1} {
+    if {[existsgroup ${groupname}] != -1 || [existsgroup ${gid}] != -1} {
         return
     }
 
@@ -2511,11 +2547,11 @@ proc addgroup {name args} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         macports_try {
-            exec -ignorestderr $dscl . -create /Groups/${name} Password ${passwd}
-            exec -ignorestderr $dscl . -create /Groups/${name} RealName ${realname}
-            exec -ignorestderr $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+            exec -ignorestderr $dscl . -create /Groups/${groupname} Password ${passwd}
+            exec -ignorestderr $dscl . -create /Groups/${groupname} RealName ${realname}
+            exec -ignorestderr $dscl . -create /Groups/${groupname} PrimaryGroupID ${gid}
             if {${users} ne ""} {
-                exec -ignorestderr $dscl . -create /Groups/${name} GroupMembership ${users}
+                exec -ignorestderr $dscl . -create /Groups/${groupname} GroupMembership ${users}
             }
         } on error {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
@@ -2545,12 +2581,12 @@ proc addgroup {name args} {
                 # creating the user properly failed and we're bailing out
                 # anyway, try to delete the half-created user to revert to the
                 # state before the error
-                ui_debug "Attempting to clean up failed creation of group $name"
+                ui_debug "Attempting to clean up failed creation of group $groupname"
                 macports_try {
-                    exec -ignorestderr $dscl . -delete /Groups/${name}
+                    exec -ignorestderr $dscl . -delete /Groups/${groupname}
                 } on error {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
-                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $name."
+                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $groupname."
                         ui_debug "dscl printed: $eMessage"
                     }
                 } on error {{CHILDSTATUS *} eCode eMessage} {
@@ -2558,7 +2594,7 @@ proc addgroup {name args} {
                     # the first call failed and the user wasn't even created
                 } on error {{POSIX *} eCode eMessage} {
                     foreach {- errName msg} {
-                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $name."
+                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $groupname."
                         ui_debug "dscl printed: $eMessage"
                     }
                 }
@@ -2568,7 +2604,7 @@ proc addgroup {name args} {
                 }
 
                 # and raise an error to abort
-                error "dscl failed to create required group $name."
+                error "dscl failed to create required group $groupname."
             }
         }
     } else {
@@ -2784,8 +2820,8 @@ proc archiveTypeIsSupported {type} {
     return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
-# return the specified piece of metadata from the +CONTENTS file in the given archive
-proc extract_archive_metadata {archive_location archive_type metadata_type} {
+# return the specified pieces of metadata from the +CONTENTS file in the given archive
+proc extract_archive_metadata {archive_location archive_type metadata_types} {
     set qflag ${portutil::autoconf::tar_q}
     set raw_contents ""
 
@@ -2843,52 +2879,63 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
         close $fd
         file delete -force $tempdir
     }
-    if {$metadata_type eq "contents"} {
-        set contents [list]
-        set binary_info [list]
-        set ignore 0
-        set sep [file separator]
-        foreach line [split $raw_contents \n] {
-            if {$ignore} {
+    set ret [dict create]
+    foreach metadata_type $metadata_types {
+        switch -- $metadata_type {
+            contents {
+                set contents [list]
+                set binary_info [list]
                 set ignore 0
-                continue
-            }
-            if {[string index $line 0] ne "@"} {
-                lappend contents "${sep}${line}"
-            } elseif {$line eq "@ignore"} {
-                set ignore 1
-            } elseif {[string range $line 0 15] eq "@comment binary:"} {
-                lappend binary_info [lindex $contents end] [string range $line 16 end]
-            }
-        }
-        return [list $contents $binary_info]
-    } elseif {$metadata_type eq "portname"} {
-        foreach line [split $raw_contents \n] {
-            if {[lindex $line 0] eq "@portname"} {
-                return [lindex $line 1]
-            }
-        }
-        return ""
-    } elseif {$metadata_type eq "cxx_info"} {
-        set val_cxx_stdlib ""
-        set val_cxx_stdlib_overridden ""
-        foreach line [split $raw_contents \n] {
-            if {[lindex $line 0] eq "@cxx_stdlib"} {
-                set val_cxx_stdlib [lindex $line 1]
-                if {$val_cxx_stdlib_overridden ne ""} {
-                    break
+                set sep [file separator]
+                foreach line [split $raw_contents \n] {
+                    if {$ignore} {
+                        set ignore 0
+                        continue
+                    }
+                    if {[string index $line 0] ne "@"} {
+                        lappend contents "${sep}${line}"
+                    } elseif {$line eq "@ignore"} {
+                        set ignore 1
+                    } elseif {[string range $line 0 15] eq "@comment binary:"} {
+                        lappend binary_info [lindex $contents end] [string range $line 16 end]
+                    }
                 }
-            } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
-                set val_cxx_stdlib_overridden [lindex $line 1]
-                if {$val_cxx_stdlib ne ""} {
-                    break
+                dict set ret contents [list $contents $binary_info]
+            }
+            portname {
+                set portname {}
+                foreach line [split $raw_contents \n] {
+                    if {[lindex $line 0] eq "@portname"} {
+                        set portname [lindex $line 1]
+                        break
+                    }
                 }
+                dict set ret portname $portname
+            }
+            cxx_info {
+                set val_cxx_stdlib ""
+                set val_cxx_stdlib_overridden ""
+                foreach line [split $raw_contents \n] {
+                    if {[lindex $line 0] eq "@cxx_stdlib"} {
+                        set val_cxx_stdlib [lindex $line 1]
+                        if {$val_cxx_stdlib_overridden ne ""} {
+                            break
+                        }
+                    } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
+                        set val_cxx_stdlib_overridden [lindex $line 1]
+                        if {$val_cxx_stdlib ne ""} {
+                            break
+                        }
+                    }
+                }
+                dict set ret cxx_info [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
+            }
+            default {
+                return -code error "unknown metadata_type: $metadata_type"
             }
         }
-        return [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
-    } else {
-        return -code error "unknown metadata_type: $metadata_type"
     }
+    return $ret
 }
 
 #
@@ -3156,6 +3203,24 @@ proc exec_as_uid {uid code} {
     return -code $retcode $result
 }
 
+# Run the given code, becoming root first if possible, and dropping
+# privileges again afterward.
+proc exec_with_available_privileges {code} {
+    if {[getuid] == 0 && [geteuid] != 0} {
+        seteuid 0; setegid 0
+        set deprivileged 1
+    }
+    try {
+        uplevel 1 $code
+    } finally {
+        if {[info exists deprivileged]} {
+            global macportsuser
+            setegid [uname_to_gid $macportsuser]
+            seteuid [name_to_uid $macportsuser]
+        }
+    }
+}
+
 # dependency analysis helpers
 
 ### _libtest is private; subject to change without notice
@@ -3316,93 +3381,7 @@ proc _check_xcode_version {} {
            xcodecltversion use_xcode xcode_license_unaccepted subport
 
     if {${os.subplatform} eq "macosx"} {
-        switch $macos_version_major {
-            10.4 {
-                set min 2.0
-                set ok 2.4.1
-                set rec 2.5
-            }
-            10.5 {
-                set min 3.0
-                set ok 3.1
-                set rec 3.1.4
-            }
-            10.6 {
-                set min 3.2
-                set ok 3.2
-                set rec 3.2.6
-            }
-            10.7 {
-                set min 4.1
-                set ok 4.1
-                set rec 4.6.3
-            }
-            10.8 {
-                set min 4.4
-                set ok 4.4
-                set rec 5.1.1
-            }
-            10.9 {
-                set min 5.0.1
-                set ok 5.0.1
-                set rec 6.2
-            }
-            10.10 {
-                set min 6.1
-                set ok 6.1
-                set rec 7.2.1
-            }
-            10.11 {
-                set min 7.0
-                set ok 7.0
-                set rec 8.2.1
-            }
-            10.12 {
-                set min 8.0
-                set ok 8.0
-                set rec 9.2
-            }
-            10.13 {
-                set min 9.0
-                set ok 9.0
-                set rec 9.4.1
-            }
-            10.14 {
-                set min 10.0
-                set ok 10.0
-                set rec 10.3
-            }
-            10.15 {
-                set min 11.0
-                set ok 11.3
-                set rec 11.7
-            }
-            11 {
-                set min 12.2
-                set ok 12.2
-                set rec 12.5
-            }
-            12 {
-                set min 13.1
-                set ok 13.1
-                set rec 13.4.1
-            }
-            13 {
-                set min 14.1
-                set ok 14.1
-                set rec 14.3.1
-            }
-            14 {
-                set min 15.0
-                set ok 15.1
-                set rec 15.1
-            }
-            default {
-                set min 15.0
-                set ok 15.1
-                set rec 15.1
-            }
-        }
+        lassign [get_compatible_xcode_versions] min ok rec
         if {$xcodeversion eq "none"} {
             if {[file exists "/Applications/Install Xcode.app"]} {
                 ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
@@ -3445,7 +3424,7 @@ proc _check_xcode_version {} {
                     ui_warn "You can install them as part of the Xcode Command Line Tools package by running `xcode-select --install'."
                 } else {
                     ui_warn "You can install them as part of the Xcode Command Line Tools package from Xcode's Preferences in the Downloads section."
-                    ui_warn "See https://guide.macports.org/chunked/installing.xcode.html#installing.xcode.lion.43 for more information."
+                    ui_warn "See https://guide.macports.org/chunked/installing.html#installing.xcode.lion.43 for more information."
                 }
             }
 
@@ -3464,6 +3443,10 @@ proc _check_xcode_version {} {
                     } else {
                         ui_warn "The macOS ${configure.sdk_version} SDK does not appear to be installed. This port may not build correctly."
                     }
+                } elseif {$xcodecltversion ne "none" && [vercmp $xcodecltversion >= 16]
+                          && [file exists ${cltpath}/usr/include/c++/v1]} {
+                    ui_warn "Old C++ headers are present, which may cause build failures with Command Line Tools v16+."
+                    ui_warn "Please see: <https://trac.macports.org/wiki/ProblemHotlist#clts16>"
                 }
             }
 
@@ -3487,71 +3470,182 @@ proc _check_xcode_version {} {
     return 0
 }
 
-# check if we can unarchive this port
-proc _archive_available {} {
-    global ports_source_only porturl portutil::archive_available_result
+# Get a head start on things that will need to be done when this port
+# is installed.
+proc portutil::_prep_install {} {
+    _eval_archive_available yes
+}
 
+# Clean up any asynchronous actions in progress
+proc portutil::_async_cleanup {} {
+    variable archive_available_curl_reqid
+    if {[info exists archive_available_curl_reqid]} {
+        curlwrap_async_cancel $archive_available_curl_reqid
+        unset archive_available_curl_reqid
+    }
+    portfetch::_async_cleanup
+    portarchivefetch::_async_cleanup
+    portlivecheck::_async_cleanup
+}
+
+proc portutil::_archive_available_ready {} {
+    variable archive_available_result
     if {[info exists archive_available_result]} {
-        return $archive_available_result
+        return 1
+    }
+    variable archive_available_curl_reqid
+    return [expr {[info exists archive_available_curl_reqid]
+        && [curlwrap_async_is_complete $archive_available_curl_reqid]}]
+}
+
+# Helper function to do the potentially expensive first evaluation of
+# _archive_available, optionally asynchronously.
+proc portutil::_eval_archive_available {{async no}} {
+    variable archive_available_result
+    if {[info exists archive_available_result]} {
+        return
     }
 
+    variable archive_available_curl_reqid
+    if {[info exists archive_available_curl_reqid]} {
+        if {!$async} {
+            lassign [curlwrap_async_result $archive_available_curl_reqid] status data
+            unset archive_available_curl_reqid
+            if {$status == 0} {
+                # success
+                set archive_available_result $data
+            } else {
+                # error
+                ui_debug "curlwrap_async failed: $data"
+                set archive_available_result 0
+            }
+        }
+        return
+    }
+
+    global ports_source_only
     if {[tbool ports_source_only]} {
         set archive_available_result 0
-        return 0
+        return
     }
 
     if {[find_portarchive_path] ne ""} {
         set archive_available_result 1
-        return 1
+        return
     }
 
+    global porturl
     set archiverootname [file rootname [get_portimage_name]]
     if {[file rootname [file tail $porturl]] eq $archiverootname && [file extension $porturl] ne ""} {
         set archive_available_result 1
-        return 1
+        return
     }
 
-    # check if there's an archive available on the server
-    global archive_sites
+    # check if there's an archive on the primary or local servers
+    global archive_sites env
     set mirrors macports_archives
     if {[lsearch $archive_sites macports_archives::*] == -1} {
         set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
     }
     if {$mirrors eq {}} {
         set archive_available_result 0
-        return 0
+        return
     }
+    package require uri
     set archivetype $portfetch::mirror_sites::archive_type($mirrors)
-    set archivename "${archiverootname}.${archivetype}"
-    # grab first site, should conventionally be the master mirror
-    set sites_entry [lindex $portfetch::mirror_sites::sites($mirrors) 0]
-    # look for and strip off any tag, which will start with the first colon after the
-    # first slash after the ://
-    set lastcolon [string last : $sites_entry]
-    set aftersep [expr {[string first : $sites_entry] + 3}]
-    set firstslash [string first / $sites_entry $aftersep]
-    if {$firstslash != -1 && $firstslash < $lastcolon} {
-        incr lastcolon -1
-        set site [string range $sites_entry 0 $lastcolon]
+    if {[info exists portfetch::mirror_sites::archive_sigtype($mirrors)]} {
+        set sigtype $portfetch::mirror_sites::archive_sigtype($mirrors)
     } else {
-        set site $sites_entry
+        set sigtype rmd160
     }
-    if {[string index $site end] ne "/"} {
-        append site /
+    set archivename ${archiverootname}.${archivetype}
+    set sites_entries [list]
+    if {[info exists env(ARCHIVE_SITE_LOCAL)]} {
+        lappend sites_entries {*}$env(ARCHIVE_SITE_LOCAL)
     }
-    append site [option archive.subdir]
-    set url [portfetch::assemble_url $site $archivename]
-    ui_debug "Fetching $archivename archive size"
-    # curl getsize can return -1 instead of throwing an error for
-    # nonexistent files on FTP sites.
-    if {![catch {curl getsize $url} size] && $size > 0
-          && ![catch {curl getsize ${url}.rmd160} sigsize] && $sigsize > 0} {
-        set archive_available_result 1
-        return 1
+    # grab first site, should conventionally be the master mirror
+    set primary_mirror [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+    # Find mirror with fastest cached ping time
+    set primary_mirror_parts [::uri::split $primary_mirror]
+    set best_ping 10000
+    if {[dict exists $primary_mirror_parts scheme] && [dict get $primary_mirror_parts scheme] eq "file"} {
+        set best_ping -1
+    } elseif {[dict exists $primary_mirror_parts host]} {
+        lassign [get_pingtime [dict get $primary_mirror_parts host]] status best_ping
+        if {$status == 2} {
+            set best_ping 0
+        }
+    }
+    if {$best_ping >= 0} {
+        set fastest_mirror $primary_mirror
+        foreach mirror [lrange $portfetch::mirror_sites::sites($mirrors) 1 end] {
+            if {[compare_pingtimes $mirror $fastest_mirror] < 0} {
+                set fastest_mirror $mirror
+                set mirror_parts [::uri::split $mirror]
+                if {[dict exists $mirror_parts scheme] && [dict get $mirror_parts scheme] eq "file"} {
+                    break
+                }
+                lassign [get_pingtime [dict get $mirror_parts host]] status cur_ping
+                if {$status == 2} {
+                    break
+                }
+            }
+        }
+        if {$fastest_mirror ne $primary_mirror} {
+            lappend sites_entries $fastest_mirror
+        }
+    }
+    lappend sites_entries $primary_mirror
+    # Build list of URLs to check for the archive and its signature.
+    set sites [list]
+    set urls [list]
+    foreach sites_entry $sites_entries {
+        # look for and strip off any tag, which will start with the first colon after the
+        # first slash after the ://
+        set lastcolon [string last : $sites_entry]
+        set aftersep [expr {[string first : $sites_entry] + 3}]
+        set firstslash [string first / $sites_entry $aftersep]
+        if {$firstslash != -1 && $firstslash < $lastcolon} {
+            set site [string range $sites_entry 0 ${lastcolon}-1]
+        } else {
+            set site $sites_entry
+        }
+        set orig_site $site
+        if {[string index $site end] ne "/"} {
+            append site /
+        }
+        set url [portfetch::assemble_url ${site}[option archive.subdir] $archivename]
+        lappend sites $orig_site $orig_site
+        lappend urls $url ${url}.${sigtype}
     }
 
-    set archive_available_result 0
-    return 0
+    if {$async} {
+        # Queue the check on a separate thread and return immediately.
+        set archive_available_curl_reqid \
+            [curlwrap_async archive_exists {} {} $sites $urls]
+    } else {
+        foreach {url sigurl} $urls {site sigsite} $sites {
+            ui_debug "Checking if $archivename exists at $site"
+            # curl getsize can return -1 instead of throwing an error for
+            # nonexistent files on FTP sites.
+            if {![catch {curlwrap getsize $orig_site {} $url} size] && $size > 0
+                  && ![catch {curlwrap getsize $orig_site {} ${url}.${sigtype}} sigsize] && $sigsize > 0} {
+                set archive_available_result 1
+                return
+            }
+        }
+        set archive_available_result 0
+    }
+}
+
+# check if we can unarchive this port
+proc _archive_available {} {
+    global portutil::archive_available_result
+
+    if {![info exists archive_available_result]} {
+        portutil::_eval_archive_available no
+    }
+    return $archive_available_result
 }
 
 # get the mountpoint providing a given directory

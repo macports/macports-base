@@ -1,0 +1,161 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset bitmap_version 1.1]
+[manpage_begin critcl::bitmap n [vset bitmap_version]]
+[include include/module2.inc]
+[keywords singleton {Tcl Interp Association}]
+[keywords bitmask bitset flags]
+[titledesc {CriTcl - Wrap Support - Bitset en- and decoding}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::bitmap [opt [vset bitmap_version]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the
+[package critcl::bitmap] package. This package provides convenience
+commands for advanced functionality built on top of both critcl core
+and package [package critcl::iassoc].
+
+[para] C level libraries often use bit-sets to encode many flags into a
+single value. Tcl bindings to such libraries now have the task of
+converting a Tcl representation of such flags (like a list of strings)
+into such bit-sets, and back.
+
+[emph Note] here that the C-level information has to be something which
+already exists. The package does [emph not] create these values. This is
+in contrast to the package [package critcl::enum] which creates an
+enumeration based on the specified symbolic names.
+
+[para] This package was written to make the declaration and management
+of such bit-sets and their associated conversions functions easy,
+hiding all attendant complexity from the user.
+
+[para] Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.
+
+[para] This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::critcl::bitmap::def] [arg name] [arg definition] [opt [arg exclusions]]]
+
+This command defines two C functions for the conversion of the
+[arg name]d bit-set into Tcl lists, and vice versa.
+
+The underlying mapping tables are automatically initialized on first
+access, and finalized on interpreter destruction.
+
+[para] The [arg definition] dictionary provides the mapping from the
+Tcl-level symbolic names of the flags to their C expressions (often
+the name of the macro specifying the actual value).
+
+[emph Note] here that the C-level information has to be something which
+already exists. The package does [emph not] create these values. This is
+in contrast to the package [package critcl::enum] which creates an
+enumeration based on the specified symbolic names.
+
+[para] The optional [arg exlusion] list is for the flags/bit-sets for
+which conversion from bit-set to flag, i.e. decoding makes no
+sense. One case for such, for example, are flags representing a
+combination of other flags.
+
+[para] The package generates multiple things (declarations and
+definitions) with names derived from [arg name], which has to be a
+proper C identifier.
+
+[list_begin definitions]
+[def [arg name]_encode]
+The function for encoding a Tcl list of strings into the equivalent
+bit-set.
+
+Its signature is
+[para][example_begin]
+int [arg name]_encode (Tcl_Interp* interp, Tcl_Obj* flags, int* result);
+[example_end]
+
+[para] The return value of the function is a Tcl error code,
+i.e. [const TCL_OK], [const TCL_ERROR], etc.
+
+[def [arg name]_decode]
+The function for decoding a bit-set into the equivalent Tcl list of
+strings.
+
+Its signature is
+[para][example_begin]
+Tcl_Obj* [arg name]_decode (Tcl_Interp* interp, int flags);
+[example_end]
+
+[def [arg name].h]
+A header file containing the declarations for the two conversion
+functions, for use by other parts of the system, if necessary.
+
+[para] The generated file is stored in a place where it will not
+interfere with the overall system outside of the package, yet also be
+available for easy inclusion by package files ([cmd csources]).
+
+[def [arg name]]
+The name of a critcl argument type encapsulating the encoder function
+for use by [cmd critcl::cproc].
+
+[def [arg name]]
+The name of a critcl result type encapsulating the decoder function
+for use by [cmd critcl::cproc].
+
+[list_end]
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Example]
+
+The example shown below is the specification of the event flags pulled
+from the draft work on a Tcl binding to Linux's inotify APIs.
+
+[example {
+package require Tcl 8.6
+package require critcl 3.2
+
+critcl::buildrequirement {
+    package require critcl::bitmap
+}
+
+critcl::bitmap::def tcl_inotify_events {
+    accessed       IN_ACCESS
+    all            IN_ALL_EVENTS
+    attribute      IN_ATTRIB
+    closed         IN_CLOSE
+    closed-nowrite IN_CLOSE_NOWRITE
+    closed-write   IN_CLOSE_WRITE
+    created        IN_CREATE
+    deleted        IN_DELETE
+    deleted-self   IN_DELETE_SELF
+    dir-only       IN_ONLYDIR
+    dont-follow    IN_DONT_FOLLOW
+    modified       IN_MODIFY
+    move           IN_MOVE
+    moved-from     IN_MOVED_FROM
+    moved-self     IN_MOVE_SELF
+    moved-to       IN_MOVED_TO
+    oneshot        IN_ONESHOT
+    open           IN_OPEN
+    overflow       IN_Q_OVERFLOW
+    unmount        IN_UNMOUNT
+} {
+    all closed move oneshot
+}
+
+# Declarations:          tcl_inotify_events.h
+# Encoder:      int      tcl_inotify_events_encode (Tcl_Interp* interp, Tcl_Obj* flags, int* result);
+# Decoder:      Tcl_Obj* tcl_inotify_events_decode (Tcl_Interp* interp, int flags);
+# crit arg-type          tcl_inotify_events
+# crit res-type          tcl_inotify_events
+}]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

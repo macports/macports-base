@@ -1,0 +1,228 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: reference}]
+[include version.inc]
+[manpage_begin critcl_devguide n [vset VERSION]]
+[include include/module.inc]
+[titledesc {Guide To The CriTcl Internals}]
+[description]
+[include include/welcome.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Audience]
+
+[para] This document is a guide for developers working on CriTcl, i.e. maintainers fixing
+bugs, extending the package's functionality, etc.
+
+[para] Please read
+
+[list_begin enum]
+[enum] [term {CriTcl - License}],
+[enum] [term {CriTcl - How To Get The Sources}], and
+[enum] [term {CriTcl - The Installer's Guide}]
+[list_end]
+
+first, if that was not done already.
+
+[para] Here we assume that the sources are already available in a directory of the readers
+choice, and that the reader not only know how to build and install them, but also has all
+the necessary requisites to actually do so. The guide to the sources in particular also
+explains which source code management system is used, where to find it, how to set it up,
+etc.
+
+[section {Playing with CriTcl}]
+[include include/largeexampleref.inc]
+[include include/smallexampleref.inc]
+
+
+[section {Developing for CriTcl}]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[subsection {Architecture & Concepts}]
+[include include/architecture.inc]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[subsection Requirements]
+
+To develop for critcl the following packages and applications must be available in the
+environment. These are all used by the [cmd build.tcl] helper application.
+
+[list_begin definitions]
+[def [syscmd dtplite]]
+
+A Tcl application provided by Tcllib, for the validation and conversion of
+[term doctools]-formatted text.
+
+[def [syscmd dia]]
+
+A Tcl application provided by Tklib, for the validation and conversion
+of [package diagram]-formatted figures into raster images.
+
+[para] Do not confuse this with the Gnome [syscmd dia] application, which is a graphical
+editor for figures and diagrams, and completely unrelated.
+
+[def [package fileutil]]
+A Tcl package provided by Tcllib, providing file system utilities.
+
+[def "[package vfs::mk4], [package vfs]"]
+Tcl packages written in C providing access to Tcl's VFS facilities, required for the
+generation of critcl starkits and starpacks.
+
+[list_end]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[subsection {Directory structure}]
+
+[list_begin definitions][comment {___1___}]
+
+[comment {= = == === ===== ======== ============= =======================}]
+[def Helpers]
+[list_begin definitions]
+[def [file build.tcl]]
+
+This helper application provides various operations needed by a developer for critcl, like
+regenerating the documentation, the figures, building and installing critcl, etc.
+
+[para] Running the command like
+
+[example {
+	./build.tcl help
+}]
+
+will provide more details about the available operations and their arguments.
+[list_end]
+
+[comment {= = == === ===== ======== ============= =======================}]
+[def Documentation]
+[list_begin definitions]
+[def [file doc/]]
+
+This directory contains the documentation sources, for both the text, and the figures.
+The texts are written in [term doctools] format, whereas the figures are written for
+tklib's [package dia](gram) package and application.
+
+[def [file embedded/]]
+
+This directory contains the documentation converted to regular manpages (nroff) and HTML.
+
+It is called embedded because these files, while derived, are part of the git repository,
+i.e. embedded into it. This enables us to place these files where they are visible when
+serving the prject's web interface.
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =======================}]
+[def Testsuite]
+[list_begin definitions]
+[def [file test/all.tcl]]
+[def [file test/testutilities.tcl]]
+[def [file test/*.test]]
+
+These files are a standard testsuite based on Tcl's [package tcltest] package, with some
+utility code snarfed from [package Tcllib].
+
+[para] This currently tests only some of the [package stubs::*] packages.
+
+[def [file test/*.tcl]]
+
+These files (except for [file all.tcl] and [file testutilities.tcl]) are example files
+(Tcl with embedded C) which can be run through critcl for testing.
+
+[para] [strong TODO] for a maintainers: These should be converted into a proper test suite.
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =======================}]
+[def {Package Code, General structure}]
+
+[list_begin definitions]
+[list_end]
+
+[comment {= = == === ===== ======== ============= =======================}]
+[def {Package Code, Per Package}]
+[list_begin definitions][comment ----------------------PCPP]
+
+[def [package critcl]]
+[list_begin definitions][comment ---------------critcl]
+[def [file lib/critcl/critcl.tcl]]
+The Tcl code implementing the package.
+
+[def [file lib/critcl/Config]]
+The configuration file for the standard targets and their settings.
+
+[def [file lib/critcl/critcl_c/]]
+Various C code snippets used by the package.
+
+This directory also contains the copies of the Tcl header files used to compile the
+assembled C code, for the major brnaches of Tcl, i.e. 8.4, 8.5, and 8.6.
+
+[list_end][comment -----------------------------critcl]
+
+[def [package critcl::util]]
+[list_begin definitions][comment ---------------critcl::util]
+[def [file lib/critcl-util/util.tcl]]
+The Tcl code implementing the package.
+[list_end][comment -----------------------------critcl::util]
+
+[def [package critcl::app]]
+[list_begin definitions][comment ---------------critcl::app]
+[def [file lib/app-critcl/critcl.tcl]]
+The Tcl code implementing the package.
+[list_end][comment -----------------------------critcl::app]
+
+[def [package critcl::iassoc]]
+[list_begin definitions][comment ---------------critcl::iassoc]
+[def [file lib/critcl-iassoc/iassoc.tcl]]
+The Tcl code implementing the package.
+[def [file lib/critcl-iassoc/iassoc.h]]
+C code template used by the package.
+[list_end][comment -----------------------------critcl::iassoc]
+
+[def [package critcl::class]]
+[list_begin definitions][comment ---------------critcl::class]
+[def [file lib/critcl-class/class.tcl]]
+The Tcl code implementing the package.
+[def [file lib/critcl-class/class.h]]
+C code template used by the package.
+[list_end][comment -----------------------------critcl::class]
+
+
+[def [package stubs::*]]
+[list_begin definitions][comment ---------------stubs]
+[def [file lib/stubs/*]]
+
+A set of non-public (still) packages which provide read and write access to and represent
+Tcl stubs tables. These were created by taking the [file genStubs.tcl] helper application
+coming with the Tcl core sources apart along its internal logical lines.
+
+[list_end][comment -----------------------------stubs]
+
+[def [package critclf]]
+[list_begin definitions][comment ---------------critclf]
+[def [file lib/critclf/]]
+
+Arjen Markus' work on a critcl/Fortran. The code is outdated and has not been adapted to
+the changes in critcl version 3 yet.
+
+[list_end][comment -----------------------------critclf]
+
+[def [package md5]]
+[def [package md5c]]
+[def [package platform]]
+
+These are all external packages whose code has been inlined in the repository for easier
+development (less dependencies to pull), and quicker deployment from the repository
+(generation of starkit and -pack).
+
+[para] [strong TODO] for maintainers: These should all be checked against their origin for
+updates and changes since they were inlined.
+
+[list_end][comment ------------------------------------PCPP]
+
+[list_end][comment {___1___}]
+
+[comment {TODO **** Package dependency diagram ****}]
+[comment {TODO **** Diagram of the internal call graph ? ****}]
+[comment {TODO **** Add test/ ****}]
+
+[include include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,25 @@
+Don't use strchrnul on macOS < 15.4.
+
+--- vendor/tcl/pkgs/sqlite3.50.4/compat/sqlite3/sqlite3.c.orig
++++ vendor/tcl/pkgs/sqlite3.50.4/compat/sqlite3/sqlite3.c
+@@ -31676,10 +31676,18 @@ SQLITE_API void sqlite3_str_vappendf(
+     if( c!='%' ){
+       bufpt = (char *)fmt;
+ #if HAVE_STRCHRNUL
+-      fmt = strchrnul(fmt, '%');
++#if __APPLE__
++      if (__builtin_available(macOS 15.4, iOS 18.4, tvOS 18.4, watchOS 11.4, *))
+ #else
+-      do{ fmt++; }while( *fmt && *fmt != '%' );
++      if (1)
+ #endif
++      {
++        fmt = strchrnul(fmt, '%');
++      } else
++#endif
++      {
++        do{ fmt++; }while( *fmt && *fmt != '%' );
++      }
+       sqlite3_str_append(pAccum, bufpt, (int)(fmt - bufpt));
+       if( *fmt==0 ) break;
+     }

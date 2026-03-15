@@ -1,0 +1,231 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl - Introduction To CriTcl</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">History &amp; Motivation</a></li>
+<li class="doctools_section"><a href="#section3">Overview</a></li>
+<li class="doctools_section"><a href="#section4">Known Users</a></li>
+<li class="doctools_section"><a href="#section5">Tutorials - Practical Study - To Learn</a></li>
+<li class="doctools_section"><a href="#section6">Explanations - Theoretical Knowledge - To Understand</a></li>
+<li class="doctools_section"><a href="#section7">How-To Guides - Practical Work - To Solve Problems</a></li>
+<li class="doctools_section"><a href="#section8">References - Theoretical Work - To Gain Knowlegde</a></li>
+<li class="doctools_section"><a href="#section9">Authors</a></li>
+<li class="doctools_section"><a href="#section10">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term">CriTcl</i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>Adding C code to <a href="http://core.tcl-lang.org/tcl">Tcl</a>/<a href="http://core.tcl-lang.org/tk">Tk</a> has never been easier.</p>
+<p>Improve performance by rewriting the performance bottlenecks in C.</p>
+<p>Import the functionality of shared libraries into Tcl scripts.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">History &amp; Motivation</a></h2>
+<p><i class="term">CriTcl</i> started life as an experiment by <i class="term">Jean-Claude Wippler</i> and was a self-contained
+Tcl package to build C code into a Tcl/Tk extension on the fly. It was somewhat inspired
+by Brian Ingerson's <i class="term">Inline</i> for <i class="term">Perl</i>, but is considerably more lightweight.</p>
+<p>It is for the last 5% to 10% when pure Tcl, which does go a long way, is not
+sufficient anymore. I.e. for</p>
+<ol class="doctools_enumerated">
+<li><p>when the last bits of performance are needed,</p></li>
+<li><p>access to 3rd party libraries,</p></li>
+<li><p>hiding critical pieces of your library or application, and</p></li>
+<li><p>simply needing features provided only by C.</p></li>
+</ol>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Overview</a></h2>
+<p>To make the reader's topics of interest easy to find this documentation is roughly
+organized by <a href="https://documentation.divio.com/">Quadrants</a>, i.e.</p>
+<pre class="doctools_example">
+            | Study           | Work
+----------- + --------------- + -----------------
+Practical   | <span class="sectref"><a href="#section5">Tutorials</a></span>       | <span class="sectref"><a href="#section7">How-To Guides</a></span>
+            | (Learning)      | (Problem solving)
+----------- + --------------- + -----------------
+Theoretical | <span class="sectref"><a href="#section6">Explanations</a></span>    | <span class="sectref"><a href="#section8">References</a></span>
+            | (Understanding) | (Knowledge)
+</pre>
+<p><em>Note</em>: At this point in time the documentation consists mainly of references, and
+a few how-to guides. Tutorials and Explanations are in need of expansion, this is planned.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Known Users</a></h2>
+<ul class="doctools_itemized">
+<li><p><a href="https://core.tcl-lang.org/akupries/ankh">AnKH</a></p></li>
+<li><p><a href="https://core.tcl.tk/akupries/tclyaml">TclYAML</a></p></li>
+<li><p><a href="https://github.com/andreas-kupries/tcl-linenoise">Linenoise</a></p></li>
+<li><p><a href="https://core.tcl.tk/akupries/kinetcl">KineTcl</a></p></li>
+<li><p><a href="https://chiselapp.com/user/andreas_kupries/repository/inotify">Inotify</a></p></li>
+<li><p><a href="https://core.tcl.tk/akupries/marpa">TclMarpa</a></p></li>
+<li><p><a href="https://core.tcl.tk/akupries/crimp">CRIMP</a></p></li>
+</ul>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Tutorials - Practical Study - To Learn</a></h2>
+<p>This section is currently empty.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Explanations - Theoretical Knowledge - To Understand</a></h2>
+<p>This section is currently empty.</p>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">How-To Guides - Practical Work - To Solve Problems</a></h2>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="critcl_howto_sources.html">How To Get The CriTcl Sources</a></i>.</p></li>
+<li><p><i class="term"><a href="critcl_howto_install.html">How To Install CriTcl</a></i>.</p></li>
+<li><p><i class="term"><a href="critcl_howto_use.html">How To Use CriTcl</a></i> - A light introduction through examples.</p></li>
+<li><p><em>NEW</em>: <i class="term"><a href="critcl_tcl9.html">How To Adapt Critcl Packages for Tcl 9</a></i>.</p></li>
+</ol>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">References - Theoretical Work - To Gain Knowlegde</a></h2>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="critcl_license.html">The CriTcl License</a></i></p></li>
+<li><p><i class="term"><a href="critcl_changes.html">CriTcl Releases &amp; Changes</a></i></p></li>
+<li><p><i class="term"><a href="critcl_application.html">CriTcl Application Reference</a></i></p></li>
+<li><p><i class="term"><a href="critcl_package.html">CriTcl Package Reference</a></i></p></li>
+<li><p><i class="term"><a href="critcl_cproc.html">CriTcl cproc Type Reference</a></i></p></li>
+<li><p><i class="term"><a href="critcl_util.html">CriTcl - Utilities</a></i></p></li>
+<li><p><i class="term"><a href="critcl_cutil.html">CriTcl - C-level Utilities</a></i></p></li>
+<li><p><i class="term"><a href="critcl_callback.html">CriTcl - C-level Callback Utilities</a></i></p></li>
+<li><p><i class="term"><a href="critcl_enum.html">CriTcl - Wrap Support - String/Integer mapping</a></i></p></li>
+<li><p><i class="term"><a href="critcl_bitmap.html">CriTcl - Wrap Support - Bitset en- and decoding</a></i></p></li>
+<li><p><i class="term"><a href="critcl_emap.html">CriTcl - Wrap Support - Enum en- and decoding</a></i></p></li>
+<li><p><i class="term"><a href="critcl_literals.html">CriTcl - Code Gen - Constant string pools</a></i></p></li>
+<li><p><i class="term"><a href="critcl_iassoc.html">CriTcl - Code Gen - Tcl Interp Associations</a></i></p></li>
+<li><p><i class="term"><a href="critcl_class.html">CriTcl - Code Gen - C Classes</a></i></p></li>
+<li><p><i class="term"><a href="critcl_application_package.html">CriTcl Application Package Reference</a></i></p></li>
+<li><p><i class="term"><a href="critcl_devguide.html">Guide To The CriTcl Internals</a></i></p></li>
+</ol>
+</div>
+<div id="section9" class="doctools_section"><h2><a name="section9">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section10" class="doctools_section"><h2><a name="section10">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

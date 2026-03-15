@@ -1,0 +1,1793 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl_howto_use - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_howto_use.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl_howto_use.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl_howto_use(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl_howto_use - How To Use CriTcl</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Basics</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Simple Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Simple Results</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Range-limited Simple Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection4">String Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection5">String Results</a></li>
+<li class="doctools_subsection"><a href="#subsection6">List Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Constrained List Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Raw Tcl_Obj* Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Raw Tcl_Obj* Results</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Errors &amp; Messages</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Tcl_Interp* Access</a></li>
+<li class="doctools_subsection"><a href="#subsection12">Binary Data Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection13">Constant Binary Data Results</a></li>
+<li class="doctools_subsection"><a href="#subsection14">Tcl Runtime Version</a></li>
+<li class="doctools_subsection"><a href="#subsection15">Additional Tcl Code</a></li>
+<li class="doctools_subsection"><a href="#subsection16">Debugging Support</a></li>
+<li class="doctools_subsection"><a href="#subsection17">Install The Package</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Using External Libraries</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection18">Default Values For Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection19">Custom Argument Validation</a></li>
+<li class="doctools_subsection"><a href="#subsection20">Separating Local C Sources</a></li>
+<li class="doctools_subsection"><a href="#subsection21">Very Simple Results</a></li>
+<li class="doctools_subsection"><a href="#subsection22">Structure Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection23">Structure Results</a></li>
+<li class="doctools_subsection"><a href="#subsection24">Structure Types</a></li>
+<li class="doctools_subsection"><a href="#subsection25">Large Structures</a></li>
+<li class="doctools_subsection"><a href="#subsection26">External Structures</a></li>
+<li class="doctools_subsection"><a href="#subsection27">External Enumerations</a></li>
+<li class="doctools_subsection"><a href="#subsection28">External Bitsets/Bitmaps/Flags</a></li>
+<li class="doctools_subsection"><a href="#subsection29">Non-standard header/library locations</a></li>
+<li class="doctools_subsection"><a href="#subsection30">Non-standard compile/link configuration</a></li>
+<li class="doctools_subsection"><a href="#subsection31">Querying the compilation environment</a></li>
+<li class="doctools_subsection"><a href="#subsection32">Shared C Code</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Various</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection33">Author, License, Description, Keywords</a></li>
+<li class="doctools_subsection"><a href="#subsection34">Get Critcl Application Help</a></li>
+<li class="doctools_subsection"><a href="#subsection35">Supported Targets &amp; Configurations</a></li>
+<li class="doctools_subsection"><a href="#subsection36">Building A Package</a></li>
+<li class="doctools_subsection"><a href="#subsection37">Building A Package For Debugging</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">Authors</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document assumes the presence of a working <i class="term"><a href="critcl.html">CriTcl</a></i> installation.</p>
+<p>If that is missing follow the instructions on <i class="term"><a href="critcl_howto_install.html">How To Install CriTcl</a></i>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Basics</a></h2>
+<p>To create a minimal working package</p>
+<ol class="doctools_enumerated">
+<li><p>Choose a directory to develop in and make it the working directory. This should
+not be a checkout of <i class="term"><a href="critcl.html">CriTcl</a></i> itself.</p></li>
+<li><p>Save the following example to a file. In the following it is assumed that the file
+was named &quot;<b class="file">example.tcl</b>&quot;.</p>
+<pre class="doctools_example">
+# -*- tcl -*-
+# Critcl support, absolutely necessary.
+package require critcl
+# Bail out early if the compile environment is not suitable.
+if {![critcl::compiling]} {
+    error &quot;Unable to build project, no proper compiler found.&quot;
+}
+# Information for the teapot.txt meta data file put into a generated package.
+# Free form strings.
+critcl::license {Andreas Kupries} {Under a BSD license}
+critcl::summary {The first CriTcl-based package}
+critcl::description {
+    This package is the first example of a CriTcl-based package. It contains all the
+    necessary and conventionally useful pieces.
+}
+critcl::subject example {critcl package}
+critcl::subject {basic critcl}
+# Minimal Tcl version the package should load into.
+critcl::tcl 8.6
+# Use to activate Tcl memory debugging
+#critcl::debug memory
+# Use to activate building and linking with symbols (for gdb, etc.)
+#critcl::debug symbols
+# ## #### ######### ################ #########################
+## A hello world, directly printed to stdout. Bypasses Tcl's channel system.
+critcl::cproc hello {} void {
+    printf(&quot;hello world\n&quot;);
+}
+# ## #### ######### ################ #########################
+# Forcing compilation, link, and loading now.
+critcl::msg -nonewline { Building ...}
+if {![critcl::load]} {
+    error &quot;Building and loading the project failed.&quot;
+}
+# Name and version the package. Just like for every kind of Tcl package.
+package provide critcl-example 1
+</pre>
+</li>
+<li><p>Invoke the command</p>
+<pre class="doctools_example"> critcl -keep -debug all -pkg example.tcl </pre>
+<p>This compiles the example and installs it into a &quot;<b class="file">lib/</b>&quot; sub directory of the
+working directory, generating output similar to</p>
+<pre class="doctools_example">
+    Config:   linux-x86_64-gcc
+    Build:    linux-x86_64-gcc
+    Target:   linux-x86_64
+    Source:   example.tcl  (provide critcl-example 1) Building ...
+    Library:  example.so
+     (tclStubsPtr     =&gt;  const TclStubs *tclStubsPtr;)
+     (tclPlatStubsPtr =&gt;  const TclPlatStubs *tclPlatStubsPtr;)
+    Package:  lib/example
+    Files left in /home/aku/.critcl/pkg2567272.1644845439   
+</pre>
+<p>during operation.</p>
+<p>The <b class="option">-keep</b> option suppressed the cleanup of the generated C files, object
+files, compiler log, etc. normally done at the end of building.</p>
+<pre class="doctools_example">
+% ls -l /home/aku/.critcl/pkg2567272.1644845439
+total 36
+-rw-r--r-- 1 aku aku  1260 Feb 14 18:30 v3118_00000000000000000000000000000004.c
+-rw-r--r-- 1 aku aku  2096 Feb 14 18:30 v3118_00000000000000000000000000000004_pic.o
+-rw-r--r-- 1 aku aku  1728 Feb 14 18:30 v3118_00000000000000000000000000000009.c
+-rw-r--r-- 1 aku aku  2448 Feb 14 18:30 v3118_00000000000000000000000000000009_pic.o
+-rwxr-xr-x 1 aku aku 14424 Feb 14 18:30 v3118_00000000000000000000000000000009.so
+-rw-r--r-- 1 aku aku  1725 Feb 14 18:30 v3118.log
+</pre>
+<p>This enables inspection of the generated C code.
+Simply drop the option from the command if that is not desired.</p>
+<p>The option <b class="option">-debug</b>, with argument <b class="const">all</b> activated Tcl's memory
+debugging and caused the generation of the symbol tables needed by <b class="syscmd">gdb</b> or any
+other debugger. The alternate arguments <b class="const">memory</b> and <b class="const">symbols</b> activate just
+one of the these.</p></li>
+<li><p>Now invoke an interactive <b class="syscmd">tclsh</b> and enter the commands:</p>
+<ul class="doctools_itemized">
+<li><p><em>lappend auto_path lib</em></p></li>
+<li><p><em>package require critcl-example</em></p></li>
+<li><p><em>info loaded</em></p></li>
+<li><p><em>hello</em></p></li>
+<li><p><em>exit</em></p></li>
+</ul>
+<p>I.e. extend <b class="syscmd">tclsh</b>'s package search path to include the location of the new
+package, load the package, verify that the associated shared library is present, invoke
+the package command, and stop the session.</p>
+<p>When the package command is invoked the terminal will show <b class="const">hello world</b>,
+followed by the prompt.</p></li>
+</ol>
+<p>Commands: <i class="term">critcl::compiling</i>, <i class="term">critcl::cproc</i>,
+<i class="term">critcl::description</i>, <i class="term">critcl::license</i>, <i class="term">critcl::load</i>,
+<i class="term">critcl::msg</i>, <i class="term">critcl::subject</i>, <i class="term">critcl::summary</i>, <i class="term">critcl::tcl</i>.</p>
+<p>Make a copy of &quot;<b class="file">example.tcl</b>&quot; before going through the sub-sections. Keep it as
+a save point to return to from the editing done in the sub-section.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Simple Arguments</a></h3>
+<p>A function taking neither arguments nor returning results is not very useful.</p>
+<ol class="doctools_enumerated">
+<li><p>We are now extending the command to take an argument.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {double x} void {
+	/* double x; */
+	printf(&quot;hello world, we have %f\n&quot;, x);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>When testing the package again, entering the simple <b class="cmd">hello</b> will fail.</p>
+<p>The changed command is now expecting an argument, and we gave it none.</p>
+<p>Retry by entering</p>
+<pre class="doctools_example">hello 5</pre>
+<p>instead.
+       Now the command behaves as expected and prints the provided value.</p>
+<p>Further try and enter</p>
+<pre class="doctools_example">hello world</pre>
+<p>This will fail again.
+       The command expected a real number and we gave it something decidedly not so.</p>
+<p>These checks (argument count, argument type) are implemented in the translation
+layer <i class="term"><a href="critcl.html">CriTcl</a></i> generates for the C function. The function body is never invoked.</p></li>
+</ol>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Simple Results</a></h3>
+<p>A function taking neither arguments nor returning results is not very useful.</p>
+<ol class="doctools_enumerated">
+<li><p>We are now extending the command to return a result.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc twice {double x} double {
+	return 2*x;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>Note that the name of the command changed. Goodbye <b class="cmd">hello</b>, hello <b class="cmd">twice</b>.</p></li>
+<li><p>Invoke</p>
+<pre class="doctools_example"> twice 4 </pre>
+<p>and the <b class="syscmd">tclsh</b> will print the result <b class="const">8</b>
+in the terminal.</p></li>
+</ol>
+<p>An important limitation of the commands implemented so far is that they cannot
+fail. The types used so far (<b class="type">void</b>, <b class="type">double</b>) and related scalar types can
+return only a value of the specified type, and nothing else. They have no ability to
+signal an error to the Tcl script.</p>
+<p>We will come back to this after knowing a bit more about the more complex argument
+and result types.</p>
+<p>Of interest to the eager reader: <i class="term"><a href="critcl_cproc.html">CriTcl cproc Type Reference</a></i></p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Range-limited Simple Arguments</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {{double &gt; 5 &lt; 22} x} void {
+	/* double x, range 6-21; */
+	printf(&quot;hello world, we have %f\n&quot;, x);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>When dealing with simple arguments whose range of legal values is limited to a single
+continuous interval extend the base type with the necessary relations (<b class="const">&gt;</b>, <b class="const">&gt;=</b>,
+<b class="const">&lt;</b>, and <b class="const">&lt;=</b>) and limiting values.</p>
+<p><em>Note</em> that the limiting values have to be proper constant numbers acceptable by the
+base type. Symbolic values are not accepted.</p>
+<p>Here the argument <i class="arg">x</i> of the changed function will reject all values outside of the
+interval 6 to 21.</p></li>
+</ol>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">String Arguments</a></h3>
+<p>Tcl prides itself on the fact that <i class="term">Everything Is A String</i>.
+So how are string values passed into C functions ?</p>
+<ol class="doctools_enumerated">
+<li><p>We are now extending the command with a string argument.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {pstring x} void {
+	/* critcl_pstring x (.s, .len, .o); */
+	printf(&quot;hello world, from %s (%d bytes)\n&quot;, x.s, x.len);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>Testing <b class="cmd">hello</b> with any kind of argument the information is printed.</p></li>
+<li><p>Of note here is that the command argument <b class="variable">x</b> is a structure.</p></li>
+<li><p>The example uses only two of the three fields, the pointer to the string data
+(<b class="variable">.s</b>), and the length of the string (<b class="variable">.len</b>). In bytes, <em>not</em> in
+characters, because Tcl's internal representation of strings uses a modified UTF-8
+encoding. A character consists of between 1 and <b class="const">TCL_UTF_MAX</b> bytes.</p></li>
+<li><p><em>Attention</em> The pointers (<b class="variable">.s</b>) refer into data structures <em>internal</em>
+to and managed by the Tcl interpreter.
+Changing them is highly likely to cause subtle and difficult to track down bugs.
+Any and all complex arguments must be treated as <i class="term">Read-Only</i>. Never modify them.</p></li>
+<li><p>Use the simpler type <b class="type">char*</b> if and only if the length of the string is not
+relevant to the command, i.e. not computed, or not used by any of the functions called
+from the body of the command.
+Its value is essentially just the <b class="variable">.s</b> field of <b class="type">pstring</b>'s structure.
+This then looks like</p>
+<pre class="doctools_example">
+    critcl::cproc hello {char* x} void {
+	/* char* x; */
+	printf(&quot;hello world, from %s\n&quot;, x);
+    }
+</pre>
+</li>
+</ol>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">String Results</a></h3>
+<p>Tcl prides itself on the fact that <i class="term">Everything Is A String</i>.
+So how are string values returned from C functions ?</p>
+<ol class="doctools_enumerated">
+<li><p>We are now giving the command a string result.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc twice {double x} char* {
+	char buf [lb]40[rb];
+	sprintf(buf, &quot;%f&quot;, 2*x);
+	return buf;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>Note that the name of the command changed. Goodbye <b class="cmd">hello</b>, hello <b class="cmd">twice</b>.</p></li>
+<li><p>Invoke</p>
+<pre class="doctools_example"> twice 4 </pre>
+<p>and the <b class="syscmd">tclsh</b> will print the result <b class="const">8</b>
+in the terminal.</p></li>
+<li><p><em>Attention</em>. To the translation layer the string pointer is owned by the C
+code. A copy is made to become the result seen by Tcl.</p>
+<p>While the C code is certainly allowed to allocate the string on the heap if it so
+wishes, this comes with the responsibility to free the string as well. Abrogation of that
+responsibility will cause memory leaks.</p>
+<p>The type <b class="type">char*</b> is recommended to be used with static string buffers, string
+constants and the like.</p></li>
+<li><p>Conversely, to return heap-allocated strings it is recommended to use the type
+<b class="type">string</b> instead.</p>
+<p>Replace the definition of <b class="cmd">twice</b> with</p>
+<pre class="doctools_example">
+critcl::cproc twice {double x} string {
+    char* buf = Tcl_Alloc (40);
+    sprintf(buf, &quot;%f&quot;, 2*x);
+    return buf;
+}
+</pre>
+<p>Now the translation layer takes ownership of the string from the C code and
+transfers that ownership to the Tcl interpreter. This means that the string will be
+released when the Tcl interpreter is done with it. The C code has no say in the lifecycle
+of the string any longer, and having the C code releasing the string <em>will</em> cause
+issues. Dangling pointers and associated memory corruption and crashes.</p></li>
+</ol>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">List Arguments</a></h3>
+<p>Even as a string-oriented language Tcl is capable of handling more complex structures. The first of
+it, with Tcl since the beginning are <i class="term">lists</i>. Sets of values indexed by a numeric value.</p>
+<p>In C parlance, <i class="term">arrays</i>.</p>
+<ol class="doctools_enumerated">
+<li><p>We are now extending the command with a <b class="type">list</b> argument.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {list x} void {
+	/* critcl_list x (.o, .v, .c); */
+	printf(&quot;hello world, %d elements in (%s)\n&quot;, x.c, Tcl_GetString (x.o));
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>Testing <b class="cmd">hello</b> with any kind of list argument it will print basic information about it.</p></li>
+<li><p>Of note here is that the command argument <b class="variable">x</b> is a structure.</p></li>
+<li><p>The example uses only two of the three fields, the pointer to the original <b class="type">Tcl_Obj*</b>
+holding the list (<b class="variable">.o</b>), and the length of the list (<b class="variable">.c</b>) in elements.</p>
+<p>The field <b class="variable">.v</b>, not used above, is the C array holding the <b class="type">Tcl_Obj*</b> pointers to
+the list elements.</p></li>
+<li><p><em>Attention</em> The pointers <b class="variable">.o</b> and <b class="variable">.v</b> refer into data structures
+<em>internal</em> to and managed by the Tcl interpreter.
+Changing them is highly likely to cause subtle and difficult to track down bugs.
+Any and all complex arguments must be treated as <i class="term">Read-Only</i>. Never modify them.</p></li>
+<li><p>As a last note, this argument type does not place any constraints on the size of the list, or
+on the type of the elements.</p></li>
+</ol>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Constrained List Arguments</a></h3>
+<p>As mentioned at the end of section <span class="sectref"><a href="#subsection6">List Arguments</a></span> the basic <b class="type">list</b> type places no
+constraints on the size of the list, nor on the type of the elements.</p>
+<p>Both kind of constraints can be done however, alone or together.</p>
+<ol class="doctools_enumerated">
+<li><p>We are now extending the command with a length-limited list.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {[5] x} void {
+	/* critcl_list x (.o, .v, .c); */
+	printf(&quot;hello world, %d elements in (%s)\n&quot;, x.c, Tcl_GetString (x.o));
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>Testing the new command will show that only lists holding exactly <b class="const">5</b> elements will be
+accepted.</p></li>
+<li><p>To accept lists of any length use <b class="const">[]</b> or <b class="const">[*]</b>. Both forms are actually
+aliases of the base type, i.e. <b class="type">list</b>.</p></li>
+<li><p>To constrain just the type of elements, for example to type <b class="type">int</b>, use</p>
+<pre class="doctools_example">int[]</pre>
+<p>or</p>
+<pre class="doctools_example">[]int</pre>
+</li>
+<li><p>To combine both type and length constraints use the forms</p>
+<pre class="doctools_example">int[5]</pre>
+<p>or</p>
+<pre class="doctools_example">[5]int</pre>
+</li>
+<li><p>The last, most C-like forms of these contraints place the list indicator syntax on the
+argument instead of the type. I.e</p>
+<pre class="doctools_example">int a[]</pre>
+<p>or</p>
+<pre class="doctools_example">int a[5]</pre>
+</li>
+</ol>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Raw Tcl_Obj* Arguments</a></h3>
+<p>When the set of predefined argument types is not enough the oldest way of handling the
+situation is falling back to the structures used by Tcl to manage values, i.e.
+<b class="type">Tcl_Obj*</b>.</p>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {object x} void {
+	/* Tcl_Obj* x */
+	int len;
+	char* str = Tcl_GetStringFromObj (x, &amp;len);
+	printf(&quot;hello world, from %s (%d bytes)\n&quot;, str, len);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>Having direct access to the raw <b class="type">Tcl_Obj*</b> value all functions of the public
+Tcl API for working with Tcl values become usable. The downside of that is that all the
+considerations for handling them apply as well.</p>
+<p>In other words, the C code becomes responsible for handling the reference counts
+correctly, for duplicating shared <b class="type">Tcl_Obj*</b> structures before modifying them, etc.</p>
+<p>One thing the C code is allowed to do without restriction is to <i class="term">shimmer</i> the
+internal representation of the value as needed, through the associated Tcl API
+functions. For example <b class="function">Tcl_GetWideIntFromObj</b> and the like.
+It actually has to be allowed to do so, as the type checking done as part of such
+conversions is now the responsibility of the C code as well.</p>
+<p>For the predefined types this is all hidden in the translation layer generated by
+<i class="term"><a href="critcl.html">CriTcl</a></i>.</p>
+<p>If more than one command has to perform the same kind of checking and/or conversion
+it is recommended to move the core of the code into proper C functions for proper sharing
+among the commands.</p></li>
+<li><p>This is best done by defining a custom argument type using <i class="term"><a href="critcl.html">CriTcl</a></i> commands.
+This extends the translation layer <i class="term"><a href="critcl.html">CriTcl</a></i> is able to generate.
+The necessary conversions, type checks, etc. are then again hidden from the bulk of the
+application C code.</p>
+<p>We will come back to this.</p></li>
+</ol>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Raw Tcl_Obj* Results</a></h3>
+<p>When the set of predefined result types is not enough the oldest way of handling the
+situation is falling back to the structures used by Tcl to manage values, i.e.
+<b class="type">Tcl_Obj*</b>.</p>
+<p>Two builtin types are provided for this, to handle different reference counting
+requirements.</p>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc twice {double x} object0 {
+	return Tcl_NewDoubleObj(2*x);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>With <b class="type">object0</b> the translation layer assumes that the returned <b class="type">Tcl_Obj*</b>
+value has a reference count of <b class="const">0</b>. I.e. a value which is unowned and unshared.</p>
+<p>This value is passed directly to Tcl for its use, without any changes. Tcl
+increments the reference count and thus takes ownership. The value is still unshared.</p>
+<p>It would be extremely detrimental if the translation layer had decremented the
+reference count before passing the value. This action would release the memory and then
+leave Tcl with a dangling pointer and the associated memory corruption bug to come.</p></li>
+<li><p>The situation changes when the C code returns a <b class="type">Tcl_Obj*</b> value with a
+reference count greater than <b class="const">0</b>. I.e. at least owned (by the C code), and possibly
+even shared.
+There are some object constructors and/or mutators in the public Tcl API which do that,
+although I do not recall their names. The example below simulates this situation by
+explicitly incrementing the reference count before returning the value.</p></li>
+<li><p>In this case use the type <b class="type">object</b> (without the trailing <b class="const">0</b>).</p></li>
+<li><p>Edit the file &quot;<b class="file">example.tcl</b>&quot; and replace the definition of <b class="cmd">twice</b> with</p>
+<pre class="doctools_example">
+    critcl::cproc twice {double x} object {
+	Tcl_Obj* result = Tcl_NewDoubleObj(2*x);
+	Tcl_IncrRefCount (result);
+	return result;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>After handing the value to Tcl, with the associated incremented reference count,
+the translation layer decrements the reference count, invalidating the C code's ownership
+and leaving the final reference count the same.</p>
+<p>Note, the order matters. If the value has only one reference then decrementing it
+before Tcl increments it would again release the value, and again leave Tcl with a
+dangling pointer.</p>
+<p>Also, not decrementing the reference count at all causes the inverse problem to the
+memory corruption issues of before, memory leaks.</p></li>
+<li><p><em>Note</em> that both types transfer ownership of the value. Their difference is
+just in the reference count of the value coming out of the function, and the (non-)actions
+having to be (not) taken to effect said transfer without causing memory issues.</p></li>
+</ol>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Errors &amp; Messages</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc sqrt {
+	Tcl_Interp* interp
+	double      x
+    } object0 {
+	if (x &lt; 0) {
+	    Tcl_SetObjResult (interp, Tcl_ObjPrintf (&quot;Expected double &gt;=0, but got \&quot;%d\&quot;&quot;, x));
+	    Tcl_SetErrorCode (interp, &quot;EXAMPLE&quot;, &quot;BAD&quot;, &quot;DOMAIN&quot;, NULL);
+	    return NULL;
+	}
+	return Tcl_NewDoubleObj(sqrt(x));
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>In standard C-based packages commands signal errors by returning <b class="const">TCL_ERROR</b>,
+placing the error message as the interpreter result, and maybe providing an error code via
+<b class="function">Tcl_SetErrorCode</b>.</p></li>
+<li><p>When using <b class="cmd">critcl::cproc</b> this is limited and hidden.</p></li>
+<li><p>The simple and string types for results do not allow failure. The value is returned
+to the translation layer, converted into the interpreter result and then reported as
+success (<b class="const">TCL_OK</b>).</p></li>
+<li><p>The object types on the other hand do allow for failure.
+Return a <b class="const">NULL</b> value to signal failure to the translation layer, which then reports
+this to the interpreter via the standard <b class="const">TCL_ERROR</b>.</p></li>
+<li><p><em>Attention</em> Setting the desired error message and code into the interpreter is
+still the responsibility of the function body.</p></li>
+</ol>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Tcl_Interp* Access</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Reread the example in the <b class="sectref">previous</b> section.</p></li>
+<li><p>Note the type <b class="type">Tcl_Interp*</b> used for the first argument.</p></li>
+<li><p>This type is special.</p></li>
+<li><p>An argument of this type has to be the first argument of a function.</p></li>
+<li><p>Using it tells <i class="term"><a href="critcl.html">CriTcl</a></i> that the function needs access to the Tcl interpreter
+calling it. It then arranges for that to happen in the generated C code.</p>
+<p>Using functions from Tcl's public C API taking an interpreter argument in the
+function body is a situation where this is needed.</p></li>
+<li><p><em>This special argument is not visible at the script level</em>.</p></li>
+<li><p><em>This special argument is not an argument of the Tcl command for the function</em>.</p></li>
+<li><p>In our example the <b class="cmd">sqrt</b> command is called with a single argument.</p></li>
+<li><p>The name of the argument can be freely chosen. It is the type which is important
+and triggers the special behaviour.
+My prefered names are <b class="variable">ip</b> and <b class="variable">interp</b>.</p></li>
+</ol>
+</div>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">Binary Data Arguments</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc hello {bytes x} void {
+        /* critcl_bytes x (.s, .len, .o); */
+        printf(&quot;hello world, with %d bytes \n data: &quot;, x.len);
+        for (i = 0; i &lt; x.len; i++) {
+            printf(&quot; %02x&quot;, x.s[i]);
+            if (i % 16 == 15) printf (&quot;\ndata: &quot;);
+        }
+        if (i % 16 != 0) printf (&quot;\n&quot;);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>To deal with strings holding binary data use the type <b class="type">bytes</b>. It ensures that
+the function sees the proper binary data, and not how Tcl is encoding it internally, as
+the string types would.</p></li>
+</ol>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">Constant Binary Data Results</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Use the command <b class="cmd">critcl::cdata</b> to create a command taking no arguments and
+returning a constant ByteArray value.</p>
+<pre class="doctools_example">
+    # P5 3 3 255 \n ...
+    critcl::cdata cross3x3pgm {
+	80 52 32 51 32 51 32 50 53 53 10
+	0   255 0
+	255 255 255
+	0   255 0
+    }
+</pre>
+</li>
+</ol>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">Tcl Runtime Version</a></h3>
+<ol class="doctools_enumerated">
+<li><p>See and reread the <span class="sectref"><a href="#section2">basic package</a></span> for the introduction of the
+commands referenced below.</p></li>
+<li><p>Use the command <b class="cmd">critcl::tcl</b> to tell <i class="term"><a href="critcl.html">CriTcl</a></i> the minimal version of Tcl
+the package is to be used with.</p>
+<p>This determines which Tcl headers all files are compiled against, and what version
+of the public Tcl API is available to the C code.</p>
+<p>Currently <b class="const">8.4</b>, <b class="const">8.5</b> and <b class="const">8.6</b> are supported.</p>
+<p>If not specified <b class="const">8.4</b> is assumed.</p></li>
+</ol>
+</div>
+<div id="subsection15" class="doctools_subsection"><h3><a name="subsection15">Additional Tcl Code</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::cproc greetings::hello {} void {
+	printf(&quot;hello world\n&quot;);
+    }
+    critcl::cproc greetings::hi {} void {
+	printf(&quot;hi you\n&quot;);
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>The command <b class="cmd">hello</b> is now available as <b class="cmd">greetings::hello</b>, and a second
+command <b class="cmd">greetings::hi</b> was added.</p></li>
+<li><p>Tcl has automatically created the namespace <b class="namespace">greetings</b>.</p></li>
+<li><p>Create a file &quot;<b class="file">example-policy.tcl</b>&quot; and enter</p>
+<pre class="doctools_example">
+    namespace eval greetings {
+	namespace export hello hi
+	namespace ensemble create
+    }
+</pre>
+<p>into it.</p></li>
+<li><p>Edit &quot;<b class="file">example.tcl</b>&quot;. Add the code</p>
+<pre class="doctools_example">
+    critcl::tsources example-policy.tcl
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>The added Tcl code makes <b class="namespace">greetings</b> available as an <i class="term">ensemble</i>
+command.</p>
+<p>The commands in the namespace have been registered as methods of the ensemble.</p>
+<p>They can now be invoked as</p>
+<pre class="doctools_example">
+    greetings hello
+    greetings hi
+</pre>
+</li>
+<li><p>The Tcl builtin command <b class="cmd">string</b> is an ensemble as well, as is <b class="cmd">clock</b>.</p></li>
+</ol>
+<p>New commands: <i class="term">critcl::tsources</i></p>
+</div>
+<div id="subsection16" class="doctools_subsection"><h3><a name="subsection16">Debugging Support</a></h3>
+<ol class="doctools_enumerated">
+<li><p>See and reread the <span class="sectref"><a href="#section2">basic package</a></span> for the introduction of the
+commands referenced below.</p></li>
+<li><p>Use the command <b class="cmd">critcl::debug</b> to activate various features supporting debugging.</p>
+<pre class="doctools_example">
+    critcl::debug memory  ;# Activate Tcl memory debugging (-DTCL_MEM_DEBUG)
+    critcl::debug symbols ;# Activate building and linking with debugger symbols (-g)
+    critcl::debug all     ;# Shorthand for both `memory` and `symbols`.
+</pre>
+</li>
+</ol>
+</div>
+<div id="subsection17" class="doctools_subsection"><h3><a name="subsection17">Install The Package</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>.</p></li>
+<li><p>Use an interactive <b class="syscmd">tclsh</b> seesion to determine the value of
+<b class="cmd">info library</b>.</p>
+<p>For the purpose of this HowTo assume that this path is
+&quot;<b class="file">/home/aku/opt/ActiveTcl/lib/tcl8.6</b>&quot;</p></li>
+<li><p>Invoke the critcl application in a terminal, using</p>
+<pre class="doctools_example">
+    critcl -libdir /home/aku/opt/ActiveTcl/lib/tcl8.6 -pkg example.tcl
+</pre>
+</li>
+<li><p>The package is now build and installed into the chosen directory.</p>
+<pre class="doctools_example">
+   % find /home/aku/opt/ActiveTcl/lib/tcl8.6/example/
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/pkgIndex.tcl
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/critcl-rt.tcl
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/license.terms
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/linux-x86_64
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/linux-x86_64/example.so
+    /home/aku/opt/ActiveTcl/lib/tcl8.6/example/teapot.txt
+</pre>
+</li>
+</ol>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Using External Libraries</a></h2>
+<p>To create a minimal package wrapping an external library</p>
+<ol class="doctools_enumerated">
+<li><p>Choose a directory to develop in and make it the working directory.
+This should not be a checkout of <i class="term"><a href="critcl.html">CriTcl</a></i> itself.</p></li>
+<li><p>Save the following example to a file. In the following it is assumed that the file
+was named &quot;<b class="file">example.tcl</b>&quot;.</p>
+<pre class="doctools_example">
+# -*- tcl -*-
+# Critcl support, absolutely necessary.
+package require critcl
+# Bail out early if the compile environment is not suitable.
+if {![critcl::compiling]} {
+    error &quot;Unable to build project, no proper compiler found.&quot;
+}
+# Information for the teapot.txt meta data file put into a generated package.
+# Free form strings.
+critcl::license {Andreas Kupries} {Under a BSD license}
+critcl::summary {The second CriTcl-based package}
+critcl::description {
+    This package is the second example of a CriTcl-based package. It contains all the
+    necessary and conventionally useful pieces for wrapping an external library.
+}
+critcl::subject {external library usage} example {critcl package}
+critcl::subject {wrapping external library}
+# Minimal Tcl version the package should load into.
+critcl::tcl 8.6
+# Locations for headers and shared library of the library to wrap.
+# Required only for non-standard locations, i.e. where CC is not searching by default.
+critcl::cheaders   -I/usr/include
+critcl::clibraries -L/usr/lib/x86_64-linux-gnu
+critcl::clibraries -lzstd
+# Import library API, i.e. headers.
+critcl::include zstd.h
+# ## #### ######### ################ #########################
+## (De)compression using Zstd
+## Data to (de)compress is passed in and returned as Tcl byte arrays.
+critcl::cproc compress {
+    Tcl_Interp* ip
+    bytes       data
+    int         {level ZSTD_CLEVEL_DEFAULT}
+} object0 {
+    /* critcl_bytes data; (.s, .len, .o) */
+    Tcl_Obj* error_message;
+    int max = ZSTD_maxCLevel();
+    if ((level &lt; 1) || (level &gt; max)) {
+	error_message = Tcl_ObjPrintf (&quot;level must be integer between 1 and %d&quot;, max);
+	goto err;
+    }
+    size_t dest_sz  = ZSTD_compressBound (data.len);
+    void*  dest_buf = Tcl_Alloc(dest_sz);
+    if (!dest_buf) {
+	error_message = Tcl_NewStringObj (&quot;can't allocate memory to compress data&quot;, -1);
+	goto err;
+    }
+    size_t compressed_size = ZSTD_compress (dest_buf, dest_sz,
+					    data.s,   data.len,
+					    level);
+    if (ZSTD_isError (compressed_size)) {
+	Tcl_Free(dest_buf);
+	error_message = Tcl_ObjPrintf (&quot;zstd encoding error: %s&quot;,
+				       ZSTD_getErrorName (compressed_size));
+	goto err;
+    }
+    Tcl_Obj* compressed = Tcl_NewByteArrayObj (dest_buf, compressed_size);
+    Tcl_Free (dest_buf);
+    return compressed;
+  err:
+    Tcl_SetObjResult (ip, error_message);
+    return 0;
+}
+critcl::cproc decompress {
+    Tcl_Interp*  ip
+    bytes        data
+} object0 {
+    Tcl_Obj* error_message;
+    size_t dest_sz = ZSTD_getDecompressedSize (data.s, data.len);
+    if (dest_sz == 0) {
+        error_message = Tcl_NewStringObj(&quot;invalid data&quot;, -1);
+	goto err;
+    }
+    void* dest_buf = Tcl_Alloc (dest_sz);
+    if (!dest_buf) {
+	error_message = Tcl_NewStringObj(&quot;failed to allocate decompression buffer&quot;, -1);
+	goto err;
+    }
+    size_t decompressed_size = ZSTD_decompress (dest_buf, dest_sz,
+						data.s,   data.len);
+    if (decompressed_size != dest_sz) {
+	Tcl_Free (dest_buf);
+        error_message = Tcl_ObjPrintf(&quot;zstd decoding error: %s&quot;,
+				      ZSTD_getErrorName (decompressed_size));
+	goto err;
+    }
+    Tcl_Obj* decompressed = Tcl_NewByteArrayObj (dest_buf, dest_sz);
+    Tcl_Free (dest_buf);
+    return decompressed;
+  err:
+    Tcl_SetObjResult (ip, error_message);
+    return 0;
+}
+# ## #### ######### ################ #########################
+# Forcing compilation, link, and loading now.
+critcl::msg -nonewline { Building ...}
+if {![critcl::load]} {
+    error &quot;Building and loading the project failed.&quot;
+}
+# Name and version the package. Just like for every kind of Tcl package.
+package provide critcl-example 1
+</pre>
+</li>
+<li><p>Build the package. See the <b class="sectref">Basics</b>, if necessary.</p></li>
+<li><p>Load the package and invoke the commands.</p>
+<p><em>Attention</em>. The commands take and return binary data.
+This may look very bad in the terminal.</p></li>
+<li><p>To test the commands enter</p>
+<pre class="doctools_example">
+    set a [compress {hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhello wwwwwwwworld}]
+    decompress $a
+</pre>
+<p>in the interactive <b class="syscmd">tclsh</b></p></li>
+</ol>
+<p>New commands: <i class="term">critcl::cheaders</i>, <i class="term">critcl::clibraries</i>, <i class="term">critcl::include</i>.</p>
+<div id="subsection18" class="doctools_subsection"><h3><a name="subsection18">Default Values For Arguments</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Reread the example of the main section. Note specifically the line</p>
+<pre class="doctools_example">
+    int {level ZSTD_CLEVEL_DEFAULT}
+</pre>
+</li>
+<li><p>This line demonstrates that <b class="cmd">critcl::cproc</b> arguments allowed to have default
+values, in the same vein as <b class="cmd">proc</b> arguments, and using the same syntax.</p></li>
+<li><p><em>Attention</em> Default values have to be legal C rvalues and match the C type of
+the argument.</p>
+<p>They are literally pasted into the generated C code.</p>
+<p>They bypass any argument validation done in the generated translation layer. This
+means that it is possible to use a value an invoker of the command cannot use from Tcl.</p></li>
+<li><p>This kind of in-band signaling of a default versus a regular argument is however
+not necessary.</p>
+<p>Look at</p>
+<pre class="doctools_example">
+    critcl::cproc default_or_not {int {x 0}} void {
+	if !has_x {
+	    printf(&quot;called with default\n&quot;);
+	    return
+	}
+	printf(&quot;called with %d\n&quot;, x);
+    }
+</pre>
+<p>Any argument <i class="arg">x</i> with a default causes <i class="term"><a href="critcl.html">CriTcl</a></i> to create a hidden
+argument <i class="arg">has_x</i>, of type int (boolean).
+This argument is set to <b class="const">1</b> when <i class="arg">x</i> was filled from defaults, and <b class="const">0</b>
+else.</p></li>
+</ol>
+</div>
+<div id="subsection19" class="doctools_subsection"><h3><a name="subsection19">Custom Argument Validation</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the <span class="sectref"><a href="#section3">base wrapper</a></span>. 
+              Edit the file &quot;<b class="file">example.tcl</b>&quot;.  Replace the entire <b class="cmd">compress</b> function with</p>
+<pre class="doctools_example">
+    critcl::argtype zstd_compression_level {
+        /* argtype: `int` */
+        if (Tcl_GetIntFromObj (interp, @@, &amp;@A) != TCL_OK) return TCL_ERROR;
+        /* additional validation */    
+        int max = ZSTD_maxCLevel();
+        if ((@A &lt; 1) || (@A &gt; max)) {
+            Tcl_SetObjResult (interp,
+                Tcl_ObjPrintf (&quot;zstd compression level must be integer between 1 and %d&quot;, max));
+            return TCL_ERROR;
+        }
+        /* @@: current objv[] element
+        ** @A: name of argument variable for transfer to C function
+        ** interp: predefined variable, access to current interp - error messages, etc.
+        */
+    } int int ;# C types of transfer variable and function argument.
+    critcl::cproc compress {
+        Tcl_Interp*            ip
+        bytes                  data
+        zstd_compression_level {level ZSTD_CLEVEL_DEFAULT}
+    } object0 {
+        /* critcl_bytes data; (.s, .len, .o) */
+        /* int level; validated to be in range 1...ZSTD_maxCLevel() */
+        Tcl_Obj* error_message;
+        size_t dest_sz  = ZSTD_compressBound (data.len);
+        void*  dest_buf = Tcl_Alloc(dest_sz);
+        if (!dest_buf) {
+            error_message = Tcl_NewStringObj (&quot;can't allocate memory to compress data&quot;, -1);
+            goto err;
+        }
+        size_t compressed_size = ZSTD_compress (dest_buf, dest_sz,
+                                                data.s,   data.len,
+                                                level);
+        if (ZSTD_isError (compressed_size)) {
+            Tcl_Free(dest_buf);
+            error_message = Tcl_ObjPrintf (&quot;zstd encoding error: %s&quot;,
+                                           ZSTD_getErrorName (compressed_size));
+            goto err;
+        }
+        Tcl_Obj* compressed = Tcl_NewByteArrayObj (dest_buf, compressed_size);
+        Tcl_Free (dest_buf);
+        return compressed;
+    err:
+        Tcl_SetObjResult (ip, error_message);
+        return 0;
+    }
+</pre>
+<p>and rebuild the package.</p>
+<p>In the original example the <i class="arg">level</i> argument of the function was validated in
+the function itself.
+This may detract from the funtionality of interest itself, especially if there are lots of
+arguments requiring validation.
+If the same kind of argument is used in multiple places this causes code duplication in
+the functions as well.</p>
+<p>Use a custom argument type as defined by the modification to move this kind of
+validation out of the function, and enhance readability.</p>
+<p>Code duplication however is only partially adressed.
+While there is no duplication in the visible definitions the C code of the new argument
+type is replicated for each use of the type.</p></li>
+<li><p>Now replace the <b class="cmd">argtype</b> definition with</p>
+<pre class="doctools_example">
+    critcl::code {
+        int GetCompressionLevel (Tcl_Interp* interp, Tcl_Obj* obj, int* level)
+        {
+            if (Tcl_GetIntFromObj (interp, obj, level) != TCL_OK) return TCL_ERROR;
+            int max = ZSTD_maxCLevel();
+            if ((*level &lt; 1) || (*level &gt; max)) {
+                Tcl_SetObjResult (interp,
+                    Tcl_ObjPrintf (&quot;zstd compression level must be integer between 1 and %d&quot;, max));
+                return TCL_ERROR;
+            }
+            return TCL_OK;
+        }
+    }
+    critcl::argtype zstd_compression_level {
+        if (GetCompressionLevel (@@, &amp;@A) != TCL_OK) return TCL_ERROR;
+    } int int
+</pre>
+<p>and rebuild the package.</p>
+<p>Now only the calls to the new validation function are replicated.
+The function itself exists only once.</p></li>
+</ol>
+</div>
+<div id="subsection20" class="doctools_subsection"><h3><a name="subsection20">Separating Local C Sources</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the end of the <span class="sectref"><a href="#subsection19">previous</a></span> section.
+       Edit the file &quot;<b class="file">example.tcl</b>&quot;.</p></li>
+<li><p>Save the contents of the <b class="cmd">critcl::ccode</b> block into a file &quot;<b class="file">example.c</b>&quot; and
+then replace the entire block with</p>
+<pre class="doctools_example">
+    critcl::csources example.c
+    critcl::ccode {
+	extern int GetCompressionLevel (Tcl_Interp* interp, Tcl_Obj* obj, int* level);
+    }
+</pre>
+<p>When mixing C and Tcl code the different kind of indentation rules for these
+languages may come into strong conflict. Further, very large blocks of C code may reduce
+overall readability.</p></li>
+<li><p>The examples fixes this by moving the code block into a local C file and then
+registering this file with <i class="term"><a href="critcl.html">CriTcl</a></i>.
+When building the package <i class="term"><a href="critcl.html">CriTcl</a></i> arranges to build all such registered C files as
+well.</p></li>
+<li><p><em>Attention</em>. The C code is now in a separate compilation unit.
+The example declares the exported function so that the <b class="cmd">cproc</b>s are again able to see
+and use it.</p></li>
+<li><p>Now go a step further. Save the declaration into a file &quot;<b class="file">example.h</b>&quot;, and then
+use</p>
+<pre class="doctools_example">
+    critcl::include example.h
+</pre>
+<p>to import it. Note that this is just a shorthand for</p>
+<pre class="doctools_example"> critcl::ccode {
+	#include &quot;example.h&quot;
+    }
+</pre>
+</li>
+<li><p>As an alternative solution, start from the beginning of the section and move the
+entire original <b class="cmd">critcl::ccode</b> block into a file &quot;<b class="file">example-check.tcl</b>&quot;.</p>
+<p>Then replace it with</p>
+<pre class="doctools_example">
+    critcl::source example-check.tcl
+</pre>
+<p>to import it into the main code again.</p>
+<p><em>Attention</em> Tcl's builtin command <b class="cmd">source</b> is <em>not suitable</em> for
+importing the separate file due to how <i class="term"><a href="critcl.html">CriTcl</a></i> uses the information from
+<b class="cmd">info script</b> to key various internal datastructures.</p></li>
+</ol>
+</div>
+<div id="subsection21" class="doctools_subsection"><h3><a name="subsection21">Very Simple Results</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the end of the <span class="sectref"><a href="#subsection19">validation</a></span> section.
+Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+Add the code below, just before the <b class="cmd">compress</b> command.</p>
+<pre class="doctools_example">
+    critcl::cconst version   char* ZSTD_VERSION_STRING
+    critcl::cconst min-level int   1
+    critcl::cconst max-level int   ZSTD_maxCLevel()
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>These declarations create three additional commands, each returning the specified
+value. A fixed string, an integer, and a function call returning an integer.</p></li>
+<li><p><em>Attention</em> The values have to be legal C rvalues and match the C type of the
+result. They are literally pasted into the generated C code.</p></li>
+<li><p>When using <b class="cmd">critcl::cconst</b> <i class="term"><a href="critcl.html">CriTcl</a></i> is aware that the result of the
+function does not depend on any parameters and is computed in a single C expression.</p>
+<p>This enables it do to away with the internal helper function it would need and
+generate if <b class="cmd">critcl::cproc</b> had been used instead.
+For example</p>
+<pre class="doctools_example">
+    critcl::cproc version {} char* {
+	return ZSTD_VERSION_STRING;
+    }
+</pre>
+</li>
+</ol>
+</div>
+<div id="subsection22" class="doctools_subsection"><h3><a name="subsection22">Structure Arguments</a></h3>
+<ol class="doctools_enumerated">
+<li><p>For all that this is a part of how to
+<span class="sectref"><a href="#section3">Use External Libraries</a></span>, for the demonstratation
+only the basics are needed.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    critcl::ccode {
+	typedef struct vec2 {
+	    double x;
+	    double y;
+	} vec2;
+	typedef vec2* vec2ptr;
+	int
+	GetVecFromObj (Tcl_Interp* interp, Tcl_Obj* obj, vec2ptr* vec)
+	{
+	    int len;
+	    if (Tcl_ListObjLength (interp, obj, &amp;len) != TCL_OK) return TCL_ERROR;
+	    if (len != 2) {
+		Tcl_SetObjResult (interp, Tcl_ObjPrintf (&quot;Expected 2 elements, got %d&quot;, len));
+		return TCL_ERROR;
+	    }
+	    Tcl_Obj* lv[2];
+	    if (Tcl_ListObjGetElements (interp, obj, &amp;lv) != TCL_OK) return TCL_ERROR;
+	    double x, y;
+	    if (Tcl_GetDoubleFromObj (interp, lv[0], &amp;x) != TCL_OK) return TCL_ERROR;
+	    if (Tcl_GetDoubleFromObj (interp, lv[1], &amp;y) != TCL_OK) return TCL_ERROR;
+	    *vec = Tcl_Alloc (sizeof (vec2));
+	    (*vec)-&gt;x = x;
+	    (*vec)-&gt;y = y;
+	    return TCL_OK;
+	}
+    }
+    critcl::argtype vec2 {
+	if (GetVecFromObj (interp, @@, &amp;@A) != TCL_OK) return TCL_ERROR;
+    } vec2ptr vec2ptr
+    critcl::argtyperelease vec2 {
+	/* @A : C variable holding the data to release */
+	Tcl_Free ((char*) @A);
+    }
+    critcl::cproc norm {vec2 vector} double {
+	double norm = hypot (vector-&gt;x, vector-&gt;y);
+	return norm;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>The structure to pass as argument is a 2-dimensional vector. It is actually passed
+in as a pointer to a <b class="type">vec2</b> structure.
+This pointer is created by the <b class="function">GetVecFromObj</b> function. It allocates and fills the
+structure from the Tcl value, which has to be a list of 2 doubles. The bulk of the code in
+<b class="function">GetVecFromObj</b> is for verifying this and extracting the doubles.</p></li>
+<li><p>The <b class="cmd">argtyperelease</b> code releases the pointer when the C function returns. In
+other words, the pointer to the structure is owned by the translation layer and exists
+only while the function is active.</p></li>
+<li><p>While working this code has two disadvantages.
+First there is memory churn. Each call of <b class="cmd">norm</b> causes the creation and release of a
+temporary <b class="type">vec2</b> structure for the argument.
+Second is the need to always extract the data from the <b class="type">Tcl_Obj*</b> value.</p>
+<p>Both can be done better.</p>
+<p>We will come back to this after explaining how to return structures to Tcl.</p></li>
+</ol>
+</div>
+<div id="subsection23" class="doctools_subsection"><h3><a name="subsection23">Structure Results</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the end of the <span class="sectref"><a href="#subsection22">previous</a></span> section.</p></li>
+<li><p>Edit the file &quot;<b class="file">example.tcl</b>&quot; and add the following code, just after the
+definition of the <b class="cmd">norm</b> command.</p>
+<pre class="doctools_example">
+    critcl::resulttype vec2 {
+	/* rv: result value of function, interp: current Tcl interpreter */
+	if (rv == NULL) return TCL_ERROR;
+	Tcl_Obj* lv[2];
+	lv[0] = Tcl_NewDoubleObj (rv-&gt;x);
+	lv[1] = Tcl_NewDoubleObj (rv-&gt;y);
+	Tcl_SetObjResult (interp, Tcl_NewListObj (2, lv));
+	Tcl_Free (rv);
+	return TCL_OK;
+    } vec2ptr ;# C result type
+    critcl::cproc add {vec2 a vec2 b} vec2 {
+	vec2ptr z = Tcl_Alloc (sizeof (vec2));
+	z-&gt;x = a-&gt;x + b-&gt;x;
+	z-&gt;y = a-&gt;y + b-&gt;y;
+	return z;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>The new command <b class="cmd">add</b> takes two vectors and return the element-wise sum of both
+as a new vector.</p></li>
+<li><p>The function allocates and initializes a structure and hands it over to the
+translation layer. Which in turn constructs a Tcl list of 2 doubles from it, sets that as
+the command's result and at last discards the allocated structure again.</p></li>
+<li><p>While working this code has two disadvantages.
+First there is memory churn. Each call of <b class="cmd">add</b> causes the creation and release of
+three temporary <b class="type">vec2</b> structures. One per argument, and one for the result.
+Second is the need to always construct a complex <b class="type">Tcl_Obj*</b> value from the structure.</p>
+<p>Both can be done better. This is explained in the next section.</p></li>
+</ol>
+</div>
+<div id="subsection24" class="doctools_subsection"><h3><a name="subsection24">Structure Types</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the end of the previous section.</p></li>
+<li><p>Edit the file &quot;<b class="file">example.tcl</b>&quot;.</p></li>
+<li><p>Remove the entire functionality (type definitions, related C code, and cprocs).
+Replace it with</p>
+<pre class="doctools_example">
+    critcl::ccode {
+	typedef struct vec2 {
+	    double x;
+	    double y;
+	} vec2;
+	typedef vec2* vec2ptr;
+	/* -- Core vector structure management -- */
+	static vec2ptr Vec2New (double x, double y) {
+	    vec2ptr vec = Tcl_Alloc (sizeof (vec2));
+	    vec-&gt;x = x;
+	    vec-&gt;y = y;
+	    return vec;
+	}
+	static vec2ptr Vec2Copy (vec2ptr src) {
+	    vec2ptr vec = Tcl_Alloc (sizeof (vec2));
+	    *vec = *src
+	    return vec;
+	}
+	static void Vec2Release (vec2ptr vec) {
+	    Tcl_Free ((char*) vec);
+	}
+	/* -- Tcl value type for vec2 -- Tcl_ObjType -- */
+	static void Vec2Free     (Tcl_Obj* obj);
+	static void Vec2StringOf (Tcl_Obj* obj);
+	static void Vec2Dup      (Tcl_Obj* obj, Tcl_Obj* dst);
+	static int  Vec2FromAny  (Tcl_Interp* interp, Tcl_Obj* obj);
+	Tcl_ObjType vec2_objtype = {
+	    &quot;vec2&quot;,
+	    Vec2Free,
+	    Vec2Dup,
+	    Vec2StringOf,
+	    Vec2FromAny
+	};
+	static void Vec2Free (Tcl_Obj* obj) {
+	    Vec2Release ((vec2ptr) obj-&gt;internalRep.otherValuePtr);
+	}
+	static void Vec2Dup (Tcl_Obj* obj, Tcl_Obj* dst) {
+	    vec2ptr vec = (vec2ptr) obj-&gt;internalRep.otherValuePtr;
+	    dst-&gt;internalRep.otherValuePtr = Vec2Copy (vec);
+	    dst-&gt;typePtr                   = &amp;vec2_objtype;
+	}
+	static void Vec2StringOf (Tcl_Obj* obj) {
+	    vec2ptr vec = (vec2ptr) obj-&gt;internalRep.otherValuePtr;
+	    /* Serialize vector data to string (list of two doubles) */
+	    Tcl_DString      ds;
+	    Tcl_DStringInit (&amp;ds);
+	    char buf [TCL_DOUBLE_SPACE];
+	    Tcl_PrintDouble (0, vec-&gt;x, buf); Tcl_DStringAppendElement (&amp;ds, buf);
+	    Tcl_PrintDouble (0, vec-&gt;y, buf); Tcl_DStringAppendElement (&amp;ds, buf);
+	    int length = Tcl_DStringLength (ds);
+	    /* Set string representation */
+	    obj-&gt;length = length;
+	    obj-&gt;bytes  = Tcl_Alloc(length+1);
+	    memcpy (obj-&gt;bytes, Tcl_DStringValue (ds), length);
+	    obj-&gt;bytes[length] = '\0';
+	    /*
+	    ** : package require critcl::cutil ;# get C utilities
+	    ** : critcl::cutil::alloc          ;# Activate allocation utilities
+	    ** : (Internally cheaders, include)
+	    ** : Then all of the above can be written as STREP_DS (obj, ds);
+	    ** : STREP_DS = STRing REP from DString
+	    */
+	    Tcl_DStringFree (&amp;ds);
+	}
+	static int Vec2FromAny (Tcl_Interp* interp, Tcl_Obj* obj) {
+	    /* Change intrep of obj to vec2 structure.
+	    ** A Tcl list of 2 doubles is used as an intermediary intrep.
+	    */
+	    int len;
+	    if (Tcl_ListObjLength (interp, obj, &amp;len) != TCL_OK) return TCL_ERROR;
+	    if (len != 2) {
+		Tcl_SetObjResult (interp, Tcl_ObjPrintf (&quot;Expected 2 elements, got %d&quot;, len));
+		return TCL_ERROR;
+	    }
+	    Tcl_Obj* lv[2];
+	    if (Tcl_ListObjGetElements (interp, obj, &amp;lv) != TCL_OK) return TCL_ERROR;
+	    double x, y;
+	    if (Tcl_GetDoubleFromObj (interp, lv[0], &amp;x) != TCL_OK) return TCL_ERROR;
+	    if (Tcl_GetDoubleFromObj (interp, lv[1], &amp;y) != TCL_OK) return TCL_ERROR;
+	    obj-&gt;internalRep.otherValuePtr = (void*) Vec2New (x, y);
+	    obj-&gt;typePtr                   = &amp;vec2_objtype;
+	    return TCL_OK;
+	}
+	/* -- (un)packing structures from/into Tcl values -- */
+	int GetVecFromObj (Tcl_Interp* interp, Tcl_Obj* obj, vec2ptr* vec)
+	{
+	    if (obj-&gt;typePtr != &amp;vec2_objtype) {
+		if (Vec2FromAny (interp, obj) != TCL_OK) return TCL_ERROR;
+	    }
+	    *vec = (vec2ptr) obj-&gt;internalRep.otherValuePtr;
+	    return TCL_OK;
+	}
+	Tcl_Obj* NewVecObj (vec2ptr vec) {
+	    Tcl_Obj* obj = Tcl_NewObj ();
+	    Tcl_InvalidateStringRep (obj);
+	    obj-&gt;internalRep.otherValuePtr = Vec2Copy (vec);
+	    obj-&gt;typePtr                   = &amp;vec2_objtype;
+	    return obj;
+	}
+    }
+    critcl::argtype vec2 {
+	if (GetVecFromObj (interp, @@, &amp;@A) != TCL_OK) return TCL_ERROR;
+    } vec2ptr vec2ptr
+    critcl::resulttype vec2 {
+	/* rv: result value of function, interp: current Tcl interpreter */
+	Tcl_SetObjResult (interp, NewVecObj (&amp;rv));
+	return TCL_OK;
+    } vec2
+    critcl::cproc norm {vec2 vector} double {
+	double norm = hypot (vector-&gt;x, vector-&gt;y);
+	return norm;
+    }
+    critcl::cproc add {vec2 a vec2 b} vec2 {
+	vec2 z;
+	z.x = a-&gt;x + b-&gt;x;
+	z.y = a-&gt;y + b-&gt;y;
+	return z;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>This implements a new <b class="type">Tcl_ObjType</b> to handle <b class="type">vec2</b> structures. With it
+<b class="type">vec2</b> structures are become usable as internal representation (<i class="term">intrep</i> of
+<b class="type">Tcl_Obj*</b> values.</p>
+<p>The two functions <b class="function">NewVecObj</b> and <b class="function">GetVecFromObj</b> pack and unpack the
+structures from and into <b class="type">Tcl_Obj*</b> values.
+The latter performs the complex deserialization into a structure if and only if needed,
+i.e. when the <b class="type">TclObj*</b> value has no intrep, or the intrep for a different type.
+This process of changing the intrep of a Tcl value is called <i class="term">shimmering</i>.</p>
+<p>Intreps cache the interpretation of <b class="type">Tcl_Obj*</b> values as a specific kind of
+type. Here <b class="type">vec2</b>. This reduces conversion effort and memory churn, as intreps are
+kept by the Tcl interpreter as long as possible and needed.</p></li>
+<li><p>The arguments of <b class="cmd">norm</b> and <b class="cmd">add</b> are now converted once on entry, if not
+yet in the proper type, or not at all, if so.</p></li>
+<li><p><em>Attention</em>. This example has the issue of passing result structures by value
+through the stack, and then packing a copy into a <b class="type">Tcl_Obj*</b> value.
+While this is no trouble for structures as small as <b class="type">vec2</b> larger structures may pose
+a problem.</p>
+<p>We will address this in the next section.</p></li>
+</ol>
+<p>Packages: <i class="term"><a href="critcl_cutil.html">critcl::cutil</a></i></p>
+</div>
+<div id="subsection25" class="doctools_subsection"><h3><a name="subsection25">Large Structures</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Starting from the end of the previous section.</p></li>
+<li><p>Edit the file &quot;<b class="file">example.tcl</b>&quot;.</p></li>
+<li><p>Describing each individual change is too complex. The following is easier.</p></li>
+<li><p>Save the file, then replace the entire functionality with the following.</p></li>
+<li><p>After that use a <b class="syscmd">diff</b> of your choice to compare the files and see the
+critical changes.</p>
+<pre class="doctools_example">
+    critcl::ccode {
+	typedef struct vec2 {
+	    unsigned int rc;
+	    double x;
+	    double y;
+	} vec2;
+	typedef vec2* vec2ptr;
+	/* -- Core vector structure management -- */
+	static vec2ptr Vec2New (double x, double y) {
+	    vec2ptr vec = Tcl_Alloc (sizeof (vec2));
+	    vec-&gt;rc = 0;
+	    vec-&gt;x = x;
+	    vec-&gt;y = y;
+	    return vec;
+	}
+	static vec2ptr Vec2Copy (vec2ptr src) {
+	    scr-&gt;rc ++;
+	    return src;
+	}
+	static void Vec2Release (vec2ptr vec) {
+	    if (vec-&gt;rc &gt; 1) {
+		vec-&gt;rc --;
+		return;
+	    }
+	    
+	    Tcl_Free ((char*) vec);
+	}
+	/* -- Vector obj type -- */
+	static void Vec2Free     (Tcl_Obj* obj);
+	static void Vec2StringOf (Tcl_Obj* obj);
+	static void Vec2Dup      (Tcl_Obj* obj, Tcl_Obj* dst);
+	static int  Vec2FromAny  (Tcl_Interp* interp, Tcl_Obj* obj);
+	Tcl_ObjType vec2_objtype = {
+	    &quot;vec2&quot;,
+	    Vec2Free,
+	    Vec2Dup,
+	    Vec2StringOf,
+	    Vec2FromAny
+	};
+	static void Vec2Free (Tcl_Obj* obj) {
+	    Vec2Release ((vec2ptr) obj-&gt;internalRep.otherValuePtr);
+	}
+	static void Vec2Dup (Tcl_Obj* obj, Tcl_Obj* dst) {
+	    vec2ptr vec = (vec2ptr) obj-&gt;internalRep.otherValuePtr;
+	    dst-&gt;internalRep.otherValuePtr = Vec2Copy (vec);
+	    dst-&gt;typePtr                   = &amp;vec2_objtype;
+	}
+	static void Vec2StringOf (Tcl_Obj* obj) {
+	    vec2ptr vec = (vec2ptr) obj-&gt;internalRep.otherValuePtr;
+	    /* Serialize vector data to string (list of two doubles) */
+	    Tcl_DString      ds;
+	    Tcl_DStringInit (&amp;ds);
+	    char buf [TCL_DOUBLE_SPACE];
+	    Tcl_PrintDouble (0, vec-&gt;x, buf); Tcl_DStringAppendElement (&amp;ds, buf);
+	    Tcl_PrintDouble (0, vec-&gt;y, buf); Tcl_DStringAppendElement (&amp;ds, buf);
+	    int length = Tcl_DStringLength (ds);
+	    /* Set string representation */
+	    obj-&gt;length = length;
+	    obj-&gt;bytes  = Tcl_Alloc(length+1);
+	    memcpy (obj-&gt;bytes, Tcl_DStringValue (ds), length);
+	    obj-&gt;bytes[length] = '\0';
+	    /*
+	    ** : package require critcl::cutil ;# get C utilities
+	    ** : critcl::cutil::alloc          ;# Activate allocation utilities
+	    ** : (Internally cheaders, include)
+	    ** : Then all of the above can be written as STREP_DS (obj, ds);
+	    ** : STREP_DS = STRing REP from DString
+	    */
+	    Tcl_DStringFree (&amp;ds);
+	}
+	static int Vec2FromAny (Tcl_Interp* interp, Tcl_Obj* obj) {
+	    /* Change internal rep of obj to vector structure.
+	    ** A Tcl list of 2 doubles is used as intermediary int rep.
+	    */
+	    int len;
+	    if (Tcl_ListObjLength (interp, obj, &amp;len) != TCL_OK) return TCL_ERROR;
+	    if (len != 2) {
+		Tcl_SetObjResult (interp, Tcl_ObjPrintf (&quot;Expected 2 elements, got %d&quot;, len));
+		return TCL_ERROR;
+	    }
+	    Tcl_Obj* lv[2];
+	    if (Tcl_ListObjGetElements (interp, obj, &amp;lv) != TCL_OK) return TCL_ERROR;
+	    double x, y;
+	    if (Tcl_GetDoubleFromObj (interp, lv[0], &amp;x) != TCL_OK) return TCL_ERROR;
+	    if (Tcl_GetDoubleFromObj (interp, lv[1], &amp;y) != TCL_OK) return TCL_ERROR;
+	    obj-&gt;internalRep.otherValuePtr = (void*) Vec2New (x, y);
+	    obj-&gt;typePtr                   = &amp;vec2_objtype;
+	    return TCL_OK;
+	}
+	/* (un)packing structures from/into Tcl values -- */
+	int GetVecFromObj (Tcl_Interp* interp, Tcl_Obj* obj, vec2ptr* vec)
+	{
+	    if (obj-&gt;typePtr != &amp;vec2_objtype) {
+		if (VecFromAny (interp, obj) != TCL_OK) return TCL_ERROR;
+	    }
+	    *vec = (vec2ptr) obj-&gt;internalRep.otherValuePtr;
+	    return TCL_OK;
+	}
+	Tcl_Obj* NewVecObj (vec2ptr vec) {
+	    Tcl_Obj* obj = Tcl_NewObj ();
+	    Tcl_InvalidateStringRep (obj);
+	    obj-&gt;internalRep.otherValuePtr = Vec2Copy (vec);
+	    obj-&gt;typePtr                   = &amp;vec2_objtype;
+	    return obj;
+	}
+    }
+    critcl::argtype vec2 {
+	if (GetVecFromObj (interp, @@, &amp;@A) != TCL_OK) return TCL_ERROR;
+    } vec2ptr vec2ptr
+    critcl::resulttype vec2 {
+	/* rv: result value of function, interp: current Tcl interpreter */
+	Tcl_SetObjResult (interp, NewVecObj (rv));
+	return TCL_OK;
+    } vec2ptr
+    critcl::cproc norm {vec2 vector} double {
+	double norm = hypot (vector-&gt;x, vector-&gt;y);
+	return norm;
+    }
+    critcl::cproc add {vec2 a vec2 b} vec2 {
+	return Vec2New (a-&gt;x + b-&gt;x, a-&gt;y + b-&gt;y);
+    }
+</pre>
+</li>
+<li><p>The <b class="type">vec2</b> structure is now reference counted.</p></li>
+<li><p>The core management functions, i.e. <b class="function">Vec2New</b>, <b class="function">Vec2Copy</b>, and
+<b class="function">Vec2Release</b> are changed to maintain that reference count.
+Starting at <b class="const">0</b> on creation, copies increment, and releases decrement.
+A structure is actually only freed when its reference count falls to <b class="const">0</b> or below.</p></li>
+<li><p><b class="type">vec2</b> results are changed to pointers, easily passed back through the stack.
+The modified translation layer just wraps it into a <b class="type">Tcl_Obj*</b> value.</p></li>
+<li><p><em>Attention</em>. Duplicating such a <b class="type">Tcl_Obj*</b> does not duplicate the
+referenced <b class="type">vec2</b> structure anymore, just adds a reference.</p></li>
+<li><p>Regarding <b class="syscmd">diff</b> commands, I know of two graphical diffs for Tcl/Tk,
+<a href="https://tkdiff.sourceforge.io">TkDiff</a>, and <a href="http://eskil.tcl.tk">Eskil</a>.</p></li>
+</ol>
+<p>Packages: <i class="term"><a href="critcl_cutil.html">critcl::cutil</a></i></p>
+</div>
+<div id="subsection26" class="doctools_subsection"><h3><a name="subsection26">External Structures</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Handle structures provided by external libraries using either
+<span class="sectref"><a href="#subsection24">Structure Types</a></span> or <span class="sectref"><a href="#subsection25">Large Structures</a></span> as template.</p></li>
+<li><p><em>Attention</em>. The choice is with the developer.</p>
+<p>This is true even if the external structure is not reference counted by itself.</p>
+<p>To reference count a structure <b class="type">S</b> without such simply wrap <b class="type">S</b> into a
+local structure which provides the reference count and has a field for <b class="type">S</b> (pointer
+or value).</p></li>
+<li><p><em>Attention</em> Opaque external types, i.e. pointers to structures with hidden
+fields, can also be handled by the given templates.</p></li>
+</ol>
+</div>
+<div id="subsection27" class="doctools_subsection"><h3><a name="subsection27">External Enumerations</a></h3>
+<p>This section demonstrates how to convert from any kind of enumeration provided by an
+external library to Tcl strings, and the converse.</p>
+<ol class="doctools_enumerated">
+<li><p>For all that this is a part of how to
+<span class="sectref"><a href="#section3">Use External Libraries</a></span>, for the demonstratation
+only the basics are needed.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    package require critcl::emap
+    # no header included due to use of literal ints instead of symbolic names
+    critcl::emap::def yaml_sequence_style_t {
+	any   0
+	block 1
+	flow  2
+    }
+    # encode: style to int
+    critcl::cproc encode {yaml_sequence_style_t style} int {
+	return style;
+    }
+    # decode: int to style
+    critcl::cproc decode {int style} yaml_sequence_style_t {
+	return style;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>The map converts between the Tcl level strings listed on the left side to the C
+values on the right side, and the reverse.</p></li>
+<li><p>It automatically generates <b class="cmd">critcl::argtype</b> and <b class="cmd">critcl::resulttype</b>
+definitions.</p></li>
+<li><p><em>Attention</em> Like the default values for <b class="cmd">cproc</b> arguments, and the results
+for <b class="cmd">cconst</b> definitions the values on the right side have to be proper C
+rvalues. They have to match C type <b class="type">int</b>.</p>
+<p>In other words, it is perfectly ok to use the symbolic names provided by the header
+file of the external library.</p>
+<p><em>Attention</em> This however comes at a loss in efficiency. As <i class="term"><a href="critcl.html">CriTcl</a></i> then
+has no insight into the covered range of ints, gaps, etc. it has to perform a linear
+search when mapping from C to Tcl. When it knows the exact integer values it can use a
+table lookup instead.</p>
+<p><em>Attention</em> It also falls back to a search if a lookup table would contain more
+than 50 entries.</p></li>
+</ol>
+<p>Packages: <i class="term"><a href="critcl_emap.html">critcl::emap</a></i></p>
+</div>
+<div id="subsection28" class="doctools_subsection"><h3><a name="subsection28">External Bitsets/Bitmaps/Flags</a></h3>
+<p>This section demonstrates how to convert from any kind of bit-mapped flags provided by an
+external library to lists of Tcl strings, and the converse.</p>
+<ol class="doctools_enumerated">
+<li><p>For all that this is a part of how to
+<span class="sectref"><a href="#section3">Use External Libraries</a></span>, for the demonstratation
+only the basics are needed.</p></li>
+<li><p>Starting from the <span class="sectref"><a href="#section2">Basics</a></span>. 
+            Edit the file &quot;<b class="file">example.tcl</b>&quot;.
+            Remove the definition of <b class="cmd">hello</b>. Replace it with</p>
+<pre class="doctools_example">
+    # http://man7.org/linux/man-pages/man7/inotify.7.html
+    
+    package require critcl::bitmap
+    # critcl::cheaders - n/a, header is in system directories
+    critcl::include sys/inotify.h
+    
+    critcl::bitmap::def tcl_inotify_events {
+	accessed       IN_ACCESS
+	all            IN_ALL_EVENTS
+	attribute      IN_ATTRIB
+	closed         IN_CLOSE
+	closed-nowrite IN_CLOSE_NOWRITE
+	closed-write   IN_CLOSE_WRITE
+	created        IN_CREATE
+	deleted        IN_DELETE
+	deleted-self   IN_DELETE_SELF
+	dir-only       IN_ONLYDIR
+	dont-follow    IN_DONT_FOLLOW
+	modified       IN_MODIFY
+	move           IN_MOVE
+	moved-from     IN_MOVED_FROM
+	moved-self     IN_MOVE_SELF
+	moved-to       IN_MOVED_TO
+	oneshot        IN_ONESHOT
+	open           IN_OPEN
+	overflow       IN_Q_OVERFLOW
+	unmount        IN_UNMOUNT
+    } {
+	all closed move oneshot
+    }
+    
+    # encode: flag set to int
+    critcl::cproc encode {tcl_inotify_events e} int {
+	return e;
+    }
+    # decode: int to flag set
+    critcl::cproc decode {int e} tcl_inotify_events {
+	return e;
+    }
+</pre>
+<p>and rebuild the package.</p></li>
+<li><p>The map converts between lists of the Tcl level strings listed on the left side to
+the bit-union of the C values on the right side, and the reverse.</p>
+<p>It is noted that the four strings <b class="const">all</b>, <b class="const">closed</b>, <b class="const">move</b>, and
+<b class="const">oneshot</b> cannot be converted from C flags to list of strings, only from list to
+bits.</p></li>
+<li><p>It automatically generates <b class="cmd">critcl::argtype</b> and <b class="cmd">critcl::resulttype</b>
+definitions.</p></li>
+<li><p><em>Attention</em> Like the default values for <b class="cmd">cproc</b> arguments, and the results
+for <b class="cmd">cconst</b> definitions the values on the right side have to be proper C
+rvalues. They have to match C type <b class="type">int</b>.</p>
+<p>In other words, it is perfectly ok to use the symbolic names provided by the header
+file of the external library. As shown.</p></li>
+</ol>
+<p>Packages: <i class="term"><a href="critcl_bitmap.html">critcl::bitmap</a></i></p>
+</div>
+<div id="subsection29" class="doctools_subsection"><h3><a name="subsection29">Non-standard header/library locations</a></h3>
+<ol class="doctools_enumerated">
+<li><p>See and reread the <span class="sectref"><a href="#section3">basic wrapper package</a></span> for
+the introduction of the commands referenced below.</p></li>
+<li><p><em>Attention</em> Relative paths will be resolved relative to the location of the
+&quot;<b class="file">.tcl</b>&quot; file containing the <i class="term"><a href="critcl.html">CriTcl</a></i> commands.</p></li>
+<li><p>Use the command <b class="cmd">critcl::cheaders</b> to tell <i class="term"><a href="critcl.html">CriTcl</a></i> about non-standard
+locations for header files.</p>
+<p>Multiple arguments are allowed, and multiple calls as well. The information
+accumulates.</p>
+<p>Arguments of the form &quot;<b class="file">-Idirectory</b>&quot; register the directory directly.</p>
+<p>For arguments of the form &quot;<b class="file">path</b>&quot; the directory holding the path is
+registered. In other words, it is assumed to be the full path of a header <em>file</em>, and
+not a directory.</p>
+<pre class="doctools_example">
+    critcl::cheaders -I/usr/local/include
+    critcl::cheaders local/types.h
+    critcl::cheaders other-support/*.h
+</pre>
+</li>
+<li><p>Use the command <b class="cmd">critcl::include</b> to actually use a specific header file.</p></li>
+<li><p>Use the command <b class="cmd">critcl::clibraries</b> to tell <i class="term"><a href="critcl.html">CriTcl</a></i> about non-standard
+locations for shared libaries, and about shared libaries to link to</p>
+<p>Multiple arguments are allowed, and multiple calls as well. The information
+accumulates.</p>
+<p>Arguments of the form &quot;<b class="file">-Ldirectory</b>&quot; register a directory.</p>
+<p>Arguments of the form &quot;<b class="file">-lname</b>&quot; register a shared libary to link to by
+name. The library will be looked for in both standard and registered directories.</p>
+<p>Arguments of the form &quot;<b class="file">-path</b>&quot; register a shared libary to link to by full
+path.</p>
+<pre class="doctools_example">
+    critcl::clibraries -L/usr/lib/x86_64-linux-gnu
+    critcl::clibraries -lzstd
+    critcl::clibraries /usr/lib/x86_64-linux-gnu/libzstd.so
+</pre>
+</li>
+<li><p>On Mac OS X use the command <b class="cmd">critcl::framework</b> to name the frameworks to use
+in the package.</p>
+<p><em>Attention</em> Using the command on other platforms is ok, and will be ignored.</p></li>
+<li><p>Not answered in the above is how to find the necessary paths if they are not fixed
+across machines or platforms.</p>
+<p>We will come back to this.</p></li>
+</ol>
+</div>
+<div id="subsection30" class="doctools_subsection"><h3><a name="subsection30">Non-standard compile/link configuration</a></h3>
+<ol class="doctools_enumerated">
+<li><p>See and reread the <span class="sectref"><a href="#section3">basic wrapper package</a></span> for
+the introduction of the commands referenced below.</p></li>
+<li><p>Use the command <b class="cmd">critcl::cflags</b> to provide additional, non-standard flags to
+the compiler.</p>
+<pre class="doctools_example">
+    critcl::cflags -DBYTE_ORDER=bigendian
+</pre>
+</li>
+<li><p>Use the command <b class="cmd">critcl::ldflags</b> to provide additional, non-standard flags to
+the linker.</p>
+<pre class="doctools_example">
+    critcl::ldflags -
+</pre>
+</li>
+<li><p>Not answered in the above is how to determine such flags if they are not fixed
+across machines or platforms.</p>
+<p>This is addressed by the next section.</p></li>
+</ol>
+</div>
+<div id="subsection31" class="doctools_subsection"><h3><a name="subsection31">Querying the compilation environment</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Use the command <b class="cmd">critcl::check</b> to immediately check if a piece of C code can
+compiled successfully as a means of querying the compiler configuration itself.</p>
+<pre class="doctools_example">
+    if {[critcl::check {
+        #include &lt;FOO.h&gt;
+    }]} {
+        Do stuff with FOO.h present.
+    } else {
+        Do stuff without FOO.h
+    }
+</pre>
+<p>All header and library paths which were registered with <i class="term"><a href="critcl.html">CriTcl</a></i> before using
+<b class="cmd">critcl::check</b> take part in the attempted compilation.</p>
+<p>Use the package <b class="package"><a href="critcl_util.html">critcl::util</a></b> and various convenience commands it
+provides.</p></li>
+<li><p>Use the full <i class="term">Power of Tcl (tm)</i> itself.</p></li>
+</ol>
+</div>
+<div id="subsection32" class="doctools_subsection"><h3><a name="subsection32">Shared C Code</a></h3>
+<ol class="doctools_enumerated">
+<li><p>See and reread the <span class="sectref"><a href="#section3">basic wrapper package</a></span> for
+the introduction of the commands referenced below.</p></li>
+<li><p>Use the command <b class="cmd">critcl::ccode</b> to write C code residing outside of <b class="cmd">cproc</b>
+bodies.</p></li>
+<li><p>Or, alternatively, place the C code into one or more &quot;<b class="file">.c</b>&quot; files and use the
+command <b class="cmd">critcl::csources</b> to register them with <i class="term"><a href="critcl.html">CriTcl</a></i> for compilation.</p></li>
+<li><p>This topic is also treated in section <span class="sectref"><a href="#subsection20">Separating Local C Sources</a></span>.</p></li>
+</ol>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Various</a></h2>
+<div id="subsection33" class="doctools_subsection"><h3><a name="subsection33">Author, License, Description, Keywords</a></h3>
+<ol class="doctools_enumerated">
+<li><p>See and reread the <span class="sectref"><a href="#section2">basic package</a></span> for the introduction of the
+commands referenced below.</p></li>
+<li><p>Use the command <b class="cmd">critcl::license</b> to set the package license.</p>
+<p>Use the same command to set the package author.</p>
+<p>Both arguments are free form text.</p></li>
+<li><p>Use the command <b class="cmd">critcl::summary</b> to set a short package description.</p></li>
+<li><p>Use the command <b class="cmd">critcl::description</b> to set a longer package description.</p>
+<p>The arguments of both commands are free form text.</p></li>
+<li><p>Use the command <b class="cmd">critcl::subject</b> to set one or more keywords.</p>
+<p><em>Attention</em> Contrary to the other commands the arguments accumulate.</p></li>
+<li><p>All the commands are optional.</p></li>
+<li><p>Their information is not placed into the generated C code.</p></li>
+<li><p>In <i class="term">package mode</i> the information is placed into the file &quot;<b class="file">teapot.txt</b>&quot;
+of the generated package.</p></li>
+<li><p>This file serves as integration point for <i class="term">Teapot</i>, the package system of
+<i class="term">ActiveTcl</i>.</p></li>
+</ol>
+</div>
+<div id="subsection34" class="doctools_subsection"><h3><a name="subsection34">Get Critcl Application Help</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Invoke the command</p>
+<pre class="doctools_example">
+    critcl -help
+</pre>
+<p>in a terminal to get help about the <b class="syscmd"><a href="critcl.html">critcl</a></b> application.</p></li>
+</ol>
+</div>
+<div id="subsection35" class="doctools_subsection"><h3><a name="subsection35">Supported Targets &amp; Configurations</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Invoke the application as</p>
+<pre class="doctools_example">
+    critcl -show
+</pre>
+<p>in a terminal to get the detailed configuration of the target for the current platform.</p></li>
+<li><p>Invoke the application as</p>
+<pre class="doctools_example">
+    critcl -show -target NAME
+</pre>
+<p>in a terminal to get the detailed configuration of the named target.</p></li>
+<li><p>Invoke the application as</p>
+<pre class="doctools_example">
+    critcl -targets
+</pre>
+<p>in a terminal to get a list of the available targets.</p></li>
+</ol>
+</div>
+<div id="subsection36" class="doctools_subsection"><h3><a name="subsection36">Building A Package</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Start at section <span class="sectref"><a href="#section2">Basics</a></span>.</p></li>
+</ol>
+</div>
+<div id="subsection37" class="doctools_subsection"><h3><a name="subsection37">Building A Package For Debugging</a></h3>
+<ol class="doctools_enumerated">
+<li><p>Start at section <span class="sectref"><a href="#section2">Basics</a></span>.</p></li>
+</ol>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

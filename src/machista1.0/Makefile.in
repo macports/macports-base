@@ -37,7 +37,7 @@ else
 	@echo "Please install swig and re-run configure" >&2
 	@echo "To use this SWIG, run configure as follows:" >&2
 	@echo "    SWIG=/opt/swig/bin/swig ./configure --your-usual-config-flags" >&2
-	@echo "If you checked out from svn you can also run svn revert in base/src/machista1.0 to get rid of this error" >&2
+	@echo "If you checked out from git you can also run git restore in base/src/machista1.0 to get rid of this error" >&2
 	@exit 1
 endif
 

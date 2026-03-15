@@ -1,0 +1,54 @@
+[vset VERSION 35.3]
+[manpage_begin textutil::wcswidth n [vset VERSION]]
+[see_also regexp(n)]
+[see_also split(n)]
+[see_also string(n)]
+[keywords prefix]
+[keywords {regular expression}]
+[keywords string]
+[keywords {character type} {character width} {double-wide character}]
+[moddesc   {Text and string utilities, macro processing}]
+[titledesc {Procedures to compute terminal width of strings}]
+[category  {Text processing}]
+[require Tcl "8.5 9"]
+[require textutil::wcswidth [opt [vset VERSION]]]
+[description]
+
+The package [package textutil::wcswidth] provides commands that determine character type and width
+when used in terminals, and the length of strings when printed in a terminal.
+
+[para] The data underlying the functionality of this package is provided by the Unicode database
+file [uri http://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt].
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[call [cmd ::textutil::wcswidth] [arg string]]
+
+Returns the number of character cells taken by the string when printed to the terminal.
+
+This takes double-wide characters from the various Asian and other scripts into account.
+
+[call [cmd ::textutil::wcswidth_char] [arg char]]
+
+Returns the number of character cells taken by the character when printed to the terminal.
+
+[para][emph Beware]: The character [arg char] is specified as Unicode codepoint.
+
+[call [cmd ::textutil::wcswidth_type] [arg char]]
+
+Returns the character type of the specified character.
+
+This a single character in the set of [const A], [const F], [const H], [const N], [const Na], and
+[const W], as specified per [uri http://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt]
+
+[para][emph Beware]: The character [arg char] is specified as Unicode codepoint.
+
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../common-text/feedback.inc]
+[manpage_end]

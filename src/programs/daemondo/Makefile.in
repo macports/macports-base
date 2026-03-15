@@ -17,6 +17,8 @@ LIBS		= -framework CoreFoundation \
 			  -framework IOKit
 PROGRAM		= build/daemondo
 
+.PHONY: daemondo mkdirs
+
 all: daemondo
 
 daemondo: mkdirs ${PROGRAM}

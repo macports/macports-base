@@ -1,0 +1,8 @@
+rtilde
+
+./sak.tcl readme -md -I INTRODUCTION-2.txt -D DEPRECATIONS-TO-UPDATE.md  > support/releases/history/README-2.0.md
+./sak.tcl readme     -I INTRODUCTION-2.txt -D DEPRECATIONS-TO-UPDATE.txt > support/releases/history/README-2.0.txt
+
+less support/releases/history/README-2.0.txt
+
+mdv  support/releases/history/README-2.0.md

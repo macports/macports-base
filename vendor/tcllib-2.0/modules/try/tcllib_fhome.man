@@ -1,0 +1,29 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 1]
+[manpage_begin file::home n [vset VERSION]]
+
+[copyright {2024 Andreas Kupries, BSD licensed}]
+[moddesc {Forward compatibility implementation of [file home]}]
+[titledesc {file home - Return home directory of current or other user}]
+[category  Utility]
+[require Tcl "8.x"]
+[require fhome [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides a forward-compatibility implementation of Tcl
+9's [cmd {file home}] command (TIP 602), for Tcl 8.x.
+
+[list_begin definitions]
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd file] [method home] [opt [arg user]]]
+
+Without argument, return the home directory of the current user.
+
+[para] With argument, return the home directory of the specified [arg user].
+
+[list_end]
+
+[vset CATEGORY file]
+[include ../common-text/feedback.inc]
+[manpage_end]

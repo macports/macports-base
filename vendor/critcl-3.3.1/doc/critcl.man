@@ -1,0 +1,73 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[include version.inc]
+[manpage_begin critcl n [vset VERSION]]
+[include include/module.inc]
+[titledesc {Introduction To CriTcl}]
+[description]
+[para]
+[include include/welcome.inc]
+[include include/advert.inc]
+[para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {History & Motivation}]
+
+[para] [vset critcl] started life as an experiment by [vset jcw] and was a self-contained
+Tcl package to build C code into a Tcl/Tk extension on the fly. It was somewhat inspired
+by Brian Ingerson's [term Inline] for [term Perl], but is considerably more lightweight.
+
+[para] It is for the last 5% to 10% when pure Tcl, which does go a long way, is not
+sufficient anymore. I.e. for
+
+[list_begin enumerated]
+[enum] when the last bits of performance are needed,
+[enum] access to 3rd party libraries,
+[enum] hiding critical pieces of your library or application, and
+[enum] simply needing features provided only by C.
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section Overview]
+
+To make the reader's topics of interest easy to find this documentation is roughly
+organized by [vset quad], i.e. [include include/quad.inc]
+
+[strong Note]: At this point in time the documentation consists mainly of references, and
+a few how-to guides. Tutorials and Explanations are in need of expansion, this is planned.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Known Users}]
+[include include/pkg_users.inc]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Tutorials - Practical Study - To Learn}]
+
+This section is currently empty.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {Explanations - Theoretical Knowledge - To Understand}]
+
+This section is currently empty.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {How-To Guides - Practical Work - To Solve Problems}]
+
+[list_begin enumerated]
+[enum] [term {How To Get The CriTcl Sources}].
+[enum] [term {How To Install CriTcl}].
+[enum] [term {How To Use CriTcl}] - A light introduction through examples.
+[enum] [strong NEW]: [term {How To Adapt Critcl Packages for Tcl 9}].
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section {References - Theoretical Work - To Gain Knowlegde}]
+
+[list_begin enumerated]
+[enum] [term {The CriTcl License}]
+[enum] [term {CriTcl Releases & Changes}]
+[include include/reference_docs.inc]
+[enum] [term {Guide To The CriTcl Internals}]
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

@@ -649,6 +649,8 @@ test test_lint_platforms_succeeds_with_darwin_freebsd {
     Verify that platforms is accepted with darwin freebsd
 } -body {
     set platforms "darwin freebsd"
+    set name "test"
+    set subport "test"
     set results [portlint::lint_platforms $platforms]
     set err_results [lindex $results 0]
     set warn_results [lindex $results 1]
@@ -666,6 +668,8 @@ test test_lint_platforms_succeeds_with_freebsd {
     Verify that platforms is accepted with freebsd
 } -body {
     set platforms "freebsd"
+    set name "test"
+    set subport "test"
     set results [portlint::lint_platforms $platforms]
     set err_results [lindex $results 0]
     set warn_results [lindex $results 1]
@@ -683,6 +687,8 @@ test test_lint_platforms_fails_with_msdos {
     Verify that platforms fails with msdos as this is unknown
 } -body {
     set platforms "msdos"
+    set name "test"
+    set subport "test"
     set results [portlint::lint_platforms $platforms]
     set err_results [lindex $results 0]
     set warn_results [lindex $results 1]
@@ -700,6 +706,8 @@ test test_lint_platforms_fails_with_darwin {
     Verify that platforms fails with darwin as this is the default
 } -body {
     set platforms "darwin"
+    set name "test"
+    set subport "test"
     set results [portlint::lint_platforms $platforms]
     set err_results [lindex $results 0]
     set warn_results [lindex $results 1]
@@ -712,5 +720,24 @@ test test_lint_platforms_fails_with_darwin {
     }
     return "lint_platforms_darwin_fails passed"
 } -result "lint_platforms_darwin_fails passed"
+
+test test_lint_platforms_succeeds_with_subports {
+    Verify that platforms succeeds with subports
+} -body {
+    set platforms "darwin"
+    set name "test"
+    set subport "subport"
+    set results [portlint::lint_platforms $platforms]
+    set err_results [lindex $results 0]
+    set warn_results [lindex $results 1]
+
+    if {[llength $warn_results] > 0} {
+        return "FAIL: unexpected error results"
+    }
+    if {[llength $err_results] > 0} {
+        return "FAIL: unexpected error results"
+    }
+    return "test_lint_platforms_succeeds_with_subports passed"
+} -result "test_lint_platforms_succeeds_with_subports passed"
 
 cleanupTests

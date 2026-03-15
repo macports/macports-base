@@ -1,0 +1,55 @@
+name: "Mirror base files"
+
+on:
+  release:
+    types: [published, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    if: github.event.release.draft == false
+    name: Mirror base files
+    concurrency:
+      group: mirror-${{ github.ref }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch release files
+        uses: robinraju/release-downloader@v1
+        with:
+            tag: ${{ github.ref_name }}
+            fileName: '*'
+            tarBall: false
+            zipBall: false
+            out-file-path: 'mpfiles'
+
+      - name: Deploy release files
+        env:
+          MIRROR_SSH_HOST: ${{ secrets.MIRROR_SSH_HOST }}
+          MIRROR_SSH_HOSTKEY: ${{ secrets.MIRROR_SSH_HOSTKEY }}
+          MIRROR_SSH_KEY: ${{ secrets.MIRROR_SSH_KEY }}
+          MIRROR_SSH_USER: ${{ secrets.MIRROR_SSH_USER }}
+        run: |
+          set -eu
+
+          echo "Uploading files for MacPorts $GITHUB_REF_NAME"
+          chmod -R a+rX mpfiles
+          touch ssh_key
+          chmod 0600 ssh_key
+          echo "$MIRROR_SSH_KEY" > ssh_key
+          echo "$MIRROR_SSH_HOSTKEY" > ssh_known_hosts
+          export RSYNC_RSH="ssh -l $MIRROR_SSH_USER -i ssh_key -oUserKnownHostsFile=ssh_known_hosts -p 23"
+          case "$GITHUB_REF_NAME" in
+            *-rc*) SUBDIR="/testing" ;;
+            *-beta*) SUBDIR="/testing" ;;
+            *) SUBDIR="" ;;
+          esac
+          rsync -av --progress --delay-updates ./mpfiles/ "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts${SUBDIR}"
+
+          echo "Updating RELEASE_URL"
+          curl -fL -o ./RELEASE_URL https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL
+          chmod a+r ./RELEASE_URL
+          rsync -av --delay-updates ./RELEASE_URL "${MIRROR_SSH_HOST}:pub/distfiles/MacPorts/"
+          rm -f ssh_key ssh_known_hosts

@@ -1,0 +1,35 @@
+# -*- tcl -*- Tests for "base32"
+# This testsuite is in the public domain.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+testing {
+    useLocal     base32core.tcl base32::core
+    useTcllibC
+    useLocalKeep base32hex.tcl  base32::hex
+    TestAccelInit               base32::hex
+}
+
+set tests [localPath base32hex.testsuite]
+
+# -------------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite
+# (in base32hex.testsuite) does expect from the environment.
+
+TestAccelDo base32::hex impl {
+    source $tests
+}
+
+# -------------------------------------------------------------------------
+
+unset tests
+TestAccelExit base32::hex
+testsuiteCleanup
+return

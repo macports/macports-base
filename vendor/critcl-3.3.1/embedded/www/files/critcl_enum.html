@@ -1,0 +1,276 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl::enum - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_enum.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl::enum.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl::enum(n) 1.2 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl::enum - CriTcl - Wrap Support - String/Integer mapping</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Example</a></li>
+<li class="doctools_section"><a href="#section4">Authors</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.2?</span></b></li>
+<li>package require <b class="pkgname">critcl::enum <span class="opt">?1.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::enum::def</b> <i class="arg">name</i> <i class="arg">definition</i> <span class="opt">?<i class="arg">mode</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is the reference manpage for the
+<b class="package">critcl::enum</b> package. This package provides convenience
+commands for advanced functionality built on top of both critcl core
+and package <b class="package"><a href="critcl_literals.html">critcl::literals</a></b>.</p>
+<p>It is an extended form of string pool which not only converts
+integer values into Tcl-level strings, but also handles the reverse
+direction, converting from strings to the associated integer values.</p>
+<p>It essentially provides a bi-directional mapping between a C
+enumeration type and a set of strings, one per enumeration value.
+<em>Note</em> that the C enumeration in question is created by the
+definition. It is not possible to use the symbols of an existing
+enumeration type.</p>
+<p>This package was written to make the declaration and management
+of such mappings easy. It uses a string pool for one of the directions,
+using its ability to return shared literals and conserve memory.</p>
+<p>Its intended audience are mainly developers wishing to write
+Tcl packages with embedded C code.</p>
+<p>This package resides in the Core Package Layer of CriTcl.</p>
+<p><img alt="arch_core" src="../image/arch_core.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::enum::def</b> <i class="arg">name</i> <i class="arg">definition</i> <span class="opt">?<i class="arg">mode</i>?</span></a></dt>
+<dd><p>This command defines two C functions for the conversion between
+C values and Tcl_Obj'ects, with named derived from <i class="arg">name</i>.</p>
+<p>The <i class="arg">definition</i> dictionary provides the mapping from the
+specified C-level symbolic names to the strings themselves.</p>
+<p>The <i class="arg">mode</i>-list configures the output somewhat.
+The two allowed modes are <b class="const">+list</b> and <b class="const">tcl</b>.
+All modes can be used together.
+The default mode is <b class="const">tcl</b>.
+Using mode <b class="const">+list</b> implies <b class="const">tcl</b> as well.</p>
+<p>For mode <b class="const">tcl</b> the new function has two arguments, a
+<b class="type">Tcl_Interp*</b> pointer refering to the interpreter holding the
+string pool, and a code of type &quot;<i class="arg">name</i>_pool_names&quot; (see below),
+the symbolic name of the string to return. The result of the function
+is a <b class="type">Tcl_Obj*</b> pointer to the requested string constant.</p>
+<p>For mode <b class="const">+list</b> all of <b class="const">tcl</b> applies, plus an
+additional function is generated which takes three arguments, in
+order: a <b class="type">Tcl_Interp*</b> pointer refering to the interpreter
+holding the string pool, an <b class="type">int</b> holding the size of the last
+argument, and an array of type &quot;<i class="arg">name</i>_pool_names&quot; holding the
+codes (see below), the symbolic names of the strings to return. The
+result of the function is a <b class="type">Tcl_Obj*</b> pointer to a Tcl list
+holding the requested string constants.</p>
+<p>The underlying string pool is automatically initialized on
+first access, and finalized on interpreter destruction.</p>
+<p>The package generates multiple things (declarations and
+definitions) with names derived from <i class="arg">name</i>, which has to be a
+proper C identifier.</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">name</i>_pool_names</dt>
+<dd><p>The C enumeration type containing the specified symbolic names.</p></dd>
+<dt><i class="arg">name</i>_ToObj</dt>
+<dd><p>The function converting from integer value to Tcl string.
+Its signature is</p>
+<pre class="doctools_example">
+Tcl_Obj* <i class="arg">name</i>_ToObj (Tcl_Interp* interp, <i class="arg">name</i>_names literal);
+</pre>
+</dd>
+<dt><i class="arg">name</i>_ToObjList</dt>
+<dd><p>The mode <b class="const">+list</b> function converting from integer array to Tcl
+list of strings.
+Its signature is</p>
+<pre class="doctools_example">
+Tcl_Obj* <i class="arg">name</i>_ToObjList (Tcl_Interp* interp, int c, <i class="arg">name</i>_names* literal);
+</pre>
+</dd>
+<dt><i class="arg">name</i>_GetFromObj</dt>
+<dd><p>The function converting from Tcl string to integer value.
+Its signature is</p>
+<pre class="doctools_example">
+int <i class="arg">name</i>_GetFromObj (Tcl_Interp* interp, Tcl_Obj* obj, int flags, int* literal);
+</pre>
+<p>The <i class="arg">flags</i> are like for <b class="function">Tcl_GetIndexFromObj</b>.</p></dd>
+<dt><i class="arg">name</i>.h</dt>
+<dd><p>A header file containing the declarations for the converter functions,
+for use by other parts of the system, if necessary.</p>
+<p>The generated file is stored in a place where it will not
+interfere with the overall system outside of the package, yet also be
+available for easy inclusion by package files (<b class="cmd">csources</b>).</p></dd>
+<dt><i class="arg">name</i></dt>
+<dd><p>At the level of critcl itself the command registers a new result-type
+for <b class="cmd">critcl::cproc</b>, which takes an integer result from the function
+and converts it to the equivalent string in the pool for the script.</p></dd>
+<dt><i class="arg">name</i></dt>
+<dd><p>At the level of critcl itself the command registers a new argument-type
+for <b class="cmd">critcl::cproc</b>, which takes a Tcl string and converts it to the
+equivalent integer for delivery to the function.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Example</a></h2>
+<p>The example shown below is the specification for a set of actions, methods,
+and the like, a function may take as argument.</p>
+<pre class="doctools_example">
+package require Tcl 8.6
+package require critcl 3.2
+critcl::buildrequirement {
+    package require critcl::enum
+}
+critcl::enum::def action {
+    w_create	&quot;create&quot;
+    w_directory	&quot;directory&quot;
+    w_events	&quot;events&quot;
+    w_file	&quot;file&quot;
+    w_handler	&quot;handler&quot;
+    w_remove	&quot;remove&quot;
+}
+# Declarations: action.h
+# Type:         action_names
+# Accessor:     Tcl_Obj* action_ToObj (Tcl_Interp* interp, int literal);
+# Accessor:     int action_GetFromObj (Tcl_Interp* interp, Tcl_Obj* o, int flags, int* literal);
+# ResultType:   action
+# ArgType:      action
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Authors</a></h2>
+<p>Andreas Kupries</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such at <a href="https://github.com/andreas-kupries/critcl">https://github.com/andreas-kupries/critcl</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#tcl_interp_association">Tcl Interp Association</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#conversion">conversion</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#int_to_string_mapping">int to string mapping</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#literal_pool">literal pool</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a>, <a href="../index.html#singleton">singleton</a>, <a href="../index.html#string_pool">string pool</a>, <a href="../index.html#string_to_int_mapping">string to int mapping</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

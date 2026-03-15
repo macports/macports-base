@@ -346,41 +346,8 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             /* we need to update to 1.1, add binary field and index to files
              * table */
             static char* version_1_1_queries[] = {
-#if SQLITE_VERSION_NUMBER >= 3002000
                 "ALTER TABLE registry.files ADD COLUMN binary BOOL",
-#else
-                /*
-                 * SQLite < 3.2.0 doesn't support ALTER TABLE ADD COLUMN
-                 * Unfortunately, Tiger ships with SQLite < 3.2.0 (#34463)
-                 * This is taken from http://www.sqlite.org/faq.html#q11
-                 */
 
-                /* Create a temporary table */
-                "CREATE TEMPORARY TABLE mp_files_backup (id INTEGER, path TEXT, "
-                    "actual_path TEXT, active INT, mtime DATETIME, md5sum TEXT, editable INT, "
-                    "FOREIGN KEY(id) REFERENCES ports(id))",
-
-                /* Copy all data into the temporary table */
-                "INSERT INTO mp_files_backup SELECT id, path, actual_path, active, mtime, "
-                    "md5sum, editable FROM registry.files",
-
-                /* Drop the original table and re-create it with the new structure */
-                "DROP TABLE registry.files",
-                "CREATE TABLE registry.files (id INTEGER, path TEXT, actual_path TEXT, "
-                    "active INT, mtime DATETIME, md5sum TEXT, editable INT, binary BOOL, "
-                    "FOREIGN KEY(id) REFERENCES ports(id))",
-                "CREATE INDEX registry.file_port ON files(id)",
-                "CREATE INDEX registry.file_path ON files(path)",
-                "CREATE INDEX registry.file_actual ON files(actual_path)",
-
-                /* Copy all data back from temporary table */
-                "INSERT INTO registry.files (id, path, actual_path, active, mtime, md5sum, "
-                    "editable) SELECT id, path, actual_path, active, mtime, md5sum, "
-                    "editable FROM mp_files_backup",
-
-                /* Remove temporary table */
-                "DROP TABLE mp_files_backup",
-#endif
                 "CREATE INDEX registry.file_binary ON files(binary)",
 
                 "UPDATE registry.metadata SET value = '1.100' WHERE key = 'version'",
@@ -667,75 +634,8 @@ int update_db(sqlite3* db, reg_error* errPtr) {
         if (sql_version(NULL, -1, version, -1, "1.204") < 0) {
             /* add */
             static char* version_1_204_queries[] = {
-#if SQLITE_VERSION_NUMBER >= 3002000
                 "ALTER TABLE registry.ports ADD COLUMN cxx_stdlib TEXT",
                 "ALTER TABLE registry.ports ADD COLUMN cxx_stdlib_overridden INTEGER",
-#else
-
-                /* Create a temporary table */
-                "CREATE TEMPORARY TABLE mp_ports_backup ("
-                "id INTEGER PRIMARY KEY"
-                ", name TEXT COLLATE NOCASE"
-                ", portfile TEXT"
-                ", location TEXT"
-                ", epoch INTEGER"
-                ", version TEXT COLLATE VERSION"
-                ", revision INTEGER"
-                ", variants TEXT"
-                ", negated_variants TEXT"
-                ", state TEXT"
-                ", date DATETIME"
-                ", installtype TEXT"
-                ", archs TEXT"
-                ", requested INTEGER"
-                ", os_platform TEXT"
-                ", os_major INTEGER"
-                ", UNIQUE (name, epoch, version, revision, variants)"
-                ")",
-
-                /* Copy all data into the temporary table */
-                "INSERT INTO mp_ports_backup SELECT id, name, portfile, location, epoch, "
-                    "version, revision, variants, negated_variants, state, date, installtype, "
-                    "archs, requested, os_platform, os_major FROM registry.ports",
-
-                /* Drop the original table and re-create it with the new structure */
-                "DROP TABLE registry.ports",
-                "CREATE TABLE registry.ports ("
-                "id INTEGER PRIMARY KEY"
-                ", name TEXT COLLATE NOCASE"
-                ", portfile TEXT"
-                ", location TEXT"
-                ", epoch INTEGER"
-                ", version TEXT COLLATE VERSION"
-                ", revision INTEGER"
-                ", variants TEXT"
-                ", negated_variants TEXT"
-                ", state TEXT"
-                ", date DATETIME"
-                ", installtype TEXT"
-                ", archs TEXT"
-                ", requested INTEGER"
-                ", os_platform TEXT"
-                ", os_major INTEGER"
-                ", cxx_stdlib TEXT"
-                ", cxx_stdlib_overridden INTEGER"
-                ", UNIQUE (name, epoch, version, revision, variants)"
-                ")",
-                "CREATE INDEX registry.port_name ON ports"
-                    "(name, epoch, version, revision, variants)",
-                "CREATE INDEX registry.port_state ON ports(state)",
-
-                /* Copy all data back from temporary table */
-                "INSERT INTO registry.ports (id, name, portfile, location, epoch, version, "
-                    "revision, variants, negated_variants, state, date, installtype, archs, "
-                    "requested, os_platform, os_major) SELECT id, name, portfile, location, "
-                    "epoch, version, revision, variants, negated_variants, state, date, "
-                    "installtype, archs, requested, os_platform, os_major "
-                    "FROM mp_ports_backup",
-
-                /* Remove temporary table */
-                "DROP TABLE mp_ports_backup",
-#endif
 
                 "UPDATE registry.metadata SET value = '1.204' WHERE key = 'version'",
                 "COMMIT",

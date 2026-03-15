@@ -1,0 +1,476 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>map::slippy - Mapping utilities</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'map_slippy.man' by tcllib/doctools with format 'html'
+   -->
+<!-- map::slippy.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">map::slippy(n) 0.10 tcllib &quot;Mapping utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>map::slippy - Common code for slippy based map packages</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Coordinate systems</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Geographic</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Points</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">API</a></li>
+<li class="doctools_section"><a href="#section4">References</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6 9</b></li>
+<li>package require <b class="pkgname">map::slippy <span class="opt">?0.10?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::map</b> <b class="method">slippy geo box 2point</b> <i class="arg">zoom</i> <i class="arg">geobox</i></a></li>
+<li><a href="#2"><b class="cmd">::map</b> <b class="method">slippy geo box center</b> <i class="arg">geobox</i></a></li>
+<li><a href="#3"><b class="cmd">::map</b> <b class="method">slippy geo box corners</b> <i class="arg">geobox</i></a></li>
+<li><a href="#4"><b class="cmd">::map</b> <b class="method">slippy geo box diameter</b> <i class="arg">geobox</i></a></li>
+<li><a href="#5"><b class="cmd">::map</b> <b class="method">slippy geo box dimensions</b> <i class="arg">geobox</i></a></li>
+<li><a href="#6"><b class="cmd">::map</b> <b class="method">slippy geo box fit</b> <i class="arg">geobox</i> <i class="arg">canvdim</i> <i class="arg">zmax</i> <span class="opt">?<i class="arg">zmin</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::map</b> <b class="method">slippy geo box inside</b> <i class="arg">geobox</i> <i class="arg">geo</i></a></li>
+<li><a href="#8"><b class="cmd">::map</b> <b class="method">slippy geo box limit</b> <i class="arg">geobox</i></a></li>
+<li><a href="#9"><b class="cmd">::map</b> <b class="method">slippy geo box opposites</b> <i class="arg">geobox</i></a></li>
+<li><a href="#10"><b class="cmd">::map</b> <b class="method">slippy geo box perimeter</b> <i class="arg">geobox</i></a></li>
+<li><a href="#11"><b class="cmd">::map</b> <b class="method">slippy geo box valid</b> <i class="arg">geobox</i></a></li>
+<li><a href="#12"><b class="cmd">::map</b> <b class="method">slippy geo box valid-list</b> <i class="arg">geoboxes</i></a></li>
+<li><a href="#13"><b class="cmd">::map</b> <b class="method">slippy geo distance</b> <i class="arg">geo1</i> <i class="arg">geo2</i></a></li>
+<li><a href="#14"><b class="cmd">::map</b> <b class="method">slippy geo distance*</b> <i class="arg">closed</i> <i class="arg">geo</i>...</a></li>
+<li><a href="#15"><b class="cmd">::map</b> <b class="method">slippy geo distance-list</b> <i class="arg">closed</i> <i class="arg">geo-list</i></a></li>
+<li><a href="#16"><b class="cmd">::map</b> <b class="method">slippy geo limit</b> <i class="arg">geo</i></a></li>
+<li><a href="#17"><b class="cmd">::map</b> <b class="method">slippy geo bbox</b> <i class="arg">geo</i>...</a></li>
+<li><a href="#18"><b class="cmd">::map</b> <b class="method">slippy geo bbox-list</b> <i class="arg">geo-list</i></a></li>
+<li><a href="#19"><b class="cmd">::map</b> <b class="method">slippy geo center</b> <i class="arg">geo</i>...</a></li>
+<li><a href="#20"><b class="cmd">::map</b> <b class="method">slippy geo center-list</b> <i class="arg">geo-list</i></a></li>
+<li><a href="#21"><b class="cmd">::map</b> <b class="method">slippy geo diameter</b> <i class="arg">geo</i>...</a></li>
+<li><a href="#22"><b class="cmd">::map</b> <b class="method">slippy geo diameter-list</b> <i class="arg">geo-list</i></a></li>
+<li><a href="#23"><b class="cmd">::map</b> <b class="method">slippy geo 2point</b> <i class="arg">zoom</i> <i class="arg">geo</i></a></li>
+<li><a href="#24"><b class="cmd">::map</b> <b class="method">slippy geo 2point*</b> <i class="arg">zoom</i> <i class="arg">geo</i>...</a></li>
+<li><a href="#25"><b class="cmd">::map</b> <b class="method">slippy geo 2point-list</b> <i class="arg">zoom</i> <i class="arg">geo-list</i></a></li>
+<li><a href="#26"><b class="cmd">::map</b> <b class="method">slippy geo valid</b> <i class="arg">geo</i></a></li>
+<li><a href="#27"><b class="cmd">::map</b> <b class="method">slippy geo valid-list</b> <i class="arg">geos</i></a></li>
+<li><a href="#28"><b class="cmd">::map</b> <b class="method">slippy length</b> <i class="arg">level</i></a></li>
+<li><a href="#29"><b class="cmd">::map</b> <b class="method">slippy limit2</b> <i class="arg">x</i></a></li>
+<li><a href="#30"><b class="cmd">::map</b> <b class="method">slippy limit3</b> <i class="arg">x</i></a></li>
+<li><a href="#31"><b class="cmd">::map</b> <b class="method">slippy limit6</b> <i class="arg">x</i></a></li>
+<li><a href="#32"><b class="cmd">::map</b> <b class="method">slippy point box 2geo</b> <i class="arg">zoom</i> <i class="arg">pointbox</i></a></li>
+<li><a href="#33"><b class="cmd">::map</b> <b class="method">slippy point box center</b> <i class="arg">pointbox</i></a></li>
+<li><a href="#34"><b class="cmd">::map</b> <b class="method">slippy point box corners</b> <i class="arg">pointbox</i></a></li>
+<li><a href="#35"><b class="cmd">::map</b> <b class="method">slippy point box diameter</b> <i class="arg">pointbox</i></a></li>
+<li><a href="#36"><b class="cmd">::map</b> <b class="method">slippy point box dimensions</b> <i class="arg">pointbox</i></a></li>
+<li><a href="#37"><b class="cmd">::map</b> <b class="method">slippy point box inside</b> <i class="arg">pointbox</i> <i class="arg">point</i></a></li>
+<li><a href="#38"><b class="cmd">::map</b> <b class="method">slippy point box opposites</b> <i class="arg">pointbox</i></a></li>
+<li><a href="#39"><b class="cmd">::map</b> <b class="method">slippy point box perimeter</b> <i class="arg">pointbox</i></a></li>
+<li><a href="#40"><b class="cmd">::map</b> <b class="method">slippy point distance</b> <i class="arg">point1</i> <i class="arg">point2</i></a></li>
+<li><a href="#41"><b class="cmd">::map</b> <b class="method">slippy point distance*</b> <i class="arg">closed</i> <i class="arg">point</i>...</a></li>
+<li><a href="#42"><b class="cmd">::map</b> <b class="method">slippy point distance-list</b> <i class="arg">closed</i> <i class="arg">point-list</i></a></li>
+<li><a href="#43"><b class="cmd">::map</b> <b class="method">slippy point bbox</b> <i class="arg">point</i>...</a></li>
+<li><a href="#44"><b class="cmd">::map</b> <b class="method">slippy point bbox-list</b> <i class="arg">point-list</i></a></li>
+<li><a href="#45"><b class="cmd">::map</b> <b class="method">slippy point center</b> <i class="arg">point</i>...</a></li>
+<li><a href="#46"><b class="cmd">::map</b> <b class="method">slippy point center-list</b> <i class="arg">point-list</i></a></li>
+<li><a href="#47"><b class="cmd">::map</b> <b class="method">slippy point diameter</b> <i class="arg">point</i>...</a></li>
+<li><a href="#48"><b class="cmd">::map</b> <b class="method">slippy point diameter-list</b> <i class="arg">point-list</i></a></li>
+<li><a href="#49"><b class="cmd">::map</b> <b class="method">slippy point 2geo</b> <i class="arg">zoom</i> <i class="arg">point</i></a></li>
+<li><a href="#50"><b class="cmd">::map</b> <b class="method">slippy point 2geo*</b> <i class="arg">zoom</i> <i class="arg">point</i>...</a></li>
+<li><a href="#51"><b class="cmd">::map</b> <b class="method">slippy point 2geo-list</b> <i class="arg">zoom</i> <i class="arg">point-list</i></a></li>
+<li><a href="#52"><b class="cmd">::map</b> <b class="method">slippy point simplify radial</b> <i class="arg">threshold</i> <i class="arg">point-list</i></a></li>
+<li><a href="#53"><b class="cmd">::map</b> <b class="method">slippy point simplify rdp</b> <i class="arg">point-list</i></a></li>
+<li><a href="#54"><b class="cmd">::map</b> <b class="method">slippy pretty-distance</b> <i class="arg">x</i></a></li>
+<li><a href="#55"><b class="cmd">::map</b> <b class="method">slippy tiles</b> <i class="arg">level</i></a></li>
+<li><a href="#56"><b class="cmd">::map</b> <b class="method">slippy tile size</b></a></li>
+<li><a href="#57"><b class="cmd">::map</b> <b class="method">slippy tile valid</b> <i class="arg">zoom</i> <i class="arg">row</i> <i class="arg">column</i> <i class="arg">levels</i> <span class="opt">?<i class="arg">msgvar</i>?</span></a></li>
+<li><a href="#58"><b class="cmd">::map</b> <b class="method">slippy valid latitude</b> <i class="arg">x</i></a></li>
+<li><a href="#59"><b class="cmd">::map</b> <b class="method">slippy valid longitude</b> <i class="arg">x</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a number of methods doing things needed by all types of slippy-based map
+packages.</p>
+<p><em>BEWARE</em>, <em>Attention</em> Version <em>0.9</em> is <em>NOT backward compatible</em>
+with version 0.7 and earlier.  The entire API was <em>heavily revised and changed</em>.</p>
+<p><em>Note:</em> For the representation of locations in the various coordinate systems used by
+the commands of this package please read section <span class="sectref"><a href="#section2">Coordinate systems</a></span>. The command
+descriptions will not repeat them, and assume that they are understood already.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Coordinate systems</a></h2>
+<p>The commands of this package operate in two distinct coordinate systems, geographical locations, and
+points. The former represents coordinates for locations on Earth, while the latter is for use on Tk
+<i class="term">canvas</i> widgets.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Geographic</a></h3>
+<p>Geographical locations (short: <i class="term">geo</i>) are represented by a pair of <i class="term">Latitude</i> and
+<i class="term"><a href="../../../../index.html#longitude">Longitude</a></i> values, each of which is measured in degrees, as they are essentially angles.</p>
+<p>The <b class="const">Zero</b> longitude is the <i class="term">Greenwich meridian</i>, with positive values going
+<i class="term">east</i>, and negative values going <i class="term">west</i>, for a total range of +/- 180 degrees. Note that
++180 and -180 longitude are the same <i class="term">meridian</i>, opposite to Greenwich.</p>
+<p>The <b class="const">zero</b> latitude is the <i class="term">Equator</i>, with positive values going <i class="term">north</i> and
+negative values going <i class="term">south</i>. While the true range is +/- 90 degrees the projection used by
+the package requires us to cap the range at roughly +/- <b class="const">85.05112877983284</b> degrees. This
+means that the North and South poles are not representable and not part of any map.</p>
+<p>A geographical location is represented by a list containing two values, the latitude, and
+longitude of the location, in this order.</p>
+<p>A geographical bounding box is represented by a list containing four values, the minimal
+latitude and longitude of the box, and the maximal latitude and longitude of the box, in this order.</p>
+<p>Geographical locations and boxes can be converted to points and their boxes by means of an
+additional parameter, the <i class="term"><a href="../../../../index.html#zoom">zoom</a></i> level. This parameter indicates the size of the map in the
+canvas the coordinates are to be projected into.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Points</a></h3>
+<p>Points (short: <i class="term"><a href="../../../../index.html#point">point</a></i>) are represented by a pair of <i class="term">x</i> and <i class="term">y</i> values, each of
+which is measured in pixels. They reference a location in a Tk <i class="term">canvas</i> widget.
+As a map can be shown at different degrees of magnification, the exact pixel coordinates for a
+geographical location depend on this <i class="term"><a href="../../../../index.html#zoom">zoom</a></i> level.</p>
+<p>For the following explanation to make sense it should be noted that a map shown in a Tk
+<i class="term">canvas</i> widget is split into equal-sized quadratic <i class="term">tiles</i>.</p>
+<p>Point coordinates are tile coordinates scaled by the size of these tiles. This package uses
+tiles of size <b class="const">256</b>, which is the standard size used by many online servers providing map
+tiles of some kind or other.</p>
+<p>A point is represented by a list containing the x- and y-coordinates of the lcoation, in this
+in this order.</p>
+<p>A point bounding box is represented by a list containing four values, the minimal x and y of
+the box, and the maximal x and y of the box, in this order.</p>
+<p>Point locations and boxes can be converted to geographical locations and their boxes by means
+of an additional parameter, the <i class="term"><a href="../../../../index.html#zoom">zoom</a></i> level. This parameter indicates the size of the map in
+the canvas the coordinates are projected from.</p>
+<p>Tile coordinates appear only in one place of the API, in the signature of command
+<b class="cmd">map slippy tile valid</b>. Everything else uses Point coordinates.</p>
+<p>Using tile coordinates in the following however makes the structure of the map at the various
+<i class="term"><a href="../../../../index.html#zoom">zoom</a></i> levels (maginification factors) easier to explain.</p>
+<p>Generally the integer part of the tile coordinates represent the row and column number of a
+tile of the map, wheras the fractional parts signal how far inside that tile the location in
+question is, with pure integer coordinates (no fractional part) representing the upper left corner
+of a tile.</p>
+<p>The zero point of the map is at the upper left corner, regardless of zoom level, with larger
+coordinates going right (east) and down (south), and smaller coordinates going left (west) and up
+(north). Again regardless of zoom level.</p>
+<p>Negative coordinates are not allowed.</p>
+<p>At zoom level <b class="const">0</b> the entire map is represented by a single tile, putting the
+geographic zero at 1/2, 1/2 in terms of tile coordinates, and the range of tile coordinates as
+[0...1].</p>
+<p>When going from zoom level <b class="variable">N</b> to the next deeper (magnified) level (<b class="variable">N</b>+1) each tile
+of level <b class="variable">N</b> is split into its four quadrants, which then are the tiles of level <b class="variable">N</b>+1.</p>
+<p>This means that at zoom level <b class="variable">N</b> the map is sliced (horizontally and vertically) into
+<b class="const">2^N</b> rows and columns, for a total of <b class="const">4^N</b> tiles, with the tile coordinates ranging from
+<b class="const">0</b> to <b class="const">2^N+1</b>.</p>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::map</b> <b class="method">slippy geo box 2point</b> <i class="arg">zoom</i> <i class="arg">geobox</i></a></dt>
+<dd><p>The command converts the geographical box <i class="arg">geobox</i> to a point box in the canvas, for the
+specified <i class="arg">zoom</i> level, and returns that box.</p></dd>
+<dt><a name="2"><b class="cmd">::map</b> <b class="method">slippy geo box center</b> <i class="arg">geobox</i></a></dt>
+<dd><p>The command returns the center of the geographical box <i class="arg">geobox</i>.</p></dd>
+<dt><a name="3"><b class="cmd">::map</b> <b class="method">slippy geo box corners</b> <i class="arg">geobox</i></a></dt>
+<dd><p>This command returns a list containing the four corner locations implied by the geographical box
+<i class="arg">geobox</i>. The four points are top-left, bottom-left, top-right, and bottom-right, in that order.</p></dd>
+<dt><a name="4"><b class="cmd">::map</b> <b class="method">slippy geo box diameter</b> <i class="arg">geobox</i></a></dt>
+<dd><p>The command returns the diameter of the geographical box <i class="arg">geobox</i>, in meters.</p></dd>
+<dt><a name="5"><b class="cmd">::map</b> <b class="method">slippy geo box dimensions</b> <i class="arg">geobox</i></a></dt>
+<dd><p>The command returns the dimensions of the geographical box <i class="arg">geobox</i>, width and height, in this
+order.</p></dd>
+<dt><a name="6"><b class="cmd">::map</b> <b class="method">slippy geo box fit</b> <i class="arg">geobox</i> <i class="arg">canvdim</i> <i class="arg">zmax</i> <span class="opt">?<i class="arg">zmin</i>?</span></a></dt>
+<dd><p>This command calculates the zoom level such that the <i class="arg">geobox</i> will fit into a viewport given by
+<i class="arg">canvdim</i> (a 2-element list containing the width and height of said viewport) and returns it.</p>
+<p>The zoom level will be made to fit within the range <i class="arg">zmin</i>...<i class="arg">zmax</i>.
+When <i class="arg">zmin</i> is not specified it will default to <b class="const">0</b>.</p></dd>
+<dt><a name="7"><b class="cmd">::map</b> <b class="method">slippy geo box inside</b> <i class="arg">geobox</i> <i class="arg">geo</i></a></dt>
+<dd><p>The command tests if the geographical location <i class="arg">geo</i> is contained in the geographical
+box <i class="arg">geobox</i> or not. It returns <b class="const">true</b> if so, and <b class="const">false</b> else.</p></dd>
+<dt><a name="8"><b class="cmd">::map</b> <b class="method">slippy geo box limit</b> <i class="arg">geobox</i></a></dt>
+<dd><p>This command limits the geographical box to at most 6 decimals and returns the result.</p>
+<p>For geographical coordinates 6 decimals is roughly equivalent to a grid of 11.1 cm.</p></dd>
+<dt><a name="9"><b class="cmd">::map</b> <b class="method">slippy geo box opposites</b> <i class="arg">geobox</i></a></dt>
+<dd><p>This command returns a list containing the two principal corner locations implied by the
+geographical box <i class="arg">geobox</i>. The two points are top-left, and bottom-right, in that order.</p></dd>
+<dt><a name="10"><b class="cmd">::map</b> <b class="method">slippy geo box perimeter</b> <i class="arg">geobox</i></a></dt>
+<dd><p>The command returns the perimeter of the geographical box <i class="arg">geobox</i>, in meters.</p></dd>
+<dt><a name="11"><b class="cmd">::map</b> <b class="method">slippy geo box valid</b> <i class="arg">geobox</i></a></dt>
+<dd><p>This commands tests if the specified geographical box contains only valid latitudes
+and longitudes. It returns <b class="const">true</b> if the box is valid, and <b class="const">false</b> else.</p></dd>
+<dt><a name="12"><b class="cmd">::map</b> <b class="method">slippy geo box valid-list</b> <i class="arg">geoboxes</i></a></dt>
+<dd><p>This commands tests if the list of geographical boxes contains only valid latitudes
+and longitudes. It returns <b class="const">true</b> if all the boxes are valid, and <b class="const">false</b>
+else.</p></dd>
+<dt><a name="13"><b class="cmd">::map</b> <b class="method">slippy geo distance</b> <i class="arg">geo1</i> <i class="arg">geo2</i></a></dt>
+<dd><p>This command computes the great-circle distance between the two geographical locations in meters and
+returns that value.</p>
+<p>The code is based on
+<a href="https://wiki.tcl-lang.org/page/geodesy">https://wiki.tcl-lang.org/page/geodesy</a> take on the
+<a href="https://en.wikipedia.org/wiki/Haversine_formula">haversine formula</a>.</p></dd>
+<dt><a name="14"><b class="cmd">::map</b> <b class="method">slippy geo distance*</b> <i class="arg">closed</i> <i class="arg">geo</i>...</a></dt>
+<dd><p>An extension of <b class="cmd">map slippy geo distance</b> this command computes the cumulative distance along
+the path specified by the ordered set of geographical locations in meters, and returns it.</p>
+<p>If the path is marked as <i class="arg">closed</i> (i.e. a polygon/loop) the result contains the distance
+between last and first element of the path as well, making the result the length of the perimeter of
+the area described by the locations.</p></dd>
+<dt><a name="15"><b class="cmd">::map</b> <b class="method">slippy geo distance-list</b> <i class="arg">closed</i> <i class="arg">geo-list</i></a></dt>
+<dd><p>As a variant of <b class="cmd">map slippy geo distance*</b> this command takes the path to compute the length
+of as a single list of geographical locations, instead of a varying number of arguments.</p></dd>
+<dt><a name="16"><b class="cmd">::map</b> <b class="method">slippy geo limit</b> <i class="arg">geo</i></a></dt>
+<dd><p>This command limits the geographical location to at most 6 decimals and returns the result.</p>
+<p>For geographical coordinates 6 decimals is roughly equivalent to a grid of 11.1 cm.</p></dd>
+<dt><a name="17"><b class="cmd">::map</b> <b class="method">slippy geo bbox</b> <i class="arg">geo</i>...</a></dt>
+<dd></dd>
+<dt><a name="18"><b class="cmd">::map</b> <b class="method">slippy geo bbox-list</b> <i class="arg">geo-list</i></a></dt>
+<dd><p>These two commands compute the bounding box for the specified set of geographical locations and
+return a geographical box.</p>
+<p>When no geographical locations are specified the box is &quot;<b class="const">0 0 0 0</b>&quot;.</p>
+<p>The locations are specified as either a varying number of arguments, or as a single list.</p></dd>
+<dt><a name="19"><b class="cmd">::map</b> <b class="method">slippy geo center</b> <i class="arg">geo</i>...</a></dt>
+<dd></dd>
+<dt><a name="20"><b class="cmd">::map</b> <b class="method">slippy geo center-list</b> <i class="arg">geo-list</i></a></dt>
+<dd><p>These two commands compute the center of the bounding box for the specified set of geographical
+locations.</p>
+<p>When no geographical locations are specified the center is &quot;<b class="const">0 0</b>&quot;.</p>
+<p>The locations are specified as either a varying number of arguments, or as a single list.</p></dd>
+<dt><a name="21"><b class="cmd">::map</b> <b class="method">slippy geo diameter</b> <i class="arg">geo</i>...</a></dt>
+<dd></dd>
+<dt><a name="22"><b class="cmd">::map</b> <b class="method">slippy geo diameter-list</b> <i class="arg">geo-list</i></a></dt>
+<dd><p>These two commands compute the diameter for the specified set of geographical locations, in meters.
+The diameter is the maximum of the pair-wise distances between all locations.</p>
+<p>When less than two geographical locations are specified the diameter is &quot;<b class="const">0</b>&quot;.</p>
+<p>The locations are specified as either a varying number of arguments, or as a single list.</p></dd>
+<dt><a name="23"><b class="cmd">::map</b> <b class="method">slippy geo 2point</b> <i class="arg">zoom</i> <i class="arg">geo</i></a></dt>
+<dd><p>This command converts the geographical location <i class="arg">geo</i> to a point in the canvas, for the
+specified <i class="arg">zoom</i> level, and returns that point.</p></dd>
+<dt><a name="24"><b class="cmd">::map</b> <b class="method">slippy geo 2point*</b> <i class="arg">zoom</i> <i class="arg">geo</i>...</a></dt>
+<dd></dd>
+<dt><a name="25"><b class="cmd">::map</b> <b class="method">slippy geo 2point-list</b> <i class="arg">zoom</i> <i class="arg">geo-list</i></a></dt>
+<dd><p>These two commands are extensions of <b class="cmd">map slippy geo 2point</b> which take a series of
+geographical locations as either a varying number of arguments or a single list, convert them all to
+points as per the specified <i class="arg">zoom</i> level and return a list of the results.</p></dd>
+<dt><a name="26"><b class="cmd">::map</b> <b class="method">slippy geo valid</b> <i class="arg">geo</i></a></dt>
+<dd><p>This commands tests if the specified geographical location contains only valid latitudes and
+longitudes. It returns <b class="const">true</b> if the location is valid, and <b class="const">false</b> else.</p></dd>
+<dt><a name="27"><b class="cmd">::map</b> <b class="method">slippy geo valid-list</b> <i class="arg">geos</i></a></dt>
+<dd><p>This commands tests if the list of geographical locations contains only valid latitudes and
+longitudes. It returns <b class="const">true</b> if all the locations are valid, and <b class="const">false</b> else.</p></dd>
+<dt><a name="28"><b class="cmd">::map</b> <b class="method">slippy length</b> <i class="arg">level</i></a></dt>
+<dd><p>This command returns the width/height of a slippy-based map at the specified zoom <i class="arg">level</i>, in
+pixels. This is, in essence, the result of</p>
+<pre class="doctools_example">
+expr { [tiles $level] * [tile size] }
+</pre>
+</dd>
+<dt><a name="29"><b class="cmd">::map</b> <b class="method">slippy limit2</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="30"><b class="cmd">::map</b> <b class="method">slippy limit3</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="31"><b class="cmd">::map</b> <b class="method">slippy limit6</b> <i class="arg">x</i></a></dt>
+<dd><p>This command limits the value to at most 2, 3, or 6 decimals and returns the result.</p>
+<p>For geographical coordinates 6 decimals is roughly equivalent to a grid of 11.1 cm.</p></dd>
+<dt><a name="32"><b class="cmd">::map</b> <b class="method">slippy point box 2geo</b> <i class="arg">zoom</i> <i class="arg">pointbox</i></a></dt>
+<dd><p>The command converts the point box <i class="arg">pointbox</i> to a geographical box in the canvas, as per the
+specified <i class="arg">zoom</i> level, and returns that box.</p></dd>
+<dt><a name="33"><b class="cmd">::map</b> <b class="method">slippy point box center</b> <i class="arg">pointbox</i></a></dt>
+<dd><p>The command returns the center of the <i class="arg">pointbox</i>.</p></dd>
+<dt><a name="34"><b class="cmd">::map</b> <b class="method">slippy point box corners</b> <i class="arg">pointbox</i></a></dt>
+<dd><p>This command returns a list containing the four corner locations implied by the point box
+<i class="arg">pointbox</i>. The four points are top-left, bottom-left, top-right, and bottom-right, in that
+order.</p></dd>
+<dt><a name="35"><b class="cmd">::map</b> <b class="method">slippy point box diameter</b> <i class="arg">pointbox</i></a></dt>
+<dd><p>The command returns the diameter of the <i class="arg">pointbox</i>, in pixels.</p></dd>
+<dt><a name="36"><b class="cmd">::map</b> <b class="method">slippy point box dimensions</b> <i class="arg">pointbox</i></a></dt>
+<dd><p>The command returns the dimensions of the <i class="arg">pointbox</i>, width and height, in this order.</p></dd>
+<dt><a name="37"><b class="cmd">::map</b> <b class="method">slippy point box inside</b> <i class="arg">pointbox</i> <i class="arg">point</i></a></dt>
+<dd><p>The command tests if the <i class="arg">point</i> is contained in the <i class="arg">pointbox</i> or not.
+It returns <b class="const">true</b> if so, and <b class="const">false</b> else.</p></dd>
+<dt><a name="38"><b class="cmd">::map</b> <b class="method">slippy point box opposites</b> <i class="arg">pointbox</i></a></dt>
+<dd><p>This command returns a list containing the two principal corner locations implied by the point box
+<i class="arg">pointbox</i>. The two points are top-left, and bottom-right, in that order.</p></dd>
+<dt><a name="39"><b class="cmd">::map</b> <b class="method">slippy point box perimeter</b> <i class="arg">pointbox</i></a></dt>
+<dd><p>The command returns the perimeter of the <i class="arg">pointbox</i>, in pixels.</p></dd>
+<dt><a name="40"><b class="cmd">::map</b> <b class="method">slippy point distance</b> <i class="arg">point1</i> <i class="arg">point2</i></a></dt>
+<dd><p>This command computes the euclidena distance between the two points in pixels and returns that
+value.</p></dd>
+<dt><a name="41"><b class="cmd">::map</b> <b class="method">slippy point distance*</b> <i class="arg">closed</i> <i class="arg">point</i>...</a></dt>
+<dd><p>An extension of <b class="cmd">map slippy point distance</b> this command computes the cumulative distance
+along the path specified by the ordered set of points, and returns it.</p>
+<p>If the path is marked as <i class="arg">closed</i> (i.e. a polygon/loop) the result contains the distance
+between last and first element of the path as well, making the result the length of the perimeter of
+the area described by the locations.</p></dd>
+<dt><a name="42"><b class="cmd">::map</b> <b class="method">slippy point distance-list</b> <i class="arg">closed</i> <i class="arg">point-list</i></a></dt>
+<dd><p>As a variant of <b class="cmd">map slippy point distance*</b> this command takes the path to compute the length
+of as a single list of points, instead of a varying number of arguments.</p></dd>
+<dt><a name="43"><b class="cmd">::map</b> <b class="method">slippy point bbox</b> <i class="arg">point</i>...</a></dt>
+<dd></dd>
+<dt><a name="44"><b class="cmd">::map</b> <b class="method">slippy point bbox-list</b> <i class="arg">point-list</i></a></dt>
+<dd><p>These two commands compute the bounding box for the specified set of points and return a point box.</p>
+<p>When no points are specified the box is &quot;<b class="const">0 0 0 0</b>&quot;.</p>
+<p>The locations are specified as either a varying number of arguments, or as a single list.</p></dd>
+<dt><a name="45"><b class="cmd">::map</b> <b class="method">slippy point center</b> <i class="arg">point</i>...</a></dt>
+<dd></dd>
+<dt><a name="46"><b class="cmd">::map</b> <b class="method">slippy point center-list</b> <i class="arg">point-list</i></a></dt>
+<dd><p>These two commands compute the center of the bounding box for the specified set of points.</p>
+<p>When no points are specified the center is &quot;<b class="const">0 0</b>&quot;.</p>
+<p>The locations are specified as either a varying number of arguments, or as a single list.</p></dd>
+<dt><a name="47"><b class="cmd">::map</b> <b class="method">slippy point diameter</b> <i class="arg">point</i>...</a></dt>
+<dd></dd>
+<dt><a name="48"><b class="cmd">::map</b> <b class="method">slippy point diameter-list</b> <i class="arg">point-list</i></a></dt>
+<dd><p>These two commands compute the diameter for the specified set of points, in pixels.
+The diameter is the maximum of the pair-wise distances between all locations.</p>
+<p>When less than two points are specified the diameter is &quot;<b class="const">0</b>&quot;.</p>
+<p>The locations are specified as either a varying number of arguments, or as a single list.</p></dd>
+<dt><a name="49"><b class="cmd">::map</b> <b class="method">slippy point 2geo</b> <i class="arg">zoom</i> <i class="arg">point</i></a></dt>
+<dd><p>This command converts the <i class="arg">point</i> in the canvas, for the specified <i class="arg">zoom</i> level, to a
+geograhical location, and returns that location.</p></dd>
+<dt><a name="50"><b class="cmd">::map</b> <b class="method">slippy point 2geo*</b> <i class="arg">zoom</i> <i class="arg">point</i>...</a></dt>
+<dd></dd>
+<dt><a name="51"><b class="cmd">::map</b> <b class="method">slippy point 2geo-list</b> <i class="arg">zoom</i> <i class="arg">point-list</i></a></dt>
+<dd><p>These two commands are extensions of <b class="cmd">map slippy point 2geo</b> which take a series of points as
+either a varying number of arguments or a single list, convert them all to geographical locations as
+per the specified <i class="arg">zoom</i> level and return a list of the results.</p></dd>
+<dt><a name="52"><b class="cmd">::map</b> <b class="method">slippy point simplify radial</b> <i class="arg">threshold</i> <i class="arg">point-list</i></a></dt>
+<dd><p>This command takes a path of points (as a single list), simplifies the path using the
+<i class="term">Radial Distance</i> algorithm and returns the simplified path as list of points.</p>
+<p>In essence the algorithm keeps only the first of adjacent points nearer to that first point
+than the threshold, and drops the others.</p></dd>
+<dt><a name="53"><b class="cmd">::map</b> <b class="method">slippy point simplify rdp</b> <i class="arg">point-list</i></a></dt>
+<dd><p>This command takes a patch of points (as a single list), simplifies it using the
+<em>non-parametric</em> <i class="term">Ramer-Douglas-Peucker</i> algorithm and returns the simplified path as
+list of points.</p></dd>
+<dt><a name="54"><b class="cmd">::map</b> <b class="method">slippy pretty-distance</b> <i class="arg">x</i></a></dt>
+<dd><p>This methods formats the distance <i class="arg">x</i> (in meters) for display and returns the resulting string
+(including the chosen unit).</p>
+<p>Sub-kilometer distances are limited to 2 decimals, i.e. centimeters, whereas Kilometers are
+limited to 3 decimals, i.e. meters.</p></dd>
+<dt><a name="55"><b class="cmd">::map</b> <b class="method">slippy tiles</b> <i class="arg">level</i></a></dt>
+<dd><p>This command returns the width/height of a slippy-based map at the specified zoom <i class="arg">level</i>, in
+<i class="term">tiles</i>.</p></dd>
+<dt><a name="56"><b class="cmd">::map</b> <b class="method">slippy tile size</b></a></dt>
+<dd><p>This command returns the width/height of a tile in a slippy-based map, in pixels.</p></dd>
+<dt><a name="57"><b class="cmd">::map</b> <b class="method">slippy tile valid</b> <i class="arg">zoom</i> <i class="arg">row</i> <i class="arg">column</i> <i class="arg">levels</i> <span class="opt">?<i class="arg">msgvar</i>?</span></a></dt>
+<dd><p>This command checks if the tile described by <i class="arg">zoom</i>, <i class="arg">row</i>, and <i class="arg">column</i> is valid for a
+slippy-based map having that many zoom <i class="arg">levels</i>, or not.
+The result is a boolean value, <b class="const">true</b> if the tile is valid, and <b class="const">false</b> otherwise.
+In the latter case a message is left in the variable named by <i class="arg">msgvar</i>, should it be specified.</p></dd>
+<dt><a name="58"><b class="cmd">::map</b> <b class="method">slippy valid latitude</b> <i class="arg">x</i></a></dt>
+<dd><p>This commands tests if the argument <i class="arg">x</i> is a valid latitude value, and returns the boolean
+result of that test. I.e. <b class="const">true</b> if the value is valid, and <b class="const">false</b> else.</p></dd>
+<dt><a name="59"><b class="cmd">::map</b> <b class="method">slippy valid longitude</b> <i class="arg">x</i></a></dt>
+<dd><p>This commands tests if the argument <i class="arg">x</i> is a valid longitude value, and returns the boolean
+result of that test. I.e. <b class="const">true</b> if the value is valid, and <b class="const">false</b> else.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http://wiki.openstreetmap.org/wiki/Main_Page">http://wiki.openstreetmap.org/wiki/Main_Page</a></p></li>
+</ol>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#geodesy">geodesy</a>, <a href="../../../../index.html#geography">geography</a>, <a href="../../../../index.html#latitute">latitute</a>, <a href="../../../../index.html#location">location</a>, <a href="../../../../index.html#longitude">longitude</a>, <a href="../../../../index.html#map">map</a>, <a href="../../../../index.html#slippy">slippy</a>, <a href="../../../../index.html#zoom">zoom</a></p>
+</div>
+</div></body></html>

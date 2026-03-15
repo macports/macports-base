@@ -1,0 +1,1118 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl_cproc_types - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_cproc.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; Jean-Claude Wippler   -- Copyright &amp;copy; Steve Landers   -- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl_cproc_types.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl_cproc_types(n) 3.3.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl_cproc_types - CriTcl cproc Type Reference</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Standard argument types</a></li>
+<li class="doctools_section"><a href="#section3">Standard result types</a></li>
+<li class="doctools_section"><a href="#section4">Advanced: Adding types</a></li>
+<li class="doctools_section"><a href="#section5">Examples</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">A Simple Procedure</a></li>
+<li class="doctools_subsection"><a href="#subsection2">More Builtin Types: Strings</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Custom Types, Introduction</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Custom Types, Semi-trivial</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Custom Types, Support structures</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Custom Types, Results</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section6">Authors</a></li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.3.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::critcl::has-resulttype</b> <i class="arg">name</i></a></li>
+<li><a href="#2"><b class="cmd">::critcl::resulttype</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">ctype</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::critcl::resulttype</b> <i class="arg">name</i> <b class="method">=</b> <i class="arg">origname</i></a></li>
+<li><a href="#4"><b class="cmd">::critcl::has-argtype</b> <i class="arg">name</i></a></li>
+<li><a href="#5"><b class="cmd">::critcl::argtype</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">ctype</i>?</span> <span class="opt">?<i class="arg">ctypefun</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::critcl::argtype</b> <i class="arg">name</i> <b class="method">=</b> <i class="arg">origname</i></a></li>
+<li><a href="#7"><b class="cmd">::critcl::argtypesupport</b> <i class="arg">name</i> <i class="arg">code</i> <span class="opt">?<i class="arg">guard</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::critcl::argtyperelease</b> <i class="arg">name</i> <i class="arg">code</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is a breakout of the descriptions for the predefined argument- and result-types usable
+with the <b class="cmd">critcl::cproc</b> command, as detailed in the reference manpage for the <b class="package"><a href="critcl.html">critcl</a></b>
+package, plus the information on how to extend the predefined set with custom types. The breakout
+was made to make this information easier to find (toplevel document vs. having to search the large
+main reference).</p>
+<p>Its intended audience are developers wishing to write Tcl packages with embedded C code.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Standard argument types</a></h2>
+<p>Before going into the details first a quick overview:</p>
+<pre class="doctools_example">
+CriTcl type      | C type         | Tcl type  | Notes
+---------------- | -------------- | --------- | ------------------------------
+Tcl_Interp*      | Tcl_Interp*    | n/a       | <em>Special</em>, only first
+---------------- | -------------- | --------- | ------------------------------
+Tcl_Obj*         | Tcl_Obj*       | Any       | <em>Read-only</em>
+object           |                |           | Alias of <b class="type">Tcl_Obj*</b> above
+list             | critcl_list    | List      | <em>Read-only</em>
+[], [*]          |                |           | Alias of <b class="type">list</b> above
+---------------- | -------------- | --------- | ------------------------------
+[N]              |                |           | Restricted <b class="type">list</b>-types.
+type[], type[N]  |                |           | Length-limited ([..]), expected
+[]type, [N]type  |                |           | element type, or both.
+                 |                |           |
+                 |                |           | Element types can be all known argument
+                 |                |           | types, except for any kind of list.
+                 |                |           | IOW multi-dimensional lists are not
+                 |                |           | supported.
+---------------- | -------------- | --------- | ------------------------------
+char*            | const char*    | Any       | <em>Read-only</em>, <em>string rep</em>
+pstring          | critcl_pstring | Any       | <em>Read-only</em>
+bytes            | critcl_bytes   | ByteArray | <em>Read-only</em>
+---------------- | -------------- | --------- | ------------------------------
+int              | int            | Int       |
+long             | long           | Long      |
+wideint          | Tcl_WideInt    | WideInt   |
+double           | double         | Double    |
+float            | float          | Double    |
+---------------- | -------------- | --------- | ------------------------------
+X &gt; N            |                |           | For X in <b class="type">int</b> ... <b class="type">float</b> above.
+X &gt;= N           |                |           | The C types are as per the base type X.
+X &lt; N            |                |           | N, A, B are expected to be constant integer
+X &lt;= N           |                |           | numbers for types <b class="type">int</b>, <b class="type">long</b>,
+X &gt; A &lt; B        |                |           | and <b class="type">wideint</b>. For types <b class="type">double</b>
+etc.             |                |           | and <b class="type">float</b> the N, A, and B can be floating
+                 |                |           | point numbers. Multiple restrictions are
+                 |                |           | fused as much as possible to yield at most
+                 |                |           | both upper and lower limits.
+---------------- | -------------- | --------- | ------------------------------
+boolean          | int            | Boolean   |
+bool             |                |           | Alias of <b class="type">boolean</b> above
+---------------- | -------------- | --------- | ------------------------------
+channel          | Tcl_Channel    | String    | Assumed to be registered
+unshared-channel | Tcl_Channel    | String    | As above, limited to current interpreter
+take-channel     | Tcl_Channel    | String    | As above, C code takes ownership
+</pre>
+<p>And now the details:</p>
+<dl class="doctools_definitions">
+<dt>Tcl_Interp*</dt>
+<dd><p><em>Attention</em>: This is a <em>special</em> argument type. It can
+<em>only</em> be used by the <em>first</em> argument of a function.
+Any other argument using it will cause critcl to throw an error.</p>
+<p>When used, the argument will contain a reference to the current
+interpreter that the function body may use. Furthermore the argument
+will <em>not</em> be an argument of the Tcl command for the function.</p>
+<p>This is useful when the function has to do more than simply
+returning a value. Examples would be setting up error messages on
+failure, or querying the interpreter for variables and other data.</p></dd>
+<dt>Tcl_Obj*</dt>
+<dd></dd>
+<dt>object</dt>
+<dd><p>The function takes an argument of type <b class="type">Tcl_Obj*</b>.
+No argument checking is done.
+The Tcl level word is passed to the argument as-is.
+Note that this value must be treated as <em>read-only</em> (except for
+hidden changes to its intrep, i.e. <i class="term">shimmering</i>).</p></dd>
+<dt>pstring</dt>
+<dd><p>The function takes an argument of type <b class="type">critcl_pstring</b>
+containing the original <b class="type">Tcl_Obj*</b> reference of the Tcl argument,
+plus the length of the string and a pointer to the character array.</p>
+<pre class="doctools_example">
+typedef struct critcl_pstring {
+    Tcl_Obj*    o;
+    const char* s;
+    int         len;
+} critcl_pstring;
+</pre>
+<p>Note the <em>const</em>. The string is <em>read-only</em>. Any
+modification can have arbitrary effects, from pulling out the rug
+under the script because of string value and internal representation
+not matching anymore, up to crashes anytime later.</p></dd>
+<dt>list</dt>
+<dd></dd>
+<dt>[]</dt>
+<dd></dd>
+<dt>[*]</dt>
+<dd><p>The function takes an argument of type <b class="type">critcl_list</b> containing the original <b class="type">Tcl_Obj*</b>
+reference of the Tcl argument, plus the length of the Tcl list and a pointer to the array of the
+list elements.</p>
+<pre class="doctools_example">
+typedef struct critcl_list {
+    Tcl_Obj*        o;
+    Tcl_Obj* const* v;
+    int             c;
+} critcl_list;
+</pre>
+<p>The Tcl argument must be convertible to <b class="type">List</b>, an error is thrown otherwise.</p>
+<p>Note the <em>const</em>. The list is <em>read-only</em>.  Any modification can have arbitrary
+effects, from pulling out the rug under the script because of string value and internal
+representation not matching anymore, up to crashes anytime later.</p>
+<p>Further note that the system understands a number of more complex syntactical forms which all
+translate into forms of lists under the hood, as described by the following points.</p></dd>
+<dt>[N]</dt>
+<dd><p>A <i class="term">list</i> type with additional checks limiting the length to <b class="const">N</b>, an integer
+number greater than zero.</p></dd>
+<dt>[]type</dt>
+<dd></dd>
+<dt>type[]</dt>
+<dd><p>A <i class="term">list</i> type whose elements all have to be convertible for <i class="term">type</i>. All known
+types, including user-defined, are allowed, except for <b class="type">list</b> and derivates. In other
+words, multi-dimensional lists are not supported.</p>
+<p>The function will take a structure argument of the general form</p>
+<pre class="doctools_example">
+typedef struct critcl_list_... {
+    Tcl_Obj* o;
+    int      c;
+    (Ctype)* v;
+} critcl_list_...;
+</pre>
+<p>where <b class="const">(Ctype)</b> represents the C type for values of type <b class="type">type</b>.</p></dd>
+<dt>[N]type</dt>
+<dd></dd>
+<dt>type[N]</dt>
+<dd><p>These are <b class="type">list</b> types combining the elements of</p>
+<pre class="doctools_example">[N]</pre>
+<p>and</p>
+<pre class="doctools_example">[]type</pre>
+<p>.</p>
+<p>As an example, the specification of</p>
+<pre class="doctools_example">int[3] a</pre>
+<p>describes argument <i class="arg">a</i>
+as a list of exactly 3 elements, all of which have to be of type <b class="type">int</b>.</p>
+<p>Note that this example can also be written in the more C-like form of</p>
+<pre class="doctools_example">int a[3]</pre>
+<p>. The system will translate this internally to the first shown form.</p></dd>
+<dt>bytes</dt>
+<dd><p>This is the <em>new</em> and usable <b class="type">ByteArray</b> type.</p>
+<p>The function takes an argument of type <b class="type">critcl_bytes</b>
+containing the original <b class="type">Tcl_Obj*</b> reference of the Tcl argument,
+plus the length of the byte array and a pointer to the byte data.</p>
+<pre class="doctools_example">
+typedef struct critcl_bytes {
+    Tcl_Obj*             o;
+    const unsigned char* s;
+    int                len;
+} critcl_list;
+</pre>
+<p>The Tcl argument must be convertible to <b class="type">ByteArray</b>, an error is
+thrown otherwise.</p>
+<p>Note the <em>const</em>. The bytes are <em>read-only</em>.  Any
+modification can have arbitrary effects, from pulling out the rug
+under the script because of string value and internal representation
+not matching anymore, up to crashes anytime later.</p></dd>
+<dt>char*</dt>
+<dd><p>The function takes an argument of type <b class="type">const char*</b>.
+The string representation of the Tcl argument is passed in.</p>
+<p>Note the <em>const</em>. The string is <em>read-only</em>. Any
+modification can have arbitrary effects, from pulling out the rug
+under the script because of string value and internal representation
+not matching anymore, up to crashes anytime later.</p></dd>
+<dt>double</dt>
+<dd><p>The function takes an argument of type <b class="type">double</b>.
+The Tcl argument must be convertible to <b class="type">Double</b>, an error is thrown otherwise.</p></dd>
+<dt>double &gt; N</dt>
+<dd></dd>
+<dt>double &gt;= N</dt>
+<dd></dd>
+<dt>double &lt; N</dt>
+<dd></dd>
+<dt>double &lt;= N</dt>
+<dd><p>These are variants of <i class="term">double</i> above, restricting the argument value to the shown relation.
+An error is thrown for Tcl arguments outside of the specified range.</p>
+<p>The limiter <i class="arg">N</i> has to be a constant floating point value.</p>
+<p>It is possible to use multiple limiters.
+For example <i class="term">double &gt; A &gt; B &lt;= C</i>.
+The system will fuse them to a single upper/lower limit (or both).</p>
+<p>The system will reject limits describing an empty range of values, or a range containing only
+a single value.</p></dd>
+<dt>float</dt>
+<dd><p>The function takes an argument of type <b class="type">float</b>.
+The Tcl argument must be convertible to <b class="type">Double</b>, an error is thrown otherwise.</p></dd>
+<dt>float &gt; N</dt>
+<dd></dd>
+<dt>float &gt;= N</dt>
+<dd></dd>
+<dt>float &lt; N</dt>
+<dd></dd>
+<dt>float &lt;= N</dt>
+<dd><p>These are variants of <i class="term">float</i> above, restricting the argument value to the shown relation.
+An error is thrown for Tcl arguments outside of the specified range.</p>
+<p>The limiter <i class="arg">N</i> has to be a constant floating point value.</p>
+<p>It is possible to use multiple limiters.
+For example <i class="term">float &gt; A &gt; B &lt;= C</i>.
+The system will fuse them to a single upper/lower limit (or both).</p>
+<p>The system will reject limits describing an empty range of values, or a range containing only
+a single value.</p></dd>
+<dt>boolean</dt>
+<dd></dd>
+<dt>bool</dt>
+<dd><p>The function takes an argument of type <b class="type">int</b>.
+The Tcl argument must be convertible to <b class="type">Boolean</b>, an error is
+thrown otherwise.</p></dd>
+<dt>channel</dt>
+<dd><p>The function takes an argument of type <b class="type">Tcl_Channel</b>.
+The Tcl argument must be convertible to type <b class="type">Channel</b>, an error
+is thrown otherwise.
+The channel is further assumed to be <em>already registered</em>
+with the interpreter.</p></dd>
+<dt>unshared-channel</dt>
+<dd><p>This type is an extension of <b class="type">channel</b> above.
+All of the information above applies.</p>
+<p>Beyond that the channel must not be shared by multiple
+interpreters, an error is thrown otherwise.</p></dd>
+<dt>take-channel</dt>
+<dd><p>This type is an extension of <b class="type">unshared-channel</b> above.
+All of the information above applies.</p>
+<p>Beyond that the code removes the channel from the current
+interpreter without closing it, and disables all pre-existing event
+handling for it.</p>
+<p>With this the function takes full ownership of the channel in
+question, taking it away from the interpreter invoking it. It is then
+responsible for the lifecycle of the channel, up to and including
+closing it.</p>
+<p>Should the system the function is a part of wish to return
+control of the channel back to the interpeter it then has to use the
+result type <b class="type">return-channel</b>. This will undo the registration
+changes made by this argument type.
+<em>Note</em> however that the removal of pre-existing event handling
+done here cannot be undone.</p>
+<p><em>Attention</em> Removal from the interpreter without closing
+the channel is effected by incrementing the channel's reference count
+without providing an interpreter, before decrementing the same for the
+current interpreter. This leaves the overall reference count intact
+without causing Tcl to close it when it is removed from the
+interpreter structures. At this point the channel is effectively a
+globally-owned part of the system not associated with any interpreter.</p>
+<p>The complementary result type then runs this sequence in
+reverse. And if the channel is never returned to Tcl either the
+function or the system it is a part of have to unregister the global
+reference when they are done with it.</p></dd>
+<dt>int</dt>
+<dd><p>The function takes an argument of type <b class="type">int</b>.
+The Tcl argument must be convertible to <b class="type">Int</b>, an error is thrown otherwise.</p></dd>
+<dt>int &gt; N</dt>
+<dd></dd>
+<dt>int &gt;= N</dt>
+<dd></dd>
+<dt>int &lt; N</dt>
+<dd></dd>
+<dt>int &lt;= N</dt>
+<dd><p>These are variants of <i class="term">int</i> above, restricting the argument value to the shown
+relation.
+An error is thrown for Tcl arguments outside of the specified range.</p>
+<p>The limiter <i class="arg">N</i> has to be a constant integer value.</p>
+<p>It is possible to use multiple limiters.
+For example <i class="term">int &gt; A &gt; B &lt;= C</i>.
+The system will fuse them to a single upper/lower limit (or both).</p>
+<p>The system will reject limits describing an empty range of values, or a range
+containing only a single value.</p></dd>
+<dt>long</dt>
+<dd><p>The function takes an argument of type <b class="type">long int</b>.
+The Tcl argument must be convertible to <b class="type">Long</b>, an error is thrown otherwise.</p></dd>
+<dt>long &gt; N</dt>
+<dd></dd>
+<dt>long &gt;= N</dt>
+<dd></dd>
+<dt>long &lt; N</dt>
+<dd></dd>
+<dt>long &lt;= N</dt>
+<dd><p>These are variants of <i class="term">long</i> above, restricting the argument value to the shown
+relation.
+An error is thrown for Tcl arguments outside of the specified range.</p>
+<p>The limiter <i class="arg">N</i> has to be a constant integer value.</p>
+<p>It is possible to use multiple limiters.
+For example <i class="term">long &gt; A &gt; B &lt;= C</i>.
+The system will fuse them to a single upper/lower limit (or both).</p>
+<p>The system will reject limits describing an empty range of values, or a range
+containing only a single value.</p></dd>
+<dt>wideint</dt>
+<dd><p>The function takes an argument of type <b class="type">Tcl_WideInt</b>.
+The Tcl argument must be convertible to <b class="type">WideInt</b>, an error is thrown otherwise.</p></dd>
+<dt>wideint &gt; N</dt>
+<dd></dd>
+<dt>wideint &gt;= N</dt>
+<dd></dd>
+<dt>wideint &lt; N</dt>
+<dd></dd>
+<dt>wideint &lt;= N</dt>
+<dd><p>These are variants of <i class="term">wideint</i> above, restricting the argument value to the shown
+relation.
+An error is thrown for Tcl arguments outside of the specified range.</p>
+<p>The limiter <i class="arg">N</i> has to be a constant integer value.</p>
+<p>It is possible to use multiple limiters.
+For example <i class="term">wideint &gt; A &gt; B &lt;= C</i>.
+The system will fuse them to a single upper/lower limit (or both).</p>
+<p>The system will reject limits describing an empty range of values, or a range
+containing only a single value.</p></dd>
+<dt>void*</dt>
+<dd></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Standard result types</a></h2>
+<p>Before going into the details first a quick overview:</p>
+<pre class="doctools_example">
+CriTcl type    | C type         | Tcl type  | Notes
+-------------- | -------------- | --------- | ------------------------------
+void           | n/a            | n/a       | Always OK. Body sets result
+ok             | int            | n/a       | Result code. Body sets result
+-------------- | -------------- | --------- | ------------------------------
+int            | int            | Int       |
+boolean        |                |           | Alias of <b class="type">int</b> above
+bool           |                |           | Alias of <b class="type">int</b> above
+long           | long           | Long      |
+wideint        | Tcl_WideInt    | WideInt   |
+double         | double         | Double    |
+float          | float          | Double    |
+-------------- | -------------- | --------- | ------------------------------
+char*          | char*          | String    | <em>Makes a copy</em>
+vstring        |                |           | Alias of <b class="type">char*</b> above
+const char*    | const char*    |           | Behavior of <b class="type">char*</b> above
+-------------- | -------------- | --------- | ------------------------------
+string         |                | String    | Freeable string set directly
+               |                |           | <em>No copy is made</em>
+dstring        |                |           | Alias of <b class="type">string</b> above
+-------------- | -------------- | --------- | ------------------------------
+               |                |           | For all below: Null is ERROR
+               |                |           | Body has to set any message
+Tcl_Obj*       | Tcl_Obj*       | Any       | <em>refcount --</em>
+object         |                |           | Alias of <b class="type">Tcl_Obj*</b> above
+Tcl_Obj*0      |                | Any       | <em>refcount unchanged</em>
+object0        |                |           | Alias of <b class="type">Tcl_Obj*0</b> above
+-------------- | -------------- | --------- | ------------------------------
+known-channel  | Tcl_Channel    | String    | Assumes to already be registered
+new-channel    | Tcl_Channel    | String    | New channel, will be registered
+return-channel | Tcl_Channel    | String    | Inversion of take-channel
+</pre>
+<p>And now the details:</p>
+<dl class="doctools_definitions">
+<dt>Tcl_Obj*</dt>
+<dd></dd>
+<dt>object</dt>
+<dd><p>If the returned <b class="type">Tcl_Obj*</b> is <b class="const">NULL</b>, the Tcl return code
+is <b class="const">TCL_ERROR</b> and the function should <a href="https://www.tcl-lang.org/man/tcl/TclLib/SetResult.htm">set an error mesage</a>
+as the interpreter result.  Otherwise, the returned <b class="type">Tcl_Obj*</b> is
+set as the interpreter result.</p>
+<p>Note that setting an error message requires the function body
+to have access to the interpreter the function is running in. See the
+argument type <b class="type">Tcl_Interp*</b> for the details on how to make that
+happen.</p>
+<p>Note further that the returned <b class="type">Tcl_Obj*</b> should have a
+reference count greater than <b class="const">0</b>. This is because the converter
+decrements the reference count to release possession after setting the
+interpreter result. It assumes that the function incremented the
+reference count of the returned <b class="type">Tcl_Obj*</b>.
+If a <b class="type">Tcl_Obj*</b> with a reference count of <b class="const">0</b> were
+returned, the reference count would become <b class="const">1</b> when set as the
+interpreter result, and immediately thereafter be decremented to
+<b class="const">0</b> again, causing the memory to be freed.  The system is then
+likely to crash at some point after the return due to reuse of the
+freed memory.</p></dd>
+<dt>Tcl_Obj*0</dt>
+<dd></dd>
+<dt>object0</dt>
+<dd><p>Like <b class="const">Tcl_Obj*</b> except that this conversion assumes that the
+returned value has a reference count of <b class="const">0</b> and
+<em>does not</em> decrement it. Returning a value whose reference
+count is greater than <b class="const">0</b> is therefore likely to cause a memory
+leak.</p>
+<p>Note that setting an error message requires the function body
+to have access to the interpreter the function is running in. See the
+argument type <b class="type">Tcl_Interp*</b> for the details on how to make that
+happen.</p></dd>
+<dt>new-channel</dt>
+<dd><p>A <b class="type">String</b> Tcl_Obj holding the name of the returned
+<b class="type">Tcl_Channel</b> is set as the interpreter result.
+The channel is further assumed to be <em>new</em>, and therefore
+registered with the interpreter to make it known.</p></dd>
+<dt>known-channel</dt>
+<dd><p>A <b class="type">String</b> Tcl_Obj holding the name of the returned
+<b class="type">Tcl_Channel</b> is set as the interpreter result.
+The channel is further assumed to be <em>already registered</em>
+with the interpreter.</p></dd>
+<dt>return-channel</dt>
+<dd><p>This type is a variant of <b class="type">new-channel</b> above.
+It varies slightly from it in the registration sequence to be properly
+complementary to the argument type <b class="type">take-channel</b>.
+A <b class="type">String</b> Tcl_Obj holding the name of the returned
+<b class="type">Tcl_Channel</b> is set as the interpreter result.
+The channel is further assumed to be <em>new</em>, and therefore
+registered with the interpreter to make it known.</p></dd>
+<dt>char*</dt>
+<dd></dd>
+<dt>vstring</dt>
+<dd><p>A <b class="type">String</b> Tcl_Obj holding a <em>copy</em> of the returned
+<b class="type">char*</b> is set as the interpreter result. If the value is
+allocated then the function itself and the extension it is a part of
+are responsible for releasing the memory when the data is not in use
+any longer.</p></dd>
+<dt>const char*</dt>
+<dd><p>Like <b class="const">char*</b> above, except that the returned string is
+<b class="const">const</b>-qualified.</p></dd>
+<dt>string</dt>
+<dd></dd>
+<dt>dstring</dt>
+<dd><p>The returned <b class="type">char*</b> is directly set as the interpreter result
+<em>without making a copy</em>.  Therefore it must be dynamically
+allocated via <b class="function">Tcl_Alloc</b>. Release happens automatically when the
+Interpreter finds that the value is not required any longer.</p></dd>
+<dt>double</dt>
+<dd></dd>
+<dt>float</dt>
+<dd><p>The returned <b class="type">double</b> or <b class="type">float</b> is converted to a <b class="type">Double</b>
+Tcl_Obj and set as the interpreter result.</p></dd>
+<dt>boolean</dt>
+<dd></dd>
+<dt>bool</dt>
+<dd><p>The returned <b class="type">int</b> value is converted to an <b class="type">Int</b> Tcl_Obj and set as
+the interpreter result.</p></dd>
+<dt>int</dt>
+<dd><p>The returned <b class="type">int</b> value is converted to an <b class="type">Int</b> Tcl_Obj and set as
+the interpreter result.</p></dd>
+<dt>long</dt>
+<dd><p>The returned <b class="type">long int</b> value is converted to a <b class="type">Long</b> Tcl_Obj and
+set as the interpreter result.</p></dd>
+<dt>wideint</dt>
+<dd><p>The returned <b class="type">Tcl_WideInt</b> value is converted to a <b class="type">WideInt</b> Tcl_Obj
+and set as the interpreter result.</p></dd>
+<dt>ok</dt>
+<dd><p>The returned <b class="type">int</b> value becomes the Tcl return code.
+The interpreter result is left untouched and can be set by the
+function if desired. Note that doing this requires the function body
+to have access to the interpreter the function is running in. See the
+argument type <b class="type">Tcl_Interp*</b> for the details on how to make that
+happen.</p></dd>
+<dt>void</dt>
+<dd><p>The function does not return a value.
+The interpreter result is left untouched and can be set by the function if
+desired.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Advanced: Adding types</a></h2>
+<p>While the <b class="cmd">critcl::cproc</b> command understands the most common C
+types (as per the previous 2 sections), sometimes this is not enough.</p>
+<p>To get around this limitation the commands in this section
+enable users of <b class="package"><a href="critcl.html">critcl</a></b> to extend the set of argument and
+result types understood by <b class="cmd">critcl::cproc</b>. In other words, they
+allow them to define their own, custom, types.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::critcl::has-resulttype</b> <i class="arg">name</i></a></dt>
+<dd><p>This command tests if the named result-type is known or not.
+It returns a boolean value, <b class="const">true</b> if the type is known and
+<b class="const">false</b> otherwise.</p></dd>
+<dt><a name="2"><b class="cmd">::critcl::resulttype</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">ctype</i>?</span></a></dt>
+<dd><p>This command defines the result type <i class="arg">name</i>, and associates it
+with the C code doing the conversion (<i class="arg">body</i>) from C to Tcl.
+The C return type of the associated function, also the C type of the
+result variable, is <i class="arg">ctype</i>. This type defaults to <i class="arg">name</i> if
+it is not specified.</p>
+<p>If <i class="arg">name</i> is already declared an error is thrown.
+<em>Attention!</em> The standard result type <b class="const">void</b> is special as
+it has no accompanying result variable. This cannot be expressed
+by this extension command.</p>
+<p>The <i class="arg">body</i>'s responsibility is the conversion of the
+functions result into a Tcl result and a Tcl status. The first has to
+be set into the interpreter we are in, and the second has to be
+returned.</p>
+<p>The C code of <i class="arg">body</i> is guaranteed to be called last in the
+wrapper around the actual implementation of the <b class="cmd">cproc</b> in
+question and has access to the following environment:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">interp</b></dt>
+<dd><p>A Tcl_Interp* typed C variable referencing the
+                   interpreter the result has to be stored into.</p></dd>
+<dt><b class="variable">rv</b></dt>
+<dd><p>The C variable holding the result to convert, of type
+               <i class="arg">ctype</i>.</p></dd>
+</dl>
+<p>As examples here are the definitions of two standard result types:</p>
+<pre class="doctools_example">
+    resulttype int {
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(rv));
+	return TCL_OK;
+    }
+    resulttype ok {
+	/* interp result must be set by cproc body */
+	return rv;
+    } int
+</pre>
+</dd>
+<dt><a name="3"><b class="cmd">::critcl::resulttype</b> <i class="arg">name</i> <b class="method">=</b> <i class="arg">origname</i></a></dt>
+<dd><p>This form of the <b class="cmd">resulttype</b> command declares <i class="arg">name</i> as an
+alias of result type <i class="arg">origname</i>, which has to be defined
+already. If this is not the case an error is thrown.</p></dd>
+<dt><a name="4"><b class="cmd">::critcl::has-argtype</b> <i class="arg">name</i></a></dt>
+<dd><p>This command tests if the named argument-type is known or not.
+It returns a boolean value, <b class="const">true</b> if the type is known and
+<b class="const">false</b> otherwise.</p></dd>
+<dt><a name="5"><b class="cmd">::critcl::argtype</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">ctype</i>?</span> <span class="opt">?<i class="arg">ctypefun</i>?</span></a></dt>
+<dd><p>This command defines the argument type <i class="arg">name</i>, and associates it
+with the C code doing the conversion (<i class="arg">body</i>) from Tcl to C.
+<i class="arg">ctype</i> is the C type of the variable to hold the conversion result
+and <i class="arg">ctypefun</i> is the type of the function argument itself.
+Both types default to <i class="arg">name</i> if they are the empty string or are not
+provided.</p>
+<p>If <i class="arg">name</i> is already declared an error is thrown.</p>
+<p><i class="arg">body</i> is a C code fragment that converts a Tcl_Obj* into a
+C value which is stored in a helper variable in the underlying function.</p>
+<p><i class="arg">body</i> is called inside its own code block to isolate local
+variables, and the following items are in scope:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">interp</b></dt>
+<dd><p>A variable of type <b class="const">Tcl_Interp*</b> which is the
+                   interpreter the code is running in.</p></dd>
+<dt><b class="const">@@</b></dt>
+<dd><p>A placeholder for an expression that evaluates to the
+                 <b class="const">Tcl_Obj*</b> to convert.</p></dd>
+<dt><b class="const">@A</b></dt>
+<dd><p>A placeholder for the name of the variable to store the
+     	    	 converted argument into.</p></dd>
+</dl>
+<p>As examples, here are the definitions of two standard argument types:</p>
+<pre class="doctools_example">
+    argtype int {
+	if (Tcl_GetIntFromObj(interp, @@, &amp;@A) != TCL_OK) return TCL_ERROR;
+    }
+    argtype float {
+	double t;
+	if (Tcl_GetDoubleFromObj(interp, @@, &amp;t) != TCL_OK) return TCL_ERROR;
+	@A = (float) t;
+    }
+</pre>
+</dd>
+<dt><a name="6"><b class="cmd">::critcl::argtype</b> <i class="arg">name</i> <b class="method">=</b> <i class="arg">origname</i></a></dt>
+<dd><p>This form of the <b class="cmd">argtype</b> command declares <i class="arg">name</i> as an alias
+of argument type <i class="arg">origname</i>, which has to be defined already. If
+this is not the case an error is thrown.</p></dd>
+<dt><a name="7"><b class="cmd">::critcl::argtypesupport</b> <i class="arg">name</i> <i class="arg">code</i> <span class="opt">?<i class="arg">guard</i>?</span></a></dt>
+<dd><p>This command defines a C code fragment for the already defined
+argument type <i class="arg">name</i> which is inserted before all functions
+using that type. Its purpose is the definition of any supporting C
+types needed by the argument type.
+If the type is used by many functions the system ensures that only the
+first of the multiple insertions of the code fragment is active, and
+the others disabled.
+The guard identifier is normally derived from <i class="arg">name</i>, but can also
+be set explicitly, via <i class="arg">guard</i>. This latter allows different
+custom types to share a common support structure without having to
+perform their own guarding.</p></dd>
+<dt><a name="8"><b class="cmd">::critcl::argtyperelease</b> <i class="arg">name</i> <i class="arg">code</i></a></dt>
+<dd><p>This command defines a C code fragment for the already defined
+argument type <i class="arg">name</i> which is inserted whenever the worker
+function of a <b class="cmd">critcl::cproc</b> returns to the shim. It is the
+responsibility of this fragment to unconditionally release any
+resources the <b class="cmd">critcl::argtype</b> conversion code allocated.
+An example of this are the <em>variadic</em> types for the support of
+the special, variadic <i class="arg">args</i> argument to <b class="cmd">critcl::cproc</b>'s.
+They allocate a C array for the collected arguments which has to be
+released when the worker returns. This command defines the C code
+for doing that.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Examples</a></h2>
+<p>The examples shown here have been drawn from the section &quot;Embedding C&quot; in the document about
+<i class="term">Using CriTcl</i>. Please see that document for many more examples.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">A Simple Procedure</a></h3>
+<p>Starting simple, let us assume that the Tcl code in question is
+something like</p>
+<pre class="doctools_example">
+    proc math {x y z} {
+        return [expr {(sin($x)*rand())/$y**log($z)}]
+    }
+</pre>
+<p>with the expression pretending to be something very complex and
+slow. Converting this to C we get:</p>
+<pre class="doctools_example">
+    critcl::cproc math {double x double y double z} double {
+        double up   = rand () * sin (x);
+        double down = pow(y, log (z));
+        return up/down;
+    }
+</pre>
+<p>Notable about this translation:</p>
+<ol class="doctools_enumerated">
+<li><p>All the arguments got type information added to them, here
+       &quot;double&quot;.  Like in C the type precedes the argument name. Other
+       than that it is pretty much a Tcl dictionary, with keys and
+       values swapped.</p></li>
+<li><p>We now also have to declare the type of the result, here
+       &quot;double&quot;, again.</p></li>
+<li><p>The reference manpage lists all the legal C types supported as
+       arguments and results.</p></li>
+</ol>
+<p>While the above example was based on type <b class="type">double</b> for
+both arguments and result we have a number of additional types in the
+same category, i.e. simple types. These are:</p>
+<pre class="doctools_example">
+CriTcl type | C type         | Tcl type  | Notes
+----------- | -------------- | --------- | ------------------------------
+bool        |                |           | Alias of <b class="type">boolean</b> below
+boolean     | int            | Boolean   |
+double      | double         | Double    |
+float       | float          | Double    |
+int         | int            | Int       |
+long        | long           | Long      |
+wideint     | Tcl_WideInt    | WideInt   |
+</pre>
+<p>A slightly advanced form of these simple types are a limited
+set of constraints on the argument value. Note that <b class="type">bool</b> and
+alias do not support this.</p>
+<pre class="doctools_example">
+    critcl::cproc sqrt {{double &gt;= 0} x} double {
+        return sqrt(x);
+    }
+</pre>
+<p>In the example above CriTcl's argument handling will reject
+calling the command with a negative number, without ever invoking the
+C code.</p>
+<p>These constraints are called <em>limited</em> because only
+<b class="const">0</b> and <b class="const">1</b> can be used as the borders, although all the
+operators <b class="const">&lt;</b>, <b class="const">&lt;=</b>, <b class="const">&gt;</b>, and <b class="const">&gt;=</b> are
+possible. It is also not possible to combine restrictions.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">More Builtin Types: Strings</a></h3>
+<p>Given that &quot;Everything is a String&quot; is a slogan of Tcl the ability of <b class="cmd">cproc</b>s
+to receive strings as arguments, and return them as results is quite important.</p>
+<p>We actually have a variety of builtin string types, all alike, yet different.</p>
+<p>For arguments we have:</p>
+<pre class="doctools_example">
+CriTcl type | C type         | Tcl type  | Notes
+----------- | -------------- | --------- | ------------------------------
+char*       | const char*    | Any       | <em>Read-only</em>, <em>string rep</em>
+pstring     | critcl_pstring | Any       | <em>Read-only</em>
+bytes       | critcl_bytes   | ByteArray | <em>Read-only</em>
+</pre>
+<p>In C</p>
+<pre class="doctools_example">
+    critcl::cproc takeStrings {
+        char*   cstring
+	pstring pstring
+	bytes   barray
+    } void {
+        printf (&quot;len %d = %s\n&quot;, strlen(cstring), cstring);
+	printf (&quot;len %d = %s\n&quot;, pstring.len, pstring.s);
+	printf (&quot;len %d = %s\n&quot;, barray.len, barray.s);
+        return; // void result, no result
+    }
+</pre>
+<p>Notable about the above:</p>
+<ol class="doctools_enumerated">
+<li><p>The <b class="variable">cstring</b> is a plain <b class="type">const char*</b>. It <em>points directly</em>
+into the <b class="type">Tcl_Obj*</b> holding the argument in the script.</p></li>
+<li><p>The <b class="variable">pstring</b> is a slight extension to that. The value is actually a structure
+containing the string pointer like <b class="variable">cstring</b> (field <b class="const">.s</b>), the length of the
+string (field <b class="const">.len</b>), and a pointer to the <b class="type">Tcl_Obj*</b> these came from.</p></li>
+<li><p>The last, <b class="variable">barray</b> is like <b class="variable">pstring</b>, however it has ensured that the
+<b class="type">Tcl_Obj*</b> is a Tcl ByteArray, i.e. binary data.</p></li>
+</ol>
+<p>Treat all of them as <em>Read Only</em>. Do not modify ever.</p>
+<p>On the other side, string results, we have:</p>
+<pre class="doctools_example">
+CriTcl type   | C type         | Tcl type  | Notes
+------------- | -------------- | --------- | ------------------------------
+char*         | char*          | String    | <em>Makes a copy</em>
+vstring       |                |           | Alias of <b class="type">char*</b> above
+const char*   | const char*    |           | Behavior of <b class="type">char*</b> above
+------------- | -------------- | --------- | ------------------------------
+string        | char*          | String    | Freeable string set directly
+              |                |           | <em>No copy is made</em>
+dstring       |                |           | Alias of <b class="type">string</b> above
+</pre>
+<pre class="doctools_example">
+    critcl::cproc returnCString {} char* {
+        return &quot;a string&quot;;
+    }
+    critcl::cproc returnString {} string {
+        char* str = Tcl_Alloc (200);
+	sprintf (str, &quot;hello world&quot;);
+        return str; 
+    }
+</pre>
+<p>Notable about the above:</p>
+<ol class="doctools_enumerated">
+<li><p>The type <b class="type">char*</b> is best used for static strings, or strings in some kind
+fixed buffer.</p>
+<p>CriTcl's translation layer makes a copy of it for the result of the command. While
+it is possible to return heap-allocated strings it is the C code who is responsible for
+freeing such at some point. If that is not done they will leak.</p></li>
+<li><p>The type <b class="type">string</b> on the other hand is exactly for returning strings allocated
+with <b class="function">Tcl_Alloc</b> and associates.</p>
+<p>For these the translation layer makes no copy at all, and sets them directly as the
+result of the command. A <em>very important effect</em> of this is that the ownership of
+the string pointer moves from the function to Tcl.</p>
+<p><em>Tcl</em> will release the allocated memory when it does not need it any
+longer. The C code has no say in that.</p></li>
+</ol>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Custom Types, Introduction</a></h3>
+<p>When writing bindings to external libraries <b class="cmd">critcl::cproc</b> is
+usually the most convenient way of writing the lower layers. This is
+however hampered by the fact that critcl on its own only supports a
+few standard (arguably the most import) standard types, whereas the
+functions we wish to bind most certainly will use much more, specific
+to the library's function.</p>
+<p>The critcl commands <b class="cmd">argtype</b>, <b class="cmd">resulttype</b> and their
+adjuncts are provided to help here, by allowing a developer to extend
+critcl's type system with custom conversions.</p>
+<p>This and the three following sections will demonstrate this,
+from trivial to complex.</p>
+<p>The most trivial use is to create types which are aliases of
+existing types, standard or other. As an alias it simply copies and
+uses the conversion code from the referenced types.</p>
+<p>Our example is pulled from an incomplete project of mine, a
+binding to <i class="term">Jeffrey Kegler</i>'s <i class="term">libmarpa</i> library managing
+Earley parsers. Several custom types simply reflect the typedef's done
+by the library, to make the <b class="cmd">critcl::cproc</b>s as self-documenting
+as the underlying library functions themselves.</p>
+<pre class="doctools_example">
+    critcl::argtype Marpa_Symbol_ID     = int
+    critcl::argtype Marpa_Rule_ID       = int
+    critcl::argtype Marpa_Rule_Int      = int
+    critcl::argtype Marpa_Rank          = int
+    critcl::argtype Marpa_Earleme       = int
+    critcl::argtype Marpa_Earley_Set_ID = int
+    ...
+    method sym-rank: proc {
+        Marpa_Symbol_ID sym
+        Marpa_Rank      rank
+    } Marpa_Rank {
+        return marpa_g_symbol_rank_set (instance-&gt;grammar, sym, rank);
+    }
+    ...
+</pre>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Custom Types, Semi-trivial</a></h3>
+<p>A more involved custom argument type would be to map from Tcl strings
+to some internal representation, like an integer code.</p>
+<p>The first example is taken from the <b class="package">tclyaml</b> package,
+a binding to the <b class="package">libyaml</b> library. In a few places we have to
+map readable names for block styles, scalar styles, etc. to the
+internal enumeration.</p>
+<pre class="doctools_example">
+    critcl::argtype yaml_sequence_style_t {
+        if (!encode_sequence_style (interp, @@, &amp;@A)) return TCL_ERROR;
+    }
+    ...
+    critcl::ccode {
+        static const char* ty_block_style_names [] = {
+            &quot;any&quot;, &quot;block&quot;, &quot;flow&quot;, NULL
+        };
+        static int
+        encode_sequence_style (Tcl_Interp* interp, Tcl_Obj* style,
+                               yaml_sequence_style_t* estyle)
+        {
+            int value;
+            if (Tcl_GetIndexFromObj (interp, style, ty_block_style_names,
+                                     &quot;sequence style&quot;, 0, &amp;value) != TCL_OK) {
+                return 0;
+            }
+            *estyle = value;
+            return 1;
+        }
+    }
+    ...
+    method sequence_start proc {
+        pstring anchor
+        pstring tag
+        int implicit
+        yaml_sequence_style_t style
+    } ok {
+        /* Syntax: &lt;instance&gt; seq_start &lt;anchor&gt; &lt;tag&gt; &lt;implicit&gt; &lt;style&gt; */
+        ...
+    }
+    ...
+</pre>
+<p>It should be noted that this code precedes the advent of the
+supporting generator package <b class="package"><a href="critcl_emap.html">critcl::emap</a></b>. using the
+generator the definition of the mapping becomes much simpler:</p>
+<pre class="doctools_example">
+    critcl::emap::def yaml_sequence_style_t {
+        any   0
+        block 1
+        flow  2
+    }
+</pre>
+<p>Note that the generator will not only provide the conversions, but
+also define the argument and result types needed for their use by
+<b class="cmd">critcl::cproc</b>.
+Another example of such a semi-trivial argument type can be found in
+the <b class="package">CRIMP</b> package, which defines a <b class="type">Tcl_ObjType</b> for
+<i class="term">image</i> values. This not only provides a basic argument type for
+any image, but also derived types which check that the image has a
+specific format. Here we see for the first time non-integer arguments,
+and the need to define the C types used for variables holding the C
+level value, and the type of function parameters (Due to C promotion
+rules we may need different types).</p>
+<pre class="doctools_example">
+    critcl::argtype image {
+        if (crimp_get_image_from_obj (interp, @@, &amp;@A) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    } crimp_image* crimp_image*
+    ...
+        set map [list &lt;&lt;type&gt;&gt; $type]
+        critcl::argtype image_$type [string map $map {
+            if (crimp_get_image_from_obj (interp, @@, &amp;@A) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (@A-&gt;itype != crimp_imagetype_find (&quot;crimp::image::&lt;&lt;type&gt;&gt;&quot;)) {
+                Tcl_SetObjResult (interp,
+                                  Tcl_NewStringObj (&quot;expected image type &lt;&lt;type&gt;&gt;&quot;,
+                                                    -1));
+                return TCL_ERROR;
+            }
+        }] crimp_image* crimp_image*
+    ...
+</pre>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Custom Types, Support structures</a></h3>
+<p>The adjunct command <b class="cmd">critcl::argtypesupport</b> is for when the
+conversion needs additional definitions, for example a helper
+structure.</p>
+<p>An example of this can be found among the standard types of
+critcl itself, the <b class="type">pstring</b> type. This type provides the C
+function with not only the string pointer, but also the string length,
+and the <b class="type">Tcl_Obj*</b> this data came from. As <b class="cmd">critcl::cproc</b>'s
+calling conventions allow us only one argument for the data of the
+parameter a structure is needed to convey these three pieces of
+information.</p>
+<p>Thus the argument type is defined as</p>
+<pre class="doctools_example">
+    critcl::argtype pstring {
+        @A.s = Tcl_GetStringFromObj(@@, &amp;(@A.len));
+        @A.o = @@;
+    } critcl_pstring critcl_pstring
+    critcl::argtypesupport pstring {
+        typedef struct critcl_pstring {
+            Tcl_Obj*    o;
+            const char* s;
+            int         len;
+        } critcl_pstring;
+    }
+</pre>
+<p>In the case of such a structure being large we may wish to
+allocate it on the heap instead of having it taking space on the
+stack. If we do that we need another adjunct command,
+<b class="cmd">critcl::argtyperelease</b>. This command specifies the code required
+to release dynamically allocated resources when the worker function
+returns, before the shim returns to the caller in Tcl.
+To keep things simple our example is synthetic, a modification of
+<b class="const">pstring</b> above, to demonstrate the technique. An actual, but
+more complex example is the code to support the variadic <i class="arg">args</i>
+argument of <b class="cmd">critcl::cproc</b>.</p>
+<pre class="doctools_example">
+    critcl::argtype pstring {
+        @A = (critcl_pstring*) ckalloc(sizeof(critcl_pstring));
+        @A-&gt;s = Tcl_GetStringFromObj(@@, &amp;(@A-&gt;len));
+        @A-&gt;o = @@;
+    } critcl_pstring* critcl_pstring*
+    critcl::argtypesupport pstring {
+        typedef struct critcl_pstring {
+            Tcl_Obj*    o;
+            const char* s;
+            int         len;
+        } critcl_pstring;
+    }
+    critcl::argtyperelease pstring {
+        ckfree ((char*)) @A);
+    }
+</pre>
+<p>Note, the above example shows only the most simple case of an
+allocated argument, with a conversion that cannot fail (namely, string
+retrieval). If the conversion can fail then either the allocation has
+to be defered to happen only on successful conversion, or the
+conversion code has to release the allocated memory itself in the
+failure path, because it will never reach the code defined via
+<b class="cmd">critcl::argtyperelease</b> in that case.</p>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Custom Types, Results</a></h3>
+<p>All of the previous sections dealt with argument conversions,
+i.e. going from Tcl into C.
+Custom result types are for the reverse direction, from C to Tcl.
+This is usually easier, as most of the time errors should not be
+possible. Supporting structures, or allocating them on the heap are
+not really required and therefore not supported.</p>
+<p>The example of a result type shown below was pulled from
+<b class="package">KineTcl</b>. It is a variant of the builtin result type
+<b class="type">Tcl_Obj*</b>, aka <b class="type">object</b>. The builtin conversion assumes
+that the object returned by the function has a refcount of 1 (or
+higher), with the function having held the reference, and releases
+that reference after placing the value into the interp result. The
+conversion below on the other hand assumes that the value has a
+refcount of 0 and thus that decrementing it is forbidden, lest it be
+released much to early, and crashing the system.</p>
+<pre class="doctools_example">
+    critcl::resulttype KTcl_Obj* {
+        if (rv == NULL) { return TCL_ERROR; }
+        Tcl_SetObjResult(interp, rv);
+        /* No refcount adjustment */
+        return TCL_OK;
+    } Tcl_Obj*
+</pre>
+<p>This type of definition is also found in <b class="package">Marpa</b> and recent
+hacking hacking on <b class="package">CRIMP</b> introduced it there as well. Which
+is why this definition became a builtin type starting with version
+3.1.16, under the names <b class="type">Tcl_Obj*0</b> and <b class="type">object0</b>.</p>
+<p>Going back to errors and their handling, of course, if a
+function we are wrapping signals them in-band, then the conversion of
+such results has to deal with that. This happens for example in
+<b class="package">KineTcl</b>, where we find</p>
+<pre class="doctools_example">
+    critcl::resulttype XnStatus {
+        if (rv != XN_STATUS_OK) {
+            Tcl_AppendResult (interp, xnGetStatusString (rv), NULL);
+            return TCL_ERROR;
+        }
+        return TCL_OK;
+    }
+    critcl::resulttype XnDepthPixel {
+        if (rv == ((XnDepthPixel) -1)) {
+            Tcl_AppendResult (interp,
+                              &quot;Inheritance error: Not a depth generator&quot;,
+                              NULL);
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult (interp, Tcl_NewIntObj (rv));
+        return TCL_OK;
+    }
+</pre>
+</div>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Authors</a></h2>
+<p>Jean Claude Wippler, Steve Landers, Andreas Kupries</p>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report them at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a>.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at <a href="https://github.com/andreas-kupries/critcl/issues">https://github.com/andreas-kupries/critcl/issues</a> as well.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#calling_c_code_from_tcl">calling C code from Tcl</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; Jean-Claude Wippler<br>
+Copyright &copy; Steve Landers<br>
+Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

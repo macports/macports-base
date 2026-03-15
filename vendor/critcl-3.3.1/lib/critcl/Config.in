@@ -1,0 +1,579 @@
+# -*- tcl -*- Critcl configuration file
+
+# some defaults - you can override these in the platform specific section
+# but shouldn't need to for typical *nix toolchains using gcc
+#
+#   platform        sets the platform (defaults to platform::generic)
+#   target          indicates that this is a cross-compile target, the value is the actual platform code.
+#   compile         compile a C source file to an object file
+#   version         print the compiler version number
+#   ldout           See below
+#   link            Command to link one or more object files and create a shared library
+#   embed_manifest  Command to embed a manifest into a DLL. (Win-specific)
+#   link_debug      See below
+#   link_preload    Linker flags to use when dependent libraries are pre-loaded.
+#   link_release    See below
+#   preproc_define  preprocess C source file (for critcl::cdefines)
+#   preproc_enum    ditto
+#   tclstubs        cflag to set USE_TCL_STUBS
+#   tkstubs         cflag to set USE_TK_STUBS
+#   debug_memory    cflag to enable memory debugging
+#   debug_symbols   cflag to add symbols to resulting library
+#   object          file extension for object files
+#   output          flags to set output file
+#   strip           cflag to tell linker to strip symbols
+#   optimize        cflag to specify optimization level
+#   include         cflag to add an include directory
+#   noassert        cflag to turn off assertions in Tcl code
+#   threadflags     cflags to enable threaded build
+#   sharedlibext    the platform's file extension for shared libraries
+#
+#   (Support for Fortran)
+#   fcompile        compile a Fortran source file to an object file
+#   fversion        print the Fortran compiler version number
+#   flink           link one or more object files and create a shared library,
+#                   if at least one object file comes from Fortran
+#   foutput         Fortran flag(s) to set output file
+#   finclude        Fortran flag to add an include directory
+#   fextra_cflags   Extra C flags for indicating type of Fortran compiler
+#
+# Any other config options are assumed to refer to Tcl variables and
+# these are set when building so they can be used in the Critcl script.
+# Typically this is used when defining cross-compile environments to set
+# various tcl_platform() values.
+#
+# You can also set Tcl variables to use in "when" options (see the MacOSX
+# section for an example - "set universal ..."). These commands and the
+# "when" commands are run in a separate interpreter.
+#
+# You can also base a build configuration on an existing one by using
+# the "copy" option and then specifically setting the config bits that
+# you want to change. See win32-x86_64-cl for an example.
+
+compile         @CC@ -c -fPIC
+version         @CC@ -v
+link            @CC@ -shared
+include         -I
+libinclude      -L
+preproc_define  @CC@ -E -dM
+preproc_enum    @CC@ -E
+tclstubs        -DUSE_TCL_STUBS
+tkstubs         -DUSE_TK_STUBS
+debug_memory    -DTCL_MEM_DEBUG
+debug_symbols   -g
+object          .o
+output          -o [list $outfile]
+embed_manifest  
+ldoutput
+link_debug
+link_release
+link_preload    --unresolved-symbols=ignore-in-shared-libs
+link_rpath      -Wl,-rpath,@
+strip           -Wl,-s
+optimize        -Os
+noassert        -DNDEBUG
+threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
+                -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1   \
+                -DTCL_THREADS=1
+
+# platform specific stuff follows
+
+# OSX - check if universal binaries supported by the installed toolchain
+
+if {[string match macosx-* $platform]} {
+    if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
+        set osxmin $::env(osxmin)
+    } elseif {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
+        set osxmin $::env(MACOSX_DEPLOYMENT_TARGET)
+    } else {
+        # use the current platform
+        set v1 [lindex [split $::tcl_platform(osVersion) .] 0]
+        # Darwin 19 and earlier are macOS 10.x. Darwin 20-24 are macOS
+        # 11-15. Darwin 25 is macOS 26.
+        if {$v1 >= 25} {
+            incr v1
+            set osxmin ${v1}.0
+        } elseif {$v1 >= 20} {
+            incr v1 -9
+            set osxmin ${v1}.0
+        } else {
+            incr v1 -4
+            set osxmin 10.$v1
+        }
+    }
+    if {[info exists ::env(SDKROOT)] && $::env(SDKROOT) ne ""} {
+        set SDKROOT $::env(SDKROOT)
+    } elseif {![catch {exec xcrun --show-sdk-path} sdkpath] && $sdkpath ne {} && [file exists $sdkpath]} {
+        set SDKROOT $sdkpath
+    } else {
+        # look for an SDK supporting universal binaries
+        set SDKROOT  ""
+        set pos [string length MacOSX]
+	set sdklist {}
+	set bases {/Library/Developer/CommandLineTools /Developer}
+	catch {lappend bases [exec xcode-select -print-path]}
+    foreach base $bases {
+        foreach dir [glob -nocomplain -tails \
+			    -directory $base/SDKs MacOSX*] {
+            set ver [string trimright \
+                        [file rootname [string range $dir $pos end]] u]
+            if {"$ver" != "" && [package vcompare $ver 10.4] >= 0
+                && (![info exists osxmin] || [package vcompare $ver $osxmin] >= 0)}  {
+                # 10.4 is earliest supporting universal that we support, and
+                # the deployment target cannot be newer than the SDK.
+                set path($ver) $dir
+                lappend sdklist $ver
+            }
+        }
+        if {[llength $sdklist]} {
+            set ver [lindex [lsort -command "package vcompare" $sdklist] 0]
+            set SDKROOT $base/SDKs/$path($ver)
+            break
+        }
+    }
+    }
+    if {$SDKROOT eq ""} {
+        set SDKROOT /
+    }
+    set universal 0
+    catch {
+	set ppc    [expr {[exec gcc -v -arch ppc    > /dev/null 2>@stdout] eq ""}]
+	set ppc64  [expr {[exec gcc -v -arch ppc64  > /dev/null 2>@stdout] eq ""}]
+	set i386   [expr {[exec gcc -v -arch i386   > /dev/null 2>@stdout] eq ""}]
+	set x86_64 [expr {[exec gcc -v -arch x86_64 > /dev/null 2>@stdout] eq ""}]
+	set arm64  [expr {[exec gcc -v -arch arm64  > /dev/null 2>@stdout] eq ""}]
+    }
+}
+
+# Note: The result of 'platform::generic' is used to restrict which of
+# the following blocks will be considered.
+
+# Note 2: The platform declarations are required to set up a proper
+# mapping in pkgIndex.tcl of a -pkg.
+
+# macports configured build
+macosx-macports when            {@CRITCL_PLATFORMS@} ne {}
+macosx-macports compile         @CC@ -c \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin \
+    @CFLAGS@
+macosx-macports link            @CC@ -bundle \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin \
+    @CFLAGS@
+macosx-macports link_preload    -undefined dynamic_lookup
+macosx-macports strip
+macosx-macports platform        macosx-macports $osxmin \
+	    @CRITCL_PLATFORMS@
+
+# default on OSX ppc is universal containing ppc and x86 32 bit
+macosx-powerpc when         $ppc
+macosx-powerpc compile      gcc -c -arch ppc \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-powerpc link         gcc -bundle -arch ppc \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-powerpc link_preload -undefined dynamic_lookup -mmacosx-version-min=10.3
+macosx-powerpc strip
+
+# default on macOS 11+ is universal containing arm 64 bit and x86 64 bit
+macosx-universal2 when            $arm64 && $x86_64
+macosx-universal2 compile         clang -c -arch arm64 -arch x86_64 \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-universal2 link            clang -bundle -arch arm64 -arch x86_64 \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-universal2 link_preload    -undefined dynamic_lookup
+macosx-universal2 strip
+macosx-universal2 platform        macosx-universal2 $osxmin \
+	    macosx-arm64 \
+	    macosx-x86_64
+
+# default on older OSX intel is universal containing x86 32 and 64 bit
+macosx-ix86 when            $i386 && $x86_64
+macosx-ix86 compile         gcc -c -arch i386 -arch x86_64 \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-ix86 link            gcc -bundle -arch i386 -arch x86_64 \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-ix86 link_preload    -undefined dynamic_lookup -mmacosx-version-min=10.3
+macosx-ix86 strip
+macosx-ix86 platform        macosx-ix86 $osxmin \
+	    macosx-ix86 \
+	    macosx-x86_64
+
+# target for most common architectures
+macosx-most when            $ppc && $i386 && $x86_64
+macosx-most compile         gcc -c -arch i386 -arch x86_64 -arch ppc \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-most link            gcc -bundle -arch i386 -arch x86_64 -arch ppc \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-most link_preload    -undefined dynamic_lookup -mmacosx-version-min=10.3
+macosx-most strip
+macosx-most platform        macosx-most $osxmin \
+	    macosx-powerpc \
+	    macosx-ix86 \
+	    macosx-x86_64
+
+# target for old universal, ppc and x86 32.
+macosx-universal when            $ppc && $i386
+macosx-universal compile         gcc -c -arch i386 -arch ppc \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-universal link            gcc -bundle -arch i386 -arch ppc \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-universal link_preload    -undefined dynamic_lookup -mmacosx-version-min=10.3
+macosx-universal strip
+macosx-universal platform        macosx-universal $osxmin \
+	    macosx-powerpc \
+	    macosx-ix86
+
+# target for all architectures
+macosx-all when            $ppc && $ppc64 && $i386 && $x86_64
+macosx-all compile         gcc -c -arch i386 -arch x86_64 -arch ppc -arch ppc64 \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-all link            gcc -bundle -arch i386 -arch x86_64 -arch ppc -arch ppc64 \
+    -isysroot $SDKROOT \
+    -mmacosx-version-min=$osxmin
+macosx-all link_preload    -undefined dynamic_lookup -mmacosx-version-min=10.3
+macosx-all strip
+macosx-all platform        macosx-all $osxmin \
+	    macosx-powerpc \
+	    macosx-powerpc64 \
+	    macosx-ix86 \
+	    macosx-x86_64
+
+# OSX ppc 32 bit
+macosx-ppc32 when           $ppc
+macosx-ppc32 compile        gcc -c -arch ppc
+macosx-ppc32 link           gcc -bundle -arch ppc
+macosx-ppc32 link_preload   -undefined dynamic_lookup
+macosx-ppc32 strip
+macosx-ppc32 platform       macosx-powerpc
+
+# OSX ppc 64 bit
+macosx-ppc64 when           $ppc64
+macosx-ppc64 compile        gcc -c -arch ppc64
+macosx-ppc64 link           gcc -bundle -arch ppc64
+macosx-ppc64 link_preload   -undefined dynamic_lookup
+macosx-ppc64 strip
+macosx-ppc64 platform       macosx-powerpc64
+
+# OSX x86 32 bit
+macosx-x86_32 when          $i386
+macosx-x86_32 compile       gcc -c -arch i386
+macosx-x86_32 link          gcc -bundle -arch i386
+macosx-x86_32 link_preload  -undefined dynamic_lookup
+macosx-x86_32 strip
+macosx-x86_32 platform      macosx-ix86
+
+# OSX x86 64 bit
+macosx-x86_64 when          $x86_64
+macosx-x86_64 compile       gcc -c -arch x86_64
+macosx-x86_64 link          gcc -bundle -arch x86_64
+macosx-x86_64 link_preload  -undefined dynamic_lookup
+macosx-x86_64 strip
+macosx-x86_64 platform      macosx-x86_64
+
+# OSX arm 64 bit
+macosx-arm64 when           $arm64
+macosx-arm64 compile        clang -c -arch arm64
+macosx-arm64 link           clang -bundle -arch arm64
+macosx-arm64 link_preload   -undefined dynamic_lookup
+macosx-arm64 strip
+macosx-arm64 platform       macosx-arm64
+
+macosx-aarch64 when         $arm64
+macosx-aarch64 copy         macosx-arm64
+macosx-aarch64 platform     macosx-aarch64
+
+macosx-arm when             $arm64
+macosx-arm copy             macosx-arm64
+macosx-arm platform         macosx-arm
+
+# Linux - 32 bit or 64 bit build - select using "-target" if you don't
+#         want the platform default (32 on 32, 64 on 64). This requires
+#         some work to detect the cpu class in use and then set a platform
+#         with the proper variant name.
+
+if {[string match linux-* $platform]} {
+    # platform = os-cpu(-compiler)
+    set cpu [lindex [split $platform -] 1]
+
+    switch -- $cpu {
+	x86_64 - ix86 {
+	    set cpu32 ix86
+	    set cpu64 x86_64
+	}
+	* {
+	    #error "Unknown architecture"
+	    set cpu32 unknown32fixme_$cpu
+	    set cpu64 unknown64fixme_$cpu
+	}
+    }
+}
+
+linux-32-*  compile   gcc -c -m32
+linux-32-*  link      gcc -shared -m32
+linux-32-*  platform  linux-$cpu32
+
+linux-64-*  compile   gcc -c -m64
+linux-64-*  link      gcc -shared -m64
+linux-64-*  platform  linux-$cpu64
+
+# Windows - Check if bufferoverflowU.lib is required, or not. We
+# assume that "requiredness" coincides with "presence". IOW, if the
+# library is present in the LIB search paths, then it is required.
+# This should be ok, for linking to it when it is present but not
+# required, should do no harm.
+
+set msvc 0
+if {[string match win32-* $platform]} {
+    set cl [file nativename [lindex [auto_execok cl] 0]]
+    if {$cl ne ""} {
+	set msvc 1
+
+	set msvcbufferoverflowlib ""
+	foreach p [split $::env(LIB) \;] {
+	    if {[llength [glob -nocomplain -directory $p bufferoverflowu.lib]]} {
+		set msvcbufferoverflowlib bufferoverflowU.lib
+		break
+	    }
+	}
+
+	set tmpfile $::env(TMP)/[pid].txt
+	catch { exec $cl 2> $tmpfile > NUL: } msg
+	#puts "M $msg"
+	set chan [open $tmpfile r]
+	set output [read $chan]
+	#puts "O $output"
+	close $chan
+	file delete $tmpfile
+
+	regexp {Version ([0-9.]*)} $output -> msvcversion
+	#puts V=$msvcversion
+	if {[package vcompare $msvcversion 15.00.30729.01] >= 0} {
+	    # VC9 or higher. -debug:full is not supported anymore.
+	    # VC9 - warning, VC10 - error
+	    set msvclinkdebug -debug
+            # Enable local stack checks for buffer overflow
+            set msvcstackchecks -GS
+            # -GZ deprecated in favor of -RTC1
+            set msvcdebugchecks -RTC1
+            set msvclinkglobaloptimize -ltcg
+	} else {
+	    set msvclinkdebug -debug:full
+            set msvcdebugchecks -GZ
+            set msvcstackchecks ""
+            set msvclinkglobaloptimize ""
+	}
+
+	if {[package vcompare $msvcversion 14] >= 0} {
+            # -Op not supported or needed.  Use -fp instead to match Tcl
+            set msvcfpopt -fp:strict
+            set msvclinkworkingset ""
+        } else {
+            # -Op -> floating point consistency
+            set msvcfpopt -Op
+            # Working set optimization
+            set msvclinkworkingset -ws:aggressive
+        }
+    }
+}
+
+# Windows - using 32-bit MS VC++
+#
+# Note: the language option for cl is -TC for c and -TP for c++ or
+#       it can treat single files -Tc<filename>
+#
+win32-ix86-cl  when            $msvc
+win32-ix86-cl  compile         cl -nologo -c
+win32-ix86-cl  link            link -nologo
+win32-ix86-cl  embed_manifest  mt -manifest [list $outfile].manifest -outputresource:[list $outfile]\;2
+win32-ix86-cl  preproc_define  cl -nologo -E
+win32-ix86-cl  preproc_enum    cl -nologo -E
+win32-ix86-cl  libinclude      /LIBPATH:
+win32-ix86-cl  object          .obj
+win32-ix86-cl  debug_symbols   -W3 -Od -Zi $msvcstackchecks $msvcdebugchecks -MDd -D_DEBUG $msvcfpopt
+win32-ix86-cl  optimize        -W3 -O2 -MD $msvcstackchecks $msvcfpopt
+win32-ix86-cl  output          [list -Fo$outfile]
+win32-ix86-cl  ldoutput        -dll [list -out:$outfile]
+win32-ix86-cl  link_debug      $msvclinkdebug -debugtype:cv -verbose:lib -nodefaultlib:libc
+win32-ix86-cl  link_release    -release -opt:ref -opt:icf,3 $msvclinkworkingset  -verbose:lib $msvclinkglobaloptimize
+win32-ix86-cl  link_preload
+win32-ix86-cl  link_rpath
+win32-ix86-cl  strip
+win32-ix86-cl  version         cl
+win32-ix86-cl  platform        win32-ix86
+
+# Windows - using 64-bit MS VC++
+#
+# Note: the language option for cl is -TC for c and -TP for c++ or
+#       it can treat single files -Tc<filename>
+#
+
+win32-x86_64-cl  when            $msvc
+win32-x86_64-cl  copy            win32-ix86-cl
+win32-x86_64-cl  link_debug      $msvclinkdebug -debugtype:cv -verbose:lib $msvcbufferoverflowlib
+win32-x86_64-cl  link_release    -release -opt:ref -opt:icf,3 $msvclinkworkingset -verbose:lib $msvclinkglobaloptimize $msvcbufferoverflowlib
+win32-x86_64-cl  platform        win32-x86_64
+
+# Cross-compile for Windows using Xmingwin
+mingw32     target         win32-ix86
+mingw32     compile        gcc -c -nostdlib
+mingw32     link           gcc -shared
+mingw32     link_preload
+mingw32     sharedlibext  .dll
+mingw32     tcl_platform(byteOrder)  littleEndian
+mingw32     tcl_platform(machine)    intel
+mingw32     tcl_platform(os)         Windows NT
+mingw32     tcl_platform(osVersion)  5.0
+mingw32     tcl_platform(platform)   windows
+mingw32     tcl_platform(wordSize)   4
+
+# Cross-compile for ARM (n770/Zaurus/etc) using Scratchbox et al
+linux-arm   target
+linux-arm   sharedlibext .so
+linux-arm   tcl_platform(byteOrder)  littleEndian
+linux-arm   tcl_platform(machine)    arm
+linux-arm   tcl_platform(os)         Linux
+linux-arm   tcl_platform(osVersion)  2.6
+linux-arm   tcl_platform(platform)   unix
+linux-arm   tcl_platform(wordSize)   4
+
+# hpux itanium, native cc, 32 and 64bit builds.
+# +z <=> -fPIC on hpux.
+# +DD64 invokes the 64bit mode.
+
+hpux-ia64_32-cc compile         cc -c +z
+hpux-ia64_32-cc link            ld -b
+hpux-ia64_32-cc preproc_define  cc -E
+hpux-ia64_32-cc preproc_enum    cc -E
+hpux-ia64_32-cc link_preload
+hpux-ia64_32-cc strip
+
+hpux-ia64-cc    compile         cc -c +z +DD64
+hpux-ia64-cc    link            ld -b
+hpux-ia64-cc    preproc_define  cc -E
+hpux-ia64-cc    preproc_enum    cc -E
+hpux-ia64-cc    link_preload
+hpux-ia64-cc    strip
+
+# hpux, itanium, gcc
+# This works only if the -lgcc for 64bit is somewhere reachable.
+# hpux-ia64	gcc -c -fPIC -mlp64
+
+hpux-parisc-cc    compile         cc -c +z +DAportable
+hpux-parisc-cc    link            ld -b
+hpux-parisc-cc    preproc_define  cc -E
+hpux-parisc-cc    preproc_enum    cc -E
+hpux-parisc-cc    link_preload
+hpux-parisc-cc    strip
+
+hpux-parisc64-cc  compile         cc -c +z +DA2.0W
+hpux-parisc64-cc  link            ld -b
+hpux-parisc64-cc  preproc_define  cc -E
+hpux-parisc64-cc  preproc_enum    cc -E
+hpux-parisc64-cc  link_preload
+hpux-parisc64-cc  strip
+
+# hpux-parisc, 64bit, gcc
+#
+# For this architecture gcc does not have compiler switches for change
+# between 32/64 results. Rather, gcc has to be built specifically to
+# produce either 32 or 64 bit binaries. And if both results are
+# wanted, it has to be built and installed twice (in different
+# directories).
+#
+# HP provides precompiled binaries of these two variants at
+# http://www.hp.com/go/gcc. Install the desired compiler(s). In case
+# of having both ensure that the desired one is first in the PATH.
+
+# aix, rs6000/powerpc, native cc, 32bit build
+# The link line is pretty much copied from Tcl.
+
+# NOTE: ldAix was copied from Tcl into a directory in the PATH.
+
+# It might make sense to stuff this file into critcl and then copy it
+# out when needed, either into a fixed place, or tempdir. In the
+# latter case the link line needs some way of getting the value
+# substituted into it. I have no idea of the critcl config allows
+# that, and if yes, nor how.
+
+# cc_r = something with thread-enabled. better use it than cc and have
+# things fail.
+
+aix-powerpc-cc    compile         cc_r -c -O
+aix-powerpc-cc    link            ldAix /bin/ld -bhalt:4 -bM:SRE -bE:lib.exp -H512 -T512 -bnoentry -lm -lc
+aix-powerpc-cc    preproc_define  cc -E
+aix-powerpc-cc    preproc_enum    cc -E
+aix-powerpc-cc    link_preload
+aix-powerpc-cc    strip
+
+aix-powerpc64-cc  compile         cc_r -c -O -q64
+aix-powerpc64-cc  link            ldAix /bin/ld -b64 -bhalt:4 -bM:SRE -bE:lib.exp -H512 -T512 -bnoentry -lm -lc
+aix-powerpc64-cc  preproc_define  cc -E
+aix-powerpc64-cc  preproc_enum    cc -E
+aix-powerpc64-cc  link_preload
+aix-powerpc64-cc  strip
+
+aix-powerpc-xlc    compile         xlc_r -c -O
+aix-powerpc-xlc    link            ldAix /bin/ld -bhalt:4 -bM:SRE -bE:lib.exp -H512 -T512 -bnoentry -lm -lc
+aix-powerpc-xlc    preproc_define  xlc -E
+aix-powerpc-xlc    preproc_enum    xlc -E
+aix-powerpc-xlc    link_preload
+aix-powerpc-xlc    strip
+
+aix-powerpc64-xlc  compile         xlc_r -c -O -q64
+aix-powerpc64-xlc  link            ldAix /bin/ld -b64 -bhalt:4 -bM:SRE -bE:lib.exp -H512 -T512 -bnoentry -lm -lc
+aix-powerpc64-xlc  preproc_define  xlc -E
+aix-powerpc64-xlc  preproc_enum    xlc -E
+aix-powerpc64-xlc  link_preload
+aix-powerpc64-xlc  strip
+
+# Solaris, Sparc and Intel platforms, 32 and 64 bit
+
+solaris-x86_64-cc   compile         cc -m64 -c -KPIC
+solaris-x86_64-cc   link            /usr/ccs/bin/ld -L/lib/64 -G -lc -lnsl
+solaris-x86_64-cc   preproc_define  cc -E
+solaris-x86_64-cc   preproc_enum    cc -E
+solaris-x86_64-cc   version         cc -V
+solaris-x86_64-cc   link_preload
+solaris-x86_64-cc   strip
+
+solaris-x86_64-gcc  compile         gcc -m64 -c -fPIC
+solaris-x86_64-gcc  link            gcc -m64 -shared
+
+solaris-ix86-cc     compile         cc -m32 -c -KPIC
+solaris-ix86-cc     link            /usr/ccs/bin/ld -G -lc -lnsl
+solaris-ix86-cc     preproc_define  cc -E
+solaris-ix86-cc     preproc_enum    cc -E
+solaris-ix86-cc     version         cc -V
+solaris-ix86-cc     link_preload
+solaris-ix86-cc     strip
+
+solaris-sparc-cc    compile         cc -KPIC -c
+solaris-sparc-cc    link            /usr/ccs/bin/ld -G -lc -lnsl
+solaris-sparc-cc    preproc_define  cc -E
+solaris-sparc-cc    preproc_enum    cc -E
+solaris-sparc-cc    version         cc -V
+solaris-sparc-cc    link_preload
+solaris-sparc-cc    strip
+
+solaris-sparc64-cc  compile         cc -KPIC -xarch=v9 -c
+solaris-sparc64-cc  link            /usr/ccs/bin/ld -G -lc -lnsl
+solaris-sparc64-cc  preproc_define  cc -E
+solaris-sparc64-cc  preproc_enum    cc -E
+solaris-sparc64-cc  version         cc -V
+solaris-sparc64-cc  link_preload
+solaris-sparc64-cc  strip
+
+solaris-sparc64-gcc compile         gcc -m64 -c -fPIC -mcpu=v9
+solaris-sparc64-gcc link            gcc -m64 -shared -mcpu=v9

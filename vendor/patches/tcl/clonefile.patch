@@ -1,0 +1,118 @@
+--- vendor/tcl/unix/configure.orig	2024-10-05 22:33:31
++++ vendor/tcl/unix/configure	2024-10-05 22:41:49
+@@ -17439,7 +17439,7 @@ fi
+ done
+ 
+ 
+-for ac_header in copyfile.h
++for ac_header in sys/clonefile.h copyfile.h
+ do
+ as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ if eval "test \"\${$as_ac_Header+set}\" = set"; then
+@@ -17589,7 +17589,7 @@ fi
+ done
+ 
+ 
+-for ac_func in copyfile
++for ac_func in clonefile copyfile
+ do
+ as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ echo "$as_me:$LINENO: checking for $ac_func" >&5
+--- vendor/tcl/unix/tclUnixFCmd.c.orig
++++ vendor/tcl/unix/tclUnixFCmd.c
+@@ -51,6 +51,21 @@
+ #ifdef HAVE_FTS
+ #include <fts.h>
+ #endif
++#ifdef HAVE_SYS_CLONEFILE_H
++#include <sys/clonefile.h>
++#ifndef CLONE_NOOWNERCOPY
++#include <unistd.h>
++#endif
++#endif /* HAVE_SYS_CLONEFILE_H */
++#ifdef HAVE_CLONEFILE
++#if defined(__APPLE__) && \
++	defined(MAC_OS_X_VERSION_MIN_REQUIRED) && \
++	MAC_OS_X_VERSION_MIN_REQUIRED < 101200
++#define MayUseCloneFile()	(clonefile != NULL)
++#else
++#define MayUseCloneFile()   (1)
++#endif
++#endif /* HAVE_CLONEFILE */
+ 
+ /*
+  * The following constants specify the type of callback when
+@@ -526,14 +541,57 @@ DoCopyFile(
+     }
+     return TCL_OK;
+ }
+-
++
++/*
++ *----------------------------------------------------------------------
++ *
++ * TclUnixCloneFile -
++ *
++ *	Helper function for TclUnixCopyFile. Clones one regular file, using
++ *	clonefile().
++ *
++ * Results:
++ *	A standard Tcl result.
++ *
++ * Side effects:
++ *	A file is cloned.
++ *
++ *----------------------------------------------------------------------
++ */
++#ifdef HAVE_CLONEFILE
++int
++TclUnixCloneFile(
++    const char *src,		/* Pathname of file to clone (native). */
++    const char *dst,		/* Pathname of file to create (native). */
++    const Tcl_StatBuf *statBufPtr,
++				/* Used to copy attributes. */
++    int dontCopyAtts)		/* If flag set, don't copy attributes. */
++{
++#ifndef CLONE_NOOWNERCOPY
++#define CLONE_NOOWNERCOPY 0
++    if (dontCopyAtts && geteuid() == 0) {
++        /* ownership would always be copied without this flag */
++        return TCL_ERROR;
++    }
++#endif
++    if (clonefile(src, dst, CLONE_NOFOLLOW|CLONE_NOOWNERCOPY) == 0) {
++        if (dontCopyAtts || CopyFileAtts(src, dst, statBufPtr) == TCL_OK) {
++            return TCL_OK;
++        }
++    }
++    unlink(dst);					/* INTL: Native. */
++    return TCL_ERROR;
++}
++#endif
++
+ /*
+  *----------------------------------------------------------------------
+  *
+  * TclUnixCopyFile -
+  *
+  *	Helper function for TclpCopyFile. Copies one regular file, using
+- *	read() and write().
++ *	read() and write(), or clones it with TclUnixCloneFile() if
++ *  supported.
+  *
+  * Results:
+  *	A standard Tcl result.
+@@ -558,6 +616,13 @@ TclUnixCopyFile(
+     char *buffer;		/* Data buffer for copy */
+     size_t nread;
+ 
++#ifdef HAVE_CLONEFILE
++    if (MayUseCloneFile() &&
++            TclUnixCloneFile(src, dst, statBufPtr, dontCopyAtts) == TCL_OK) {
++        return TCL_OK;
++    }
++#endif
++
+ #ifdef DJGPP
+ #define BINMODE |O_BINARY
+ #else

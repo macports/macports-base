@@ -48,15 +48,6 @@
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 
-/* Tiger compatibility */
-#ifndef SHA256_DIGEST_LENGTH
-#define SHA256_DIGEST_LENGTH            CC_SHA256_DIGEST_LENGTH
-#define SHA256_CTX                      CC_SHA256_CTX
-#define SHA256_Init(c)                  CC_SHA256_Init(c)
-#define SHA256_Update(c,d,l)            CC_SHA256_Update(c,d,l)
-#define SHA256_Final(m, c)              CC_SHA256_Final(m,c)
-#endif
-
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
 CHECKSUMFile(SHA256_, SHA256_CTX)
@@ -91,7 +82,6 @@ int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	char *file, *action;
 	char buf[2*SHA256_DIGEST_LENGTH + 1];
 	const char usage_message[] = "Usage: sha256 file";
-	const char error_message[] = "Could not open file: ";
 	Tcl_Obj *tcl_result;
 
 	if (objc != 3) {
@@ -111,9 +101,9 @@ int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	file = Tcl_GetString(objv[2]);
 
 	if (!SHA256_File(file, buf)) {
-		tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
-		Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(file, -1));
-		Tcl_SetObjResult(interp, tcl_result);
+		int errsave = errno;
+		Tcl_SetResult(interp, "Could not open file: ", TCL_STATIC);
+		Tcl_AppendResult(interp, file, ": ", strerror(errsave), NULL);
 		return TCL_ERROR;
 	}
 	tcl_result = Tcl_NewStringObj(buf, sizeof(buf) - 1);

@@ -32,77 +32,103 @@ package provide snapshot 1.0
 
 package require macports 1.0
 package require registry 1.0
+package require json
+package require json::write
 
 namespace eval snapshot {
-	proc main {opts} {
-		# Function to create a snapshot of the current state of ports.
+    proc print_usage {} {
+        ui_msg "Usage: One of:"
+        ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
+        ui_msg "  port snapshot --list"
+        ui_msg "  port snapshot --diff <snapshot-id> \[--all\]"
+        ui_msg "  port snapshot --delete <snapshot-id>"
+        ui_msg "  port snapshot --export <snapshot-id> >snapshot.json"
+        ui_msg "  port snapshot --import snapshot.json"
+    }
+
+    proc main {opts} {
+        # Function to create a snapshot of the current state of ports.
         #
         # Args:
         #           opts - The options passed in.
         # Returns:
         #           registry::snapshot
 
-        if {![dict exists $opts options_snapshot_order]} {
-            set operation "create"
-        } else {
-            set operation ""
-            foreach op {list create diff delete} {
-                set opname "ports_snapshot_$op"
-                if {[dict exists $opts $opname]} {
-                    if {$operation ne ""} {
-                        ui_error "Only one of the --list, --create, --diff, and --delete options can be specified."
-                        error "Incorrect usage, see port snapshot --help."
-                    }
-
-                    set operation $op
-                }
-            }
-        }
-
         if {[dict exists $opts ports_snapshot_help]} {
-            ui_msg "Usage: One of:"
-            ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
-            ui_msg "  port snapshot --list"
-            ui_msg "  port snapshot --diff <snapshot-id> \[--all\]"
-            ui_msg "  port snapshot --delete <snapshot-id>"
+            print_usage
             return 0
         }
 
+        set operation ""
+        foreach op {list create diff delete export import} {
+            set optname ports_snapshot_$op
+            if {[dict exists $opts $optname]} {
+                if {$operation ne ""} {
+                    ui_error "Only one of the --list, --create, --diff, --delete, --export, or --import options can be specified."
+                    error "Incorrect usage, see port snapshot --help."
+                }
+                set operation $op
+            }
+        }
+
         switch $operation {
+            "" -
             "create" {
-                return [create $opts]
+                if {[catch {create $opts} result]} {
+                    ui_error "Failed to create snapshot: $result"
+                    return 1
+                }
+                return 0
             }
             "list" {
                 set snapshots [registry::snapshot get_all]
 
                 if {[llength $snapshots] == 0} {
-                    ui_msg "There are no snapshots. Use 'sudo port snapshot \[--create\] \[--note '<message>'\]' to create one."
+                    if {![macports::ui_isset ports_quiet]} {
+                        ui_msg "There are no snapshots. Use 'sudo port snapshot \[--create\] \[--note '<message>'\]' to create one."
+                    }
                     return 0
+                }
+
+                # Convert UTC datetimes to local timezone
+                set timestamps [dict create]
+                foreach snapshot $snapshots {
+                    set created_at_seconds [clock scan [$snapshot created_at] -timezone :UTC -format "%Y-%m-%d %T"]
+                    dict set timestamps $snapshot [clock format $created_at_seconds -format "%Y-%m-%d %T%z"]
                 }
 
                 set lens [dict create id [string length "ID"] created_at [string length "Created"] note [string length "Note"]]
                 foreach snapshot $snapshots {
-                    foreach fieldname {id created_at note} {
+                    foreach fieldname {id note} {
                         set len [string length [$snapshot $fieldname]]
                         if {[dict get $lens $fieldname] < $len} {
                             dict set lens $fieldname $len
                         }
+                    }
+                    set len [string length [dict get $timestamps $snapshot]]
+                    if {[dict get $lens created_at] < $len} {
+                        dict set lens created_at $len
                     }
                 }
 
                 set formatStr "%*s  %-*s  %-*s"
                 set heading [format $formatStr [dict get $lens id] "ID" [dict get $lens created_at] "Created" [dict get $lens note] "Note"]
 
-                ui_msg $heading
-                ui_msg [string repeat "=" [string length $heading]]
+                if {![macports::ui_isset ports_quiet]} {
+                    ui_msg $heading
+                    ui_msg [string repeat "=" [string length $heading]]
+                }
                 foreach snapshot $snapshots {
-                    ui_msg [format $formatStr [dict get $lens id] [$snapshot id] [dict get $lens created_at] [$snapshot created_at] [dict get $lens note] [$snapshot note]]
+                    ui_msg [format $formatStr [dict get $lens id] [$snapshot id] [dict get $lens created_at] [dict get $timestamps $snapshot] [dict get $lens note] [$snapshot note]]
                 }
 
                 return 0
             }
             "diff" {
-                set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_diff]]
+                if {[catch {set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_diff]]} result]} {
+                    ui_error "Failed to obtain snapshot with ID [dict get $opts ports_snapshot_diff]: $result"
+                    return 1
+                }
                 array set diff [diff $snapshot]
                 set show_all [dict exists $opts ports_snapshot_all]
                 set note ""
@@ -133,6 +159,7 @@ namespace eval snapshot {
                         }
                     }
                 }
+
                 if {[llength $diff(removed)] > 0} {
                     append note "The following ports are in the snapshot but not installed:\n"
                     foreach removed_port [lsort -ascii -index 0 $diff(removed)] {
@@ -161,12 +188,266 @@ namespace eval snapshot {
                     }
                 }
 
+                if {[llength $diff(added)] == 0 && [llength $diff(removed)] == 0 && [llength $diff(changed)] == 0} {
+                    append note "The current state and the specified snapshot match.\n"
+                }
+
                 ui_msg [string trimright $note "\n"]
+                return 0
             }
             "delete" {
-                return [delete_snapshot $opts]
+                return [delete_snapshot [dict get $opts ports_snapshot_delete]]
+            }
+            "export" {
+                if {[catch {set snapshot [registry::snapshot get_by_id [dict get $opts ports_snapshot_export]]} result]} {
+                    ui_error "Failed to obtain snapshot with ID [dict get $opts ports_snapshot_export]: $result"
+                    return 1
+                }
+
+                puts [snapshot2json $snapshot]
+            }
+            "import" {
+                set filename [dict get $opts ports_snapshot_import]
+                try {
+                    set fp [open $filename r]
+                    set contents [read $fp]
+                    close $fp
+                } on error {eMessage} {
+                    ui_error "Failed to read $filename: $eMessage"
+                    return 1
+                }
+
+                try {
+                    set snapshot [import $contents $opts]
+                } on error {eMessage} {
+                    ui_error "Import failed: $eMessage"
+                    return 1
+                }
+
+                ui_msg "Snapshot successfully imported with ID [$snapshot id]."
+                ui_msg "To restore this snapshot now, run\n\tsudo port restore --snapshot-id [$snapshot id]"
+
+                return 0
+            }
+            default {
+                print_usage
+                return 1
             }
         }
+    }
+
+    proc snapshot2json {snapshot} {
+        # Convert the given snapshot to JSON format and return it
+        #
+        # The data format is
+        #
+        #   metadata:
+        #     type: string "org.macports/snapshot/v1", denoting the version of this format
+        #     note: string, the note associated with this snapshot
+        #     created_at: string, the local date at which the snapshot was created
+        #   ports:
+        #     list of objects:
+        #       port_name: string, the name of the port
+        #       requested: int, 1 for ports that are requested, 0 otherwise
+        #       state: string, "installed" for ports that are active
+        #       variants: string, list of active variants
+        #       requested_variants: string, list of variants requested by the user
+        #       port_files: list of strings, the files installed by this port
+        #
+        # Args:
+        #           snapshot - The snapshot object to convert to JSON
+        # Returns:
+        #           string representation of the snapshot object
+
+        # The conversion can take quite a while because we're querying all
+        # files installed by the various ports, so display a progress bar
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancy_output} {
+            set progress $macports::ui_options(progress_generic)
+        } else {
+            proc noop {args} {}
+            set progress noop
+        }
+        set counter 0
+        set total [llength [$snapshot ports]]
+
+        # Add some metadata and a version header that allows us to make
+        # backwards-incompatible changes to the output format.
+        set metadata [json::write object-strings \
+            type "org.macports/snapshot/v1" \
+            note [$snapshot note] \
+            created_at [$snapshot created_at]]
+
+        $progress start
+        $progress update $counter $total
+
+        # Convert each port into its JSON representation
+        set ports [list]
+        foreach port [$snapshot ports] {
+            incr counter
+
+            lassign $port port_name requested state variants requested_variants
+            set files [snapshot::port_files [$snapshot id] $port_name]
+
+            ui_debug "Processing port $counter/$total: $port_name"
+
+            lappend ports [json::write object \
+                port_name [json::write string $port_name] \
+                requested $requested \
+                state [json::write string $state] \
+                variants [json::write string $variants] \
+                requested_variants [json::write string $requested_variants] \
+                port_files [json::write array-strings {*}$files]]
+
+            $progress update $counter $total
+        }
+
+        # Assemble the metadata and port list into the final JSON object and
+        # return it.
+        set res [json::write object \
+            metadata $metadata \
+            ports [json::write array {*}$ports]]
+        $progress finish
+        return $res
+    }
+
+    proc _last_insert_rowid {con} {
+        # Obtain the last insert rowid from the given SQLite database
+        # connection and return it
+        #
+        # Args:
+        #           con - The database connection
+        # Returns:
+        #           the result of SELECT last_insert_rowid()
+        variable last_insert_rowid_stmt
+        if {![info exists last_insert_rowid_stmt]} {
+            set last_insert_rowid_stmt [$con prepare {
+                SELECT last_insert_rowid()
+            }]
+        }
+
+        set results [$last_insert_rowid_stmt execute]
+        $results nextlist row
+        lassign $row rowid
+        $results close
+        return $rowid
+    }
+
+    proc import {contents opts} {
+        # Import the snapshot in JSON encoding given in contents into the
+        # database and return the imported snapshot object.
+        #
+        # Args:
+        #           contents - The JSON encoded snapshot as a string
+        #           opts - Options dict
+        # Returns:
+        #           The imported snapshot as a snapshot object
+
+        set data [json::json2dict $contents]
+
+        try {
+            set type [dict get $data metadata type]
+        } on error {eMessage} {
+            error "Invalid format: no metadata/type field"
+        }
+
+        switch $type {
+            "org.macports/snapshot/v1" {
+                # This is the only supported version, processing continues below
+            }
+            default {
+                error "Invalid format: unsupported type $type, possibly generated by a newer version of MacPorts"
+            }
+        }
+
+        global registry::tdbc_connection
+        variable import_snapshot_stmt
+        variable import_port_stmt
+        variable import_file_stmt
+        if {![info exists import_snapshot_stmt]} {
+            set import_snapshot_stmt [$tdbc_connection prepare {
+                INSERT INTO snapshots (
+                      created_at
+                    , note
+                ) VALUES (
+                      :created_at
+                    , :note
+                )
+            }]
+        }
+        if {![info exists import_port_stmt]} {
+            set import_port_stmt [$tdbc_connection prepare {
+                INSERT INTO snapshot_ports (
+                      snapshots_id
+                    , port_name
+                    , requested
+                    , state
+                    , variants
+                    , requested_variants
+                ) VALUES (
+                      :snapshot_id
+                    , :port_name
+                    , :requested
+                    , :state
+                    , :variants
+                    , :requested_variants
+                )
+            }]
+        }
+        if {![info exists import_file_stmt]} {
+            set import_file_stmt [$tdbc_connection prepare {
+                INSERT INTO snapshot_files (
+                      id
+                    , path
+                ) VALUES (
+                      :port_id
+                    , :path
+                )
+            }]
+        }
+
+        set created_at [dict get $data metadata created_at]
+        set note [dict get $data metadata note]
+        set ports [dict get $data ports]
+
+        set counter 0
+        set total [llength $ports]
+
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancy_output} {
+            set progress $macports::ui_options(progress_generic)
+        } else {
+            proc noop {args} {}
+            set progress noop
+        }
+
+        $progress start
+        $progress update $counter $total
+
+        $tdbc_connection transaction {
+            $import_snapshot_stmt execute
+            set snapshot_id [_last_insert_rowid $tdbc_connection]
+
+            foreach port $ports {
+                incr counter
+                ui_debug "Processing port $counter/$total: [dict get $port port_name]"
+
+                dict set port snapshot_id $snapshot_id
+
+                $import_port_stmt execute $port
+                set port_id [_last_insert_rowid $tdbc_connection]
+
+                foreach path [dict get $port port_files] {
+                    $import_file_stmt execute
+                }
+
+                $progress update $counter $total
+            }
+        }
+
+        $progress finish
+
+        return [registry::snapshot get_by_id $snapshot_id]
     }
 
     proc create {opts} {
@@ -186,7 +467,7 @@ namespace eval snapshot {
                 }
             }
             if {[llength $inactive_ports] != 0} {
-                set msg "Following inactive ports will not be a part of this snapshot and won't be installed while restoring:"
+                set msg "The following inactive ports will not be a part of this snapshot and won't be installed while restoring:"
                 set inactive_ports [lsort -index 0 -nocase $inactive_ports]
                 if {[info exists macports::ui_options(questions_yesno)]} {
                     set retvalue [$macports::ui_options(questions_yesno) $msg "Continue?" $inactive_ports {y} 0]
@@ -208,12 +489,8 @@ namespace eval snapshot {
 
     # Remove a snapshot from the registry. Not called 'delete' to avoid
     # confusion with the proc in portutil.
-    proc delete_snapshot {opts} {
+    proc delete_snapshot {snapshot_id} {
         global registry::tdbc_connection
-        if {![info exists tdbc_connection]} {
-            registry::tdbc_connect
-        }
-        set snapshot_id [dict get $opts ports_snapshot_delete]
         if {[catch {registry::snapshot get_by_id $snapshot_id}]} {
             ui_error "No such snapshot ID: $snapshot_id"
             return 1
@@ -237,9 +514,6 @@ namespace eval snapshot {
     # Get the port name that owns the given file path in the given snapshot.
     proc file_owner {path snapshot_id} {
         global registry::tdbc_connection
-        if {![info exists tdbc_connection]} {
-            registry::tdbc_connect
-        }
         variable file_owner_stmt
         if {![info exists file_owner_stmt]} {
             set query {SELECT snapshot_ports.port_name FROM snapshot_ports
@@ -249,6 +523,26 @@ namespace eval snapshot {
         }
         $tdbc_connection transaction {
             set results [$file_owner_stmt execute]
+        }
+        set ret [lmap l [$results allrows] {lindex $l 1}]
+        $results close
+        return $ret
+    }
+
+    proc port_files {snapshot_id port_name} {
+        global registry::tdbc_connection
+        variable port_files_stmt
+        if {![info exists port_files_stmt]} {
+            set port_files_stmt [$tdbc_connection prepare {
+                    SELECT snapshot_files.path FROM snapshot_files
+                    INNER JOIN snapshot_ports ON snapshot_files.id = snapshot_ports.id
+                    WHERE snapshot_ports.port_name = :port_name
+                    AND snapshot_ports.snapshots_id = :snapshot_id
+                    ORDER BY snapshot_files.path ASC
+            }]
+        }
+        $tdbc_connection transaction {
+            set results [$port_files_stmt execute]
         }
         set ret [lmap l [$results allrows] {lindex $l 1}]
         $results close

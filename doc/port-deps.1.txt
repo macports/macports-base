@@ -10,18 +10,18 @@ SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-D* 'portdir'] *deps*
-     [--index] [--no-build]
+     [--index] [--no-build] [--no-test]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 [cmdsynopsis]
 *port* [*-D* 'portdir'] *rdeps*
-     [--full] [--index] [--no-build]
+     [--full] [--index] [--no-build] [--no-test]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
 -----------
 *port deps* lists all dependencies of the given port(s), i.e., the ports that
-need to be installed to build or use a port.
+need to be installed to build or use a port, or to run its test suite.
 
 *port rdeps* recursively descends into the dependencies and displays a tree of
 dependencies for a given port.
@@ -38,8 +38,11 @@ OPTIONS
     the effects of any variants specified.
 
 *--no-build*::
-    Exclude dependencies only required at build time, i.e., fetch, extract, and
-    build dependencies.
+    Exclude dependencies only required at build time, i.e., fetch, extract,
+    patch, and build dependencies.
+
+*--no-test*::
+    Exclude test dependencies.
 
 include::global-flags.txt[]
 

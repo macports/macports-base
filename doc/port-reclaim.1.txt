@@ -10,6 +10,7 @@ SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-vdNy*] *reclaim*
+    [--keep-build-deps]
     [--enable-reminders] [--disable-reminders]
 
 DESCRIPTION
@@ -19,6 +20,12 @@ system as well as unnecessary unrequested ports, and removing unneeded or unused
 
 OPTIONS
 -------
+*--keep-build-deps*::
+Normally, ports are considered to be needed if they are either requested
+or a runtime dependency of another needed port. Using this option causes
+ports that are a build-time dependency of another needed port to also be
+considered needed.
+
 *--enable-reminders*::
 Enable regular reminders to run *port reclaim*. Using this option will only
 update the configuration; the reclaim process will not be run.

@@ -56,6 +56,7 @@
 #include <getopt.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <strings.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/event.h>

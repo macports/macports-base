@@ -131,9 +131,9 @@ fetch:
 	find src -name Root -exec rm {} +
 
 install: signify
-	install -d ${BINDIR} ${MANDIR}/man1
-	install -Ss -m 755 signify ${BINDIR}
-	install -S -m 644 signify.1 ${MANDIR}/man1
+	$(INSTALL) -d ${BINDIR} ${MANDIR}/man1
+	$(INSTALL) -S -m 755 signify ${BINDIR}
+	$(INSTALL) -S -m 644 signify.1 ${MANDIR}/man1
 
 
 ### regression test targets
@@ -164,7 +164,7 @@ ls:
 	@echo $(FROM_CVS:src/%=%)
 
 clean:
-	rm -rf signify signify.1 test-results explicit_bzero
+	rm -rf signify signify.dSYM signify.1 test-results explicit_bzero
 
 distclean: clean
 	-rm -f autoconf.mk

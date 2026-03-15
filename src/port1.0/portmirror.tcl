@@ -59,7 +59,9 @@ proc portmirror::mirror_main {args} {
     }
 
     set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
-    filemap open mirror_filemap $mirror_filemap_path
+    exec_with_available_privileges {
+        filemap open mirror_filemap $mirror_filemap_path
+    }
 
     # Check the distfiles if it's a regular fetch phase.
     if {${fetch.type} eq "standard"} {
@@ -72,7 +74,9 @@ proc portmirror::mirror_main {args} {
         if {[catch {portchecksum::checksum_main $args} result]} {
             # delete the files.
             portfetch::fetch_deletefiles $args
-            filemap close mirror_filemap
+            exec_with_available_privileges {
+                filemap close mirror_filemap
+            }
             error "portmirror: checksum failed: $result"
         }
 
@@ -81,5 +85,7 @@ proc portmirror::mirror_main {args} {
     }
 
     # close the filemap.
-    filemap close mirror_filemap
+    exec_with_available_privileges {
+        filemap close mirror_filemap
+    }
 }

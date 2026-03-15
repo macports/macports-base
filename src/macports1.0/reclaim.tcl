@@ -72,11 +72,12 @@ namespace eval reclaim {
             return
         }
 
-        uninstall_unrequested
+        uninstall_unrequested [dict exists $opts ports_reclaim_keep-build-deps]
         uninstall_inactive
         remove_distfiles
         remove_builds
         remove_ccache
+        remove_snapshots
 
         if {![macports::global_option_isset ports_dryrun]} {
             set last_run_contents [read_last_run_file]
@@ -181,6 +182,50 @@ namespace eval reclaim {
         }
     }
 
+    proc remove_snapshots {} {
+        # Delete registry snapshots older than 30 days
+
+        if {[macports::global_option_isset ports_dryrun]} {
+            ui_msg "Deleting snapshots... (dry run)"
+            ui_info "Skipping deletion of registry snapshots older than 30 days (dry run)"
+            return
+        }
+
+        set now [clock seconds]
+        set old_snapshot_info {}
+        set snapshots [lmap snap [registry::snapshot get_all] {
+            set created_at_seconds [clock scan [$snap created_at] -timezone :UTC -format "%Y-%m-%d %T"]
+            if {($now - $created_at_seconds) <= 2592000} {
+                continue
+            }
+            lappend old_snapshot_info "[clock format $created_at_seconds -format "%Y-%m-%d %T%z"] [$snap note]"
+            string cat $snap
+        }]
+
+        if {[llength $snapshots] == 0} {
+            ui_info "No registry snapshots older than 30 days to delete"
+            return
+        }
+
+        global macports::ui_options
+        set retval 0
+        if {[info exists ui_options(questions_yesno)]} {
+            set retval [$ui_options(questions_yesno) "Registry snapshots older than 30 days found:" "" [list "" {*}$old_snapshot_info] "y" 0 "Would you like to delete them?"]
+        }
+
+        if {${retval} == 0} {
+            ui_info "Deleting old registry snapshots"
+            macports_try -pass_signal {
+                foreach snap $snapshots {
+                    snapshot::delete_snapshot [$snap id]
+                }
+            } on error {eMessage} {
+                ui_debug "$::errorInfo"
+                ui_error "$eMessage"
+            }
+        }
+    }
+
     proc walk_files {dir files_in_use unused_name} {
         # Recursively walk the given directory $dir and build a list of all files that are present on-disk but not listed in $files_in_use.
         # The list of unused files will be stored in the variable given by $unused_name
@@ -221,18 +266,7 @@ namespace eval reclaim {
     # installed with the given requested variants
     proc get_variations {installed_variants} {
         global macports::global_variations
-        set vararray [dict create {*}[array get global_variations]]
-        set splitvariant [split $installed_variants -]
-        set minusvariant [lrange $splitvariant 1 end]
-        set splitvariant [split [lindex $splitvariant 0] +]
-        set plusvariant [lrange $splitvariant 1 end]
-        foreach v $plusvariant {
-            dict set vararray $v +
-        }
-        foreach v $minusvariant {
-            dict set vararray $v -
-        }
-        return $vararray
+        return [dict merge [array get global_variations] [macports::_variants_to_variations $installed_variants]]
     }
 
     proc load_distfile_cache {varname} {
@@ -663,13 +697,14 @@ namespace eval reclaim {
             } elseif {${retval} == 0} {
                 set options [dict create ports_force true]
                 foreach port $inactive_ports {
+                    set portname [$port name]
                     # Note: 'uninstall' takes a name, version, revision, variants and an options list.
                     macports_try -pass_signal {
                         if {[macports::global_option_isset ports_uninstall_no-exec] || ![registry::run_target $port uninstall $options]} {
-                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options
+                            registry_uninstall::uninstall $portname [$port version] [$port revision] [$port variants] $options
                         }
                     } on error {eMessage} {
-                        ui_error "Error uninstalling $name: $eMessage"
+                        ui_error "Error uninstalling $portname: $eMessage"
                     }
                 }
             } else {
@@ -683,8 +718,57 @@ namespace eval reclaim {
         return 0
     }
 
+    proc get_build_deps {portname requested_variants} {
+        set build_deps [list]
+        lassign [mportlookup $portname] portname portinfo
+        if {[dict exists $portinfo porturl]} {
+            set options [dict create subport $portname]
+            set variations [macports::_variants_to_variations $requested_variants]
 
-    proc uninstall_unrequested {} {
+            if {[catch {set mport [mportopen [dict get $portinfo porturl] $options $variations]} result]} {
+                ui_debug "unable to open port $name ${requested_variants}: $result"
+            } else {
+                set portinfo [mportinfo $mport]
+                mportclose $mport
+            }
+            foreach type {depends_fetch depends_extract depends_patch depends_build} {
+                if {[dict exists $portinfo $type]} {
+                    foreach d [dict get $portinfo $type] {
+                        lappend build_deps [lindex [split $d :] end]
+                    }
+                }
+            }
+        } else {
+            ui_debug "lookup of $portname failed"
+        }
+        return $build_deps
+    }
+
+    proc mark_deps_needed {port inc_build} {
+        upvar is_needed is_needed
+        set portname [$port name]
+        foreach dep [$port dependencies] {
+            set depname [$dep name]
+            if {![dict exists $is_needed $depname] || ![dict get $is_needed $depname]} {
+                ui_debug "$depname is needed by $portname"
+                dict set is_needed $depname 1
+                mark_deps_needed $dep $inc_build
+            }
+        }
+        if {$inc_build} {
+            foreach depname [get_build_deps $portname [$port requested_variants]] {
+                if {![dict exists $is_needed $depname] || ![dict get $is_needed $depname]} {
+                    ui_debug "$depname is needed by $portname"
+                    dict set is_needed $depname 1
+                    foreach dep [registry::entry installed $depname] {
+                        mark_deps_needed $dep $inc_build
+                    }
+                }
+            }
+        }
+    }
+
+    proc uninstall_unrequested {keep_build_deps} {
 
         # Attempts to uninstall unrequested ports no requested ports depend on
         #
@@ -693,47 +777,34 @@ namespace eval reclaim {
         # Returns:
         #           0 if execution was successful. Errors (for now) if execution wasn't.
 
+        set installed_ports [sort_portlist_by_dependendents [registry::entry installed]]
+
         set unnecessary_ports  [list]
         set unnecessary_names  [list]
-        set unnecessary_count  0
 
-        set isrequested [dict create]
+        set is_needed [dict create]
 
         global macports::ui_prefix macports::ui_options
         ui_msg "$ui_prefix Checking for unnecessary unrequested ports"
 
-        foreach port [sort_portlist_by_dependendents [registry::entry imaged]] {
+        foreach port $installed_ports {
             set portname [$port name]
-            if {![dict exists $isrequested $portname] || [dict get $isrequested $portname] == 0} {
-                dict set isrequested $portname [$port requested]
-            }
-            if {[dict get $isrequested $portname] == 0} {
-                set dependents [$port dependents]
-                foreach dependent $dependents {
-                    set dname [$dependent name]
-                    if {![dict exists $isrequested $dname]} {
-                        ui_debug "$portname appears to have a circular dependency involving $dname"
-                        dict set isrequested $portname 1
-                        break
-                    } elseif {[dict get $isrequested $dname] != 0} {
-                        ui_debug "$portname is requested by $dname"
-                        dict set isrequested $portname 1
-                        break
-                    }
-                }
-                #foreach dependent $dependents {
-                #    registry::entry close $dependent
-                #}
-
-                if {[dict get $isrequested $portname] == 0} {
-                    lappend unnecessary_ports $port
-                    lappend unnecessary_names "$portname @[$port version]_[$port revision][$port variants]"
-                    incr unnecessary_count
-                } else {
-                    #registry::entry close $port
+            if {![dict exists $is_needed $portname] || ![dict get $is_needed $portname]} {
+                dict set is_needed $portname [$port requested]
+                if {[dict get $is_needed $portname]} {
+                    mark_deps_needed $port $keep_build_deps
                 }
             }
         }
+
+        foreach port $installed_ports {
+            set portname [$port name]
+            if {![dict get $is_needed $portname]} {
+                lappend unnecessary_ports $port
+                lappend unnecessary_names "$portname @[$port version]_[$port revision][$port variants]"
+            }
+        }
+        set unnecessary_count [llength $unnecessary_ports]
 
         if { $unnecessary_count == 0 } {
             ui_msg "Found no unrequested ports without requested dependents."
@@ -747,21 +818,24 @@ namespace eval reclaim {
             if {${retval} == 0 && [macports::global_option_isset ports_dryrun]} {
                 ui_msg "Skipping uninstall of unrequested ports (dry run)"
             } elseif {${retval} == 0} {
+                set options [dict create ports_force true]
                 foreach port $unnecessary_ports {
                     # Note: 'uninstall' takes a name, version, revision, variants and an options list.
                     macports_try -pass_signal {
-                        registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {ports_force true}
+                        if {[macports::global_option_isset ports_uninstall_no-exec] || ![registry::run_target $port uninstall $options]} {
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options
+                        }
                     } on error {eMessage} {
-                        ui_error "Error uninstalling $name: $eMessage"
+                        ui_error "Error uninstalling $portname: $eMessage"
                     }
                 }
             } else {
                 ui_msg "Not uninstalling ports; use 'port setrequested' to mark a port as explicitly requested."
             }
-            foreach port $unnecessary_ports {
+            #foreach port $unnecessary_ports {
                 # may have been uninstalled and thus already closed
                 #catch {registry::entry close $port}
-            }
+            #}
         }
         return 0
     }

@@ -1,0 +1,774 @@
+'\"
+'\" Generated from file 'figurate\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "math::figurate" n 1\&.1 tcllib "Tcl Math Library"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+math::figurate \- Evaluate figurate numbers
+.SH SYNOPSIS
+package require \fBTcl 8\&.6 9\fR
+.sp
+package require \fBmath::figurate 1\&.0\fR
+.sp
+\fB::math::figurate::sum_sequence\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_squares\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_cubes\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_4th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_5th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_6th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_7th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_8th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_9th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_10th_power\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_sequence_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_squares_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_cubes_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_4th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_5th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_6th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_7th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_8th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_9th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::sum_10th_power_odd\fR \fIn\fR
+.sp
+\fB::math::figurate::oblong\fR \fIn\fR
+.sp
+\fB::math::figurate::pronic\fR \fIn\fR
+.sp
+\fB::math::figurate::triangular\fR \fIn\fR
+.sp
+\fB::math::figurate::square\fR \fIn\fR
+.sp
+\fB::math::figurate::cubic\fR \fIn\fR
+.sp
+\fB::math::figurate::biquadratic\fR \fIn\fR
+.sp
+\fB::math::figurate::centeredTriangular\fR \fIn\fR
+.sp
+\fB::math::figurate::centeredSquare\fR \fIn\fR
+.sp
+\fB::math::figurate::centeredPentagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::centeredHexagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::centeredCube\fR \fIn\fR
+.sp
+\fB::math::figurate::decagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::heptagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::hexagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::octagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::octahedral\fR \fIn\fR
+.sp
+\fB::math::figurate::pentagonal\fR \fIn\fR
+.sp
+\fB::math::figurate::squarePyramidral\fR \fIn\fR
+.sp
+\fB::math::figurate::tetrahedral\fR \fIn\fR
+.sp
+\fB::math::figurate::pentatope\fR \fIn\fR
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+Sums of numbers that follow a particular pattern are called figurate numbers\&.
+A simple example is the sum of integers 1, 2, \&.\&.\&. up to n\&. You can arrange
+1, 1+2=3, 1+2+3=6, \&.\&.\&. objects in a triangle, hence the name triangular
+numbers:
+.CS
+
+
+       *
+       *  *
+       *  *  *
+       *  *  *  *
+       \&.\&.\&.
+
+.CE
+The \fBmath::figurate\fR package consists of a collection of procedures to
+evaluate a wide variety of figurate numbers\&. While all formulae are
+straightforward, the details are sometimes puzzling\&.
+\fINote:\fR The procedures consider arguments lower than zero as to mean "no objects to be counted"
+and therefore return 0\&.
+.SH PROCEDURES
+The procedures can be arranged in a few categories: sums of integers raised to a
+particular power, sums of odd integers and general figurate numbers, for
+instance the pentagonal numbers\&.
+.TP
+\fB::math::figurate::sum_sequence\fR \fIn\fR
+Return the sum of integers 1, 2, \&.\&.\&., n\&.
+.RS
+.TP
+int \fIn\fR
+Highest integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_squares\fR \fIn\fR
+Return the sum of squares 1**2, 2**2, \&.\&.\&., n**2\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_cubes\fR \fIn\fR
+Return the sum of cubes 1**3, 2**3, \&.\&.\&., n**3\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_4th_power\fR \fIn\fR
+Return the sum of 4th powers 1**4, 2**4, \&.\&.\&., n**4\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_5th_power\fR \fIn\fR
+Return the sum of 5th powers 1**5, 2**5, \&.\&.\&., n**5\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_6th_power\fR \fIn\fR
+Return the sum of 6th powers 1**6, 2**6, \&.\&.\&., n**6\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_7th_power\fR \fIn\fR
+Return the sum of 7th powers 1**7, 2**7, \&.\&.\&., n**7\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.TP
+\fB::math::figurate::sum_8th_power\fR \fIn\fR
+Return the sum of 8th powers 1**8, 2**8, \&.\&.\&., n**8\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_9th_power\fR \fIn\fR
+Return the sum of 9th powers 1**9, 2**9, \&.\&.\&., n**9\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_10th_power\fR \fIn\fR
+Return the sum of 10th powers 1**10, 2**10, \&.\&.\&., n**10\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_sequence_odd\fR \fIn\fR
+Return the sum of odd integers 1, 3, \&.\&.\&., 2n-1
+.RS
+.TP
+int \fIn\fR
+Highest integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_squares_odd\fR \fIn\fR
+Return the sum of odd squares 1**2, 3**2, \&.\&.\&., (2n-1)**2\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_cubes_odd\fR \fIn\fR
+Return the sum of odd cubes 1**3, 3**3, \&.\&.\&., (2n-1)**3\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_4th_power_odd\fR \fIn\fR
+Return the sum of odd 4th powers 1**4, 2**4, \&.\&.\&., (2n-1)**4\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_5th_power_odd\fR \fIn\fR
+Return the sum of odd 5th powers 1**5, 2**5, \&.\&.\&., (2n-1)**5\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_6th_power_odd\fR \fIn\fR
+Return the sum of odd 6th powers 1**6, 2**6, \&.\&.\&., (2n-1)**6\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_7th_power_odd\fR \fIn\fR
+Return the sum of odd 7th powers 1**7, 2**7, \&.\&.\&., (2n-1)**7\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.TP
+\fB::math::figurate::sum_8th_power_odd\fR \fIn\fR
+Return the sum of odd 8th powers 1**8, 2**8, \&.\&.\&., (2n-1)**8\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_9th_power_odd\fR \fIn\fR
+Return the sum of odd 9th powers 1**9, 2**9, \&.\&.\&., (2n-1)**9\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::sum_10th_power_odd\fR \fIn\fR
+Return the sum of odd 10th powers 1**10, 2**10, \&.\&.\&., (2n-1)**10\&.
+.RS
+.TP
+int \fIn\fR
+Highest base integer in the sum
+.RE
+.sp
+.TP
+\fB::math::figurate::oblong\fR \fIn\fR
+Return the nth oblong number (twice the nth triangular number)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::pronic\fR \fIn\fR
+Return the nth pronic number (synonym for oblong)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::triangular\fR \fIn\fR
+Return the nth triangular number
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::square\fR \fIn\fR
+Return the nth square number
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::cubic\fR \fIn\fR
+Return the nth cubic number
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::biquadratic\fR \fIn\fR
+Return the nth biquaratic number (i\&.e\&. n**4)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::centeredTriangular\fR \fIn\fR
+Return the nth centered triangular number (items arranged in concentric
+squares)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::centeredSquare\fR \fIn\fR
+Return the nth centered square number (items arranged in concentric squares)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::centeredPentagonal\fR \fIn\fR
+Return the nth centered pentagonal number (items arranged in concentric
+pentagons)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::centeredHexagonal\fR \fIn\fR
+Return the nth centered hexagonal number (items arranged in concentric
+hexagons)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::centeredCube\fR \fIn\fR
+Return the nth centered cube number (items arranged in concentric
+cubes)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::decagonal\fR \fIn\fR
+Return the nth decagonal number (items arranged in decagons with one common
+vertex)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::heptagonal\fR \fIn\fR
+Return the nth heptagonal number (items arranged in heptagons with one
+common vertex)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::hexagonal\fR \fIn\fR
+Return the nth hexagonal number (items arranged in hexagons with one
+common vertex)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::octagonal\fR \fIn\fR
+Return the nth octagonal number (items arranged in octagons with one
+common vertex)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::octahedral\fR \fIn\fR
+Return the nth octahedral number (items arranged in octahedrons with a
+common centre)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::pentagonal\fR \fIn\fR
+Return the nth pentagonal number (items arranged in pentagons with one
+common vertex)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::squarePyramidral\fR \fIn\fR
+Return the nth square pyramidral number (items arranged in a square pyramid)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::tetrahedral\fR \fIn\fR
+Return the nth tetrahedral number (items arranged in a triangular pyramid)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.TP
+\fB::math::figurate::pentatope\fR \fIn\fR
+Return the nth pentatope number (items arranged in the four-dimensional analogue
+of a triangular pyramid)
+.RS
+.TP
+int \fIn\fR
+Required index
+.RE
+.sp
+.PP
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fImath :: figurate\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.PP
+When proposing code changes, please provide \fIunified diffs\fR,
+i\&.e the output of \fBdiff -u\fR\&.
+.PP
+Note further that \fIattachments\fR are strongly preferred over
+inlined patches\&. Attachments can be made by going to the \fBEdit\fR
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar\&.
+.SH KEYWORDS
+figurate numbers, mathematics
+.SH CATEGORY
+Mathematics

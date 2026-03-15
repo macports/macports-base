@@ -45,6 +45,10 @@ namespace eval migrate {
     #          flag set.
     proc main {opts} {
 
+        if {[check_toolchain]} {
+            return 1
+        }
+
         if {[needs_migration]} {
             if {[info exists macports::ui_options(questions_yesno)]} {
                 set msg "Migration will first upgrade MacPorts and then reinstall all installed ports."
@@ -86,10 +90,17 @@ namespace eval migrate {
             }
         }
 
+        # Sync ports tree
+        try {
+            mportsync
+        } on error {eMessage} {
+            ui_error "Couldn't sync the ports tree: $eMessage"
+            return 1
+        }
+
         # create a snapshot
         ui_msg "Taking a snapshot of the current state..."
-        set snapshot [snapshot::main $opts]
-        if {$snapshot == 0} {
+        if {[catch {snapshot::create $opts} snapshot] || $snapshot == 0} {
             return -1
         }
         set id [$snapshot id]
@@ -116,6 +127,46 @@ namespace eval migrate {
         }
 
         return $ret
+    }
+
+    # Check that Xcode and/or CLTs are usable
+    proc check_toolchain {} {
+        global macports::macos_version_major macports::xcodeversion \
+               macports::xcodecltversion macports::os_platform
+
+        if {$os_platform ne "darwin"} {
+            return 0
+        }
+        
+        lassign [macports::get_compatible_xcode_versions] min ok rec
+        if {[vercmp $macos_version_major >= "10.9"]} {
+            if {$xcodecltversion ne "none"} {
+                if {[vercmp $xcodecltversion < $min]} {
+                    ui_error "The installed Xcode Command Line Tools are too old."
+                    ui_error "Version $xcodecltversion installed; at least $min required."
+                    ui_error "Run Software Update or follow <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
+                    return 1
+                }
+                return 0
+            } elseif {[file exists "/Library/Developer/CommandLineTools/"]} {
+                ui_error "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
+                ui_error "The Command Line Tools may be outdated, which can cause problems."
+                ui_error "Please see: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
+                return 1
+            }
+        }
+        if {$xcodeversion ne "none"} {
+            if {[vercmp $xcodeversion < $min]} {
+                ui_error "The installed version of Xcode is too old."
+                ui_error "Version $xcodeversion installed; at least $min required."
+                ui_error "(If you have multiple versions installed, you may need to select a newer one using xcode-select.)"
+                return 1
+            }
+            return 0
+        }
+        ui_error "Neither Xcode nor the Command Line Tools appear to be installed."
+        ui_error "See <https://guide.macports.org/#installing.xcode>"
+        return 1
     }
 
     ##
@@ -152,10 +203,10 @@ namespace eval migrate {
                 $progress update $portfile_counter $portfile_total
                 continue
             }
-            set variations [restore::variants_to_variations_arr $requested_variants]
+            set variations [macports::_variants_to_variations $requested_variants]
             # Set same options as restore code so it's more likely the open mports
             # can be reused rather than having to be opened again.
-            set options [dict create ports_requested [$port requested] subport $portname]
+            set options [dict create ports_requested [$port requested] subport $portname mport_hint_install 1]
             lassign [mportlookup $portname] portname portinfo
             if {$portname eq "" ||
                 [catch {mportopen [dict get $portinfo porturl] $options $variations} mport]
@@ -182,14 +233,42 @@ namespace eval migrate {
     # configured for. Returns true, if migration is needed, false otherwise.
     #
     # @return true iff the migration procedure is needed
-    proc needs_migration {} {
-        global macports::os_platform macports::os_major
+    proc needs_migration {{reasonvar {}}} {
+        global macports::os_platform macports::os_major macports::build_arch
+        if {$reasonvar ne {}} {
+            upvar $reasonvar reason
+            set reason {}
+        }
         if {$os_platform ne $macports::autoconf::os_platform
             || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)
-            || ($os_platform eq "darwin" && $os_major >= 20
-                && ![catch {sysctl sysctl.proc_translated} translated] && $translated)
         } then {
+            set reason "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
             return 1
+        }
+        if {$os_platform eq "darwin" && $os_major >= 20 && $build_arch ne "x86_64"
+                && ![catch {sysctl sysctl.proc_translated} translated] && $translated
+        } then {
+            # Check if our tclsh has an arm64 slice - rebuilding not needed if it's universal
+            set h [machista::create_handle]
+            set rlist [machista::parse_file $h $macports::autoconf::tclsh_path]
+            if {[lindex $rlist 0] == $machista::SUCCESS} {
+                set r [lindex $rlist 1]
+                set a [$r cget -mt_archs]
+                set has_arm64 0
+                while {$a ne "NULL"} {
+                    set arch [machista::get_arch_name [$a cget -mat_arch]]
+                    if {$arch eq "arm64"} {
+                        set has_arm64 1
+                        break
+                    }
+                    set a [$a cget -next]
+                }
+            }
+            machista::destroy_handle $h
+            if {[info exists has_arm64] && !$has_arm64} {
+                set reason "MacPorts is running through Rosetta 2, and should be rebuilt for Apple Silicon"
+                return 1
+            }
         }
         return 0
     }

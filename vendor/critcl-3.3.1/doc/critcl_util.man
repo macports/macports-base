@@ -1,0 +1,87 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset version 1.2]
+[manpage_begin critcl::util n [vset version]]
+[include include/module2.inc]
+[titledesc {CriTcl - Utilities}]
+[require Tcl 8.6]
+[require critcl [opt 3.2]]
+[require critcl::util [opt  [vset version]]]
+[description]
+[para]
+[include include/welcome.inc]
+[para]
+
+This document is the reference manpage for the [package critcl::util]
+package. This package provides convenience commands for advanced
+functionality built on top of the core.
+
+Its intended audience are mainly developers wishing to write Tcl
+packages with embedded C code.
+[para]
+
+This package resides in the Core Package Layer of CriTcl.
+[para][image arch_core][para]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[section API]
+
+[list_begin definitions]
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::util::checkfun] [arg name] [opt [arg label]]]
+
+This command checks the build-time environment for the existence of
+the C function [arg name].
+
+It returns [const true] on success, and [const false] otherwise.
+
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::util::def] [arg path] [arg define] [opt [arg value]]]
+
+This command extends the specified configuration file [arg path] with a
+[const \#define] directive for the named [arg define]. If the [arg value]
+is not specified it will default to [const 1].
+
+[para] The result of the command is an empty string.
+
+[para] Note that the configuration file is maintained in the [cmd critcl::cache]
+directory.
+
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::util::undef] [arg path] [arg define]]
+
+This command extends the specified configuration file [arg path] with an
+[const \#undef] directive for the named [arg define].
+
+[para] The result of the command is an empty string.
+
+[para] Note that the configuration file is maintained in the [cmd critcl::cache]
+directory.
+
+
+[comment {* * ** *** ***** ******** ************* *********************}]
+[call [cmd ::critcl::util::locate] [arg label] [arg paths] [opt [arg cmd]]]
+
+This command checks the build-time environment for the existence of a file
+in a set of possible [arg paths].
+
+[para] If the option [arg cmd] prefix is specified it will be called with
+the full path of a found file as its only argument to perform further checks.
+A return value of [const false] will reject the path and continue the search.
+
+[para] The return value of the command is the found path, as listed in
+[arg paths]. As a side effect the command will also print the found path,
+prefixed with the [arg label], using [cmd critcl::msg].
+
+[para] Failure to find the path is reported via [cmd critcl::error], and a
+possible empty string as the result, if [cmd critcl::error] does not
+terminate execution.
+
+[vset relative_path]
+
+[list_end]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[include include/feedback2.inc]
+[manpage_end]

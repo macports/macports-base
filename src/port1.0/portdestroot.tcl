@@ -126,13 +126,27 @@ proc portdestroot::destroot_start {args} {
 }
 
 proc portdestroot::destroot_main {args} {
-    command_exec -callback portprogress::target_progress_callback destroot
+    global system_options
+    if {$system_options(clonebin_path) ne ""} {
+        global env
+        set saved_path $env(PATH)
+        set env(PATH) $system_options(clonebin_path):$env(PATH)
+    }
+    try {
+        command_exec -callback portprogress::target_progress_callback destroot
+    } finally {
+        if {[info exists saved_path]} {
+            set env(PATH) $saved_path
+        }
+    }
     return 0
 }
 
 proc portdestroot::destroot_finish {args} {
     global UI_PREFIX destroot prefix subport destroot.violate_mtree \
-           applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files
+           applications_dir frameworks_dir destroot.keepdirs \
+           destroot.delete_la_files install.user install.group \
+           macportsuser
     variable oldmask
 
     foreach fileToDelete {share/info/dir lib/charset.alias} {
@@ -145,9 +159,45 @@ proc portdestroot::destroot_finish {args} {
     # Prevent overlinking due to glibtool .la files: https://trac.macports.org/ticket/38010
     ui_debug "Fixing glibtool .la files in destroot for ${subport}"
     set la_file_list [list]
+    if {[getuid] == 0} {
+        set macports_uid [name_to_uid $macportsuser]
+        set macports_gid [uname_to_gid $macportsuser]
+        set fix_ownership 1
+    } else {
+        set fix_ownership 0
+    }
     fs-traverse -depth fullpath [list $destroot] {
-        if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || [file type $fullpath] eq "link")} {
-            if {[file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] ne "relative"} {
+        file lstat $fullpath statinfo
+        # Ensure installed files are not owned by the unprivileged account
+        if {$fix_ownership && ($statinfo(uid) == $macports_uid || $statinfo(gid) == $macports_gid)} {
+            if {$statinfo(uid) == $macports_uid} {
+                ui_debug "Changing owner to ${install.user} for $fullpath"
+                set new_owner ${install.user}
+            } else {
+                # only group needs to be changed
+                set new_owner -1
+            }
+            if {$statinfo(gid) == $macports_gid} {
+                ui_debug "Changing group to ${install.group} for $fullpath"
+                set new_group ${install.group}
+            } else {
+                # only owner needs to be changed
+                set new_group -1
+            }
+            # Changing owner may also change permissions, so we restore
+            # them afterwards. 'file attributes' doesn't work on links
+            # (it operates on the link target instead) but links should
+            # not have setuid/setgid bits set anyway.
+            if {$statinfo(type) ne "link"} {
+                set saved_perms [file attributes $fullpath -permissions]
+            }
+            lchown $fullpath $new_owner $new_group
+            if {$statinfo(type) ne "link"} {
+                file attributes $fullpath -permissions $saved_perms
+            }
+        }
+        if {[file extension $fullpath] eq ".la" && $statinfo(type) in {file link}} {
+            if {$statinfo(type) eq "link" && [file pathtype [file link $fullpath]] ne "relative"} {
                 # prepend $destroot to target of absolute symlinks
                 set checkpath ${destroot}[file link $fullpath]
             } else {
@@ -201,15 +251,9 @@ proc portdestroot::destroot_finish {args} {
         return -code error "Staging $subport into destroot failed"
     }
 
-    # Compress all manpages with gzip (instead) if not building for a
-    # platform where the system tar supports --hfsCompression,
-    # i.e. macOS 10.15 (darwin 19) or later.
-    lassign [_get_compatible_platform] compat_os_platform compat_os_major
+    # Compress all manpages with gzip (instead)
     set manpath ${destroot}${prefix}/share/man
-    if {($compat_os_platform ne "darwin" || ![string is integer -strict $compat_os_major]
-        || $compat_os_major < 19 || [getuid] != 0)
-        && [file isdirectory ${manpath}] && [file type ${manpath}] eq "directory"
-    } then {
+    if {[file isdirectory ${manpath}] && [file type ${manpath}] eq "directory"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${subport}]"
 
         set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
@@ -272,7 +316,9 @@ proc portdestroot::destroot_finish {args} {
                 if {![regexp ${gzext_re} ${manlinksrc}]} {
                     set mandir [file dirname $manlink]
                     set mandirpath [file join $manpath $mandir]
-                    set pwd [pwd]
+                    if {[catch {pwd} oldpwd]} {
+                        set oldpwd {}
+                    }
                     if {[catch {_cd $mandirpath} err]} {
                         puts $err
                         return
@@ -296,7 +342,9 @@ proc portdestroot::destroot_finish {args} {
                         file delete $manlinkpath
                         ln -s "${manlinksrc}.gz" "${manlinkpath}"
                     }
-                    _cd $pwd
+                    if {$oldpwd ne {}} {
+                        _cd $oldpwd
+                    }
                 }
             }
         } else {
@@ -375,6 +423,27 @@ proc portdestroot::destroot_finish {args} {
         }
     } else {
         ui_warn "[format [msgcat::mc "%s installs files outside the common directory structure."] $subport]"
+    }
+
+    # Work around apparent filesystem bug.
+    # https://trac.macports.org/ticket/67336
+    if {![catch {fs_clone_capable $destroot} result] && $result} {
+        global workpath
+        ui_debug "Applying sparse file lseek bug workaround"
+        try {
+            fs-traverse -depth fullpath [list $destroot] {
+                if {[file type $fullpath] eq "file" && [fileIsSparse $fullpath]} {
+                    ui_debug "Cloning $fullpath for workaround"
+                    clonefile $fullpath ${workpath}/.macports-sparse-workaround
+                    file delete ${workpath}/.macports-sparse-workaround
+                    if {![fileIsSparse $fullpath]} {
+                        ui_debug "$fullpath is no longer sparse"
+                    }
+                }
+            }
+        } on error {eMessage} {
+            ui_debug "Error while applying sparse file workaround: $eMessage"
+        }
     }
 
     # Restore umask

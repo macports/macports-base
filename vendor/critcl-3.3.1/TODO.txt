@@ -1,0 +1,13 @@
+
+(7) Document the @placeholders@ available to the various C code fragments.
+
+(8) Note that we can use #define's to make the class and instance
+    types available as fixed named without resorting to placeholders,
+    and still keeping it in a local scope.
+
+---
+
+idea: critcl::cproc -- api to register return types, argument types
+
+      argument types: conversion from Tcl_Obj*, type checking (values)
+      return types:   conversion to Tcl_Obj*, (type/value checking ?)

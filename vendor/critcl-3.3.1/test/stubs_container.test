@@ -1,0 +1,736 @@
+# stubs_container.test -*- tcl -*-
+
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+testing {
+    useLocal lib/stubs_container/container.tcl stubs::container
+}
+
+# -------------------------------------------------------------------------
+# new
+
+test stubs-container-1.0 {new, wrong\#args} -setup {
+} -body {
+    stubs::container::new X
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::new"}
+
+test stubs-container-1.1 {new} -setup {
+    set T [stubs::container::new]
+} -body {
+    lappend R [stubs::container::library?   $T]
+    lappend R [stubs::container::interfaces $T]
+    lappend R [stubs::container::scspec?    $T]
+    lappend R [stubs::container::epoch?     $T]
+    lappend R [stubs::container::revision?  $T]
+    set R
+} -cleanup {
+    unset T R
+} -result {UNKNOWN {} EXTERN {} 0}
+
+# -------------------------------------------------------------------------
+# library, library?
+
+test stubs-container-2.0 {library, wrong\#args} -setup {
+} -body {
+    stubs::container::library
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::library tablevar name"}
+
+test stubs-container-2.1 {library, wrong\#args} -setup {
+} -body {
+    stubs::container::library T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::library tablevar name"}
+
+test stubs-container-2.2 {library, wrong\#args} -setup {
+} -body {
+    stubs::container::library T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::library tablevar name"}
+
+test stubs-container-2.3 {library?, wrong\#args} -setup {
+} -body {
+    stubs::container::library?
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::library? table"}
+
+test stubs-container-2.4 {library?, wrong\#args} -setup {
+} -body {
+    stubs::container::library? T X
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::library? table"}
+
+test stubs-container-2.5 {library, set/get} -setup {
+    set T [stubs::container::new]
+} -body {
+    lappend R [stubs::container::library?   $T]
+    stubs::container::library T TEST
+    lappend R [stubs::container::library?   $T]
+    set R
+} -cleanup {
+    unset T R
+} -result {UNKNOWN TEST}
+
+# -------------------------------------------------------------------------
+# scspec, scspec?
+
+test stubs-container-3.0 {scspec, wrong\#args} -setup {
+} -body {
+    stubs::container::scspec
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::scspec tablevar value"}
+
+test stubs-container-3.1 {scspec, wrong\#args} -setup {
+} -body {
+    stubs::container::scspec T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::scspec tablevar value"}
+
+test stubs-container-3.2 {scspec, wrong\#args} -setup {
+} -body {
+    stubs::container::scspec T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::scspec tablevar value"}
+
+test stubs-container-3.3 {scspec?, wrong\#args} -setup {
+} -body {
+    stubs::container::scspec?
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::scspec? table"}
+
+test stubs-container-3.4 {scspec?, wrong\#args} -setup {
+} -body {
+    stubs::container::scspec? T X
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::scspec? table"}
+
+test stubs-container-3.5 {scspec, set/get} -setup {
+    set T [stubs::container::new]
+} -body {
+    lappend R [stubs::container::scspec?   $T]
+    stubs::container::scspec T TEST
+    lappend R [stubs::container::scspec?   $T]
+    set R
+} -cleanup {
+    unset T R
+} -result {EXTERN TEST}
+
+# -------------------------------------------------------------------------
+# epoch, epoch?
+
+test stubs-container-4.0 {epoch, wrong\#args} -setup {
+} -body {
+    stubs::container::epoch
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::epoch tablevar value"}
+
+test stubs-container-4.1 {epoch, wrong\#args} -setup {
+} -body {
+    stubs::container::epoch T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::epoch tablevar value"}
+
+test stubs-container-4.2 {epoch, wrong\#args} -setup {
+} -body {
+    stubs::container::epoch T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::epoch tablevar value"}
+
+test stubs-container-4.3 {epoch?, wrong\#args} -setup {
+} -body {
+    stubs::container::epoch?
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::epoch? table"}
+
+test stubs-container-4.4 {epoch?, wrong\#args} -setup {
+} -body {
+    stubs::container::epoch? T X
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::epoch? table"}
+
+test stubs-container-4.5 {epoch, set/get, bad value, not integer} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::epoch T TEST
+} -cleanup {
+    unset T
+} -returnCodes error -result {Expected integer for epoch, but got "TEST"}
+
+test stubs-container-4.6 {epoch, set/get} -setup {
+    set T [stubs::container::new]
+} -body {
+    lappend R [stubs::container::epoch?   $T]
+    stubs::container::epoch T 42
+    lappend R [stubs::container::epoch?   $T]
+    set R
+} -cleanup {
+    unset T R
+} -result {{} 42}
+
+# -------------------------------------------------------------------------
+# interface, interfaces
+
+test stubs-container-5.0 {interface, wrong\#args} -setup {
+} -body {
+    stubs::container::interface
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::interface tablevar name"}
+
+test stubs-container-5.1 {interface, wrong\#args} -setup {
+} -body {
+    stubs::container::interface T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::interface tablevar name"}
+
+test stubs-container-5.2 {interface, wrong\#args} -setup {
+} -body {
+    stubs::container::interface T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::interface tablevar name"}
+
+test stubs-container-5.3 {interfaces, wrong\#args} -setup {
+} -body {
+    stubs::container::interfaces
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::interfaces table"}
+
+test stubs-container-5.4 {interfaces, wrong\#args} -setup {
+} -body {
+    stubs::container::interfaces T X
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::interfaces table"}
+
+test stubs-container-5.5 {interface(s), set/get} -setup {
+    set T [stubs::container::new]
+} -body {
+    lappend R [stubs::container::interfaces   $T]
+    stubs::container::interface T TEST
+    lappend R [stubs::container::interfaces   $T]
+    stubs::container::interface T FOO
+    lappend R [lsort -dict [stubs::container::interfaces $T]]
+    set R
+} -cleanup {
+    unset T R
+} -result {{} TEST {FOO TEST}}
+
+test stubs-container-5.6 {interface, duplicate declaration} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+} -body {
+    stubs::container::interface T A
+} -cleanup {
+    unset T
+} -returnCodes error -result {Duplicate declaration of interface "A"}
+
+# -------------------------------------------------------------------------
+# hooks, hooks?, hooksof
+
+test stubs-container-6.0 {hooks, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks tablevar interface names"}
+
+test stubs-container-6.1 {hooks, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks tablevar interface names"}
+
+test stubs-container-6.2 {hooks, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks T x
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks tablevar interface names"}
+
+test stubs-container-6.3 {hooks, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks T x y z
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks tablevar interface names"}
+
+test stubs-container-6.4 {hooksof, wrong\#args} -setup {
+} -body {
+    stubs::container::hooksof
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooksof table interface"}
+
+test stubs-container-6.5 {hooksof, wrong\#args} -setup {
+} -body {
+    stubs::container::hooksof T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooksof table interface"}
+
+test stubs-container-6.6 {hooksof, wrong\#args} -setup {
+} -body {
+    stubs::container::hooksof T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooksof table interface"}
+
+test stubs-container-6.7 {hooks?, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks?
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks? table interface"}
+
+test stubs-container-6.8 {hooks?, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks? T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks? table interface"}
+
+test stubs-container-6.9 {hooks?, wrong\#args} -setup {
+} -body {
+    stubs::container::hooks? T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::hooks? table interface"}
+
+test stubs-container-6.10 {hooks, hooksof, hooks?, set/get} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::interface T B
+    stubs::container::hooks T A {B C}
+} -body {
+    lappend R [stubs::container::hooks?  $T A]
+    lappend R [stubs::container::hooks?  $T B]
+    lappend R [stubs::container::hooksof $T A]
+    lappend R [stubs::container::hooksof $T B]
+    set R
+} -cleanup {
+    unset T R
+} -result {1 0 {B C} {}}
+
+test stubs-container-6.11 {hooksof, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::hooksof $T A
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+test stubs-container-6.12 {hooks?, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::hooks? $T A
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+# -------------------------------------------------------------------------
+# platforms
+
+test stubs-container-7.0 {platforms, wrong\#args} -setup {
+} -body {
+    stubs::container::platforms
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::platforms table interface"}
+
+test stubs-container-7.1 {platforms, wrong\#args} -setup {
+} -body {
+    stubs::container::platforms T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::platforms table interface"}
+
+test stubs-container-7.2 {platforms, wrong\#args} -setup {
+} -body {
+    stubs::container::platforms T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::platforms table interface"}
+
+test stubs-container-7.3 {platforms} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::interface T B
+    stubs::container::declare   T B 5 generic _foo_
+} -body {
+    lappend R [stubs::container::platforms $T A]
+    lappend R [stubs::container::platforms $T B]
+    set R
+} -cleanup {
+    unset T R
+} -result {{} generic}
+
+test stubs-container-7.4 {platforms, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::platforms $T A
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+# -------------------------------------------------------------------------
+# lastof
+
+test stubs-container-8.0 {lastof, wrong\#args} -setup {
+} -body {
+    stubs::container::lastof
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::lastof table interface ?platform?"}
+
+test stubs-container-8.1 {lastof, wrong\#args} -setup {
+} -body {
+    stubs::container::lastof T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::lastof table interface ?platform?"}
+
+test stubs-container-8.2 {lastof, wrong\#args} -setup {
+} -body {
+    stubs::container::lastof T x y z a
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::lastof table interface ?platform?"}
+
+test stubs-container-8.3 {lastof, all} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::interface T B
+    stubs::container::declare   T B 5 generic _foo_
+} -body {
+    lappend R [stubs::container::lastof $T A] ; # note empty          list!
+    lappend R [stubs::container::lastof $T B] ; # note single element list!
+    set R
+} -cleanup {
+    unset T R
+} -result {{} 5}
+
+test stubs-container-8.3.1 {lastof, all} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::interface T B
+    stubs::container::declare   T B 5 generic _bogus_
+    stubs::container::declare   T B 7 aqua    _bogus_
+} -body {
+    lappend R              [stubs::container::lastof $T A]  ; # note empty list!
+    lappend R [lsort -dict [stubs::container::lastof $T B]] ; # note list!
+    set R
+} -cleanup {
+    unset T R
+} -result {{} {5 7}}
+
+test stubs-container-8.4 {lastof, by platform} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::interface T B
+    stubs::container::declare   T B 5 generic _foo_
+} -body {
+    lappend R [stubs::container::lastof $T A generic]
+    lappend R [stubs::container::lastof $T B generic]
+    set R
+} -cleanup {
+    unset T R
+} -result {-1 5}
+
+test stubs-container-8.5 {lastof, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::lastof $T A
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+# -------------------------------------------------------------------------
+# slot?
+
+test stubs-container-9.0 {slot?, wrong\#args} -setup {
+} -body {
+    stubs::container::slot?
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot? table interface platform at"}
+
+test stubs-container-9.1 {slot?, wrong\#args} -setup {
+} -body {
+    stubs::container::slot? T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot? table interface platform at"}
+
+test stubs-container-9.2 {slot?, wrong\#args} -setup {
+} -body {
+    stubs::container::slot? T x
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot? table interface platform at"}
+
+test stubs-container-9.3 {slot?, wrong\#args} -setup {
+} -body {
+    stubs::container::slot? T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot? table interface platform at"}
+
+test stubs-container-9.4 {slot?, wrong\#args} -setup {
+} -body {
+    stubs::container::slot? T x y z a
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot? table interface platform at"}
+
+test stubs-container-9.5 {slot?, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::slot? $T A y z
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+test stubs-container-9.6 {slot?, unknown platform, slot} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+} -body {
+    stubs::container::slot? $T A y z
+} -cleanup {
+    unset T
+} -result 0
+
+test stubs-container-9.7 {slot?} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::declare   T A 5 generic _foo_
+} -body {
+    stubs::container::slot? $T A generic 5
+} -cleanup {
+    unset T
+} -result 1
+
+# -------------------------------------------------------------------------
+# slot
+
+test stubs-container-10.0 {slot, wrong\#args} -setup {
+} -body {
+    stubs::container::slot
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot table interface platform at"}
+
+test stubs-container-10.1 {slot, wrong\#args} -setup {
+} -body {
+    stubs::container::slot T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot table interface platform at"}
+
+test stubs-container-10.2 {slot, wrong\#args} -setup {
+} -body {
+    stubs::container::slot T x
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot table interface platform at"}
+
+test stubs-container-10.3 {slot, wrong\#args} -setup {
+} -body {
+    stubs::container::slot T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot table interface platform at"}
+
+test stubs-container-10.4 {slot, wrong\#args} -setup {
+} -body {
+    stubs::container::slot T x y z a
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slot table interface platform at"}
+
+test stubs-container-10.5 {slot, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::slot $T A y z
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+test stubs-container-10.6 {slot, unknown platform, slot} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+} -body {
+    stubs::container::slot $T A y z
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown slot "y,z"}
+
+test stubs-container-10.7 {slot} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::declare   T A 5 generic _foo_
+} -body {
+    stubs::container::slot $T A generic 5
+} -cleanup {
+    unset T
+} -result _foo_
+
+# -------------------------------------------------------------------------
+# slotplatforms
+
+test stubs-container-11.0 {slotplatforms, wrong\#args} -setup {
+} -body {
+    stubs::container::slotplatforms
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slotplatforms table interface at"}
+
+test stubs-container-11.1 {slotplatforms, wrong\#args} -setup {
+} -body {
+    stubs::container::slotplatforms T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slotplatforms table interface at"}
+
+test stubs-container-11.2 {slotplatforms, wrong\#args} -setup {
+} -body {
+    stubs::container::slotplatforms T x
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slotplatforms table interface at"}
+
+test stubs-container-11.3 {slotplatforms, wrong\#args} -setup {
+} -body {
+    stubs::container::slotplatforms T x y a
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::slotplatforms table interface at"}
+
+test stubs-container-11.4 {slotplatforms, unknown interface} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::slotplatforms $T A y
+} -cleanup {
+    unset T
+} -returnCodes error -result {Unknown interface "A"}
+
+test stubs-container-11.5 {slotplatforms, unknown slot} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::declare   T A 5 generic _foo_
+} -body {
+    stubs::container::slotplatforms $T A 4
+} -cleanup {
+    unset T
+} -result {}
+
+test stubs-container-11.6 {slotplatforms} -setup {
+    set T [stubs::container::new]
+    stubs::container::interface T A
+    stubs::container::declare   T A 5 generic _foo_
+} -body {
+    stubs::container::slotplatforms $T A 5
+} -cleanup {
+    unset T
+} -result generic
+
+# -------------------------------------------------------------------------
+## Representation overview, basics.
+
+test stubs-container-12.0 {print, wrong\#args} -setup {
+} -body {
+    stubs::container::print
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::print table"}
+
+test stubs-container-12.1 {print, wrong\#args} -setup {
+} -body {
+    stubs::container::print T x
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::container::print table"}
+
+test stubs-container-12.2 {print, empty} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs UNKNOWN {
+    scspec   EXTERN
+    epoch    {}
+    revision 0
+}}
+
+test stubs-container-12.3 {print, global settings} -setup {
+    set T [stubs::container::new]
+    stubs::container::library T TEST
+    stubs::container::scspec  T ZEXTERN
+    stubs::container::epoch   T 1
+} -body {
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs TEST {
+    scspec   ZEXTERN
+    epoch    1
+    revision 0
+}}
+
+test stubs-container-12.4 {print, interface} -setup {
+    set T [stubs::container::new]
+    stubs::container::library   T TEST
+    stubs::container::scspec    T ZEXTERN
+    stubs::container::epoch     T 1
+    stubs::container::interface T A
+} -body {
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs TEST {
+    scspec   ZEXTERN
+    epoch    1
+    revision 0
+    interface A {
+        hooks {}
+    }
+}}
+
+test stubs-container-12.5 {print, interface with hooks} -setup {
+    set T [stubs::container::new]
+    stubs::container::library   T TEST
+    stubs::container::scspec    T ZEXTERN
+    stubs::container::epoch     T 1
+    stubs::container::interface T A
+    stubs::container::interface T B
+    stubs::container::interface T C
+    stubs::container::hooks     T A {B C}
+} -body {
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs TEST {
+    scspec   ZEXTERN
+    epoch    1
+    revision 0
+    interface A {
+        hooks {B C}
+    }
+    interface B {
+        hooks {}
+    }
+    interface C {
+        hooks {}
+    }
+}}
+
+test stubs-container-12.6 {print, declarations} -setup {
+    set T [stubs::container::new]
+    stubs::container::library   T TEST
+    stubs::container::scspec    T ZEXTERN
+    stubs::container::epoch     T 1
+    stubs::container::interface T A
+    stubs::container::declare   T A 5 generic _bar_
+    stubs::container::declare   T A 5 {x11 aqua} _foo_
+} -body {
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs TEST {
+    scspec   ZEXTERN
+    epoch    1
+    revision 2
+    interface A {
+        hooks {}
+        declare 5 generic {
+            function {}
+            return _bar_
+        }
+        declare 5 {aqua x11} {
+            function {}
+            return _foo_
+        }
+    }
+}}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

@@ -1,0 +1,130 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# enum.test
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+
+    useLocal lib/critcl/critcl.tcl             critcl
+    useLocal lib/critcl-iassoc/iassoc.tcl      critcl::iassoc
+
+    localcache-setup
+}
+testing {
+    useLocal lib/critcl-literals/literals.tcl critcl::literals
+}
+
+# -------------------------------------------------------------------------
+##
+
+test literals-mode-tcl-1.0 {critcl-literals, mode: tcl (default)} -setup {
+    make-demo TL {
+        critcl::literals::def demo {
+            here  "here"
+            comes "comes"
+            the   "the"
+            sun   "sun"
+        }
+
+        critcl::cproc str {Tcl_Interp* ip int code} object {
+            Tcl_Obj* res = demo (ip, code);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+
+        # Conversion hidden in the result-type
+        critcl::cproc xstr {Tcl_Interp* ip int code} demo {
+            return code;
+        }
+    }
+} -body {
+    res!
+    res+ [str 1]
+    res+ [xstr 2]
+    res?
+} -result {comes the}
+
+test literals-mode-c-1.0 {critcl-literals, mode: c (alone)} -setup {
+    make-demo TL {
+        critcl::literals::def demo {
+            here  "here"
+            comes "comes"
+            the   "the"
+            sun   "sun"
+        } c
+
+        critcl::cproc str {Tcl_Interp* ip int code} object {
+            Tcl_Obj* res = Tcl_NewStringObj (demo_cstr (code), -1);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+    }
+} -body {
+    str 3
+} -result sun
+
+test literals-mode-c+tcl-1.0 {critcl-literals, mode: c + tcl} -setup {
+    make-demo TL {
+        critcl::literals::def demo {
+            here  "here"
+            comes "comes"
+            the   "the"
+            sun   "sun"
+        } {c tcl}
+
+        critcl::cproc str {Tcl_Interp* ip int code} object {
+            Tcl_Obj* res = demo (ip, code);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+
+        critcl::cproc cstr {Tcl_Interp* ip int code} object {
+            Tcl_Obj* res = Tcl_NewStringObj (demo_cstr (code), -1);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+    }
+} -body {
+    res!
+    res+ [str 1]
+    res+ [cstr 2]
+    res?
+} -result {comes the}
+
+test literals-mode-+list-1.0 {critcl-literals, mode: +list (tcl implied)} -setup {
+    make-demo TL {
+        critcl::literals::def demo {
+            here  "here"
+            comes "comes"
+            the   "the"
+            sun   "sun"
+        } +list
+
+        critcl::cproc strs {Tcl_Interp* ip int args} object {
+            Tcl_Obj* res = demo_list (ip, args.c, args.v);
+            Tcl_IncrRefCount (res);
+            return res;
+        }
+    }
+} -body {
+    res!
+    res+ [strs 2]
+    res+ [strs 3 0 1]
+    res?
+} -result {the {{sun here comes}}}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

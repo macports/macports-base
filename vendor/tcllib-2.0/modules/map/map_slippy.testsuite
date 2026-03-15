@@ -1,0 +1,706 @@
+# Tests for the map::slippy module.                           -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcl built-in commands.  Sourcing
+# this file into Tcl runs the tests and generates output for errors.  No output means no errors were
+# found.
+#
+# Copyright (c) 2010-2022 Andreas Kupries
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+::tcltest::testConstraint map_slippy_critcl [string equal $impl critcl]
+
+# -------------------------------------------------------------------------
+
+syntax {
+    geo::2point			{zoom g}
+    geo::2point-list		{zoom geos}
+    geo::bbox			 args
+    geo::bbox-list		 geos
+    geo::box::2point		{zoom gbox}
+    geo::box::center		 gbox
+    geo::box::corners		 gbox
+    geo::box::diameter		 gbox
+    geo::box::dimensions	 gbox
+    geo::box::fit		{gbox canvdim zmax ?zmin?}
+    geo::box::inside		{gbox g}
+    geo::box::limit              gbox
+    geo::box::opposites		 gbox
+    geo::box::perimeter		 gbox
+    geo::box::valid              gbox
+    geo::box::valid-list         gs
+    geo::center			 args
+    geo::center-list		 geos
+    geo::diameter		 args
+    geo::diameter-list		 geos
+    geo::distance		{geoa geob}
+    geo::distance-list		{closed geos}
+    geo::limit                   g
+    geo::valid                   g
+    geo::valid-list              gs
+    length			 level
+    limit2                      {x}
+    limit3                      {x}
+    limit6                      {x}
+    point::2geo	    		{zoom p}
+    point::2geo-list    	{zoom points}
+    point::bbox	    		 args
+    point::bbox-list	    	 points
+    point::box::2geo    	{zoom pbox}
+    point::box::center		 pbox
+    point::box::corners 	 pbox
+    point::box::diameter 	 pbox
+    point::box::dimensions	 pbox
+    point::box::inside		{pbox p}
+    point::box::opposites	 pbox
+    point::box::perimeter 	 pbox
+    point::center	    	 args
+    point::center-list  	 points
+    point::diameter	    	 args
+    point::diameter-list	 points
+    point::distance	    	{pointa pointb}
+    point::distance-list	{closed points}
+    point::simplify::radial	{threshold closed points}
+    point::simplify::rdp	 points
+    tile::size			{}
+    tile::valid			{zoom row col levels ?msgv?}
+    tiles			 level
+    valid::latitude              x
+    valid::longitude             x
+} map::slippy {} {} $impl
+
+# -- Tcl / Critcl differ in the `args` translation for wrong#args
+#    geo::2point*		{zoom args}
+#    geo::distance*		{closed args}
+#    point::2geo*	    	{zoom args}
+#    point::distance*    	{closed args}
+
+# -------------------------------------------------------------------------
+# Basics
+# -------------------------------------------------------------------------
+
+test map-slippy-${impl}-tiles-1.0 {tiles} -body {
+    map slippy tiles 8
+} -result 256
+
+test map-slippy-${impl}-tiles-1.1 {tiles} -body {
+    map slippy tiles 5
+} -result 32
+
+test map-slippy-${impl}-length-1.0 {length} -body {
+    map slippy length 4
+} -result 4096
+
+test map-slippy-${impl}-tile-size-1.0 {tile size} -body {
+    map slippy tile size
+} -result 256
+
+foreach {n levels zoom row col ok msg} {
+    0 5  -1  0  0  0 {Bad zoom level '-1' (max: 5)}
+    1 5   6  0  0  0 {Bad zoom level '6' (max: 5)}
+    2 5   4  0  0  1 {}
+    3 5   4 -1  0  0 {Bad cell '-1 0' (max: 16)}
+    4 5   4 33  0  0 {Bad cell '33 0' (max: 16)}
+    5 5   4  5  0  1 {}
+    6 5   4  0 -1  0 {Bad cell '0 -1' (max: 16)}
+    7 5   4  0 33  0 {Bad cell '0 33' (max: 16)}
+    8 5   4  0  5  1 {}
+} {
+    test map-slippy-${impl}-tile-valid-1.$n {tile valid} -setup {
+        set msgv {}
+    } -body {
+        list [map slippy tile valid $zoom $row $col $levels msgv] $msgv
+    } -result [list $ok $msg]
+}
+
+unset n levels zoom row col ok msg msgv
+
+# -------------------------------------------------------------------------
+# Limiting precision
+# -------------------------------------------------------------------------
+
+foreach {n x       xxxl      xxl    xl} {
+    0 1            1         1      1
+    1 1.000        1         1      1
+    2 1.1          1.1       1.1    1.1
+    3 1.01         1.01      1.01   1.01
+    4 1.001        1.001     1.001  1
+    5 1.0001       1.0001    1      1
+    6 1.777777777  1.777778  1.778  1.78
+    7 0.777777777  0.777778  0.778  0.78
+    8 0            0         0      0
+    9 0.000        0         0      0
+    a 1.0000001    1         1      1
+    b 1.00000001   1         1      1
+} {
+    test map-slippy-${impl}-limit6-1.$n {limit} -body {
+        map slippy limit6 $x
+    } -result $xxxl
+
+    test map-slippy-${impl}-limit3-1.$n {limit} -body {
+        map slippy limit3 $x
+    } -result $xxl
+
+    test map-slippy-${impl}-limit2-1.$n {limit} -body {
+        map slippy limit2 $x
+    } -result $xl
+
+    test map-slippy-${impl}-geo-limit-1.$n {geo limit} -body {
+        map slippy geo limit [list $x $x]
+    } -result [list $xxxl $xxxl]
+
+    test map-slippy-${impl}-geo-box-limit-1.$n {geo box limit} -body {
+        map slippy geo box limit [list $x $x $x $x]
+    } -result [list $xxxl $xxxl $xxxl $xxxl]
+}
+
+# -------------------------------------------------------------------------
+# Box fitting, diameter, perimeter
+# -------------------------------------------------------------------------
+
+foreach {n canvas box min max result gdiameter gperimeter pdiameter pperimeter} {
+    0 {380.0 267.0}  {49.300005 -123.158551 49.301624 -123.157253} 0 18 17  203.1425    594.5182   0.00208 0.00675
+    1 {380.0 267.0}  {49.292809 -123.1589   49.314037 -123.116543} 0 18 13 3873.41787 13889.032599 0.04738 0.17947
+    2 {1410.0 913.0} {49.300005 -123.158551 49.301624 -123.157253} 0 18 18  203.1425    594.5182   0.00208 0.00675
+    3 {1423.0 913.0} {49.292809 -123.1589   49.314037 -123.116543} 0 18 15 3873.41787 13889.032599 0.04738 0.17947
+} {
+    test map-slippy-${impl}-geo-box-fit-4.$n.0 {geo box fit -> zoom} -body {
+        map slippy geo box fit $box $canvas $max $min
+    } -result $result
+
+    test map-slippy-${impl}-geo-box-diameter-4.$n.1 {geo box diameter -> length} -body {
+        map slippy geo box diameter $box
+    } -match 4digits -result $gdiameter
+
+    test map-slippy-${impl}-geo-box-perimeter-4.$n.2 {point box perimeter -> length} -body {
+        map slippy geo box perimeter $box
+    } -match 4digits -result $gperimeter
+
+    test map-slippy-${impl}-point-box-diameter-4.$n.3 {point box diameter -> length} -body {
+        map slippy point box diameter $box
+    } -match 4digits -result $pdiameter
+
+    test map-slippy-${impl}-point-box-perimeter-4.$n.4 {point box perimeter -> length} -body {
+        map slippy point box perimeter $box
+    } -match 4digits -result $pperimeter
+}
+unset n canvas box min max result
+
+# -------------------------------------------------------------------------
+# Distances ...
+# -------------------------------------------------------------------------
+
+foreach {n meters perimeter a b note} {
+    0    69976.7972    139953.5943 {51     6} {51     7}     51.East
+    1   111195.0837    222390.1674 {51     6} {50     6}     51.South
+    2   111195.0837    222390.1674 {0      0} {0      1}     Equator.East
+    3   111195.0837    222390.1674 {0      0} {1      0}     Equator.North
+    4      111.1951       222.3902 {50.777 6} {50.778 6}     .
+    5      131.5606       263.1211 {50.777 6} {50.778 6.001} Diagonally.a.bit
+    6 19158338.4931  38316676.9862 {50     6} {-50  174}     Hopefully-Antipodal
+} {
+    # Note that the rounded(perimeter) is sometimes not quite 2*rounded(meters).
+    # [Cases: 0, 5]. Running 0 as example:
+    #
+    #           Exact                   Rounded
+    # Meters     69976.79714551783       69976.7972 (round to even in .79715)
+    # x2        139953.59429103566      139953.5944
+    # Perimeter 139953.59429103566      139953.5943
+    #
+    # 5 ~ 19,158 km ~ 20,000 km ~ half around the world ...
+
+    test map-slippy-${impl}-geo-distance-5.$n.0 {distance, geo x geo -> double} -body {
+        map slippy geo distance $a $b
+    } -match 4digits -result $meters
+
+    test map-slippy-${impl}-geo-distance-args-5.$n.1 {distance*, open, geo... -> distance} -body {
+        map slippy geo distance* 0 $a $b
+    } -match 4digits -result $meters
+
+    test map-slippy-${impl}-geo-distance-args-5.$n.2 {distance*, closed, geo... -> distance} -body {
+        map slippy geo distance* 1 $a $b
+    } -match 4digits -result $perimeter
+
+    test map-slippy-${impl}-geo-distance-list-5.$n.3 {distance-list, open, list(geo) -> distance} -body {
+        map slippy geo distance-list 0 [list $a $b]
+    } -match 4digits -result $meters
+
+    test map-slippy-${impl}-geo-distance-list-5.$n.4 {distance-list, closed, list(geo) -> distance} -body {
+        map slippy geo distance-list 1 [list $a $b]
+    } -match 4digits -result $perimeter
+}
+
+unset n meters a b note perimeter
+
+# -------------------------------------------------------------------------
+# Geo - Boxes, Center, Diameter ...
+# -------------------------------------------------------------------------
+
+foreach {n meters dim a b center note} {
+    0    69976.7972 {1 0}         {51     6} {51     7}     {51 6.5}         51.East
+    1   111195.0837 {0 1}         {51     6} {50     6}     {50.5 6}         51.South
+    2   111195.0837 {1 0}         {0      0} {0      1}     {0 0.5}          Equator.East
+    3   111195.0837 {0 1}         {0      0} {1      0}     {0.5 0}          Equator.North
+    4      111.1951 {0 0.001}     {50.777 6} {50.778 6}     {50.7775 6}      .
+    5      131.5606 {0.001 0.001} {50.777 6} {50.778 6.001} {50.7775 6.0005} Diagonally.a.bit
+    6 19158338.4931 {168 100}     {50     6} {-50  174}     {0 90}           Hopefully-Antipodal
+} {
+    # 5 ~ 19,158 km ~ 20,000 km ~ half around the world ...
+
+    lassign $a lata lona
+    lassign $b latb lonb
+    set box [list \
+                 [expr {min($lata,$latb)}] [expr {min($lona,$lonb)}] \
+                 [expr {max($lata,$latb)}] [expr {max($lona,$lonb)}]]
+
+    test map-slippy-${impl}-6.$n.0 {bbox geo... -> box} -body {
+        map slippy geo bbox $a $b
+    } -match 4digits -result $box
+
+    test map-slippy-${impl}-6.$n.1 {bbox list(geo) -> box} -body {
+        map slippy geo bbox-list [list $a $b]
+    } -match 4digits -result $box
+
+    test map-slippy-${impl}-6.$n.2 {diameter geo... -> double} -body {
+        map slippy geo diameter $a $b
+    } -match 4digits -result $meters
+
+    test map-slippy-${impl}-6.$n.3 {diameter list(geo) -> double} -body {
+        map slippy geo diameter-list [list $a $b]
+    } -match 4digits -result $meters
+
+    test map-slippy-${impl}-6.$n.4 {center geo... -> geo} -body {
+        map slippy geo center $a $b
+    } -match 4digits -result $center
+
+    test map-slippy-${impl}-6.$n.5 {center list(geo) -> geo} -body {
+        map slippy geo center-list [list $a $b]
+    } -match 4digits -result $center
+
+    test map-slippy-${impl}-6.$n.6 {center geobox -> geo} -body {
+        map slippy geo box center $box
+    } -match 4digits -result $center
+
+    test map-slippy-${impl}-6.$n.7 {dimensions geobox -> wxh} -body {
+        map slippy geo box dimensions $box
+    } -match 4digits -result $dim
+}
+unset n meters a b center note lata latb lona lonb box dim
+
+# -------------------------------------------------------------------------
+# Converting between the coordinate systems.
+# -------------------------------------------------------------------------
+
+foreach {n point zoom geo} {
+    0 {0 0}     0 { 85.0511287798 -180.0}
+    1 {256 256} 0 {-85.0511287798  180.0}
+    2 {128 128} 0 {0 0}
+    3 {0 0}     1 { 85.0511287798 -180.0}
+    4 {256 256} 1 {0 0}
+    5 {128 128} 1 { 66.5132604431  -90.0}
+    6 {512 512} 1 {-85.0511287798  180.0}
+    7 {384 384} 1 {-66.5132604431   90.0}
+} {
+    # geo   -> point -> geo
+    # point -> geo   -> point
+
+    test map-slippy-${impl}-7.$n.0 {zoom point -> geo} -body {
+	map slippy point 2geo $zoom $point
+    } -match 4digits -result $geo
+
+    test map-slippy-${impl}-7.$n.1 {zoom geo -> point} -body {
+	map slippy geo 2point $zoom $geo
+    } -match 4digits -result $point
+
+    test map-slippy-${impl}-7.$n.2 {zoom geo -> point -> geo} -body {
+	map slippy point 2geo $zoom [map slippy geo 2point $zoom $geo]
+    } -match 4digits -result $geo
+
+    test map-slippy-${impl}-7.$n.3 {zoom point -> geo -> point} -body {
+	map slippy geo 2point $zoom [map slippy point 2geo $zoom $point]
+    } -match 4digits -result $point
+
+    # geo* -> point* -> geo*
+    # point* -> geo* -> point*
+
+    test map-slippy-${impl}-7.$n.4 {zoom point.. -> list(geo)} -body {
+	map slippy point 2geo* $zoom $point
+    } -match x4digits -result [list $geo]
+
+    test map-slippy-${impl}-7.$n.5 {zoom geo.. -> list(point)} -body {
+	map slippy geo 2point* $zoom $geo
+    } -match x4digits -result [list $point]
+
+    test map-slippy-${impl}-7.$n.6 {zoom geo... -> list(point) -> list (geo)} -body {
+	map slippy point 2geo* $zoom {*}[map slippy geo 2point* $zoom $geo]
+    } -match x4digits -result [list $geo]
+
+    test map-slippy-${impl}-7.$n.7 {zoom point -> list(geo) -> list (point)} -body {
+	map slippy geo 2point* $zoom {*}[map slippy point 2geo* $zoom $point]
+    } -match x4digits -result [list $point]
+
+    # list(geo) -> list(point) -> list(geo)
+    # list(point) -> list(geo) -> list(point)
+
+    test map-slippy-${impl}-7.$n.8 {zoom list(point) -> list(geo)} -body {
+        map slippy point 2geo-list $zoom [list $point]
+    } -match x4digits -result [list $geo]
+
+    test map-slippy-${impl}-7.$n.9 {zoom list(geo) -> list(point)} -body {
+	map slippy geo 2point-list $zoom [list $geo]
+    } -match x4digits -result [list $point]
+
+    test map-slippy-${impl}-7.$n.10 {zoom list(geo) -> list(point) -> list(geo)} -body {
+	map slippy point 2geo-list $zoom [map slippy geo 2point-list $zoom [list $geo]]
+    } -match x4digits -result [list $geo]
+
+    test map-slippy-${impl}-7.$n.11 {zoom list(point) -> list(geo) -> list(point)} -body {
+	map slippy geo 2point-list $zoom [map slippy point 2geo-list $zoom [list $point]]
+    } -match x4digits -result [list $point]
+}
+
+# -------------------------------------------------------------------------
+## Bad arguments (wrong#args, bad values)
+# -------------------------------------------------------------------------
+
+foreach {n cmd arg} {
+    0  geo::2point      geo
+    1  point::2geo      point
+} {
+    test map-slippy-${impl}-8.$n.0 "bad $arg" -body {
+	map::slippy::$cmd 0 0
+    } -returnCodes error -result {Bad point, expected list of 2}
+
+    test map-slippy-${impl}-8.$n.1 "bad $arg" -body {
+	map::slippy::$cmd 0 {0 x}
+    } -returnCodes error -result {expected floating-point number but got "x"}
+
+    test map-slippy-${impl}-8.$n.2 "bad $arg" -body {
+	map::slippy::$cmd 0 {x 0}
+    } -returnCodes error -result {expected floating-point number but got "x"}
+
+    test map-slippy-${impl}-8.$n.3 "bad zoom" -body {
+	map::slippy::$cmd x {0 0}
+    } -returnCodes error -result {expected integer but got "x"}
+}
+
+unset n cmd arg
+
+# -------------------------------------------------------------------------
+# Point - Boxes, Center, Diameter ...
+# -------------------------------------------------------------------------
+
+foreach {n diam dim a b center note} {
+    0   1      {0 1}         {51     6} {51     7}     {51 6.5}		.
+    1   1      {1 0}         {51     6} {50     6}     {50.5 6}		.
+    2   1      {0 1}         {0      0} {0      1}     {0 0.5}		.
+    3   1      {1 0}         {0      0} {1      0}     {0.5 0}		.
+    4   0.0010 {0.001 0}     {50.777 6} {50.778 6}     {50.7775 6}		.
+    5   0.0014 {0.001 0.001} {50.777 6} {50.778 6.001} {50.7775 6.0005}	.
+    6 195.5096 {100 168}     {50     6} {-50  174}     {0 90}			.
+} {
+    lassign $a xa ya
+    lassign $b xb yb
+    set box [list \
+                 [expr {min($xa,$xb)}] [expr {min($ya,$yb)}] \
+                 [expr {max($xa,$xb)}] [expr {max($ya,$yb)}]]
+
+    test map-slippy-${impl}-9.$n.0 {bbox point... -> box} -body {
+        map slippy point bbox $a $b
+    } -match 4digits -result $box
+
+    test map-slippy-${impl}-9.$n.1 {bbox list(point) -> box} -body {
+        map slippy point bbox-list [list $a $b]
+    } -match 4digits -result $box
+
+    test map-slippy-${impl}-9.$n.2 {diameter point... -> double} -body {
+        map slippy point diameter $a $b
+    } -match 4digits -result $diam
+
+    test map-slippy-${impl}-9.$n.3 {diameter list(point) -> double} -body {
+        map slippy point diameter-list [list $a $b]
+    } -match 4digits -result $diam
+
+    test map-slippy-${impl}-9.$n.4 {center point... -> point} -body {
+        map slippy point center $a $b
+    } -match 4digits -result $center
+
+    test map-slippy-${impl}-9.$n.5 {center list (point) -> point} -body {
+        map slippy point center-list [list $a $b]
+    } -match 4digits -result $center
+
+    test map-slippy-${impl}-9.$n.6 {distance point... -> double} -body {
+        map slippy point distance $a $b
+    } -match 4digits -result $diam
+
+    test map-slippy-${impl}-9.$n.7 {distance* point... -> double, open} -body {
+        map slippy point distance* 0 $a $b
+    } -match 4digits -result $diam
+
+    test map-slippy-${impl}-9.$n.8 {distance* point... -> double, closed} -body {
+        map slippy point distance* 1 $a $b
+    } -match 4digits -result [expr {2*$diam}]
+
+    test map-slippy-${impl}-9.$n.9 {distance-list, open, list(geo) -> distance} -body {
+        map slippy  point distance-list 0 [list $a $b]
+    } -match 4digits -result $diam
+
+    test map-slippy-${impl}-9.$n.10 {distance-list, closed, list(geo) -> distance} -body {
+        map slippy point distance-list 1 [list $a $b]
+    } -match 4digits -result [expr {2*$diam}]
+
+    test map-slippy-${impl}-9.$n.11 {center pointbox -> point} -body {
+        map slippy point box center $box
+    } -match 4digits -result $center
+
+    test map-slippy-${impl}-9.$n.12 {dimensions pointbox -> wxh} -body {
+        map slippy point box dimensions $box
+    } -match 4digits -result $dim
+}
+unset n diam a b note ya yb xa xb box dim
+
+# -------------------------------------------------------------------------
+# Point - Simplifications - Radial, Ramer-Douglas-Peucker
+# -------------------------------------------------------------------------
+
+set points {{0 0} {0 1} {0 2} {0 3} {0 4}}
+foreach {n threshold result} {
+    0 0.5 {{0 0} {0 1} {0 2} {0 3} {0 4}}
+    1 1.5 {{0 0} {0 2} {0 4}}
+    2 2.5 {{0 0} {0 3}}
+    3 3.5 {{0 0} {0 4}}
+    4 4.5 {{0 0}}
+} {
+    test map-slippy-${impl}-10.0.$n {simplify, radial: list(point) -> list(point), open} -body {
+        map slippy point simplify radial $threshold 0 $points
+    } -match x4digits -result $result
+}
+
+test map-slippy-${impl}-10.1 {simplify, radial: list(point) -> list(point), open, no points} -body {
+    map slippy point simplify radial 0.5 0 {}
+} -result {}
+
+test map-slippy-${impl}-10.2 {simplify, radial: list(point) -> list(point), open, single} -body {
+    map slippy point simplify radial 0.5 0 {{0 0}}
+} -match x4digits -result {{0 0}}
+
+# And the same, treating it as closed loop ...
+
+set points {{0 0} {0 1} {0 2} {0 3} {0 4}}
+foreach {n threshold result} {
+    0 0.5 {{0 0} {0 1} {0 2} {0 3} {0 4}}
+    1 1.5 {{0 0} {0 2} {0 4}}
+    2 2.5 {{0 1.5}}
+    3 3.5 {{0 2}}
+    4 4.5 {{0 0}}
+} {
+    test map-slippy-${impl}-10.3.$n {simplify, radial: list(point) -> list(point), closed} -body {
+        map slippy point simplify radial $threshold 1 $points
+    } -match x4digits -result $result
+}
+
+test map-slippy-${impl}-10.4 {simplify, radial: list(point) -> list(point), closed, no points} -body {
+    map slippy point simplify radial 0.5 1 {}
+} -result {}
+
+test map-slippy-${impl}-10.5 {simplify, radial: list(point) -> list(point), closed, single} -body {
+    map slippy point simplify radial 0.5 1 {{0 0}}
+} -match x4digits -result {{0 0}}
+
+unset n points threshold result
+
+# -------------------------------------------------------------------------
+# Non-parametric Ramer-Douglas-Peucker simplification
+
+# TODO: 0/1/2 points -> keep all
+# TODO: 100 collinear => keep start/end
+
+# Case 4 is from rosetta code
+# https://rosettacode.org/wiki/Ramer-Douglas-Peucker_line_simplification
+# BEWARE: Our result differs from RC's because of our auto-threshold does
+#         not match the RC threshold
+# Case 5: https://www.boost.org/doc/libs/1_67_0/libs/geometry/doc/html/geometry/reference/algorithms/simplify/simplify_3.html
+# Case 6: https://adventures.michaelfbryan.com/posts/line-simplification/
+
+foreach {n points result note} {
+    0 {}             {}				nothing
+    1 {{0 0}}        {{0 0}}			no-line
+    2 {{0 0} {0 44}} {{0 0} {0 44}}		no-intermediates
+    3 {
+        {0 0} {0 11} {0 22} {0 33} {0 44}
+    }  {{0 0} {0 44}}				collinear
+    4 {
+        {0 0} {1 0.1} {2 -0.1} {3 5} {4 6} {5 7} {6 8.1} {7 9} {8 9} {9 9}
+    }  {{0 0} {2 -0.1} {3 5} {9 9}}		rosetta-code-other-threshold
+    5 {
+        {1.1 1.1} {2.5 2.1} {3.1 3.1} {4.9 1.1} {3.1 1.9}
+    }  {{1.1 1.1} {3.1 3.1} {4.9 1.1} {3.1 1.9}} boost
+    6 {
+        {-43.0 8.0} {-24.0 19.0} {-13.0 23.0} {-8.0 36.0} {7.0 40.0} {24.0 12.0} {44.0 -6.0} {57.0 2.0} {70.0 7.0}
+    }  {{-43.0 8.0} {-24.0 19.0} {-13.0 23.0} {-8.0 36.0} {7.0 40.0} {24.0 12.0} {44.0 -6.0} {57.0 2.0} {70.0 7.0}} michaelfbryan
+} {
+    test map-slippy-${impl}-11.$n {simplify, rdp: list(point) -> list(point)} -body {
+        map slippy point simplify rdp $points
+    } -match x4digits -result $result
+}
+
+unset n points result
+
+# -------------------------------------------------------------------------
+# Boxes -- Un/packing, conversion
+# -------------------------------------------------------------------------
+
+test map-slippy-${impl}-corners-12.0 {box corners} -body {
+    map slippy geo box corners {0 0 1 1}
+} -match x4digits -result {{0 0} {0 1} {1 0} {1 1}}
+
+test map-slippy-${impl}-corners-12.1 {box corners} -body {
+    map slippy point box corners {0 0 1 1}
+} -match x4digits -result {{0 0} {0 1} {1 0} {1 1}}
+
+test map-slippy-${impl}-opposites-12.0 {box opposite} -body {
+    map slippy geo box opposites {0 0 1 1}
+} -match x4digits -result {{0 0} {1 1}}
+
+test map-slippy-${impl}-opposites-12.1 {box opposite} -body {
+    map slippy point box opposites {0 0 1 1}
+} -match x4digits -result {{0 0} {1 1}}
+
+foreach {n pbox zoom gbox} {
+    0 {  0   0 256 256} 0 {-85.0511287798 -180.0  85.0511287798 180.0}
+    1 {  0   0 128 128} 0 {  0            -180.0  85.0511287798 0}
+    2 {128 128 256 256} 1 {  0             -90.0  66.5132604431 0}
+    3 {384 384 512 512} 1 {-85.0511287798   90.0 -66.5132604431 180.0}
+} {
+    # gbox -> pbox -> gbox
+    # pbox -> gbox -> pbox
+
+    test map-slippy-${impl}-box-conversion-13.$n.0 {zoom pbox -> gbox} -body {
+	map slippy point box 2geo $zoom $pbox
+    } -match x4digits -result $gbox
+
+    test map-slippy-${impl}-box-conversion-13.$n.1 {zoom gbox -> pbox} -body {
+	map slippy geo box 2point $zoom $gbox
+    } -match x4digits -result $pbox
+
+    test map-slippy-${impl}-box-conversion-13.$n.2 {zoom gbox -> pbox -> gbox} -body {
+	map slippy point box 2geo $zoom [map slippy geo box 2point $zoom $gbox]
+    } -match x4digits -result $gbox
+
+    test map-slippy-${impl}-box-conversion-13.$n.3 {zoom pbox -> gbox -> pbox} -body {
+	map slippy geo box 2point $zoom [map slippy point box 2geo $zoom $pbox]
+    } -match x4digits -result $pbox
+}
+
+# -------------------------------------------------------------------------
+# Boxes -- Containment
+# -------------------------------------------------------------------------
+
+foreach {n p inside} {
+    0 {60 50} 1
+    1 {40 50} 0
+    2 {90 50} 0
+    3 {60 10} 0
+    4 {60 80} 0
+} {
+    test map-slippy-${impl}-box-inside-14.$n.0 {geobox inside} -body {
+        map slippy geo box inside {50 20 80 70} $p
+    } -result $inside
+
+    test map-slippy-${impl}-box-inside-14.$n.1 {pointbox inside} -body {
+        map slippy point box inside {50 20 80 70} $p
+    } -result $inside
+}
+
+unset n p inside
+
+# -------------------------------------------------------------------------
+# Distance Prettifier
+# -------------------------------------------------------------------------
+
+foreach {n distance out} {
+    0 1            {1 m}
+    1 1.000        {1 m}
+    2 1.1          {1.1 m}
+    3 1.01         {1.01 m}
+    4 1.001        {1 m}
+    5 1.0001       {1 m}
+    6 1.777777777  {1.78 m}
+    7 100.7777777  {100.78 m}
+    8 1500         {1.5 km}
+    9 1500.777777  {1.501 km}
+} {
+    test map-slippy-${impl}-pretty-distance-15.$n {pretty distance} -body {
+        map slippy pretty-distance $distance
+    } -result $out
+}
+
+unset n distance out
+
+# -------------------------------------------------------------------------
+# Lat/Lon Validations
+# -------------------------------------------------------------------------
+
+foreach {n x latok lonok} {
+    0 -200 0 0
+    1  200 0 0
+    2   50 1 1
+    3 -100 0 1
+    4  100 0 1
+} {
+    test map-slippy-${impl}-valid-lat-16.$n.0 {valid latitude} -body {
+        map slippy valid latitude $x
+    } -result $latok
+
+    test map-slippy-${impl}-valid-lon-16.$n.1 {valid longitude} -body {
+        map slippy valid longitude $x
+    } -result $lonok
+}
+
+unset n x latok lonok
+
+foreach {n lat lon ok} {
+    0 -100    0 0
+    1  100    0 0
+    2  -80    0 1
+    3   80    0 1
+    4    0 -200 0
+    5    0  200 0
+    6    0 -170 1
+    7    0  170 1
+    8   80   80 1
+} {
+    test map-slippy-${impl}-geo-valid-17.$n.0 {geo valid} -body {
+        map slippy geo valid [list $lat $lon]
+    } -result $ok
+
+    test map-slippy-${impl}-geo-valid-17.$n.1 {geo valid-list} -body {
+        map slippy geo valid-list [list [list $lat $lon]]
+    } -result $ok
+
+    test map-slippy-${impl}-geo-box-valid-17.$n.2 {geo box valid} -body {
+        map slippy geo box valid [list $lat $lon 0 0]
+    } -result $ok
+
+    test map-slippy-${impl}-geo-box-valid-17.$n.3 {geo box valid} -body {
+        map slippy geo box valid [list 0 0 $lat $lon]
+    } -result $ok
+
+    test map-slippy-${impl}-geo-box-valid-17.$n.4 {geo box valid-list} -body {
+        map slippy geo box valid-list [list [list $lat $lon 0 0]]
+    } -result $ok
+
+    test map-slippy-${impl}-geo-box-valid-17.$n.5 {geo box valid-list} -body {
+        map slippy geo box valid-list [list [list 0 0 $lat $lon]]
+    } -result $ok
+}
+
+unset n lat lon ok
+
+# -------------------------------------------------------------------------
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:
+return

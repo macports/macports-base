@@ -74,21 +74,23 @@ test make_dependency_list {
     set destination $pwd/destination
 } -body {
     set res [portmpkg::make_dependency_list $subport $destination]
-    if {[llength $res] != 1} {
+    if {[dict size $res] != 0} {
         return "FAIL: unexpectedly long dependency list: $res"
     }
     # indices: 
-    # 0 name
+    # 0 mport
     # 1 version
     # 2 revision
-    # 3 mport
-    set res [lindex $res 0]
-    if {[llength $res] != 4 ||
-        [lindex $res 0] != $subport ||
-        [lindex $res 1] != 060102 ||
-        [lindex $res 2] != 1} {
-            return "FAIL: incorrect dependency list entry: $res"
-    }
+
+    # FIXME: The mocked port has no dependencies, and make_dependency_list
+    # does not include the top level port, so the result is empty.
+    #set res_value [dict get $res $some_depname]
+
+    #if {[llength $res_value] != 3 ||
+    #    [lindex $res 1] != 060102 ||
+    #    [lindex $res 2] != 1} {
+    #        return "FAIL: incorrect dependency list entry: $res"
+    #}
     return "Dependency list successful."
 
 } -result "Dependency list successful."

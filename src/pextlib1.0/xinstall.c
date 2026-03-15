@@ -47,6 +47,14 @@
 #include <sys/cdefs.h>
 #endif
 
+/* For clonefile */
+#ifdef HAVE_SYS_ATTR_H
+#include <sys/attr.h>
+#endif
+#ifdef HAVE_SYS_CLONEFILE_H
+#include <sys/clonefile.h>
+#endif
+
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
@@ -131,14 +139,23 @@ static char *funcname;
 static int safecopy, docompare, dostrip, dobackup, dopreserve, nommap;
 static mode_t mode;
 
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
+static int	clone(const char *, const char *, int, char *, size_t);
+#endif
 static int	copy(Tcl_Interp *interp, int, const char *, int, const char *, off_t);
 static int	compare(int, const char *, size_t, int, const char *, size_t);
 static int	create_newfile(Tcl_Interp *interp, const char *, int, struct stat *);
 static int	create_tempfile(const char *, char *, size_t);
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
+static int	handle_existing_file(Tcl_Interp *interp, const char *path, struct stat *sbp);
+#else
+static int	handle_existing_file(Tcl_Interp *interp, const char *path, struct stat *sbp UNUSED);
+#endif
 static int	install(Tcl_Interp *interp, const char *, const char *, u_long, u_int);
 static int	install_dir(Tcl_Interp *interp, char *);
 static u_long	numeric_id(Tcl_Interp *interp, const char *, const char *, int *rval);
 static void	strip(const char *);
+static void tempfile_template(const char *, char *, size_t);
 static int	trymmap(int);
 static void	usage(Tcl_Interp *interp);
 
@@ -432,9 +449,14 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 {
 	struct stat from_sb, temp_sb, to_sb;
 	struct timeval tvb[2];
-	int devnull, files_match, from_fd = 0, serrno, target;
-	int tempcopy, temp_fd, to_fd = 0;
+	int devnull, files_match, from_fd = -1, serrno, target;
+	int tempcopy, temp_fd = -1, to_fd = -1;
 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
+	int tryclone = 1;
+#else
+	const int tryclone = 0;
+#endif
 
 	files_match = 0;
 
@@ -484,7 +506,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	/* Only copy safe if the target exists. */
 	tempcopy = safecopy && target;
 
-	if (!devnull && (from_fd = open(from_name, O_RDONLY, 0)) < 0) {
+	if ((!tryclone || dostrip || docompare) && !devnull && (from_fd = open(from_name, O_RDONLY, 0)) < 0) {
 		char errmsg[255];
 
 		snprintf(errmsg, sizeof errmsg, "%s: Unable to open: %s, %s",
@@ -517,6 +539,31 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	}
 
 	if (!files_match) {
+	    int done_clone = 0;
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
+	    if (tryclone && !devnull && !dostrip) {
+	        if (!tempcopy && target && handle_existing_file(interp, to_name, &to_sb) != 0) {
+	            tryclone = 0;
+	        }
+	        if (tryclone) {
+	            done_clone = (clone(from_name, to_name, tempcopy, tempfile, sizeof(tempfile)) == 0);
+	        }
+	    }
+	    if (done_clone &&
+	        (((to_fd = open(tempcopy ? tempfile : to_name, O_RDONLY, 0)) < 0)
+	        || (!tempcopy && fstat(to_fd, &to_sb) == -1))) {
+                (void)unlink(tempcopy ? tempfile : to_name);
+                done_clone = 0;
+		}
+		if (!done_clone && from_fd < 0 && (from_fd = open(from_name, O_RDONLY, 0)) < 0) {
+            char errmsg[255];
+            snprintf(errmsg, sizeof errmsg, "%s: Unable to open: %s, %s",
+                 funcname, from_name, strerror(errno));
+            Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+            return TCL_ERROR;
+		}
+#endif
+        if (!done_clone) {
 		if (tempcopy) {
 			to_fd = create_tempfile(to_name, tempfile,
 			    sizeof(tempfile));
@@ -539,8 +586,9 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			}
 			ui_info(interp, "%s: %s -> %s", funcname, from_name, to_name);
 		}
+		} /* !done_clone */
 		if (!devnull) {
-			if (copy(interp, from_fd, from_name, to_fd,
+			if (!done_clone && copy(interp, from_fd, from_name, to_fd,
 			     tempcopy ? tempfile : to_name, from_sb.st_size) != TCL_OK)
 				return TCL_ERROR;
 #if HAVE_COPYFILE
@@ -838,12 +886,11 @@ compare(int from_fd, const char *from_name UNUSED, size_t from_len,
 	return rv;
 }
 
-/*
- * create_tempfile --
- *	create a temporary file based on path and open it
+/* tempfile_template --
+ * prepare a template filename for use with mktemp/mkstemp.
  */
-static int
-create_tempfile(const char *path, char *temp, size_t tsize)
+static void
+tempfile_template(const char *path, char *temp, size_t tsize)
 {
 	char *p;
 
@@ -855,7 +902,63 @@ create_tempfile(const char *path, char *temp, size_t tsize)
 		p = temp;
 	(void)strncpy(p, "INS@XXXX", &temp[tsize - 1] - p);
 	temp[tsize - 1] = '\0';
+}
+
+/*
+ * create_tempfile --
+ *	create a temporary file based on path and open it
+ */
+static int
+create_tempfile(const char *path, char *temp, size_t tsize)
+{
+	tempfile_template(path, temp, tsize);
 	return (mkstemp(temp));
+}
+
+/* unlink or move (backup) an existing file */
+static int
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
+handle_existing_file(Tcl_Interp *interp, const char *path, struct stat *sbp)
+#else
+handle_existing_file(Tcl_Interp *interp, const char *path, struct stat *sbp UNUSED)
+#endif
+{
+    char backup[MAXPATHLEN];
+    /*
+     * Unlink now... avoid ETXTBSY errors later.  Try to turn
+     * off the append/immutable bits -- if we fail, go ahead,
+     * it might work.
+     */
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
+    if (sbp->st_flags & NOCHANGEBITS)
+        (void)chflags(path, sbp->st_flags & ~NOCHANGEBITS);
+#endif
+
+    if (dobackup) {
+        if ((size_t)snprintf(backup, MAXPATHLEN, "%s%s",
+                     path, suffix) != strlen(path) + strlen(suffix)) {
+            char errmsg[255];
+
+            snprintf(errmsg, sizeof errmsg, "%s: Backup filename %s too long",
+                 funcname, path);
+            Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+            return EINVAL;
+        }
+        (void)snprintf(backup, MAXPATHLEN, "%s%s", path, suffix);
+                    ui_info(interp, "%s: %s -> %s", funcname, path, backup);
+        if (rename(path, backup) < 0) {
+            char errmsg[255];
+            int saved_errno = errno;
+
+            snprintf(errmsg, sizeof errmsg, "%s: Rename: %s to %s, %s",
+                 funcname, path, backup, strerror(errno));
+            Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+            return saved_errno;
+        }
+    } else if (unlink(path) < 0) {
+        return errno;
+    }
+    return 0;
 }
 
 /*
@@ -863,50 +966,13 @@ create_tempfile(const char *path, char *temp, size_t tsize)
  *	create a new file, overwriting an existing one if necessary
  */
 static int
-#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
 create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sbp)
-#else
-create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sbp UNUSED)
-#endif
 {
-	char backup[MAXPATHLEN];
 	int saved_errno = 0;
 	int newfd;
 
 	if (target) {
-		/*
-		 * Unlink now... avoid ETXTBSY errors later.  Try to turn
-		 * off the append/immutable bits -- if we fail, go ahead,
-		 * it might work.
-		 */
-#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
-		if (sbp->st_flags & NOCHANGEBITS)
-			(void)chflags(path, sbp->st_flags & ~NOCHANGEBITS);
-#endif
-
-		if (dobackup) {
-			if ((size_t)snprintf(backup, MAXPATHLEN, "%s%s",
-					     path, suffix) != strlen(path) + strlen(suffix)) {
-				char errmsg[255];
-
-				snprintf(errmsg, sizeof errmsg, "%s: Backup filename %s too long",
-					 funcname, path);
-				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
-				return -1;
-			}
-			(void)snprintf(backup, MAXPATHLEN, "%s%s", path, suffix);
-                        ui_info(interp, "%s: %s -> %s", funcname, path, backup);
-			if (rename(path, backup) < 0) {
-				char errmsg[255];
-
-				snprintf(errmsg, sizeof errmsg, "%s: Rename: %s to %s, %s",
-					 funcname, path, backup, strerror(errno));
-				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
-				return -1;
-			}
-		} else
-			if (unlink(path) < 0)
-				saved_errno = errno;
+	    saved_errno = handle_existing_file(interp, path, sbp);
 	}
 
 	newfd = open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -994,6 +1060,24 @@ copy(Tcl_Interp *interp, int from_fd, const char *from_name, int to_fd, const ch
 }
 
 /*
+ * clone --
+ *	create a clone of a file
+ */
+#if defined(HAVE_CLONEFILE) && defined(CLONE_NOOWNERCOPY)
+static int
+clone(const char *from_name, const char *to_name,
+      int use_temp, char *temp_name, size_t tsize)
+{
+    if (use_temp) {
+        tempfile_template(to_name, temp_name, tsize);
+        mktemp(temp_name);
+        to_name = temp_name;
+    }
+    return clonefile(from_name, to_name, CLONE_NOOWNERCOPY);
+}
+#endif
+
+/*
  * strip --
  *	use strip(1) to strip the target file
  */
@@ -1044,13 +1128,17 @@ install_dir(Tcl_Interp *interp, char *path)
 			*p = '\0';
 			if (stat(path, &sb)) {
 				if (errno != ENOENT || mkdir(path, 0755) < 0) {
-					char errmsg[255];
+					/* Check if the dir was created between
+					 * our stat and mkdir calls. */
+					int saved_errno = errno;
+					if (errno != EEXIST || stat(path, &sb) < 0 || !S_ISDIR(sb.st_mode)) {
+					    char errmsg[255];
 
-					*p = ch;
-					snprintf(errmsg, sizeof errmsg, "%s: mkdir %s, %s",
-						 funcname, path, strerror(errno));
-					Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
-					return TCL_ERROR;
+					    snprintf(errmsg, sizeof errmsg, "%s: mkdir %s, %s",
+					        funcname, path, strerror(saved_errno));
+					    Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+					    return TCL_ERROR;
+					}
 				}
 				else {
                                         ui_info(interp, "%s: mkdir %s", funcname, path);

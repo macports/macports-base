@@ -46,6 +46,7 @@ namespace eval portbuild {
 options build.asroot \
         build.jobs \
         build.jobs_arg \
+        build.mem_per_job \
         build.target \
         use_parallel_build
 commands build
@@ -56,6 +57,7 @@ default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
 default build.jobs_arg {[portbuild::build_getjobsarg]}
+default build.mem_per_job 1024
 default build.pre_args {[portbuild::build_getargs]}
 default build.target all
 default build.type default
@@ -157,8 +159,10 @@ proc portbuild::build_getjobs {args} {
 
         macports_try -pass_signal {
             set memsize [sysctl hw.memsize]
-            if {$jobs > $memsize / (1024 * 1024 * 1024) + 1} {
-                set jobs [expr {$memsize / (1024 * 1024 * 1024) + 1}]
+            global build.mem_per_job
+            set jobs_limit_mem [expr {int($memsize / (${build.mem_per_job} * 1024 * 1024)) + 1}]
+            if {$jobs > $jobs_limit_mem} {
+                set jobs $jobs_limit_mem
             }
         } on error {} {}
     }
@@ -201,6 +205,11 @@ proc portbuild::build_start {args} {
     global UI_PREFIX subport
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Building %s"] ${subport}]"
+
+    global portconfigure::no_default_compiler_allowed
+    if {$no_default_compiler_allowed} {
+        ui_warn_once no_default_compiler_allowed "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
+    }
 }
 
 proc portbuild::build_main {args} {

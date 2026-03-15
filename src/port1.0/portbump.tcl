@@ -188,8 +188,8 @@ proc portbump::bump_main {args} {
 
         # root -> owner id
         exec_as_uid $owneruid {
-            # Create temporary Portfile.bump.XXXXXX
-            if {[catch {set tmpfd [file tempfile tmpfile "${portpath}/Portfile.bump.XXXXXX"]} error]} {
+            # Create temporary Portfile_XXXXXX.bump
+            if {[catch {set tmpfd [file tempfile tmpfile ${portpath}/Portfile.bump]} error]} {
                 ui_debug $::errorInfo
                 ui_error "file tempfile: $error"
                 return -code error "file tempfile failed"

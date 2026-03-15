@@ -128,13 +128,8 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
         return 0;
     }
     if (sqlite3_open(NULL, &reg->db) == SQLITE_OK) {
-        /* Enable extended result codes, requires SQLite >= 3.3.8
-         * Check added for compatibility with Tiger. */
-#if SQLITE_VERSION_NUMBER >= 3003008
-        if (sqlite3_libversion_number() >= 3003008) {
-            sqlite3_extended_result_codes(reg->db, 1);
-        }
-#endif
+        /* Enable extended result codes, requires SQLite >= 3.3.8 */
+        sqlite3_extended_result_codes(reg->db, 1);
 
         sqlite3_busy_timeout(reg->db, 25);
 
@@ -590,6 +585,41 @@ int reg_checkpoint(reg_registry* reg, reg_error* errPtr) {
             reg_sqlite_error(reg->db, errPtr, NULL);
             return 0;
         }
+    }
+#endif
+    return 1;
+}
+
+/**
+ * Runs PRAGMA optimize on the given db if supported.
+ *
+ * @param [in] reg     the registry to optimize
+ * @return             true if success; false if failure
+ */
+int reg_optimize(reg_registry* reg, reg_error* errPtr)
+{
+#if SQLITE_VERSION_NUMBER >= 3018000
+    if (sqlite3_libversion_number() >= 3018000
+            && sqlite3_db_readonly(reg->db, "registry") == 0) {
+        int result = 0;
+        sqlite3_stmt* stmt = NULL;
+        if (sqlite3_prepare_v2(reg->db, "PRAGMA optimize", -1, &stmt, NULL) == SQLITE_OK) {
+            int r;
+            do {
+                sqlite3_step(stmt);
+                r = sqlite3_reset(stmt);
+                if (r == SQLITE_OK) {
+                    result = 1;
+                }
+            } while (r == SQLITE_BUSY);
+        }
+        if (!result) {
+            reg_sqlite_error(reg->db, errPtr, NULL);
+        }
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+        return result;
     }
 #endif
     return 1;

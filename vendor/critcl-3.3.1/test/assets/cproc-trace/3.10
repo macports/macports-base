@@ -1,0 +1,26 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static char* c__aproc0()
+{
+return alloc_string("bar");
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  char* rv;
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  /* Call - - -- --- ----- -------- */
+  rv = c__aproc0();
+
+  /* (dstring return) - - -- --- ----- -------- */
+	Tcl_SetResult (interp, rv, TCL_DYNAMIC);
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

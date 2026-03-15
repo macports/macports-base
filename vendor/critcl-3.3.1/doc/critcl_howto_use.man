@@ -1,0 +1,98 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[comment {quadrant: how-to}]
+[include version.inc]
+[manpage_begin critcl_howto_use n [vset VERSION]]
+[include include/module.inc]
+[titledesc {How To Use CriTcl}]
+[description]
+[para]
+[include include/welcome.inc]
+
+[para] This document assumes the presence of a working [vset critcl] installation.
+
+[para] If that is missing follow the instructions on [term {How To Install CriTcl}].
+
+[comment {= = == === ===== ======== ============= =====================}]
+
+[section Basics]                            [include include/use/first.inc]
+[vset base " Starting from the [sectref Basics]. 
+            Edit the file [file example.tcl].
+            Remove the definition of [cmd hello]. Replace it with "]
+[vset rebuild { and rebuild the package.}]
+
+[subsection {Simple Arguments}]               [include include/use/args.inc]
+[subsection {Simple Results}]                 [include include/use/results.inc]
+[subsection {Range-limited Simple Arguments}] [include include/use/args_range.inc]
+[subsection {String Arguments}]               [include include/use/args_str.inc]
+[subsection {String Results}]                 [include include/use/results_str.inc]
+[subsection {List Arguments}]                 [include include/use/args_list.inc]
+[subsection {Constrained List Arguments}]     [include include/use/args_list_constrained.inc]
+[subsection {Raw Tcl_Obj* Arguments}]         [include include/use/args_obj.inc]
+[subsection {Raw Tcl_Obj* Results}]           [include include/use/results_obj.inc]
+[subsection {Errors & Messages}]              [include include/use/errors.inc]
+[subsection {Tcl_Interp* Access}]             [include include/use/interp.inc]
+[subsection {Binary Data Arguments}]          [include include/use/args_binary.inc]
+[subsection {Constant Binary Data Results}]   [include include/use/results_const_binary.inc]
+[subsection {Tcl Runtime Version}]            [include include/use/runtime.inc]
+[subsection {Additional Tcl Code}]            [include include/use/tcl_sources.inc]
+[subsection {Debugging Support}]              [include include/use/debugging.inc]
+[subsection {Install The Package}]            [include include/use/build_install.inc]
+
+[section {Using External Libraries}]        [include include/use/second.inc]
+[vset ebase " Starting from the [sectref {Using External Libraries} {base wrapper}]. 
+              Edit the file [file example.tcl]. "]
+
+[subsection {Default Values For Arguments}]             [include include/use/args_default.inc]
+[subsection {Custom Argument Validation}]               [include include/use/args_check.inc]
+[subsection {Separating Local C Sources}]               [include include/use/csources.inc]
+[subsection {Very Simple Results}]                      [include include/use/cconst.inc]
+[subsection {Structure Arguments}]                      [include include/use/args_structure.inc]
+[subsection {Structure Results}]                        [include include/use/results_structure.inc]
+[subsection {Structure Types}]                          [include include/use/objtype_structure.inc]
+[subsection {Large Structures}]                         [include include/use/objtype_large.inc]
+[subsection {External Structures}]                      [include include/use/external_struct.inc]
+[subsection {External Enumerations}]                    [include include/use/external_enum.inc]
+[subsection {External Bitsets/Bitmaps/Flags}]           [include include/use/external_bitmap.inc]
+[subsection {Non-standard header/library locations}]    [include include/use/locations.inc]
+[subsection {Non-standard compile/link configuration}]  [include include/use/flags.inc]
+[subsection {Querying the compilation environment}]     [include include/use/env_query.inc]
+[subsection {Shared C Code}]                            [include include/use/csources_ii.inc]
+
+[section Various]
+[subsection {Author, License, Description, Keywords}] [include include/use/meta.inc]
+[subsection {Get Critcl Application Help}]            [include include/use/build_help.inc]
+[subsection {Supported Targets & Configurations}]     [include include/use/build_targets.inc]
+[subsection {Building A Package}]                     [include include/use/build_package.inc]
+[subsection {Building A Package For Debugging}]       [include include/use/build_package_debug.inc]
+
+[comment {
+    [section {-- topics to do --}]
+
+    [list_begin itemized]
+    [item] 'args' handling
+    [item] void and ok results (no results, full custom results)
+    [item] channels arguments, results ?
+    [item] demo: callbacks
+    [item] demo: iassoc
+    [item] demo: string pool
+    [item] demo: assertions        --> cutil
+    [item] demo: memory utilities  -/
+    [item] demo: tracing utilities /
+    [item]
+    [list_end]
+
+    [section {-- topics ignored for now as advanced, niche, without example, superceded --}]
+
+    [list_begin itemized]
+    [item] cdefines - no - better done with emap/bitmap
+    [item] ccommand - no - no real example available. advanced
+    [item] tk       - no - widgets - no example available. advanced
+    [item] fallback to tcl if C not available for platform - niche
+    [item] cross compilation - need external support for that how to
+    [item] custom config - no - advanced
+    [item] prefill result cache - niche
+    [list_end]
+}]
+
+[include include/feedback.inc]
+[manpage_end]

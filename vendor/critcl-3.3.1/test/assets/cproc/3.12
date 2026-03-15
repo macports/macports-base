@@ -1,0 +1,26 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static Tcl_Channel c__aproc0()
+{
+return Tcl_OpenFileChannel (interp, "/tmp", "r", 0);
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  Tcl_Channel rv;
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return TCL_ERROR;
+  }
+
+  /* Call - - -- --- ----- -------- */
+  rv = c__aproc0();
+
+  /* (new-channel return) - - -- --- ----- -------- */
+	if (rv == NULL) { return TCL_ERROR; }
+	Tcl_RegisterChannel (interp, rv);
+	Tcl_SetObjResult (interp, Tcl_NewStringObj (Tcl_GetChannelName (rv), -1));
+	return TCL_OK;
+}

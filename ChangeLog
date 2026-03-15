@@ -2,7 +2,350 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.10.0 (unreleased)
+Release 2.12.4 (unreleased)
+    - Fixed occasional lchown errors when upgrading ports.
+      (#73514, jmr in 07ff611)
+
+    - Fixed occasional permissions errors when using a ports tree in a
+      git repo. (pguyot in b4709d0)
+
+    - Fixed 'port deps' error with unindexed ports. (jmr in 2dff719)
+
+    - Added --with-git option to configure.
+      (#72451, herbygillot in 3ea4d20)
+
+Release 2.12.3 (2026-03-09 by jmr)
+    - Fixed checksum mismatch when ports that share one or more
+      distfiles are fetched by an action. (#73587, jmr in c4d2176)
+
+    - Fixed duplicate "Upgrading already installed dependencies"
+      message. (jmr in dcbe314)
+
+Release 2.12.2 (2026-02-28 by jmr)
+    - Files in the destroot owned by the unprivileged macports user are
+      now chowned to ${install.user}. (#73516, jmr in a1223b7, fc5a3d6)
+
+    - Fixed error when starting archive fetch under some circumstances.
+      (jmr in 4508cb3)
+
+    - Fixed unnecessarily downloading an archive when a port has
+      already been destrooted locally. (jmr in bbca8be)
+
+Release 2.12.1 (2026-02-06 by jmr)
+    - Fixed error extracting ports synced with rsync on systems with an
+      older version of tar. (#73467, jmr in cf8e6d5)
+
+    - Fixed 'port upgrade' not respecting the -p option.
+      (#73472, jmr in c81f3d6)
+
+    - Enabled signature verification for the daily tarball, now that a
+      signature is being published for it. (jmr in a472c5a)
+
+    - Enabled threaded fetching for 'port mirror'. (jmr in be806ac)
+
+Release 2.12.0 (2026-02-03 by jmr)
+    - Files are now downloaded in background threads, so downloads
+      needed for upcoming port installations can progress while other
+      ports are being installed. The new fetch_threads macports.conf
+      option controls the maximum number of simultaneous downloads.
+      (jmr in 632eab5)
+
+    - Performance of dependency calculation is improved by checking
+      availability of archives in background threads, and by processing
+      ports that don't need that check first.
+      (jmr in 2eed186, e668a7b, e83422f)
+
+    - 'port upgrade' now displays the list of ports that will be
+      upgraded or installed before starting, and asks for confirmation
+      if running interactively. (jmr in e3def17)
+
+    - 'port upgrade' now has a progress counter showing the total
+      number of ports to be upgraded and the current port's position in
+      the list. (#5001, jmr in 82964b8)
+
+    - Syncing the ports tree via rsync should now perform better by
+      only extracting updated files from the tarball. (jmr in df4d61b)
+
+    - Updated the bundled Tcl to 8.6.17. (jmr in 1555f20)
+
+    - The use_* options related to the type of distfile (use_bzip2,
+      use_xz, etc) have been reworked. Setting one of them now unsets
+      the rest. The extract.cmd, extract.pre_args, extract.post_args,
+      and extract.suffix options now have dynamic defaults based on
+      which of the use_* options are set (if any). Extract dependencies
+      are now added in a callback at the end of Portfile parsing,
+      rather than immediately on setting a use_* option, so the
+      dependencies reflect the final option values.
+      (#64960, jmr in 4d1304b)
+
+    - Timestamps in logs now have millisecond precision.
+      (#72600, jmr in 871d039)
+
+    - Fixed error when running 'port info --index --fullname'.
+      (jmr in b413e63)
+
+Release 2.11.6 (2025-10-29 by jmr)
+    - Fixed possible failure of (x)install -d when something else
+      creates the directory while it is running.
+      (#72886, jmr in 97aedd9)
+
+    - Fixed sandbox error when building with Xcode on Mac OS X 10.5.
+      (#72940, jmr in 81ada26)
+
+    - Prefer to use /usr/bin/bsdtar for HFS Compression when possible,
+      since the libarchive port doesn't work while its dependencies
+      are being upgraded. (#73103, jmr in c391f3f)
+
+    - Fixed permissions errors due to incorrect group membership
+      management. (#73160, jmr in 4497293)
+
+Release 2.11.5 (2025-08-18 by jmr)
+    - Fixed unexpected behaviour of (x)install commands on APFS in
+      some cases. (#72850, jmr in ea247a7, d8cfd53)
+
+    - Fixed a Makefile race condition that could cause installing
+      MacPorts from source to fail sometimes (including when running
+      selfupdate.) (#72802, jmr in 85db375)
+
+    - Fixed incorrect behaviour of 'portindex -p' when not using an
+      override file. (#72785, jmr in 1b58a9d)
+
+    - Fixed the last resort entry in release_version_urls used by
+      selfupdate, which was pointing to the wrong branch and so would
+      usually not indicate that a new version is available.
+      (#72823, jmr in 05122e1)
+
+Release 2.11.4 (2025-08-01 by jmr)
+    - Fixed incorrect handling of existing work directories created by
+      older MacPorts versions in some cases. (#72740, jmr in bc9bfca)
+
+    - 'port lint' no longer incorrectly tells you to use the
+      compiler_blacklist_versions portgroup. (jmr in 46424c2)
+
+    - Fixed error when running 'port mpkg' on some ports.
+      (jmr in 07950fc)
+
+    - Fixed error when building base for a prefix that contains one or
+      more symlinks. (jmr in 2a7829d)
+
+Release 2.11.3 (2025-07-23 by jmr)
+    - $workpath is normalized again, since build systems may not apply
+      normalization consistently. The path is now deterministic, which
+      means it has to be longer to avoid collisions, though it should
+      still be shorter than pre-2.11, especially with longer prefixes.
+      (#72715, jmr in f3369be)
+
+Release 2.11.2 (2025-07-18 by jmr)
+    - Installing MacPorts from source now uses its own copy of
+      install(1) on systems that support APFS. As well as improving
+      performance, this also seems to work around an apparent bug in
+      the macOS filesystem cache that could cause errors during or
+      right after selfupdate. (#72689, jmr in 23e60c7)
+
+    - The value of $workpath is no longer fully normalized, so that it
+      and other options based on it (such as $destroot) will remain
+      consistent before and after the path is created.
+      (#72701, jmr in 5500c4a)
+
+Release 2.11.1 (2025-07-14 by jmr)
+    - A warning is printed if the home directory of the macports user
+      can't be updated, rather than installation failing.
+      (#72676, jmr in d1e4f04, 639d403)
+
+    - The xinstall command no longer fails on macOS 10.12.
+      (#72680, jmr in 22a8d57)
+
+    - Syncing will now create ${prefix}/var/macports/home if it doesn't
+      exist, to avoid failing. (#72681, jmr in bda1cc8)
+
+    - Syncing now adjusts the ownership and permissions on any existing
+      PortIndex if needed to avoid the portindex command failing when
+      run unprivileged. (#72677, jmr in 2810b15)
+
+Release 2.11.0 (2025-07-09 by jmr)
+    - MacPorts now requires Mac OS X 10.5 or later.
+
+    - 'port reclaim' now has an option to keep unrequested ports that
+      are build-time dependencies of requested ports.
+      (#60754, jmr in bbc10c2)
+
+    - 'port reclaim' will now offer to delete old registry snapshots.
+      (jmr in 6b5f407)
+
+    - 'port snapshot' can now export and import snapshots in JSON
+      format with the new '--export' and '--import' options.
+      (#16808, cal in 4d9e8a1, f745b45)
+
+    - 'port migrate' and 'port restore' will now check if ports set
+      replaced_by and install the replacement instead. (jmr in 0ff09a1)
+
+    - The interactive message confirming the dependencies to be
+      installed now includes their variants. (jmr in 8d1fbf2)
+
+    - 'port mpkg' now checks architectures of dependencies and enables
+      the universal variant if needed. (#34177, jmr in a83bf73)
+
+    - Added 'git' livecheck.type. (makr in c1c02d8)
+
+    - compiler.blacklist can now include version comparisons. This
+      functionality was previously provided by a PortGroup.
+      (jmr in 89035db)
+
+    - Lower-case versions of environment variables controlling network
+      proxy use are now accepted. (jmr in 5e9ddc1)
+
+    - Interactive confirmation will be requested if it looks like all
+      active ports are about to be uninstalled.
+      (#46229, jmr in 85438c2)
+
+    - 'port uninstall' will once again allow interactively selecting
+      multiple versions to uninstall when there is ambiguity.
+      (#70922, jmr in 5d107c1)
+
+    - 'port archive' will once again always ensure that an archive
+      exists for the specified ports, even if port images are stored as
+      directories on your system. If you just want to install without
+      activating, use 'port install --no-activate'. (jmr in e372075)
+
+    - Signify signatures are supported for the ports tree and archives.
+      (jmr in d915971, ce4af0f)
+
+    - 'port lint' no longer warns about patch filenames that end in a
+      suffix indicating compression (e.g. .gz).
+      (#70428, jmr in acc1304)
+
+    - 'port diagnose' no longer fails when trying to check the
+      permissions on directories if they don't exist.
+      (#72087, jmr in 0a2b468)
+
+    - Installing without activating will no longer fail when there is a
+      declared conflict. (jmr in f17785d)
+
+    - 'port rev-upgrade --id-loadcmd-check' no longer fails on install
+      names containing @rpath or @executable_path.
+      (#67534, jmr in 34a8990)
+
+    - Build directory names are now much shorter to help avoid problems
+      with some build systems and long paths. A symlink is created with
+      the previous naming scheme. (#70539, jmr in 9911d29)
+
+    - Many copy operations now use clonefile if possible.
+      (jmr in 3da9cd2)
+
+    - Updated the bundled Tcl to 8.6.16. (jmr in 3954f08)
+
+    - Updated tcllib to 2.0, including tcllibc.
+      (jmr in d82c8c9, 7bf1511)
+
+    - Changed 'port-tclsh' to a binary instead of a wrapper script to
+      fix mpstats.
+      (#72530, cal in 186667728, 5b91e31cc)
+
+Release 2.10.7 (2025-05-05 by jmr)
+    - Fixed error when installing a port that needs +universal added to
+      one of its already-installed dependencies.
+      (#72431, jmr in cf34a5e)
+
+Release 2.10.6 (2025-04-29 by jmr)
+    - Fixed incorrect handling of master_site_local and
+      archive_site_local. (#57720, jmr in 00aab6a)
+
+    - Fixed error when installing a port that needs one of its
+      dependencies to be universal and using a PortIndex that was
+      generated on a machine where that dependency does not support a
+      universal variant. (jmr in 31f7c7f)
+
+    - Improved portindex startup time. (jmr in bdeaa81)
+
+    - Changed 'port-tclsh' to a wrapper script instead of a symlink to
+      fix the Tcl library search path.
+      (#72359, cal in ddf08fb88, b951449b7)
+
+Release 2.10.5 (2024-11-23 by jmr)
+    - Fixed error when the Command Line Tools receipt is missing.
+      (#71339, jmr in dab32c5)
+
+    - The darwintrace library used by trace mode no longer aborts when
+      it encounters an unreadable symlink. (cal in e3eed16)
+
+    - Fixed CVE-2024-11681. Thanks to Simon Scannell of Google's Cloud
+      Vulnerability Research team. (jmr in 906525f)
+
+Release 2.10.4 (2024-11-01 by jmr)
+    - Fixed destroot_finish error on some older macOS versions.
+      (#71217, jmr in aa60115)
+
+Release 2.10.3 (2024-10-31 by jmr)
+    - On Apple Silicon Macs, the port command will now ensure that it
+      is running natively by relaunching itself if it is started under
+      Rosetta 2 and build_arch is not set to x86_64 in macports.conf.
+      Migration is no longer required when MacPorts base is x86_64
+      only, provided that build_arch is set to x86_64 in macports.conf.
+      This will ensure that most users are running natively while still
+      allowing a fully emulated x86_64 installation if desired.
+      (jmr in eee437c, 425b158)
+
+    - Fixed error trying to create the history file in shell mode when
+      ~/.macports doesn't exist yet. (#71143, jmr in e788103)
+
+    - Added mitigation for a rarely seen macOS bug affecting handling
+      of sparse files. (#67336, jmr in af49e24)
+
+    - Silenced error message from running 'pragma OPTIMIZE' on the
+      registry database without write access. (#71017, jmr in c219570)
+
+    - Fixed recreating the destroot from an installed port image that
+      is a directory, as needed by some targets like mpkg.
+      (#71011, jmr in c3c817e)
+
+    - Fixed force activation of conflicting ports. (jmr in 1f52c5a)
+
+Release 2.10.2 (2024-10-01 by jmr)
+    - Fixed 'port restore' erroring out when a Portfile failed to
+      parse. (#70903, jmr in 202d58b)
+
+    - Worked around a bug in the version of libcurl shipped in recent
+      macOS versions that was causing crashes when downloading from FTP
+      sites. (#70764, jmr in ff881a5, 1ac551f)
+
+    - 'port snapshot --list' now respects the -q option.
+      (jmr in e756756)
+
+    - Fixed expressions involving the complement operator ("and not")
+      causing an error when the right hand side evaluated to empty.
+      (jmr in 96520f2)
+
+    - Worked around a bug in Tiger's gnutar that caused an error when
+      installing from some archives generated on newer systems.
+      (#70622, jmr in d54e1de)
+
+Release 2.10.1 (2024-08-16 by jmr)
+    - Fixed issues migrating when running under Rosetta 2 on
+      Apple Silicon. (#70512, jmr in 567fa44, e291303, 9eb441f)
+
+    - Fixed printing the list of installed versions twice when an
+      ambiguous 'port activate' is run. (#70514, jmr in d27484c)
+
+    - The default build_arch is now always arm64 when running on Apple
+      Silicon hardware, even under Rosetta 2. (#61750, jmr in 05cd570)
+
+Release 2.10.0 (2024-08-07 by jmr)
+    - 'port space' no longer overcounts the space used by ports that
+      install links. (#66526, jmr in 11662bd)
+
+    - The number of outdated ports is printed after running
+      'port selfupdate'. (#33820, thelastlin in 4ae6d98)
+
+    - 'port selfupdate' now checks whether MacPorts base is outdated by
+      downloading a small file, and only downloads and extracts the
+      source code (via http(s)) if a new version needs to be installed.
+      Integrity of the source is checked using OpenBSD's signify(1).
+      The old rsync method is used as a fallback if the new method
+      fails. (#38265, cal in dd3acc4)
+
+    - Line continuation is supported in macports.conf by ending lines
+      with a backslash. (jmr in b86ef1e)
+
     - Ports' files are now activated using clonefile() when on a
       filesystem that supports cloning (such as APFS). This should
       perform better and use less storage for active ports. Port images

@@ -40,50 +40,49 @@ target_requires ${org.macports.lint} main
 target_prerun ${org.macports.lint} portlint::lint_start
 
 namespace eval portlint {
+    variable lint_portsystem \
+        "1.0"
+
+    variable lint_platforms [list \
+        "any" \
+        "darwin" \
+        "freebsd" \
+        "linux" \
+        "macosx" \
+        "netbsd" \
+        "openbsd" \
+        "puredarwin" \
+        "solaris" \
+        "sunos" \
+        ]
+    
+    variable lint_required [list \
+        "name" \
+        "version" \
+        "description" \
+        "long_description" \
+        "categories" \
+        "maintainers" \
+        "platforms" \
+        "homepage" \
+        "master_sites" \
+        "checksums" \
+        "license" \
+        ]
+    
+    variable lint_optional [list \
+        "epoch" \
+        "revision" \
+        "worksrcdir" \
+        "distname" \
+        "use_automake" \
+        "use_autoconf" \
+        "use_autoreconf" \
+        "use_configure" \
+        ]
 }
 
 set_ui_prefix
-
-set lint_portsystem \
-    "1.0"
-
-set lint_platforms [list \
-    "any" \
-    "darwin" \
-    "freebsd" \
-    "linux" \
-    "macosx" \
-    "netbsd" \
-    "openbsd" \
-    "puredarwin" \
-    "solaris" \
-    "sunos" \
-    ]
-
-set lint_required [list \
-    "name" \
-    "version" \
-    "description" \
-    "long_description" \
-    "categories" \
-    "maintainers" \
-    "platforms" \
-    "homepage" \
-    "master_sites" \
-    "checksums" \
-    "license"
-    ]
-
-set lint_optional [list \
-    "epoch" \
-    "revision" \
-    "worksrcdir" \
-    "distname" \
-    "use_automake" \
-    "use_autoconf" \
-    "use_autoreconf" \
-    "use_configure" \
-    ]
 
 proc portlint::seems_utf8 {str} {
     set len [string length $str]
@@ -260,7 +259,8 @@ proc portlint::lint_platforms {platforms} {
     set errors [list]
     set warnings [list]
 
-    global lint_platforms
+    global name subport PortInfo
+    variable lint_platforms
 
     foreach platform $platforms {
         set platname [lindex $platform 0]
@@ -269,7 +269,11 @@ proc portlint::lint_platforms {platforms} {
         }
     }
 
-    if {$platforms eq "darwin"} {
+    # Skip if there are any subports in the Portfile, as lint is not smart
+    # enough to know which platforms line belongs to which subport.
+    if {$platforms eq "darwin" && [string equal -nocase $name $subport]
+        && (![info exists PortInfo(subports)] || $PortInfo(subports) eq {})
+    } then {
         lappend warnings "Unnecessary platforms line as darwin is the default"
     }
 
@@ -282,7 +286,8 @@ proc portlint::lint_start {args} {
 }
 
 proc portlint::lint_main {args} {
-    global UI_PREFIX portpath ports_lint_nitpick lint_required lint_optional
+    global UI_PREFIX portpath ports_lint_nitpick
+    variable lint_required; variable lint_optional
     global {*}$lint_required {*}$lint_optional
     set portfile ${portpath}/Portfile
     set portdirs [split ${portpath} /]
@@ -467,11 +472,6 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
-        if {[regexp {^\s*compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![dict exists $portgroups compiler_blacklist_versions]} {
-            ui_error "Line $lineno uses compiler.blacklist entry $blacklist which requires the compiler_blacklist_versions portgroup which has not been included"
-            incr errors
-        }
-
         if {[regexp {(^.*)(\meval\s+)(.*)(\[glob\M)(.*$)} $line -> match_before match_eval match_between match_glob match_after]} {
             ui_warn "Line $lineno should use the expansion operator instead of the eval procedure. Change"
             ui_warn "$line"
@@ -527,8 +527,9 @@ proc portlint::lint_main {args} {
     global porturl portutil::all_variants patchfiles \
            depends_fetch depends_extract depends_patch \
            depends_lib depends_build depends_run \
-           depends_test distfiles fetch.type lint_portsystem \
+           depends_test distfiles fetch.type \
            replaced_by conflicts
+    variable lint_portsystem
     set portarch [get_canonical_archs]
 
     if {!$seen_portsystem} {
@@ -882,9 +883,11 @@ proc portlint::lint_main {args} {
 
     if {$nitpick && [info exists patchfiles]} {
         foreach patchfile $patchfiles {
-            if {!([string match "*.diff" $patchfile] ||
-                  [string match "*.patch" $patchfile]) &&
-                 [file exists "$portpath/files/$patchfile"]} {
+            set ext [file extension $patchfile]
+            if {$ext in {.Z .gz .bz2 .xz}} {
+                set ext [file extension [file rootname $patchfile]]
+            }
+            if {$ext ni {.diff .patch} && [file exists ${portpath}/files/${patchfile}]} {
                 ui_warn "Patchfile $patchfile does not follow the source patch naming policy \"*.diff\" or \"*.patch\""
                 incr warnings
             }

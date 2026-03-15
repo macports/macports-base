@@ -1,0 +1,64 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__aproc0 "::aproc"
+static void c__aproc0(int has_x, int x, int y, int has_z, int z)
+{
+
+}
+
+static int
+tcl__aproc0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  int _has_x = 0;
+  int _x;
+  int _y;
+  int _has_z = 0;
+  int _z;
+  int idx_;
+  int argc_;
+
+  critcl_trace_cmd_args (ns__aproc0, oc, ov);
+
+  if ((oc < 2) || (4 < oc)) {
+    Tcl_WrongNumArgs(interp, 1, ov, "?x? y ?z?");
+    return critcl_trace_cmd_result (TCL_ERROR, interp);
+  }
+
+  idx_  = 1;
+  argc_ = oc - 1;
+
+  /* (int x, optional, default -1) - - -- --- ----- -------- */
+  if (argc_ > 1) {
+	{
+	if (Tcl_GetIntFromObj(interp, ov[idx_], &_x) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp); }
+    idx_++;
+    argc_--;
+    _has_x = 1;
+  } else {
+    _x = -1;
+  }
+
+
+  /* (int y) - - -- --- ----- -------- */
+	{
+	if (Tcl_GetIntFromObj(interp, ov[idx_], &_y) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp); }
+
+  idx_++;
+  argc_--;
+
+
+  /* (int z, optional, default -1) - - -- --- ----- -------- */
+  if (argc_ > 0) {
+	{
+	if (Tcl_GetIntFromObj(interp, ov[idx_], &_z) != TCL_OK) return critcl_trace_cmd_result (TCL_ERROR, interp); }
+    _has_z = 1;
+  } else {
+    _z = -1;
+  }
+
+  /* Call - - -- --- ----- -------- */
+  c__aproc0(_has_x, _x, _y, _has_z, _z);
+
+  /* (void return) - - -- --- ----- -------- */
+	return critcl_trace_cmd_result (TCL_OK, interp);
+}

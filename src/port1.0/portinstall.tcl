@@ -52,6 +52,45 @@ default install.asroot no
 
 set_ui_prefix
 
+# If the given path is in a git checkout, return the currently checked
+# out commit. If not, return an empty string.
+proc portinstall::get_path_commit {path} {
+    set result ""
+    if {![catch {findBinary git} git] && ![catch {file type $path} ftype]} {
+        if {$ftype ne "directory"} {
+            set path [file dirname $path]
+        }
+        # Recent git refuses to run if the current user doesn't own
+        # the checkout.
+        if {[getuid] == 0} {
+            macports_try -pass_signal {
+                set prev_euid [geteuid]
+                set prev_egid [getegid]
+                if {[geteuid] != 0} {
+                    seteuid 0
+                }
+                # Must change egid before dropping root euid.
+                setegid [name_to_gid [file attributes $path -group]]
+                seteuid [name_to_uid [file attributes $path -owner]]
+            } on error {err} {
+                ui_debug "get_path_commit: dropping privileges failed: $err"
+            }
+        }
+        if {[catch {exec -ignorestderr $git -C $path rev-parse HEAD 2> /dev/null} result]} {
+            ui_debug "get_path_commit: git rev-parse failed: $result"
+            set result ""
+        }
+    }
+    if {[info exists prev_euid]} {
+        seteuid 0
+        if {[info exists prev_egid]} {
+            setegid $prev_egid
+        }
+        seteuid $prev_euid
+    }
+    return $result
+}
+
 proc portinstall::install_start {args} {
     global UI_PREFIX subport version revision portvariants \
            prefix_frozen
@@ -72,144 +111,12 @@ proc portinstall::install_start {args} {
 
 proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
-           epoch configure.cxx_stdlib cxx_stdlib PortInfo \
-           archive.env archive.cmd archive.pre_args archive.args \
-           archive.post_args archive.dir depends_lib depends_run \
-           portarchive_hfscompression
-    set archive.env {}
-    set archive.cmd {}
-    set archive.pre_args {}
-    set archive.args {}
-    set archive.post_args {}
-    set archive.dir ${destpath}
+           archive.dir epoch configure.cxx_stdlib cxx_stdlib PortInfo \
+           depends_lib depends_run xcodeversion xcodecltversion use_xcode \
+           os.subplatform os.version macos_version source_date_epoch
 
-    switch -regex -- ${archive.type} {
-        aar {
-            set aa "aa"
-            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
-                ui_debug "Using $aa"
-                set archive.cmd "$aa"
-                set archive.pre_args "archive -v"
-                set archive.args "-o [shellescape ${location}] -d ."
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$aa' was found on this system!"
-            }
-        }
-        cp(io|gz) {
-            set pax "pax"
-            if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
-                ui_debug "Using $pax"
-                set archive.cmd "$pax"
-                set archive.pre_args {-w -v -x cpio}
-                if {[regexp {z$} ${archive.type}]} {
-                    set gzip "gzip"
-                    if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
-                        ui_debug "Using $gzip"
-                        set archive.args {.}
-                        set archive.post_args "| $gzip -c9 > [shellescape ${location}]"
-                    } else {
-                        ui_debug $errmsg
-                        return -code error "No '$gzip' was found on this system!"
-                    }
-                } else {
-                    set archive.args "-f [shellescape ${location}] ."
-                }
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$pax' was found on this system!"
-            }
-        }
-        t(ar|bz|lz|xz|gz|mptar) {
-            set tar "tar"
-            if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
-                ui_debug "Using $tar"
-                set archive.cmd "$tar"
-                set archive.pre_args {-cvf}
-                if {[regexp {z2?$} ${archive.type}]} {
-                    if {[regexp {bz2?$} ${archive.type}]} {
-                        if {![catch {binaryInPath lbzip2}]} {
-                            set gzip "lbzip2"
-                        } elseif {![catch {binaryInPath pbzip2}]} {
-                            set gzip "pbzip2"
-                        } else {
-                            set gzip "bzip2"
-                        }
-                        set level 9
-                    } elseif {[regexp {lz$} ${archive.type}]} {
-                        set gzip "lzma"
-                        set level ""
-                    } elseif {[regexp {xz$} ${archive.type}]} {
-                        set gzip "xz"
-                        set level 6
-                    } else {
-                        set gzip "gzip"
-                        set level 9
-                    }
-                    if {[info exists portutil::autoconf::${gzip}_path]} {
-                        set hint [set portutil::autoconf::${gzip}_path]
-                    } else {
-                        set hint ""
-                    }
-                    if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
-                        ui_debug "Using $gzip"
-                        set archive.args {- .}
-                        set archive.post_args "| $gzip -c$level > [shellescape ${location}]"
-                    } else {
-                        ui_debug $errmsg
-                        return -code error "No '$gzip' was found on this system!"
-                    }
-                } else {
-                    if {${archive.type} eq "tmptar"} {
-                        # Pass through tar for hardlink detection and HFS compression,
-                        # but extract without saving the tar file.
-                        if {${portarchive_hfscompression} && [getuid] == 0 &&
-                            ![catch {binaryInPath bsdtar}] &&
-                            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]
-                        } then {
-                            set extract_tar bsdtar
-                            set extract_tar_args {-xvp --hfsCompression -f}
-                        } else {
-                            set extract_tar $tar
-                            set extract_tar_args {-xvpf}
-                        }
-                        set archive.args {- .}
-                        set archive.post_args "| $extract_tar -C $location $extract_tar_args -"
-                        file mkdir $location
-                    } else {
-                        set archive.args "[shellescape ${location}] ."
-                    }
-                }
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$tar' was found on this system!"
-            }
-        }
-        xar {
-            set xar "xar"
-            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
-                ui_debug "Using $xar"
-                set archive.cmd "$xar"
-                set archive.pre_args {-cvf}
-                set archive.args "[shellescape ${location}] ."
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$xar' was found on this system!"
-            }
-        }
-        zip {
-            set zip "zip"
-            if {[catch {set zip [findBinary $zip ${portutil::autoconf::zip_path}]} errmsg] == 0} {
-                ui_debug "Using $zip"
-                set archive.cmd "$zip"
-                set archive.pre_args {-ry9}
-                set archive.args "[shellescape ${location}] ."
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$zip' was found on this system!"
-            }
-        }
-    }
+    portarchive::archive_command_setup ${location} ${archive.type}
+    set archive.dir ${destpath}
 
     set archive.fulldestpath [file dirname $location]
     # Create archive destination path (if needed)
@@ -290,6 +197,30 @@ proc portinstall::create_archive {location archive.type} {
          }
     }
 
+    puts $fd "@macports_version [macports_version]"
+    lassign [_get_compatible_platform] compat_platform compat_major
+    if {$compat_platform ne "any"} {
+        if {${os.subplatform} ne ""} {
+            puts $fd "@os.subplatform ${os.subplatform}"
+        }
+        if {$compat_major ne "any"} {
+            puts $fd "@os.version ${os.version}"
+            if {$macos_version ne ""} {
+                puts $fd "@macos_version $macos_version"
+            }
+            if {$use_xcode && $xcodeversion ni {"" none}} {
+                puts $fd "@xcodeversion $xcodeversion"
+            } elseif {$xcodecltversion ni {"" none}} {
+                puts $fd "@xcodecltversion $xcodecltversion"
+            }
+        }
+    }
+    set ports_commit [get_path_commit $portpath]
+    if {$ports_commit ne ""} {
+        puts $fd "@ports_commit $ports_commit"
+    }
+    puts $fd "@source_date_epoch $source_date_epoch"
+
     set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
     set binary_files [list]
     variable file_is_binary [dict create]
@@ -351,10 +282,6 @@ proc portinstall::create_archive {location archive.type} {
     }
 }
 
-proc portinstall::extract_contents {location type} {
-    return [extract_archive_metadata $location $type contents]
-}
-
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants requested_variants depends_lib PortInfo epoch \
@@ -363,11 +290,6 @@ proc portinstall::install_main {args} {
     variable actual_cxx_stdlib
     variable cxx_stdlib_overridden
     variable installPlist
-
-    set oldpwd [pwd]
-    if {$oldpwd eq ""} {
-        set oldpwd $portpath
-    }
 
     set location [get_portimage_path]
     set archive_path [find_portarchive_path]
@@ -380,10 +302,9 @@ proc portinstall::install_main {args} {
         delete [file join [option workpath] .macports.${subport}.state]
         set location [file join $install_dir [file tail $archive_path]]
         set current_archive_type [string range [file extension $location] 1 end]
-        set contents [extract_contents $location $current_archive_type]
-        lassign $contents installPlist file_is_binary
-        set cxxinfo [extract_archive_metadata $location $current_archive_type cxx_info]
-        lassign $cxxinfo actual_cxx_stdlib cxx_stdlib_overridden
+        set archive_metadata [extract_archive_metadata $location $current_archive_type {contents cxx_info}]
+        lassign [dict get $archive_metadata contents] installPlist file_is_binary
+        lassign [dict get $archive_metadata cxx_info] actual_cxx_stdlib cxx_stdlib_overridden
     } else {
         if {$portimage_mode eq "directory"} {
             # Special value to avoid writing archive out to disk, since
@@ -469,6 +390,5 @@ proc portinstall::install_main {args} {
 
     registry_install $regref
 
-    _cd $oldpwd
     return 0
 }

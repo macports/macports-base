@@ -38,6 +38,8 @@ package require tdbc::sqlite3
 namespace eval registry {
 
 variable UI_PREFIX {---> }
+variable tdbc_connection
+trace add variable tdbc_connection read registry::tdbc_connect
 
 ## Decodes a version specifier into its component values. Values will be
 ## returned into the variables named by `version`, `revision`, and `variants`,
@@ -97,7 +99,7 @@ proc check_dependents {port force {action "uninstall/deactivate"}} {
                     #registry::entry close $depport
                 }
                 ui_msg "Note: It is not recommended to uninstall/deactivate a port that has dependents as it breaks the dependents."
-                set retvalue [$macports::ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0]
+                set retvalue [$macports::ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0 "[string totitle $action] [$port name] anyway?"]
                 if {$retvalue == 0} {
                     set force "yes"
                 } else {
@@ -173,10 +175,11 @@ proc run_target {port target options} {
 }
 
 ## Create and configure a tdbc connection to the registry
-proc tdbc_connect {} {
+proc tdbc_connect {args} {
     variable tdbc_connection
     set reg_path [::file join ${macports::registry.path} registry registry.db]
     set tdbc_connection [tdbc::sqlite3::connection new $reg_path]
+    trace remove variable tdbc_connection read registry::tdbc_connect
     set stmt [$tdbc_connection prepare {PRAGMA foreign_keys = ON}]
     $stmt execute
     $stmt close
@@ -186,9 +189,6 @@ proc tdbc_connect {} {
 ## @return   true if successful, false otherwise
 proc delete_dependencies {entry deplist} {
     variable tdbc_connection
-    if {![info exists tdbc_connection]} {
-        tdbc_connect
-    }
     set stmt [$tdbc_connection prepare {DELETE FROM dependencies WHERE id = :id AND name = :name}]
     set id [$entry id]
     $tdbc_connection transaction {

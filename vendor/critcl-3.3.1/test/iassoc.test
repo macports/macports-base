@@ -1,0 +1,56 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# iassoc.test
+##
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+    useLocal lib/critcl/critcl.tcl             critcl
+
+    localcache-setup
+}
+testing {
+    useLocal lib/critcl-iassoc/iassoc.tcl     critcl::iassoc
+}
+
+# -------------------------------------------------------------------------
+##
+
+test iassoc-counter-1.0 {critcl::iassoc - per-interp counter} -setup {
+    make-demo TL {
+        critcl::iassoc::def icounter {int base} {
+            int counter; /* The counter variable */
+        } {
+            data->counter = base;
+        } {
+            /* Nothing to release */
+        }
+        critcl::cproc icounter {Tcl_Interp* interp int base} int {
+            icounter_data d = icounter (interp, base);
+            d->counter ++;
+            return d->counter;
+        }
+    }
+} -body {
+    res!
+    res+ [icounter 4]
+    res+ [icounter 0]
+    res+ [icounter -1]
+    res?
+} -result {5 6 7}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

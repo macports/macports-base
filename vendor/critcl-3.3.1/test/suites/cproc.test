@@ -1,0 +1,372 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# critcl::cproc
+# -- Core tests.
+#    Used via cproc.test and cproc-trace.test
+# -- Parameters
+#    (1) suffix  ('' | '-trace')
+#        This parameter affects test naming and directory holding the
+#        expected results.
+# -------------------------------------------------------------------------
+# Parameter validation
+
+global suffix
+if {![info exists suffix]} {
+    error "Missing parameter 'suffix'. Please define as either empty string, or '-trace'"
+} elseif {($suffix ne "") && ($suffix ne "-trace")} {
+    error "Bad value '$suffix' for parameter 'suffix'. Please define as either empty string, or '-trace'"
+}
+
+# -------------------------------------------------------------------------
+# Setup
+
+support {
+    useLocal lib/stubs_container/container.tcl  stubs::container
+    useLocal lib/stubs_reader/reader.tcl        stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl    stubs::gen
+}
+testing {
+    useLocal lib/critcl/critcl.tcl  critcl
+}
+
+# Note: The next command does not influence the standard argument-
+# and result-types.
+overrides
+#critcl::config lines 0
+on-traced-on
+
+# -------------------------------------------------------------------------
+## cproc syntax
+
+test critcl-cproc${suffix}-1.0.7 {cproc, wrong\#args} -constraints tcl9 -body {
+    critcl::cproc
+} -returnCodes error -result {wrong # args: should be "critcl::cproc name adefs rtype ?body? ?arg ...?"}
+
+test critcl-cproc${suffix}-1.0.6 {cproc, wrong\#args} -constraints tcl8.6plus -body {
+    critcl::cproc
+} -returnCodes error -result {wrong # args: should be "critcl::cproc name adefs rtype ?body? ?arg ...?"}
+
+test critcl-cproc${suffix}-1.0.5 {cproc, wrong\#args} -constraints tcl8.5 -body {
+    critcl::cproc
+} -returnCodes error -result {wrong # args: should be "critcl::cproc name adefs rtype ?body? ..."}
+
+test critcl-cproc${suffix}-1.0.4 {cproc, wrong\#args} -constraints tcl8.4 -body {
+    critcl::cproc
+} -returnCodes error -result {wrong # args: should be "critcl::cproc name adefs rtype ?body? args"}
+
+# -------------------------------------------------------------------------
+## Go through the various knobs we can use to configure the definition and output
+
+test critcl-cproc${suffix}-2.0 {cproc, simple name} -body {
+    get critcl::cproc aproc {} void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.0]]
+
+test critcl-cproc${suffix}-2.1 {cproc, namespaced name} -body {
+    get critcl::cproc the::aproc {} void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.1]]
+
+test critcl-cproc${suffix}-2.2 {cproc, Tcl vs C identifiers} -body {
+    get critcl::cproc aproc+beta {} void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.2]]
+
+test critcl-cproc${suffix}-2.3 {cproc, custom C name} -body {
+    get critcl::cproc snafu {} void {} -cname 1
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.3]]
+
+test critcl-cproc${suffix}-2.4 {cproc, client data} -body {
+    get critcl::cproc aproc {} void {} -pass-cdata 1
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.4]]
+
+test critcl-cproc${suffix}-2.5 {cproc, client data} -body {
+    get critcl::cproc aproc {} void {} -arg-offset 3
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.5]]
+
+test critcl-cproc${suffix}-2.6 {cproc, int argument} -body {
+    get critcl::cproc aproc {
+        int anargument
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.6]]
+
+test critcl-cproc${suffix}-2.7 {cproc, optional int argument} -body {
+    get critcl::cproc aproc {
+        int {anargument -1}
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.7]]
+
+test critcl-cproc${suffix}-2.8 {cproc, optional args, freely mixed} -body {
+    get critcl::cproc aproc {
+        int {x -1}
+        int y
+        int {z -1}
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.8]]
+
+test critcl-cproc${suffix}-2.9 {cproc, int result} -body {
+    get critcl::cproc aproc {} int {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.9]]
+
+test critcl-cproc${suffix}-2.10 {cproc, optional args} -body {
+    get critcl::cproc aproc {
+        int {x -1}
+        int y
+        int z
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.10]]
+
+test critcl-cproc${suffix}-2.11 {cproc, optional args} -body {
+    get critcl::cproc aproc {
+        int x
+        int y
+        int {z -1}
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.11]]
+
+test critcl-cproc${suffix}-2.12 {cproc, optional args} -body {
+    get critcl::cproc aproc {
+        int x
+        int {y -1}
+        int z
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.12]]
+
+test critcl-cproc${suffix}-2.13 {cproc, variadic int argument} -body {
+    get critcl::cproc aproc {
+        int args
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.13]]
+
+test critcl-cproc${suffix}-2.14 {cproc, variadic Tcl_Obj* argument} -body {
+    get critcl::cproc aproc {
+        object args
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.14]]
+
+test critcl-cproc${suffix}-2.15 {cproc, variadic int argument, required in front} -body {
+    get critcl::cproc aproc {
+        int x
+        int y
+        int args
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.15]]
+
+test critcl-cproc${suffix}-2.16 {cproc, variadic int argument, optional in front} -body {
+    get critcl::cproc aproc {
+        int {x -1}
+        int {y -1}
+        int args
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.16]]
+
+test critcl-cproc${suffix}-2.17 {cproc, variadic int argument, mix required/optional in front} -body {
+    get critcl::cproc aproc {
+        int x
+        int {y -1}
+        int args
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.17]]
+
+test critcl-cproc${suffix}-2.18 {cproc, variadic int argument, mix optional/required in front} -body {
+    get critcl::cproc aproc {
+        int {x -1}
+        int y
+        int args
+    } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/2.18]]
+
+# -------------------------------------------------------------------------
+# Vary the result type of the function. Covers all builtin result types.
+
+test critcl-cproc${suffix}-3.0 {cproc, void result} -body {
+    get critcl::cproc aproc {} void { }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.0]]
+
+test critcl-cproc${suffix}-3.1 {cproc, Tcl-code result} -body {
+    get critcl::cproc aproc {} ok { return TCL_OK; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.1]]
+
+test critcl-cproc${suffix}-3.2 {cproc, int result} -body {
+    get critcl::cproc aproc {} int { return 0; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.2]]
+
+test critcl-cproc${suffix}-3.3 {cproc, bool result} -body {
+    get critcl::cproc aproc {} bool { return 1; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.3]]
+
+test critcl-cproc${suffix}-3.4 {cproc, boolean result} -body {
+    get critcl::cproc aproc {} boolean { return 1; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.4]]
+
+test critcl-cproc${suffix}-3.5 {cproc, long result} -body {
+    get critcl::cproc aproc {} long { return 1; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.5]]
+
+test critcl-cproc${suffix}-3.6 {cproc, wideint result} -body {
+    get critcl::cproc aproc {} wideint { return 1; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.6]]
+
+test critcl-cproc${suffix}-3.7 {cproc, double result} -body {
+    get critcl::cproc aproc {} double { return 0.; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.7]]
+
+test critcl-cproc${suffix}-3.8 {cproc, float result} -body {
+    get critcl::cproc aproc {} float { return 0.; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.8]]
+
+test critcl-cproc${suffix}-3.9 {cproc, vstring result} -body {
+    get critcl::cproc aproc {} vstring { return "foo"; }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.9]]
+
+test critcl-cproc${suffix}-3.10 {cproc, dstring result} -body {
+    get critcl::cproc aproc {} dstring { return alloc_string("bar"); }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.10]]
+
+test critcl-cproc${suffix}-3.11 {cproc, object result} -body {
+    get critcl::cproc aproc {} object { return Tcl_NewIntObj(0); }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.11]]
+
+test critcl-cproc${suffix}-3.12 {cproc, channel result, new} -body {
+    get critcl::cproc aproc {} new-channel {
+        return Tcl_OpenFileChannel (interp, "/tmp", "r", 0);
+    }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.12]]
+
+test critcl-cproc${suffix}-3.13 {cproc, channel result, known} -body {
+    get critcl::cproc aproc {} known-channel {
+        return Tcl_GetStdChannel (0);
+    }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.13]]
+
+test critcl-cproc${suffix}-3.14 {cproc, channel result, return a taken channel} -body {
+    get critcl::cproc aproc {} return-channel {
+        return 0;
+    }
+} -result [viewFile [localPath test/assets/cproc${suffix}/3.14]]
+
+
+# -------------------------------------------------------------------------
+# Vary argument types of the function. Cover all (sensible) builtin result types.
+# Not covered: int*, float*, double* (all deprecated)
+
+set n 0
+foreach type {
+    int
+    bool
+    long
+    wideint
+    double
+    float
+    {int > 0}
+    char*
+    pstring
+    list
+    object
+    --bytearray--
+    bytes
+    channel
+    unshared-channel
+    take-channel
+} {
+    # allow marking of types as gone.
+    # allows us to keep the numbers of all tests when types go away.
+    # no need to renumber all the files for types after the removed type.
+    # and new types can reuse the slot in the future
+
+    if {![string match "--*--" $type]} {
+        set td [string map {{ } _ > gt * _} $type]
+        test critcl-cproc${suffix}-4.${n}-$td "cproc, $type argument" -body {
+            get critcl::cproc aproc [list $type x] void { }
+        } -result [viewFile [localPath test/assets/cproc${suffix}/4.${n}-$td]]
+        unset td
+    }
+    incr n
+}
+
+test critcl-cproc${suffix}-4.${n}-vobject "cproc, variadic Tcl_Obj* argument" -body {
+    get critcl::cproc aproc {object args} void { }
+} -result [viewFile [localPath test/assets/cproc${suffix}/4.${n}-vobject]]
+incr n
+
+test critcl-cproc${suffix}-4.${n}-vint "cproc, variadic int argument" -body {
+    get critcl::cproc aproc {int args} void { }
+} -result [viewFile [localPath test/assets/cproc${suffix}/4.${n}-vint]]
+
+unset n
+
+# -------------------------------------------------------------------------
+# Test the various derived types:
+# - Extended limited scalars
+# - List types (length-limited, with base type, both)
+
+## TODO: Bad types to demonstrate error checking and messages
+
+set n 0
+foreach type {
+    {int > 4}
+    {int > 4 <= 8}
+    {int < 8}
+    {int < 8 >= 4}
+    {int > 2 >= 4}
+    {int < 2 < 4 < 6}
+    {int < 2 <= 4}
+    {[2]}
+    {[]int}
+    {[2]int}
+    {int[]}
+    {int[2]}
+} {
+    set td [string map {
+        \[ = \] =
+        { } _
+        >= ge > gt
+        <= le < lt
+    } $type]
+    set rpath  [localPath test/assets/cproc${suffix}/6.${n}-$td]
+    set result ">> missing: $rpath"
+    if {[file exists $rpath]} { set result [viewFile $rpath] }
+    
+    test critcl-cproc${suffix}-6.${n}-$td "cproc, $type argument" -body {
+        get critcl::cproc aproc [list $type x] void { }
+    } -result $result
+
+    incr n ; unset td rpath result
+}
+unset n
+
+# -------------------------------------------------------------------------
+# Special list syntax, with indicator tailing the argument name, instead of attached to the type.
+
+set rpath  [localPath test/assets/cproc${suffix}/7.0]
+set result ">> missing: $rpath"
+if {[file exists $rpath]} { set result [viewFile $rpath] }
+
+test critcl-cproc${suffix}-7.0 "cproc, `int x[]` argument" -body {
+    get critcl::cproc aproc {int a[]} void { }
+} -result $result
+
+unset rpath result
+
+# -------------------------------------------------------------------------
+## Mistakenly entered C syntax - Normalize to working syntax
+
+test critcl-cproc${suffix}-5.0 {cproc, mistaken C argument syntax, lone comma} -body {
+    get critcl::cproc aproc { int x , int y } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/5.x]]
+
+test critcl-cproc${suffix}-5.1 {cproc, mistaken C argument syntax, trailing comma} -body {
+    get critcl::cproc aproc { int x, int y } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/5.x]]
+
+test critcl-cproc${suffix}-5.2 {cproc, mistaken C argument syntax, leading comma} -body {
+    get critcl::cproc aproc { int x ,int y } void {}
+} -result [viewFile [localPath test/assets/cproc${suffix}/5.x]]
+
+# -------------------------------------------------------------------------
+## XXX TODO one to multiple arguments
+## XXX TODO ...
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

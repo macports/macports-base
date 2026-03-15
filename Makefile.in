@@ -18,7 +18,7 @@ all:: Mk/macports.autoconf.mk
 
 Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in doc/Makefile.in src/Makefile.in src/cregistry/Makefile.in src/darwintracelib1.0/Makefile.in src/machista1.0/Makefile.in src/macports1.0/Makefile.in src/mpcommon1.0/Makefile.in src/package1.0/Makefile.in src/pextlib1.0/Makefile.in src/portlist1.0/Makefile.in src/port/Makefile.in src/port1.0/Makefile.in src/programs/Makefile.in src/programs/daemondo/Makefile.in src/registry2.0/Makefile.in tests/Makefile.in vendor/Makefile.in config.status
 	./config.status
-	${MAKE} clean
+	"$(MAKE)" clean
 
 config.status: configure
 	@if test -f ./config.status ; then	\
@@ -37,27 +37,27 @@ install::
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/keys"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/keys/base"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/keys/ports"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/keys/archives"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/keys/base/*.pub  "$(DESTDIR)${datadir}/macports/keys/base/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/keys/ports/*.pub  "$(DESTDIR)${datadir}/macports/keys/ports/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/keys/archives/*.pub  "$(DESTDIR)${datadir}/macports/keys/archives/"
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
+ifeq (@NO_ROOTPRIVS@,)
 # create run user if it doesn't exist
-	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
-        if ! ${DSCL} -q . -read "/Groups/${RUNUSR}" > /dev/null 2>&1 ; then \
-            if test `id -u` -eq 0; then \
+	@if test `id -u` -eq 0; then \
+        if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
+            if ! ${DSCL} -q . -read "/Groups/${RUNUSR}" > /dev/null 2>&1 ; then \
                 echo "Creating group \"${RUNUSR}\"" ; \
                 ${DSEDITGROUP} -q -o create "${RUNUSR}" ; \
-            else \
-                echo "Not creating group \"${RUNUSR}\" (not root)" ; \
             fi ; \
-        fi ; \
-        if ! ${DSCL} -q . -list "/Users/${RUNUSR}" > /dev/null 2>&1 ; then \
-            if test `id -u` -eq 0; then \
+            if ! ${DSCL} -q . -list "/Users/${RUNUSR}" > /dev/null 2>&1 ; then \
                 echo "Creating user \"${RUNUSR}\"" ; \
                 NEXTUID=501; \
                 while test -n "`${DSCL} -q /Search -search /Users UniqueID $$NEXTUID`"; do \
-                    let "NEXTUID=NEXTUID+1"; \
+                    NEXTUID=$$((NEXTUID+1)); \
                 done; \
                 ${DSCL} -q . -create "/Users/${RUNUSR}" UniqueID $$NEXTUID ; \
                 \
@@ -71,32 +71,30 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
                 ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
                 ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false ; \
-            else \
-                echo "Not creating user \"${RUNUSR}\" (not root)" ; \
             fi ; \
-        fi ; \
-        RUNUSR_UID=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $$2}'); \
-        if test "$$RUNUSR_UID" -gt 500; then \
-            if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
-                if test `id -u` -eq 0; then \
+            RUNUSR_UID=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $$2}'); \
+            RUNUSR_NAME=$$(${DSCL} -q . -read "/Users/${RUNUSR}" RealName | /usr/bin/awk '{print $$2}'); \
+            RUNUSR_SHELL=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UserShell | /usr/bin/awk '{print $$2}'); \
+            if test "$$RUNUSR_SHELL" != "/usr/bin/false"; then \
+                echo "Warning: user '${RUNUSR}' appears to be a login user (should be unprivileged)" ; \
+            fi ; \
+            if test "$$RUNUSR_UID" -gt 500 -a "$$RUNUSR_SHELL" = "/usr/bin/false" -a "$$RUNUSR_NAME" = "MacPorts" ; then \
+                if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
                     echo "Updating home directory location for user \"${RUNUSR}\"" ; \
-                    ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
-                else \
-                    echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
+                    if ! ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; then \
+                        echo "Failed to update home directory!" ; \
+                        echo "Please ask the system administrator to manually run:" ; \
+                        echo "    ${DSCL} -q . -create \"/Users/${RUNUSR}\" NFSHomeDirectory \"${localstatedir}/macports/home\"" ; \
+                    fi ; \
                 fi ; \
             fi ; \
-            if test "@OS_MAJOR@" -eq 8 -a `id -u` -eq 0; then \
-                GID=`${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
-                if test "`${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
-                    echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
-                    ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$GID ; \
-                    ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts ; \
-                fi ; \
-            fi ; \
+        else \
+            echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
         fi ; \
     else \
-        echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+        echo "Not creating or updating user or group \"${RUNUSR}\" (not root)" ; \
     fi
+endif
 # Move ping cache to new location
 	@if [ -f "${localstatedir}/macports/pingtimes" ]; then \
         mv "${localstatedir}/macports/pingtimes" "${localstatedir}/macports/cache/pingtimes"; \
@@ -149,6 +147,9 @@ dist:
 		if [ -n "${DISTGPGID}" ]; then \
 			gpg --sign --detach-sig --armor --local-user ${DISTGPGID} $$tarball; \
 		fi; \
+		if [ -n "${DISTKEY}" ]; then \
+			../vendor/signify-osx/signify -S -s "${DISTKEY}" -m $$tarball; \
+		fi; \
 	done
 
 
@@ -163,9 +164,9 @@ test::
 # want things getting rebuilt after they're signed just because a dependency
 # has a later mtime because it was also signed.
 codesign::
-	@for subdir in vendor src/darwintracelib1.0 src/machista1.0 src/macports1.0 src/registry2.0 src/pextlib1.0 src/programs/daemondo ; do\
+	@for subdir in vendor src/darwintracelib1.0 src/machista1.0 src/macports1.0 src/registry2.0 src/pextlib1.0 src/programs src/port ; do\
 		echo ===\> making $@ in ${DIRPRFX}$$subdir; \
-		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
+		( cd $$subdir && "$(MAKE)" DIRPRFX="${DIRPRFX}$$subdir/" $@) || exit 1; \
 	done
 
 .PHONY: dist _gettag _pkgdist _dopkg docs codesign

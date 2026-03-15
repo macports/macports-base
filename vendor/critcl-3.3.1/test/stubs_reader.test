@@ -1,0 +1,222 @@
+# stubs_reader.test -*- tcl -*-
+
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+}
+testing {
+    useLocal lib/stubs_reader/reader.tcl stubs::reader
+}
+
+# -------------------------------------------------------------------------
+# file
+
+test stubs-reader-1.0 {file, wrong\#args} -setup {
+} -body {
+    stubs::reader::file
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::reader::file tablevar path"}
+
+test stubs-reader-1.1 {file, wrong\#args} -setup {
+} -body {
+    stubs::reader::file T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::reader::file tablevar path"}
+
+test stubs-reader-1.2 {file, wrong\#args} -setup {
+} -body {
+    stubs::reader::file T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::reader::file tablevar path"}
+
+# -------------------------------------------------------------------------
+# text
+
+test stubs-reader-2.0 {text, wrong\#args} -setup {
+} -body {
+    stubs::reader::text
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::reader::text tablevar text"}
+
+test stubs-reader-2.1 {text, wrong\#args} -setup {
+} -body {
+    stubs::reader::text T
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::reader::text tablevar text"}
+
+test stubs-reader-2.2 {text, wrong\#args} -setup {
+} -body {
+    stubs::reader::text T x y
+} -cleanup {
+} -returnCodes error -result {wrong # args: should be "stubs::reader::text tablevar text"}
+
+# -------------------------------------------------------------------------
+## Representation overview for lots of declarations.
+
+test stubs-reader-3.0 {text, empty} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::reader::text T {}
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs UNKNOWN {
+    scspec   EXTERN
+    epoch    {}
+    revision 0
+}}
+
+test stubs-reader-3.1 {text, basic types} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::reader::text T {
+        library buf
+        interface buf
+        hooks {bufInt memchan}
+        declare 0 generic {
+            int Buf_IsInitialized (Tcl_Interp *interp)
+        }
+    }
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs buf {
+    scspec   EXTERN
+    epoch    {}
+    revision 1
+    interface buf {
+        hooks {bufInt memchan}
+        declare 0 generic {
+            function Buf_IsInitialized
+            return int
+            argument {{Tcl_Interp *} interp}
+        }
+    }
+}}
+
+test stubs-reader-3.2 {text, void} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::reader::text T {
+        library buf
+        interface buf
+        hooks {bufInt memchan}
+        declare 0 generic {
+            int Buf_IsInitialized (void)
+        }
+    }
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs buf {
+    scspec   EXTERN
+    epoch    {}
+    revision 1
+    interface buf {
+        hooks {bufInt memchan}
+        declare 0 generic {
+            function Buf_IsInitialized
+            return int
+            argument void
+        }
+    }
+}}
+
+test stubs-reader-3.3 {text, void via missing arguments} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::reader::text T {
+        library buf
+        interface buf
+        hooks {bufInt memchan}
+        declare 0 generic {
+            int Buf_IsInitialized ()
+        }
+    }
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs buf {
+    scspec   EXTERN
+    epoch    {}
+    revision 1
+    interface buf {
+        hooks {bufInt memchan}
+        declare 0 generic {
+            function Buf_IsInitialized
+            return int
+            argument void
+        }
+    }
+}}
+
+test stubs-reader-3.4 {text, var-args function} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::reader::text T {
+        library tcl
+        interface tcl
+        declare 2 {
+            void Tcl_Panic(const char *format, ...)
+        }
+    }
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs tcl {
+    scspec   EXTERN
+    epoch    {}
+    revision 1
+    interface tcl {
+        hooks {}
+        declare 2 generic {
+            function Tcl_Panic
+            return void
+            argument TCL_VARARGS
+            argument {{const char *} format}
+        }
+    }
+}}
+
+test stubs-reader-3.5 {text, array-flag} -setup {
+    set T [stubs::container::new]
+} -body {
+    stubs::reader::text T {
+        library tcl
+        interface tcl
+	declare 17 {
+	    Tcl_Obj *Tcl_ConcatObj(Tcl_Size objc, Tcl_Obj *const objv[])
+	}
+    }
+    stubs::container::print $T
+} -cleanup {
+    unset T
+} -result {stubs tcl {
+    scspec   EXTERN
+    epoch    {}
+    revision 1
+    interface tcl {
+        hooks {}
+        declare 17 generic {
+            function Tcl_ConcatObj
+            return {Tcl_Obj *}
+            argument {Tcl_Size objc}
+            argument {{Tcl_Obj *const} objv {[]}}
+        }
+    }
+}}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

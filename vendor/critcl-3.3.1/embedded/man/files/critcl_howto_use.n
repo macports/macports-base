@@ -1,0 +1,2413 @@
+'\"
+'\" Generated from file 'critcl_howto_use\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) Jean-Claude Wippler
+'\" Copyright (c) Steve Landers
+'\" Copyright (c) 2011-2024 Andreas Kupries
+'\"
+.TH "critcl_howto_use" n 3\&.3\&.1 doc "C Runtime In Tcl (CriTcl)"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+critcl_howto_use \- How To Use CriTcl
+.SH DESCRIPTION
+.PP
+Be welcome to the \fIC Runtime In Tcl\fR (short: \fICriTcl\fR), a system for embedding and using C
+code from within \fITcl\fR [http://core\&.tcl-lang\&.org/tcl] scripts\&.
+.PP
+This document assumes the presence of a working \fICriTcl\fR installation\&.
+.PP
+If that is missing follow the instructions on \fIHow To Install CriTcl\fR\&.
+.SH BASICS
+To create a minimal working package
+.IP [1]
+Choose a directory to develop in and make it the working directory\&. This should
+not be a checkout of \fICriTcl\fR itself\&.
+.IP [2]
+Save the following example to a file\&. In the following it is assumed that the file
+was named "\fIexample\&.tcl\fR"\&.
+.CS
+
+
+# -*- tcl -*-
+# Critcl support, absolutely necessary\&.
+package require critcl
+
+# Bail out early if the compile environment is not suitable\&.
+if {![critcl::compiling]} {
+    error "Unable to build project, no proper compiler found\&."
+}
+
+# Information for the teapot\&.txt meta data file put into a generated package\&.
+# Free form strings\&.
+critcl::license {Andreas Kupries} {Under a BSD license}
+
+critcl::summary {The first CriTcl-based package}
+
+critcl::description {
+    This package is the first example of a CriTcl-based package\&. It contains all the
+    necessary and conventionally useful pieces\&.
+}
+
+critcl::subject example {critcl package}
+critcl::subject {basic critcl}
+
+# Minimal Tcl version the package should load into\&.
+critcl::tcl 8\&.6
+
+# Use to activate Tcl memory debugging
+#critcl::debug memory
+# Use to activate building and linking with symbols (for gdb, etc\&.)
+#critcl::debug symbols
+
+# ## #### ######### ################ #########################
+## A hello world, directly printed to stdout\&. Bypasses Tcl's channel system\&.
+
+critcl::cproc hello {} void {
+    printf("hello world\\n");
+}
+
+# ## #### ######### ################ #########################
+
+# Forcing compilation, link, and loading now\&.
+critcl::msg -nonewline { Building \&.\&.\&.}
+if {![critcl::load]} {
+    error "Building and loading the project failed\&."
+}
+
+# Name and version the package\&. Just like for every kind of Tcl package\&.
+package provide critcl-example 1
+
+
+.CE
+.IP [3]
+Invoke the command
+.CS
+
+ critcl -keep -debug all -pkg example\&.tcl
+.CE
+.sp
+This compiles the example and installs it into a "\fIlib/\fR" sub directory of the
+working directory, generating output similar to
+.CS
+
+
+    Config:   linux-x86_64-gcc
+    Build:    linux-x86_64-gcc
+    Target:   linux-x86_64
+    Source:   example\&.tcl  (provide critcl-example 1) Building \&.\&.\&.
+    Library:  example\&.so
+     (tclStubsPtr     =>  const TclStubs *tclStubsPtr;)
+     (tclPlatStubsPtr =>  const TclPlatStubs *tclPlatStubsPtr;)
+    Package:  lib/example
+    Files left in /home/aku/\&.critcl/pkg2567272\&.1644845439
+
+.CE
+.IP
+during operation\&.
+.sp
+The \fB-keep\fR option suppressed the cleanup of the generated C files, object
+files, compiler log, etc\&. normally done at the end of building\&.
+.CS
+
+
+% ls -l /home/aku/\&.critcl/pkg2567272\&.1644845439
+total 36
+-rw-r--r-- 1 aku aku  1260 Feb 14 18:30 v3118_00000000000000000000000000000004\&.c
+-rw-r--r-- 1 aku aku  2096 Feb 14 18:30 v3118_00000000000000000000000000000004_pic\&.o
+-rw-r--r-- 1 aku aku  1728 Feb 14 18:30 v3118_00000000000000000000000000000009\&.c
+-rw-r--r-- 1 aku aku  2448 Feb 14 18:30 v3118_00000000000000000000000000000009_pic\&.o
+-rwxr-xr-x 1 aku aku 14424 Feb 14 18:30 v3118_00000000000000000000000000000009\&.so
+-rw-r--r-- 1 aku aku  1725 Feb 14 18:30 v3118\&.log
+
+.CE
+.IP
+This enables inspection of the generated C code\&.
+Simply drop the option from the command if that is not desired\&.
+.sp
+The option \fB-debug\fR, with argument \fBall\fR activated Tcl's memory
+debugging and caused the generation of the symbol tables needed by \fBgdb\fR or any
+other debugger\&. The alternate arguments \fBmemory\fR and \fBsymbols\fR activate just
+one of the these\&.
+.IP [4]
+Now invoke an interactive \fBtclsh\fR and enter the commands:
+.RS
+.IP \(bu
+\fIlappend auto_path lib\fR
+.IP \(bu
+\fIpackage require critcl-example\fR
+.IP \(bu
+\fIinfo loaded\fR
+.IP \(bu
+\fIhello\fR
+.IP \(bu
+\fIexit\fR
+.RE
+.IP
+I\&.e\&. extend \fBtclsh\fR's package search path to include the location of the new
+package, load the package, verify that the associated shared library is present, invoke
+the package command, and stop the session\&.
+.sp
+When the package command is invoked the terminal will show \fBhello world\fR,
+followed by the prompt\&.
+.PP
+.PP
+Commands: \fIcritcl::compiling\fR, \fIcritcl::cproc\fR,
+\fIcritcl::description\fR, \fIcritcl::license\fR, \fIcritcl::load\fR,
+\fIcritcl::msg\fR, \fIcritcl::subject\fR, \fIcritcl::summary\fR, \fIcritcl::tcl\fR\&.
+.PP
+Make a copy of "\fIexample\&.tcl\fR" before going through the sub-sections\&. Keep it as
+a save point to return to from the editing done in the sub-section\&.
+.SS "SIMPLE ARGUMENTS"
+A function taking neither arguments nor returning results is not very useful\&.
+.IP [1]
+We are now extending the command to take an argument\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {double x} void {
+	/* double x; */
+	printf("hello world, we have %f\\n", x);
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+When testing the package again, entering the simple \fBhello\fR will fail\&.
+.sp
+The changed command is now expecting an argument, and we gave it none\&.
+.sp
+Retry by entering
+.CS
+
+hello 5
+.CE
+.IP instead\&.
+Now the command behaves as expected and prints the provided value\&.
+.sp
+Further try and enter
+.CS
+
+hello world
+.CE
+.IP
+This will fail again\&.
+The command expected a real number and we gave it something decidedly not so\&.
+.sp
+These checks (argument count, argument type) are implemented in the translation
+layer \fICriTcl\fR generates for the C function\&. The function body is never invoked\&.
+.PP
+.SS "SIMPLE RESULTS"
+A function taking neither arguments nor returning results is not very useful\&.
+.IP [1]
+We are now extending the command to return a result\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc twice {double x} double {
+	return 2*x;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+Note that the name of the command changed\&. Goodbye \fBhello\fR, hello \fBtwice\fR\&.
+.IP [4]
+Invoke
+.CS
+
+ twice 4
+.CE
+.IP and the \fBtclsh\fR will print the result \fB8\fR
+in the terminal\&.
+.PP
+.PP
+An important limitation of the commands implemented so far is that they cannot
+fail\&. The types used so far (\fBvoid\fR, \fBdouble\fR) and related scalar types can
+return only a value of the specified type, and nothing else\&. They have no ability to
+signal an error to the Tcl script\&.
+.PP
+We will come back to this after knowing a bit more about the more complex argument
+and result types\&.
+.PP
+Of interest to the eager reader: \fICriTcl cproc Type Reference\fR
+.SS "RANGE-LIMITED SIMPLE ARGUMENTS"
+.IP [1]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {{double > 5 < 22} x} void {
+	/* double x, range 6-21; */
+	printf("hello world, we have %f\\n", x);
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+When dealing with simple arguments whose range of legal values is limited to a single
+continuous interval extend the base type with the necessary relations (\fB>\fR, \fB>=\fR,
+\fB<\fR, and \fB<=\fR) and limiting values\&.
+.sp
+\fINote\fR that the limiting values have to be proper constant numbers acceptable by the
+base type\&. Symbolic values are not accepted\&.
+.sp
+Here the argument \fIx\fR of the changed function will reject all values outside of the
+interval 6 to 21\&.
+.PP
+.SS "STRING ARGUMENTS"
+Tcl prides itself on the fact that \fIEverything Is A String\fR\&.
+So how are string values passed into C functions ?
+.IP [1]
+We are now extending the command with a string argument\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {pstring x} void {
+	/* critcl_pstring x (\&.s, \&.len, \&.o); */
+	printf("hello world, from %s (%d bytes)\\n", x\&.s, x\&.len);
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+Testing \fBhello\fR with any kind of argument the information is printed\&.
+.IP [4]
+Of note here is that the command argument \fBx\fR is a structure\&.
+.IP [5]
+The example uses only two of the three fields, the pointer to the string data
+(\fB\&.s\fR), and the length of the string (\fB\&.len\fR)\&. In bytes, \fInot\fR in
+characters, because Tcl's internal representation of strings uses a modified UTF-8
+encoding\&. A character consists of between 1 and \fBTCL_UTF_MAX\fR bytes\&.
+.IP [6]
+\fIAttention\fR The pointers (\fB\&.s\fR) refer into data structures \fIinternal\fR
+to and managed by the Tcl interpreter\&.
+Changing them is highly likely to cause subtle and difficult to track down bugs\&.
+Any and all complex arguments must be treated as \fIRead-Only\fR\&. Never modify them\&.
+.IP [7]
+Use the simpler type \fBchar*\fR if and only if the length of the string is not
+relevant to the command, i\&.e\&. not computed, or not used by any of the functions called
+from the body of the command\&.
+Its value is essentially just the \fB\&.s\fR field of \fBpstring\fR's structure\&.
+This then looks like
+.CS
+
+
+    critcl::cproc hello {char* x} void {
+	/* char* x; */
+	printf("hello world, from %s\\n", x);
+    }
+
+.CE
+.PP
+.SS "STRING RESULTS"
+Tcl prides itself on the fact that \fIEverything Is A String\fR\&.
+So how are string values returned from C functions ?
+.IP [1]
+We are now giving the command a string result\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc twice {double x} char* {
+	char buf [lb]40[rb];
+	sprintf(buf, "%f", 2*x);
+	return buf;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+Note that the name of the command changed\&. Goodbye \fBhello\fR, hello \fBtwice\fR\&.
+.IP [4]
+Invoke
+.CS
+
+ twice 4
+.CE
+.IP and the \fBtclsh\fR will print the result \fB8\fR
+in the terminal\&.
+.IP [5]
+\fIAttention\fR\&. To the translation layer the string pointer is owned by the C
+code\&. A copy is made to become the result seen by Tcl\&.
+.sp
+While the C code is certainly allowed to allocate the string on the heap if it so
+wishes, this comes with the responsibility to free the string as well\&. Abrogation of that
+responsibility will cause memory leaks\&.
+.sp
+The type \fBchar*\fR is recommended to be used with static string buffers, string
+constants and the like\&.
+.IP [6]
+Conversely, to return heap-allocated strings it is recommended to use the type
+\fBstring\fR instead\&.
+.sp
+Replace the definition of \fBtwice\fR with
+.CS
+
+
+critcl::cproc twice {double x} string {
+    char* buf = Tcl_Alloc (40);
+    sprintf(buf, "%f", 2*x);
+    return buf;
+}
+
+.CE
+.sp
+Now the translation layer takes ownership of the string from the C code and
+transfers that ownership to the Tcl interpreter\&. This means that the string will be
+released when the Tcl interpreter is done with it\&. The C code has no say in the lifecycle
+of the string any longer, and having the C code releasing the string \fIwill\fR cause
+issues\&. Dangling pointers and associated memory corruption and crashes\&.
+.PP
+.SS "LIST ARGUMENTS"
+Even as a string-oriented language Tcl is capable of handling more complex structures\&. The first of
+it, with Tcl since the beginning are \fIlists\fR\&. Sets of values indexed by a numeric value\&.
+.PP
+In C parlance, \fIarrays\fR\&.
+.IP [1]
+We are now extending the command with a \fBlist\fR argument\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {list x} void {
+	/* critcl_list x (\&.o, \&.v, \&.c); */
+	printf("hello world, %d elements in (%s)\\n", x\&.c, Tcl_GetString (x\&.o));
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+Testing \fBhello\fR with any kind of list argument it will print basic information about it\&.
+.IP [4]
+Of note here is that the command argument \fBx\fR is a structure\&.
+.IP [5]
+The example uses only two of the three fields, the pointer to the original \fBTcl_Obj*\fR
+holding the list (\fB\&.o\fR), and the length of the list (\fB\&.c\fR) in elements\&.
+.sp
+The field \fB\&.v\fR, not used above, is the C array holding the \fBTcl_Obj*\fR pointers to
+the list elements\&.
+.IP [6]
+\fIAttention\fR The pointers \fB\&.o\fR and \fB\&.v\fR refer into data structures
+\fIinternal\fR to and managed by the Tcl interpreter\&.
+Changing them is highly likely to cause subtle and difficult to track down bugs\&.
+Any and all complex arguments must be treated as \fIRead-Only\fR\&. Never modify them\&.
+.IP [7]
+As a last note, this argument type does not place any constraints on the size of the list, or
+on the type of the elements\&.
+.PP
+.SS "CONSTRAINED LIST ARGUMENTS"
+As mentioned at the end of section \fBList Arguments\fR the basic \fBlist\fR type places no
+constraints on the size of the list, nor on the type of the elements\&.
+.PP
+Both kind of constraints can be done however, alone or together\&.
+.IP [1]
+We are now extending the command with a length-limited list\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {[5] x} void {
+	/* critcl_list x (\&.o, \&.v, \&.c); */
+	printf("hello world, %d elements in (%s)\\n", x\&.c, Tcl_GetString (x\&.o));
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+Testing the new command will show that only lists holding exactly \fB5\fR elements will be
+accepted\&.
+.IP [4]
+To accept lists of any length use \fB[]\fR or \fB[*]\fR\&. Both forms are actually
+aliases of the base type, i\&.e\&. \fBlist\fR\&.
+.IP [5]
+To constrain just the type of elements, for example to type \fBint\fR, use
+.CS
+
+int[]
+.CE
+.IP
+or
+.CS
+
+[]int
+.CE
+.IP [6]
+To combine both type and length constraints use the forms
+.CS
+
+int[5]
+.CE
+.IP or
+.CS
+
+[5]int
+.CE
+.IP [7]
+The last, most C-like forms of these contraints place the list indicator syntax on the
+argument instead of the type\&. I\&.e
+.CS
+
+int a[]
+.CE
+.IP or
+.CS
+
+int a[5]
+.CE
+.PP
+.SS "RAW TCL_OBJ* ARGUMENTS"
+When the set of predefined argument types is not enough the oldest way of handling the
+situation is falling back to the structures used by Tcl to manage values, i\&.e\&.
+\fBTcl_Obj*\fR\&.
+.IP [1]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {object x} void {
+	/* Tcl_Obj* x */
+	int len;
+	char* str = Tcl_GetStringFromObj (x, &len);
+	printf("hello world, from %s (%d bytes)\\n", str, len);
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+Having direct access to the raw \fBTcl_Obj*\fR value all functions of the public
+Tcl API for working with Tcl values become usable\&. The downside of that is that all the
+considerations for handling them apply as well\&.
+.sp
+In other words, the C code becomes responsible for handling the reference counts
+correctly, for duplicating shared \fBTcl_Obj*\fR structures before modifying them, etc\&.
+.sp
+One thing the C code is allowed to do without restriction is to \fIshimmer\fR the
+internal representation of the value as needed, through the associated Tcl API
+functions\&. For example \fBTcl_GetWideIntFromObj\fR and the like\&.
+It actually has to be allowed to do so, as the type checking done as part of such
+conversions is now the responsibility of the C code as well\&.
+.sp
+For the predefined types this is all hidden in the translation layer generated by
+\fICriTcl\fR\&.
+.sp
+If more than one command has to perform the same kind of checking and/or conversion
+it is recommended to move the core of the code into proper C functions for proper sharing
+among the commands\&.
+.IP [3]
+This is best done by defining a custom argument type using \fICriTcl\fR commands\&.
+This extends the translation layer \fICriTcl\fR is able to generate\&.
+The necessary conversions, type checks, etc\&. are then again hidden from the bulk of the
+application C code\&.
+.sp
+We will come back to this\&.
+.PP
+.SS "RAW TCL_OBJ* RESULTS"
+When the set of predefined result types is not enough the oldest way of handling the
+situation is falling back to the structures used by Tcl to manage values, i\&.e\&.
+\fBTcl_Obj*\fR\&.
+.PP
+Two builtin types are provided for this, to handle different reference counting
+requirements\&.
+.IP [1]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc twice {double x} object0 {
+	return Tcl_NewDoubleObj(2*x);
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+With \fBobject0\fR the translation layer assumes that the returned \fBTcl_Obj*\fR
+value has a reference count of \fB0\fR\&. I\&.e\&. a value which is unowned and unshared\&.
+.sp
+This value is passed directly to Tcl for its use, without any changes\&. Tcl
+increments the reference count and thus takes ownership\&. The value is still unshared\&.
+.sp
+It would be extremely detrimental if the translation layer had decremented the
+reference count before passing the value\&. This action would release the memory and then
+leave Tcl with a dangling pointer and the associated memory corruption bug to come\&.
+.IP [3]
+The situation changes when the C code returns a \fBTcl_Obj*\fR value with a
+reference count greater than \fB0\fR\&. I\&.e\&. at least owned (by the C code), and possibly
+even shared\&.
+There are some object constructors and/or mutators in the public Tcl API which do that,
+although I do not recall their names\&. The example below simulates this situation by
+explicitly incrementing the reference count before returning the value\&.
+.IP [4]
+In this case use the type \fBobject\fR (without the trailing \fB0\fR)\&.
+.IP [5]
+Edit the file "\fIexample\&.tcl\fR" and replace the definition of \fBtwice\fR with
+.CS
+
+
+    critcl::cproc twice {double x} object {
+	Tcl_Obj* result = Tcl_NewDoubleObj(2*x);
+	Tcl_IncrRefCount (result);
+	return result;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [6]
+After handing the value to Tcl, with the associated incremented reference count,
+the translation layer decrements the reference count, invalidating the C code's ownership
+and leaving the final reference count the same\&.
+.sp
+Note, the order matters\&. If the value has only one reference then decrementing it
+before Tcl increments it would again release the value, and again leave Tcl with a
+dangling pointer\&.
+.sp
+Also, not decrementing the reference count at all causes the inverse problem to the
+memory corruption issues of before, memory leaks\&.
+.IP [7]
+\fINote\fR that both types transfer ownership of the value\&. Their difference is
+just in the reference count of the value coming out of the function, and the (non-)actions
+having to be (not) taken to effect said transfer without causing memory issues\&.
+.PP
+.SS "ERRORS & MESSAGES"
+.IP [1]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc sqrt {
+	Tcl_Interp* interp
+	double      x
+    } object0 {
+	if (x < 0) {
+	    Tcl_SetObjResult (interp, Tcl_ObjPrintf ("Expected double >=0, but got \\"%d\\"", x));
+	    Tcl_SetErrorCode (interp, "EXAMPLE", "BAD", "DOMAIN", NULL);
+	    return NULL;
+	}
+	return Tcl_NewDoubleObj(sqrt(x));
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+In standard C-based packages commands signal errors by returning \fBTCL_ERROR\fR,
+placing the error message as the interpreter result, and maybe providing an error code via
+\fBTcl_SetErrorCode\fR\&.
+.IP [3]
+When using \fBcritcl::cproc\fR this is limited and hidden\&.
+.IP [4]
+The simple and string types for results do not allow failure\&. The value is returned
+to the translation layer, converted into the interpreter result and then reported as
+success (\fBTCL_OK\fR)\&.
+.IP [5]
+The object types on the other hand do allow for failure\&.
+Return a \fBNULL\fR value to signal failure to the translation layer, which then reports
+this to the interpreter via the standard \fBTCL_ERROR\fR\&.
+.IP [6]
+\fIAttention\fR Setting the desired error message and code into the interpreter is
+still the responsibility of the function body\&.
+.PP
+.SS "TCL_INTERP* ACCESS"
+.IP [1]
+Reread the example in the \fBprevious\fR section\&.
+.IP [2]
+Note the type \fBTcl_Interp*\fR used for the first argument\&.
+.IP [3]
+This type is special\&.
+.IP [4]
+An argument of this type has to be the first argument of a function\&.
+.IP [5]
+Using it tells \fICriTcl\fR that the function needs access to the Tcl interpreter
+calling it\&. It then arranges for that to happen in the generated C code\&.
+.sp
+Using functions from Tcl's public C API taking an interpreter argument in the
+function body is a situation where this is needed\&.
+.IP [6]
+\fIThis special argument is not visible at the script level\fR\&.
+.IP [7]
+\fIThis special argument is not an argument of the Tcl command for the function\fR\&.
+.IP [8]
+In our example the \fBsqrt\fR command is called with a single argument\&.
+.IP [9]
+The name of the argument can be freely chosen\&. It is the type which is important
+and triggers the special behaviour\&.
+My prefered names are \fBip\fR and \fBinterp\fR\&.
+.PP
+.SS "BINARY DATA ARGUMENTS"
+.IP [1]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc hello {bytes x} void {
+        /* critcl_bytes x (\&.s, \&.len, \&.o); */
+        printf("hello world, with %d bytes \\n data: ", x\&.len);
+        for (i = 0; i < x\&.len; i++) {
+            printf(" %02x", x\&.s[i]);
+            if (i % 16 == 15) printf ("\\ndata: ");
+        }
+        if (i % 16 != 0) printf ("\\n");
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+To deal with strings holding binary data use the type \fBbytes\fR\&. It ensures that
+the function sees the proper binary data, and not how Tcl is encoding it internally, as
+the string types would\&.
+.PP
+.SS "CONSTANT BINARY DATA RESULTS"
+.IP [1]
+Use the command \fBcritcl::cdata\fR to create a command taking no arguments and
+returning a constant ByteArray value\&.
+.sp
+.CS
+
+
+    # P5 3 3 255 \\n \&.\&.\&.
+    critcl::cdata cross3x3pgm {
+	80 52 32 51 32 51 32 50 53 53 10
+	0   255 0
+	255 255 255
+	0   255 0
+    }
+
+.CE
+.PP
+.SS "TCL RUNTIME VERSION"
+.IP [1]
+See and reread the \fBbasic package\fR for the introduction of the
+commands referenced below\&.
+.IP [2]
+Use the command \fBcritcl::tcl\fR to tell \fICriTcl\fR the minimal version of Tcl
+the package is to be used with\&.
+.sp
+This determines which Tcl headers all files are compiled against, and what version
+of the public Tcl API is available to the C code\&.
+.sp
+Currently \fB8\&.4\fR, \fB8\&.5\fR and \fB8\&.6\fR are supported\&.
+.sp
+If not specified \fB8\&.4\fR is assumed\&.
+.PP
+.SS "ADDITIONAL TCL CODE"
+.IP [1]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::cproc greetings::hello {} void {
+	printf("hello world\\n");
+    }
+
+    critcl::cproc greetings::hi {} void {
+	printf("hi you\\n");
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+The command \fBhello\fR is now available as \fBgreetings::hello\fR, and a second
+command \fBgreetings::hi\fR was added\&.
+.IP [3]
+Tcl has automatically created the namespace \fBgreetings\fR\&.
+.IP [4]
+Create a file "\fIexample-policy\&.tcl\fR" and enter
+.CS
+
+
+    namespace eval greetings {
+	namespace export hello hi
+	namespace ensemble create
+    }
+
+.CE
+.IP into it\&.
+.IP [5]
+Edit "\fIexample\&.tcl\fR"\&. Add the code
+.CS
+
+
+    critcl::tsources example-policy\&.tcl
+
+.CE
+.IP and rebuild the package\&.
+.IP [6]
+The added Tcl code makes \fBgreetings\fR available as an \fIensemble\fR
+command\&.
+.sp
+The commands in the namespace have been registered as methods of the ensemble\&.
+.sp
+They can now be invoked as
+.CS
+
+
+    greetings hello
+    greetings hi
+
+.CE
+.IP [7]
+The Tcl builtin command \fBstring\fR is an ensemble as well, as is \fBclock\fR\&.
+.PP
+.PP
+New commands: \fIcritcl::tsources\fR
+.SS "DEBUGGING SUPPORT"
+.IP [1]
+See and reread the \fBbasic package\fR for the introduction of the
+commands referenced below\&.
+.IP [2]
+Use the command \fBcritcl::debug\fR to activate various features supporting debugging\&.
+.sp
+.CS
+
+
+    critcl::debug memory  ;# Activate Tcl memory debugging (-DTCL_MEM_DEBUG)
+    critcl::debug symbols ;# Activate building and linking with debugger symbols (-g)
+    critcl::debug all     ;# Shorthand for both `memory` and `symbols`\&.
+
+.CE
+.PP
+.SS "INSTALL THE PACKAGE"
+.IP [1]
+Starting from the \fBBasics\fR\&.
+.IP [2]
+Use an interactive \fBtclsh\fR seesion to determine the value of
+\fBinfo library\fR\&.
+.sp
+For the purpose of this HowTo assume that this path is
+"\fI/home/aku/opt/ActiveTcl/lib/tcl8\&.6\fR"
+.IP [3]
+Invoke the critcl application in a terminal, using
+.CS
+
+
+
+    critcl -libdir /home/aku/opt/ActiveTcl/lib/tcl8\&.6 -pkg example\&.tcl
+
+
+.CE
+.IP [4]
+The package is now build and installed into the chosen directory\&.
+.CS
+
+
+   % find /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/pkgIndex\&.tcl
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/critcl-rt\&.tcl
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/license\&.terms
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/linux-x86_64
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/linux-x86_64/example\&.so
+    /home/aku/opt/ActiveTcl/lib/tcl8\&.6/example/teapot\&.txt
+
+.CE
+.PP
+.SH "USING EXTERNAL LIBRARIES"
+To create a minimal package wrapping an external library
+.IP [1]
+Choose a directory to develop in and make it the working directory\&.
+This should not be a checkout of \fICriTcl\fR itself\&.
+.IP [2]
+Save the following example to a file\&. In the following it is assumed that the file
+was named "\fIexample\&.tcl\fR"\&.
+.CS
+
+
+# -*- tcl -*-
+# Critcl support, absolutely necessary\&.
+package require critcl
+
+# Bail out early if the compile environment is not suitable\&.
+if {![critcl::compiling]} {
+    error "Unable to build project, no proper compiler found\&."
+}
+
+# Information for the teapot\&.txt meta data file put into a generated package\&.
+# Free form strings\&.
+critcl::license {Andreas Kupries} {Under a BSD license}
+
+critcl::summary {The second CriTcl-based package}
+
+critcl::description {
+    This package is the second example of a CriTcl-based package\&. It contains all the
+    necessary and conventionally useful pieces for wrapping an external library\&.
+}
+
+critcl::subject {external library usage} example {critcl package}
+critcl::subject {wrapping external library}
+
+# Minimal Tcl version the package should load into\&.
+critcl::tcl 8\&.6
+
+# Locations for headers and shared library of the library to wrap\&.
+# Required only for non-standard locations, i\&.e\&. where CC is not searching by default\&.
+critcl::cheaders   -I/usr/include
+critcl::clibraries -L/usr/lib/x86_64-linux-gnu
+critcl::clibraries -lzstd
+
+# Import library API, i\&.e\&. headers\&.
+critcl::include zstd\&.h
+
+# ## #### ######### ################ #########################
+## (De)compression using Zstd
+## Data to (de)compress is passed in and returned as Tcl byte arrays\&.
+
+critcl::cproc compress {
+    Tcl_Interp* ip
+    bytes       data
+    int         {level ZSTD_CLEVEL_DEFAULT}
+} object0 {
+    /* critcl_bytes data; (\&.s, \&.len, \&.o) */
+    Tcl_Obj* error_message;
+
+    int max = ZSTD_maxCLevel();
+    if ((level < 1) || (level > max)) {
+	error_message = Tcl_ObjPrintf ("level must be integer between 1 and %d", max);
+	goto err;
+    }
+
+    size_t dest_sz  = ZSTD_compressBound (data\&.len);
+    void*  dest_buf = Tcl_Alloc(dest_sz);
+
+    if (!dest_buf) {
+	error_message = Tcl_NewStringObj ("can't allocate memory to compress data", -1);
+	goto err;
+    }
+
+    size_t compressed_size = ZSTD_compress (dest_buf, dest_sz,
+					    data\&.s,   data\&.len,
+					    level);
+    if (ZSTD_isError (compressed_size)) {
+	Tcl_Free(dest_buf);
+	error_message = Tcl_ObjPrintf ("zstd encoding error: %s",
+				       ZSTD_getErrorName (compressed_size));
+	goto err;
+    }
+
+    Tcl_Obj* compressed = Tcl_NewByteArrayObj (dest_buf, compressed_size);
+    Tcl_Free (dest_buf);
+
+    return compressed;
+  err:
+    Tcl_SetObjResult (ip, error_message);
+    return 0;
+}
+
+critcl::cproc decompress {
+    Tcl_Interp*  ip
+    bytes        data
+} object0 {
+    Tcl_Obj* error_message;
+
+    size_t dest_sz = ZSTD_getDecompressedSize (data\&.s, data\&.len);
+    if (dest_sz == 0) {
+        error_message = Tcl_NewStringObj("invalid data", -1);
+	goto err;
+    }
+
+    void* dest_buf = Tcl_Alloc (dest_sz);
+    if (!dest_buf) {
+	error_message = Tcl_NewStringObj("failed to allocate decompression buffer", -1);
+	goto err;
+    }
+
+    size_t decompressed_size = ZSTD_decompress (dest_buf, dest_sz,
+						data\&.s,   data\&.len);
+    if (decompressed_size != dest_sz) {
+	Tcl_Free (dest_buf);
+        error_message = Tcl_ObjPrintf("zstd decoding error: %s",
+				      ZSTD_getErrorName (decompressed_size));
+	goto err;
+    }
+
+    Tcl_Obj* decompressed = Tcl_NewByteArrayObj (dest_buf, dest_sz);
+    Tcl_Free (dest_buf);
+
+    return decompressed;
+
+  err:
+    Tcl_SetObjResult (ip, error_message);
+    return 0;
+}
+
+# ## #### ######### ################ #########################
+
+# Forcing compilation, link, and loading now\&.
+critcl::msg -nonewline { Building \&.\&.\&.}
+if {![critcl::load]} {
+    error "Building and loading the project failed\&."
+}
+
+# Name and version the package\&. Just like for every kind of Tcl package\&.
+package provide critcl-example 1
+
+
+.CE
+.IP [3]
+Build the package\&. See the \fBBasics\fR, if necessary\&.
+.IP [4]
+Load the package and invoke the commands\&.
+.sp
+\fIAttention\fR\&. The commands take and return binary data\&.
+This may look very bad in the terminal\&.
+.IP [5]
+To test the commands enter
+.CS
+
+
+    set a [compress {hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhello wwwwwwwworld}]
+
+    decompress $a
+
+.CE
+.IP in the interactive \fBtclsh\fR
+.PP
+.PP
+New commands: \fIcritcl::cheaders\fR, \fIcritcl::clibraries\fR, \fIcritcl::include\fR\&.
+.SS "DEFAULT VALUES FOR ARGUMENTS"
+.IP [1]
+Reread the example of the main section\&. Note specifically the line
+.CS
+
+
+    int {level ZSTD_CLEVEL_DEFAULT}
+
+.CE
+.IP [2]
+This line demonstrates that \fBcritcl::cproc\fR arguments allowed to have default
+values, in the same vein as \fBproc\fR arguments, and using the same syntax\&.
+.IP [3]
+\fIAttention\fR Default values have to be legal C rvalues and match the C type of
+the argument\&.
+.sp
+They are literally pasted into the generated C code\&.
+.sp
+They bypass any argument validation done in the generated translation layer\&. This
+means that it is possible to use a value an invoker of the command cannot use from Tcl\&.
+.IP [4]
+This kind of in-band signaling of a default versus a regular argument is however
+not necessary\&.
+.sp
+Look at
+.CS
+
+
+    critcl::cproc default_or_not {int {x 0}} void {
+	if !has_x {
+	    printf("called with default\\n");
+	    return
+	}
+	printf("called with %d\\n", x);
+    }
+
+.CE
+.sp
+Any argument \fIx\fR with a default causes \fICriTcl\fR to create a hidden
+argument \fIhas_x\fR, of type int (boolean)\&.
+This argument is set to \fB1\fR when \fIx\fR was filled from defaults, and \fB0\fR
+else\&.
+.PP
+.SS "CUSTOM ARGUMENT VALIDATION"
+.IP [1]
+Starting from the \fBbase wrapper\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.  Replace the entire \fBcompress\fR function with
+.CS
+
+
+    critcl::argtype zstd_compression_level {
+        /* argtype: `int` */
+        if (Tcl_GetIntFromObj (interp, @@, &@A) != TCL_OK) return TCL_ERROR;
+        /* additional validation */
+        int max = ZSTD_maxCLevel();
+        if ((@A < 1) || (@A > max)) {
+            Tcl_SetObjResult (interp,
+                Tcl_ObjPrintf ("zstd compression level must be integer between 1 and %d", max));
+            return TCL_ERROR;
+        }
+        /* @@: current objv[] element
+        ** @A: name of argument variable for transfer to C function
+        ** interp: predefined variable, access to current interp - error messages, etc\&.
+        */
+    } int int ;# C types of transfer variable and function argument\&.
+
+    critcl::cproc compress {
+        Tcl_Interp*            ip
+        bytes                  data
+        zstd_compression_level {level ZSTD_CLEVEL_DEFAULT}
+    } object0 {
+        /* critcl_bytes data; (\&.s, \&.len, \&.o) */
+        /* int level; validated to be in range 1\&.\&.\&.ZSTD_maxCLevel() */
+
+        Tcl_Obj* error_message;
+
+        size_t dest_sz  = ZSTD_compressBound (data\&.len);
+        void*  dest_buf = Tcl_Alloc(dest_sz);
+
+        if (!dest_buf) {
+            error_message = Tcl_NewStringObj ("can't allocate memory to compress data", -1);
+            goto err;
+        }
+
+        size_t compressed_size = ZSTD_compress (dest_buf, dest_sz,
+                                                data\&.s,   data\&.len,
+                                                level);
+        if (ZSTD_isError (compressed_size)) {
+            Tcl_Free(dest_buf);
+            error_message = Tcl_ObjPrintf ("zstd encoding error: %s",
+                                           ZSTD_getErrorName (compressed_size));
+            goto err;
+        }
+
+        Tcl_Obj* compressed = Tcl_NewByteArrayObj (dest_buf, compressed_size);
+        Tcl_Free (dest_buf);
+
+        return compressed;
+    err:
+        Tcl_SetObjResult (ip, error_message);
+        return 0;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.sp
+In the original example the \fIlevel\fR argument of the function was validated in
+the function itself\&.
+This may detract from the funtionality of interest itself, especially if there are lots of
+arguments requiring validation\&.
+If the same kind of argument is used in multiple places this causes code duplication in
+the functions as well\&.
+.sp
+Use a custom argument type as defined by the modification to move this kind of
+validation out of the function, and enhance readability\&.
+.sp
+Code duplication however is only partially adressed\&.
+While there is no duplication in the visible definitions the C code of the new argument
+type is replicated for each use of the type\&.
+.IP [2]
+Now replace the \fBargtype\fR definition with
+.CS
+
+
+    critcl::code {
+        int GetCompressionLevel (Tcl_Interp* interp, Tcl_Obj* obj, int* level)
+        {
+            if (Tcl_GetIntFromObj (interp, obj, level) != TCL_OK) return TCL_ERROR;
+
+            int max = ZSTD_maxCLevel();
+            if ((*level < 1) || (*level > max)) {
+                Tcl_SetObjResult (interp,
+                    Tcl_ObjPrintf ("zstd compression level must be integer between 1 and %d", max));
+                return TCL_ERROR;
+            }
+            return TCL_OK;
+        }
+    }
+
+    critcl::argtype zstd_compression_level {
+        if (GetCompressionLevel (@@, &@A) != TCL_OK) return TCL_ERROR;
+    } int int
+
+.CE
+.IP and rebuild the package\&.
+.sp
+Now only the calls to the new validation function are replicated\&.
+The function itself exists only once\&.
+.PP
+.SS "SEPARATING LOCAL C SOURCES"
+.IP [1]
+Starting from the end of the \fBprevious\fR section\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+.IP [2]
+Save the contents of the \fBcritcl::ccode\fR block into a file "\fIexample\&.c\fR" and
+then replace the entire block with
+.CS
+
+
+    critcl::csources example\&.c
+
+    critcl::ccode {
+	extern int GetCompressionLevel (Tcl_Interp* interp, Tcl_Obj* obj, int* level);
+    }
+
+.CE
+.sp
+When mixing C and Tcl code the different kind of indentation rules for these
+languages may come into strong conflict\&. Further, very large blocks of C code may reduce
+overall readability\&.
+.IP [3]
+The examples fixes this by moving the code block into a local C file and then
+registering this file with \fICriTcl\fR\&.
+When building the package \fICriTcl\fR arranges to build all such registered C files as
+well\&.
+.IP [4]
+\fIAttention\fR\&. The C code is now in a separate compilation unit\&.
+The example declares the exported function so that the \fBcproc\fRs are again able to see
+and use it\&.
+.IP [5]
+Now go a step further\&. Save the declaration into a file "\fIexample\&.h\fR", and then
+use
+.CS
+
+
+    critcl::include example\&.h
+
+.CE
+.IP to import it\&. Note that this is just a shorthand for
+.CS
+
+ critcl::ccode {
+	#include "example\&.h"
+    }
+
+.CE
+.IP [6]
+As an alternative solution, start from the beginning of the section and move the
+entire original \fBcritcl::ccode\fR block into a file "\fIexample-check\&.tcl\fR"\&.
+.sp
+Then replace it with
+.CS
+
+
+    critcl::source example-check\&.tcl
+
+.CE
+.IP to import it into the main code again\&.
+.sp
+\fIAttention\fR Tcl's builtin command \fBsource\fR is \fInot suitable\fR for
+importing the separate file due to how \fICriTcl\fR uses the information from
+\fBinfo script\fR to key various internal datastructures\&.
+.PP
+.SS "VERY SIMPLE RESULTS"
+.IP [1]
+Starting from the end of the \fBvalidation\fR section\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Add the code below, just before the \fBcompress\fR command\&.
+.CS
+
+
+    critcl::cconst version   char* ZSTD_VERSION_STRING
+    critcl::cconst min-level int   1
+    critcl::cconst max-level int   ZSTD_maxCLevel()
+
+.CE
+.IP and rebuild the package\&.
+.IP [2]
+These declarations create three additional commands, each returning the specified
+value\&. A fixed string, an integer, and a function call returning an integer\&.
+.IP [3]
+\fIAttention\fR The values have to be legal C rvalues and match the C type of the
+result\&. They are literally pasted into the generated C code\&.
+.IP [4]
+When using \fBcritcl::cconst\fR \fICriTcl\fR is aware that the result of the
+function does not depend on any parameters and is computed in a single C expression\&.
+.sp
+This enables it do to away with the internal helper function it would need and
+generate if \fBcritcl::cproc\fR had been used instead\&.
+For example
+.CS
+
+
+    critcl::cproc version {} char* {
+	return ZSTD_VERSION_STRING;
+    }
+
+.CE
+.PP
+.SS "STRUCTURE ARGUMENTS"
+.IP [1]
+For all that this is a part of how to
+\fBUse External Libraries\fR, for the demonstratation
+only the basics are needed\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    critcl::ccode {
+	typedef struct vec2 {
+	    double x;
+	    double y;
+	} vec2;
+
+	typedef vec2* vec2ptr;
+
+	int
+	GetVecFromObj (Tcl_Interp* interp, Tcl_Obj* obj, vec2ptr* vec)
+	{
+	    int len;
+	    if (Tcl_ListObjLength (interp, obj, &len) != TCL_OK) return TCL_ERROR;
+	    if (len != 2) {
+		Tcl_SetObjResult (interp, Tcl_ObjPrintf ("Expected 2 elements, got %d", len));
+		return TCL_ERROR;
+	    }
+
+	    Tcl_Obj* lv[2];
+	    if (Tcl_ListObjGetElements (interp, obj, &lv) != TCL_OK) return TCL_ERROR;
+
+	    double x, y;
+	    if (Tcl_GetDoubleFromObj (interp, lv[0], &x) != TCL_OK) return TCL_ERROR;
+	    if (Tcl_GetDoubleFromObj (interp, lv[1], &y) != TCL_OK) return TCL_ERROR;
+
+	    *vec = Tcl_Alloc (sizeof (vec2));
+	    (*vec)->x = x;
+	    (*vec)->y = y;
+	    return TCL_OK;
+	}
+    }
+
+    critcl::argtype vec2 {
+	if (GetVecFromObj (interp, @@, &@A) != TCL_OK) return TCL_ERROR;
+    } vec2ptr vec2ptr
+
+    critcl::argtyperelease vec2 {
+	/* @A : C variable holding the data to release */
+	Tcl_Free ((char*) @A);
+    }
+
+    critcl::cproc norm {vec2 vector} double {
+	double norm = hypot (vector->x, vector->y);
+	return norm;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+The structure to pass as argument is a 2-dimensional vector\&. It is actually passed
+in as a pointer to a \fBvec2\fR structure\&.
+This pointer is created by the \fBGetVecFromObj\fR function\&. It allocates and fills the
+structure from the Tcl value, which has to be a list of 2 doubles\&. The bulk of the code in
+\fBGetVecFromObj\fR is for verifying this and extracting the doubles\&.
+.IP [4]
+The \fBargtyperelease\fR code releases the pointer when the C function returns\&. In
+other words, the pointer to the structure is owned by the translation layer and exists
+only while the function is active\&.
+.IP [5]
+While working this code has two disadvantages\&.
+First there is memory churn\&. Each call of \fBnorm\fR causes the creation and release of a
+temporary \fBvec2\fR structure for the argument\&.
+Second is the need to always extract the data from the \fBTcl_Obj*\fR value\&.
+.sp
+Both can be done better\&.
+.sp
+We will come back to this after explaining how to return structures to Tcl\&.
+.PP
+.SS "STRUCTURE RESULTS"
+.IP [1]
+Starting from the end of the \fBprevious\fR section\&.
+.IP [2]
+Edit the file "\fIexample\&.tcl\fR" and add the following code, just after the
+definition of the \fBnorm\fR command\&.
+.CS
+
+
+    critcl::resulttype vec2 {
+	/* rv: result value of function, interp: current Tcl interpreter */
+	if (rv == NULL) return TCL_ERROR;
+	Tcl_Obj* lv[2];
+	lv[0] = Tcl_NewDoubleObj (rv->x);
+	lv[1] = Tcl_NewDoubleObj (rv->y);
+	Tcl_SetObjResult (interp, Tcl_NewListObj (2, lv));
+	Tcl_Free (rv);
+	return TCL_OK;
+    } vec2ptr ;# C result type
+
+    critcl::cproc add {vec2 a vec2 b} vec2 {
+	vec2ptr z = Tcl_Alloc (sizeof (vec2));
+
+	z->x = a->x + b->x;
+	z->y = a->y + b->y;
+
+	return z;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+The new command \fBadd\fR takes two vectors and return the element-wise sum of both
+as a new vector\&.
+.IP [4]
+The function allocates and initializes a structure and hands it over to the
+translation layer\&. Which in turn constructs a Tcl list of 2 doubles from it, sets that as
+the command's result and at last discards the allocated structure again\&.
+.IP [5]
+While working this code has two disadvantages\&.
+First there is memory churn\&. Each call of \fBadd\fR causes the creation and release of
+three temporary \fBvec2\fR structures\&. One per argument, and one for the result\&.
+Second is the need to always construct a complex \fBTcl_Obj*\fR value from the structure\&.
+.sp
+Both can be done better\&. This is explained in the next section\&.
+.PP
+.SS "STRUCTURE TYPES"
+.IP [1]
+Starting from the end of the previous section\&.
+.IP [2]
+Edit the file "\fIexample\&.tcl\fR"\&.
+.IP [3]
+Remove the entire functionality (type definitions, related C code, and cprocs)\&.
+Replace it with
+.CS
+
+
+    critcl::ccode {
+	typedef struct vec2 {
+	    double x;
+	    double y;
+	} vec2;
+
+	typedef vec2* vec2ptr;
+
+	/* -- Core vector structure management -- */
+
+	static vec2ptr Vec2New (double x, double y) {
+	    vec2ptr vec = Tcl_Alloc (sizeof (vec2));
+	    vec->x = x;
+	    vec->y = y;
+	    return vec;
+	}
+
+	static vec2ptr Vec2Copy (vec2ptr src) {
+	    vec2ptr vec = Tcl_Alloc (sizeof (vec2));
+	    *vec = *src
+	    return vec;
+	}
+
+	static void Vec2Release (vec2ptr vec) {
+	    Tcl_Free ((char*) vec);
+	}
+
+	/* -- Tcl value type for vec2 -- Tcl_ObjType -- */
+
+	static void Vec2Free     (Tcl_Obj* obj);
+	static void Vec2StringOf (Tcl_Obj* obj);
+	static void Vec2Dup      (Tcl_Obj* obj, Tcl_Obj* dst);
+	static int  Vec2FromAny  (Tcl_Interp* interp, Tcl_Obj* obj);
+
+	Tcl_ObjType vec2_objtype = {
+	    "vec2",
+	    Vec2Free,
+	    Vec2Dup,
+	    Vec2StringOf,
+	    Vec2FromAny
+	};
+
+	static void Vec2Free (Tcl_Obj* obj) {
+	    Vec2Release ((vec2ptr) obj->internalRep\&.otherValuePtr);
+	}
+
+	static void Vec2Dup (Tcl_Obj* obj, Tcl_Obj* dst) {
+	    vec2ptr vec = (vec2ptr) obj->internalRep\&.otherValuePtr;
+
+	    dst->internalRep\&.otherValuePtr = Vec2Copy (vec);
+	    dst->typePtr                   = &vec2_objtype;
+	}
+
+	static void Vec2StringOf (Tcl_Obj* obj) {
+	    vec2ptr vec = (vec2ptr) obj->internalRep\&.otherValuePtr;
+
+	    /* Serialize vector data to string (list of two doubles) */
+	    Tcl_DString      ds;
+	    Tcl_DStringInit (&ds);
+
+	    char buf [TCL_DOUBLE_SPACE];
+
+	    Tcl_PrintDouble (0, vec->x, buf); Tcl_DStringAppendElement (&ds, buf);
+	    Tcl_PrintDouble (0, vec->y, buf); Tcl_DStringAppendElement (&ds, buf);
+
+	    int length = Tcl_DStringLength (ds);
+
+	    /* Set string representation */
+	    obj->length = length;
+	    obj->bytes  = Tcl_Alloc(length+1);
+	    memcpy (obj->bytes, Tcl_DStringValue (ds), length);
+	    obj->bytes[length] = '\\0';
+	    /*
+	    ** : package require critcl::cutil ;# get C utilities
+	    ** : critcl::cutil::alloc          ;# Activate allocation utilities
+	    ** : (Internally cheaders, include)
+	    ** : Then all of the above can be written as STREP_DS (obj, ds);
+	    ** : STREP_DS = STRing REP from DString
+	    */
+
+	    Tcl_DStringFree (&ds);
+	}
+
+	static int Vec2FromAny (Tcl_Interp* interp, Tcl_Obj* obj) {
+	    /* Change intrep of obj to vec2 structure\&.
+	    ** A Tcl list of 2 doubles is used as an intermediary intrep\&.
+	    */
+
+	    int len;
+	    if (Tcl_ListObjLength (interp, obj, &len) != TCL_OK) return TCL_ERROR;
+	    if (len != 2) {
+		Tcl_SetObjResult (interp, Tcl_ObjPrintf ("Expected 2 elements, got %d", len));
+		return TCL_ERROR;
+	    }
+
+	    Tcl_Obj* lv[2];
+	    if (Tcl_ListObjGetElements (interp, obj, &lv) != TCL_OK) return TCL_ERROR;
+
+	    double x, y;
+	    if (Tcl_GetDoubleFromObj (interp, lv[0], &x) != TCL_OK) return TCL_ERROR;
+	    if (Tcl_GetDoubleFromObj (interp, lv[1], &y) != TCL_OK) return TCL_ERROR;
+
+	    obj->internalRep\&.otherValuePtr = (void*) Vec2New (x, y);
+	    obj->typePtr                   = &vec2_objtype;
+
+	    return TCL_OK;
+	}
+
+	/* -- (un)packing structures from/into Tcl values -- */
+
+	int GetVecFromObj (Tcl_Interp* interp, Tcl_Obj* obj, vec2ptr* vec)
+	{
+	    if (obj->typePtr != &vec2_objtype) {
+		if (Vec2FromAny (interp, obj) != TCL_OK) return TCL_ERROR;
+	    }
+
+	    *vec = (vec2ptr) obj->internalRep\&.otherValuePtr;
+	    return TCL_OK;
+	}
+
+	Tcl_Obj* NewVecObj (vec2ptr vec) {
+	    Tcl_Obj* obj = Tcl_NewObj ();
+
+	    Tcl_InvalidateStringRep (obj);
+
+	    obj->internalRep\&.otherValuePtr = Vec2Copy (vec);
+	    obj->typePtr                   = &vec2_objtype;
+
+	    return obj;
+	}
+    }
+
+    critcl::argtype vec2 {
+	if (GetVecFromObj (interp, @@, &@A) != TCL_OK) return TCL_ERROR;
+    } vec2ptr vec2ptr
+
+    critcl::resulttype vec2 {
+	/* rv: result value of function, interp: current Tcl interpreter */
+	Tcl_SetObjResult (interp, NewVecObj (&rv));
+	return TCL_OK;
+    } vec2
+
+    critcl::cproc norm {vec2 vector} double {
+	double norm = hypot (vector->x, vector->y);
+	return norm;
+    }
+
+    critcl::cproc add {vec2 a vec2 b} vec2 {
+	vec2 z;
+
+	z\&.x = a->x + b->x;
+	z\&.y = a->y + b->y;
+
+	return z;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [4]
+This implements a new \fBTcl_ObjType\fR to handle \fBvec2\fR structures\&. With it
+\fBvec2\fR structures are become usable as internal representation (\fIintrep\fR of
+\fBTcl_Obj*\fR values\&.
+.sp
+The two functions \fBNewVecObj\fR and \fBGetVecFromObj\fR pack and unpack the
+structures from and into \fBTcl_Obj*\fR values\&.
+The latter performs the complex deserialization into a structure if and only if needed,
+i\&.e\&. when the \fBTclObj*\fR value has no intrep, or the intrep for a different type\&.
+This process of changing the intrep of a Tcl value is called \fIshimmering\fR\&.
+.sp
+Intreps cache the interpretation of \fBTcl_Obj*\fR values as a specific kind of
+type\&. Here \fBvec2\fR\&. This reduces conversion effort and memory churn, as intreps are
+kept by the Tcl interpreter as long as possible and needed\&.
+.IP [5]
+The arguments of \fBnorm\fR and \fBadd\fR are now converted once on entry, if not
+yet in the proper type, or not at all, if so\&.
+.IP [6]
+\fIAttention\fR\&. This example has the issue of passing result structures by value
+through the stack, and then packing a copy into a \fBTcl_Obj*\fR value\&.
+While this is no trouble for structures as small as \fBvec2\fR larger structures may pose
+a problem\&.
+.sp
+We will address this in the next section\&.
+.PP
+.PP
+Packages: \fIcritcl::cutil\fR
+.SS "LARGE STRUCTURES"
+.IP [1]
+Starting from the end of the previous section\&.
+.IP [2]
+Edit the file "\fIexample\&.tcl\fR"\&.
+.IP [3]
+Describing each individual change is too complex\&. The following is easier\&.
+.IP [4]
+Save the file, then replace the entire functionality with the following\&.
+.IP [5]
+After that use a \fBdiff\fR of your choice to compare the files and see the
+critical changes\&.
+.CS
+
+
+    critcl::ccode {
+	typedef struct vec2 {
+	    unsigned int rc;
+	    double x;
+	    double y;
+	} vec2;
+
+	typedef vec2* vec2ptr;
+
+	/* -- Core vector structure management -- */
+
+	static vec2ptr Vec2New (double x, double y) {
+	    vec2ptr vec = Tcl_Alloc (sizeof (vec2));
+	    vec->rc = 0;
+	    vec->x = x;
+	    vec->y = y;
+	    return vec;
+	}
+
+	static vec2ptr Vec2Copy (vec2ptr src) {
+	    scr->rc ++;
+	    return src;
+	}
+
+	static void Vec2Release (vec2ptr vec) {
+	    if (vec->rc > 1) {
+		vec->rc --;
+		return;
+	    }
+
+	    Tcl_Free ((char*) vec);
+	}
+
+	/* -- Vector obj type -- */
+
+	static void Vec2Free     (Tcl_Obj* obj);
+	static void Vec2StringOf (Tcl_Obj* obj);
+	static void Vec2Dup      (Tcl_Obj* obj, Tcl_Obj* dst);
+	static int  Vec2FromAny  (Tcl_Interp* interp, Tcl_Obj* obj);
+
+	Tcl_ObjType vec2_objtype = {
+	    "vec2",
+	    Vec2Free,
+	    Vec2Dup,
+	    Vec2StringOf,
+	    Vec2FromAny
+	};
+
+	static void Vec2Free (Tcl_Obj* obj) {
+	    Vec2Release ((vec2ptr) obj->internalRep\&.otherValuePtr);
+	}
+
+	static void Vec2Dup (Tcl_Obj* obj, Tcl_Obj* dst) {
+	    vec2ptr vec = (vec2ptr) obj->internalRep\&.otherValuePtr;
+
+	    dst->internalRep\&.otherValuePtr = Vec2Copy (vec);
+	    dst->typePtr                   = &vec2_objtype;
+	}
+
+	static void Vec2StringOf (Tcl_Obj* obj) {
+	    vec2ptr vec = (vec2ptr) obj->internalRep\&.otherValuePtr;
+
+	    /* Serialize vector data to string (list of two doubles) */
+	    Tcl_DString      ds;
+	    Tcl_DStringInit (&ds);
+
+	    char buf [TCL_DOUBLE_SPACE];
+
+	    Tcl_PrintDouble (0, vec->x, buf); Tcl_DStringAppendElement (&ds, buf);
+	    Tcl_PrintDouble (0, vec->y, buf); Tcl_DStringAppendElement (&ds, buf);
+
+	    int length = Tcl_DStringLength (ds);
+
+	    /* Set string representation */
+	    obj->length = length;
+	    obj->bytes  = Tcl_Alloc(length+1);
+	    memcpy (obj->bytes, Tcl_DStringValue (ds), length);
+	    obj->bytes[length] = '\\0';
+	    /*
+	    ** : package require critcl::cutil ;# get C utilities
+	    ** : critcl::cutil::alloc          ;# Activate allocation utilities
+	    ** : (Internally cheaders, include)
+	    ** : Then all of the above can be written as STREP_DS (obj, ds);
+	    ** : STREP_DS = STRing REP from DString
+	    */
+
+	    Tcl_DStringFree (&ds);
+	}
+
+	static int Vec2FromAny (Tcl_Interp* interp, Tcl_Obj* obj) {
+	    /* Change internal rep of obj to vector structure\&.
+	    ** A Tcl list of 2 doubles is used as intermediary int rep\&.
+	    */
+
+	    int len;
+	    if (Tcl_ListObjLength (interp, obj, &len) != TCL_OK) return TCL_ERROR;
+	    if (len != 2) {
+		Tcl_SetObjResult (interp, Tcl_ObjPrintf ("Expected 2 elements, got %d", len));
+		return TCL_ERROR;
+	    }
+
+	    Tcl_Obj* lv[2];
+	    if (Tcl_ListObjGetElements (interp, obj, &lv) != TCL_OK) return TCL_ERROR;
+
+	    double x, y;
+	    if (Tcl_GetDoubleFromObj (interp, lv[0], &x) != TCL_OK) return TCL_ERROR;
+	    if (Tcl_GetDoubleFromObj (interp, lv[1], &y) != TCL_OK) return TCL_ERROR;
+
+	    obj->internalRep\&.otherValuePtr = (void*) Vec2New (x, y);
+	    obj->typePtr                   = &vec2_objtype;
+
+	    return TCL_OK;
+	}
+
+	/* (un)packing structures from/into Tcl values -- */
+
+	int GetVecFromObj (Tcl_Interp* interp, Tcl_Obj* obj, vec2ptr* vec)
+	{
+	    if (obj->typePtr != &vec2_objtype) {
+		if (VecFromAny (interp, obj) != TCL_OK) return TCL_ERROR;
+	    }
+
+	    *vec = (vec2ptr) obj->internalRep\&.otherValuePtr;
+	    return TCL_OK;
+	}
+
+	Tcl_Obj* NewVecObj (vec2ptr vec) {
+	    Tcl_Obj* obj = Tcl_NewObj ();
+
+	    Tcl_InvalidateStringRep (obj);
+
+	    obj->internalRep\&.otherValuePtr = Vec2Copy (vec);
+	    obj->typePtr                   = &vec2_objtype;
+
+	    return obj;
+	}
+    }
+
+    critcl::argtype vec2 {
+	if (GetVecFromObj (interp, @@, &@A) != TCL_OK) return TCL_ERROR;
+    } vec2ptr vec2ptr
+
+    critcl::resulttype vec2 {
+	/* rv: result value of function, interp: current Tcl interpreter */
+	Tcl_SetObjResult (interp, NewVecObj (rv));
+	return TCL_OK;
+    } vec2ptr
+
+    critcl::cproc norm {vec2 vector} double {
+	double norm = hypot (vector->x, vector->y);
+	return norm;
+    }
+
+    critcl::cproc add {vec2 a vec2 b} vec2 {
+	return Vec2New (a->x + b->x, a->y + b->y);
+    }
+
+.CE
+.IP [6]
+The \fBvec2\fR structure is now reference counted\&.
+.IP [7]
+The core management functions, i\&.e\&. \fBVec2New\fR, \fBVec2Copy\fR, and
+\fBVec2Release\fR are changed to maintain that reference count\&.
+Starting at \fB0\fR on creation, copies increment, and releases decrement\&.
+A structure is actually only freed when its reference count falls to \fB0\fR or below\&.
+.IP [8]
+\fBvec2\fR results are changed to pointers, easily passed back through the stack\&.
+The modified translation layer just wraps it into a \fBTcl_Obj*\fR value\&.
+.IP [9]
+\fIAttention\fR\&. Duplicating such a \fBTcl_Obj*\fR does not duplicate the
+referenced \fBvec2\fR structure anymore, just adds a reference\&.
+.IP [10]
+Regarding \fBdiff\fR commands, I know of two graphical diffs for Tcl/Tk,
+\fITkDiff\fR [https://tkdiff\&.sourceforge\&.io], and \fIEskil\fR [http://eskil\&.tcl\&.tk]\&.
+.PP
+.PP
+Packages: \fIcritcl::cutil\fR
+.SS "EXTERNAL STRUCTURES"
+.IP [1]
+Handle structures provided by external libraries using either
+\fBStructure Types\fR or \fBLarge Structures\fR as template\&.
+.IP [2]
+\fIAttention\fR\&. The choice is with the developer\&.
+.sp
+This is true even if the external structure is not reference counted by itself\&.
+.sp
+To reference count a structure \fBS\fR without such simply wrap \fBS\fR into a
+local structure which provides the reference count and has a field for \fBS\fR (pointer
+or value)\&.
+.IP [3]
+\fIAttention\fR Opaque external types, i\&.e\&. pointers to structures with hidden
+fields, can also be handled by the given templates\&.
+.PP
+.SS "EXTERNAL ENUMERATIONS"
+This section demonstrates how to convert from any kind of enumeration provided by an
+external library to Tcl strings, and the converse\&.
+.IP [1]
+For all that this is a part of how to
+\fBUse External Libraries\fR, for the demonstratation
+only the basics are needed\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    package require critcl::emap
+
+    # no header included due to use of literal ints instead of symbolic names
+
+    critcl::emap::def yaml_sequence_style_t {
+	any   0
+	block 1
+	flow  2
+    }
+
+    # encode: style to int
+    critcl::cproc encode {yaml_sequence_style_t style} int {
+	return style;
+    }
+
+    # decode: int to style
+    critcl::cproc decode {int style} yaml_sequence_style_t {
+	return style;
+    }
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+The map converts between the Tcl level strings listed on the left side to the C
+values on the right side, and the reverse\&.
+.IP [4]
+It automatically generates \fBcritcl::argtype\fR and \fBcritcl::resulttype\fR
+definitions\&.
+.IP [5]
+\fIAttention\fR Like the default values for \fBcproc\fR arguments, and the results
+for \fBcconst\fR definitions the values on the right side have to be proper C
+rvalues\&. They have to match C type \fBint\fR\&.
+.sp
+In other words, it is perfectly ok to use the symbolic names provided by the header
+file of the external library\&.
+.sp
+\fIAttention\fR This however comes at a loss in efficiency\&. As \fICriTcl\fR then
+has no insight into the covered range of ints, gaps, etc\&. it has to perform a linear
+search when mapping from C to Tcl\&. When it knows the exact integer values it can use a
+table lookup instead\&.
+.sp
+\fIAttention\fR It also falls back to a search if a lookup table would contain more
+than 50 entries\&.
+.PP
+.PP
+Packages: \fIcritcl::emap\fR
+.SS "EXTERNAL BITSETS/BITMAPS/FLAGS"
+This section demonstrates how to convert from any kind of bit-mapped flags provided by an
+external library to lists of Tcl strings, and the converse\&.
+.IP [1]
+For all that this is a part of how to
+\fBUse External Libraries\fR, for the demonstratation
+only the basics are needed\&.
+.IP [2]
+Starting from the \fBBasics\fR\&.
+Edit the file "\fIexample\&.tcl\fR"\&.
+Remove the definition of \fBhello\fR\&. Replace it with
+.CS
+
+
+    # http://man7\&.org/linux/man-pages/man7/inotify\&.7\&.html
+
+    package require critcl::bitmap
+
+    # critcl::cheaders - n/a, header is in system directories
+    critcl::include sys/inotify\&.h
+
+    critcl::bitmap::def tcl_inotify_events {
+	accessed       IN_ACCESS
+	all            IN_ALL_EVENTS
+	attribute      IN_ATTRIB
+	closed         IN_CLOSE
+	closed-nowrite IN_CLOSE_NOWRITE
+	closed-write   IN_CLOSE_WRITE
+	created        IN_CREATE
+	deleted        IN_DELETE
+	deleted-self   IN_DELETE_SELF
+	dir-only       IN_ONLYDIR
+	dont-follow    IN_DONT_FOLLOW
+	modified       IN_MODIFY
+	move           IN_MOVE
+	moved-from     IN_MOVED_FROM
+	moved-self     IN_MOVE_SELF
+	moved-to       IN_MOVED_TO
+	oneshot        IN_ONESHOT
+	open           IN_OPEN
+	overflow       IN_Q_OVERFLOW
+	unmount        IN_UNMOUNT
+    } {
+	all closed move oneshot
+    }
+
+    # encode: flag set to int
+    critcl::cproc encode {tcl_inotify_events e} int {
+	return e;
+    }
+
+    # decode: int to flag set
+    critcl::cproc decode {int e} tcl_inotify_events {
+	return e;
+    }
+
+
+.CE
+.IP and rebuild the package\&.
+.IP [3]
+The map converts between lists of the Tcl level strings listed on the left side to
+the bit-union of the C values on the right side, and the reverse\&.
+.sp
+It is noted that the four strings \fBall\fR, \fBclosed\fR, \fBmove\fR, and
+\fBoneshot\fR cannot be converted from C flags to list of strings, only from list to
+bits\&.
+.IP [4]
+It automatically generates \fBcritcl::argtype\fR and \fBcritcl::resulttype\fR
+definitions\&.
+.IP [5]
+\fIAttention\fR Like the default values for \fBcproc\fR arguments, and the results
+for \fBcconst\fR definitions the values on the right side have to be proper C
+rvalues\&. They have to match C type \fBint\fR\&.
+.sp
+In other words, it is perfectly ok to use the symbolic names provided by the header
+file of the external library\&. As shown\&.
+.PP
+.PP
+Packages: \fIcritcl::bitmap\fR
+.SS "NON-STANDARD HEADER/LIBRARY LOCATIONS"
+.IP [1]
+See and reread the \fBbasic wrapper package\fR for
+the introduction of the commands referenced below\&.
+.IP [2]
+\fIAttention\fR Relative paths will be resolved relative to the location of the
+"\fI\&.tcl\fR" file containing the \fICriTcl\fR commands\&.
+.IP [3]
+Use the command \fBcritcl::cheaders\fR to tell \fICriTcl\fR about non-standard
+locations for header files\&.
+.sp
+Multiple arguments are allowed, and multiple calls as well\&. The information
+accumulates\&.
+.sp
+Arguments of the form "\fI-Idirectory\fR" register the directory directly\&.
+.sp
+For arguments of the form "\fIpath\fR" the directory holding the path is
+registered\&. In other words, it is assumed to be the full path of a header \fIfile\fR, and
+not a directory\&.
+.sp
+.CS
+
+
+    critcl::cheaders -I/usr/local/include
+    critcl::cheaders local/types\&.h
+    critcl::cheaders other-support/*\&.h
+
+.CE
+.IP [4]
+Use the command \fBcritcl::include\fR to actually use a specific header file\&.
+.IP [5]
+Use the command \fBcritcl::clibraries\fR to tell \fICriTcl\fR about non-standard
+locations for shared libaries, and about shared libaries to link to
+.sp
+Multiple arguments are allowed, and multiple calls as well\&. The information
+accumulates\&.
+.sp
+Arguments of the form "\fI-Ldirectory\fR" register a directory\&.
+.sp
+Arguments of the form "\fI-lname\fR" register a shared libary to link to by
+name\&. The library will be looked for in both standard and registered directories\&.
+.sp
+Arguments of the form "\fI-path\fR" register a shared libary to link to by full
+path\&.
+.sp
+.CS
+
+
+    critcl::clibraries -L/usr/lib/x86_64-linux-gnu
+    critcl::clibraries -lzstd
+    critcl::clibraries /usr/lib/x86_64-linux-gnu/libzstd\&.so
+
+.CE
+.IP [6]
+On Mac OS X use the command \fBcritcl::framework\fR to name the frameworks to use
+in the package\&.
+.sp
+\fIAttention\fR Using the command on other platforms is ok, and will be ignored\&.
+.IP [7]
+Not answered in the above is how to find the necessary paths if they are not fixed
+across machines or platforms\&.
+.sp
+We will come back to this\&.
+.PP
+.SS "NON-STANDARD COMPILE/LINK CONFIGURATION"
+.IP [1]
+See and reread the \fBbasic wrapper package\fR for
+the introduction of the commands referenced below\&.
+.IP [2]
+Use the command \fBcritcl::cflags\fR to provide additional, non-standard flags to
+the compiler\&.
+.sp
+.CS
+
+
+    critcl::cflags -DBYTE_ORDER=bigendian
+
+.CE
+.IP [3]
+Use the command \fBcritcl::ldflags\fR to provide additional, non-standard flags to
+the linker\&.
+.sp
+.CS
+
+
+    critcl::ldflags -
+
+.CE
+.IP [4]
+Not answered in the above is how to determine such flags if they are not fixed
+across machines or platforms\&.
+.sp
+This is addressed by the next section\&.
+.PP
+.SS "QUERYING THE COMPILATION ENVIRONMENT"
+.IP [1]
+Use the command \fBcritcl::check\fR to immediately check if a piece of C code can
+compiled successfully as a means of querying the compiler configuration itself\&.
+.sp
+.CS
+
+
+    if {[critcl::check {
+        #include <FOO\&.h>
+    }]} {
+        Do stuff with FOO\&.h present\&.
+    } else {
+        Do stuff without FOO\&.h
+    }
+
+.CE
+.sp
+All header and library paths which were registered with \fICriTcl\fR before using
+\fBcritcl::check\fR take part in the attempted compilation\&.
+.sp
+Use the package \fBcritcl::util\fR and various convenience commands it
+provides\&.
+.IP [2]
+Use the full \fIPower of Tcl (tm)\fR itself\&.
+.PP
+.SS "SHARED C CODE"
+.IP [1]
+See and reread the \fBbasic wrapper package\fR for
+the introduction of the commands referenced below\&.
+.IP [2]
+Use the command \fBcritcl::ccode\fR to write C code residing outside of \fBcproc\fR
+bodies\&.
+.IP [3]
+Or, alternatively, place the C code into one or more "\fI\&.c\fR" files and use the
+command \fBcritcl::csources\fR to register them with \fICriTcl\fR for compilation\&.
+.IP [4]
+This topic is also treated in section \fBSeparating Local C Sources\fR\&.
+.PP
+.SH VARIOUS
+.SS "AUTHOR, LICENSE, DESCRIPTION, KEYWORDS"
+.IP [1]
+See and reread the \fBbasic package\fR for the introduction of the
+commands referenced below\&.
+.IP [2]
+Use the command \fBcritcl::license\fR to set the package license\&.
+.sp
+Use the same command to set the package author\&.
+.sp
+Both arguments are free form text\&.
+.IP [3]
+Use the command \fBcritcl::summary\fR to set a short package description\&.
+.IP [4]
+Use the command \fBcritcl::description\fR to set a longer package description\&.
+.sp
+The arguments of both commands are free form text\&.
+.IP [5]
+Use the command \fBcritcl::subject\fR to set one or more keywords\&.
+.sp
+\fIAttention\fR Contrary to the other commands the arguments accumulate\&.
+.IP [6]
+All the commands are optional\&.
+.IP [7]
+Their information is not placed into the generated C code\&.
+.IP [8]
+In \fIpackage mode\fR the information is placed into the file "\fIteapot\&.txt\fR"
+of the generated package\&.
+.IP [9]
+This file serves as integration point for \fITeapot\fR, the package system of
+\fIActiveTcl\fR\&.
+.PP
+.SS "GET CRITCL APPLICATION HELP"
+.IP [1]
+Invoke the command
+.CS
+
+
+    critcl -help
+
+.CE
+.IP in a terminal to get help about the \fBcritcl\fR application\&.
+.PP
+.SS "SUPPORTED TARGETS & CONFIGURATIONS"
+.IP [1]
+Invoke the application as
+.CS
+
+
+    critcl -show
+
+.CE
+.IP in a terminal to get the detailed configuration of the target for the current platform\&.
+.IP [2]
+Invoke the application as
+.CS
+
+
+    critcl -show -target NAME
+
+.CE
+.IP in a terminal to get the detailed configuration of the named target\&.
+.IP [3]
+Invoke the application as
+.CS
+
+
+    critcl -targets
+
+.CE
+.IP in a terminal to get a list of the available targets\&.
+.PP
+.SS "BUILDING A PACKAGE"
+.IP [1]
+Start at section \fBBasics\fR\&.
+.PP
+.SS "BUILDING A PACKAGE FOR DEBUGGING"
+.IP [1]
+Start at section \fBBasics\fR\&.
+.PP
+.SH AUTHORS
+Jean Claude Wippler, Steve Landers, Andreas Kupries
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report them at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR\&.
+Ideas for enhancements you may have for either package, application,
+and/or the documentation are also very welcome and should be reported
+at \fIhttps://github\&.com/andreas-kupries/critcl/issues\fR as well\&.
+.SH KEYWORDS
+C code, Embedded C Code, calling C code from Tcl, code generator, compile & run, compiler, dynamic code generation, dynamic compilation, generate package, linker, on demand compilation, on-the-fly compilation
+.SH CATEGORY
+Glueing/Embedded C code
+.SH COPYRIGHT
+.nf
+Copyright (c) Jean-Claude Wippler
+Copyright (c) Steve Landers
+Copyright (c) 2011-2024 Andreas Kupries
+
+.fi

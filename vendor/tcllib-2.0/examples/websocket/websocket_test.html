@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Websocket test</title>
+    </head>
+    
+    <body>
+    <pre id="log"></pre>
+    <script>
+    var i = 0;
+// helper function: log message to screen
+  function log(msg) {
+    document.getElementById('log').textContent += msg + '\n';
+  }
+
+  // setup websocket with callbacks
+  var ws = new WebSocket('ws://localhost:8080/');
+  ws.onopen = function() {
+    log('CONNECT');
+     setInterval(function(){ ws.send("Message number "+i); i +=1; }, 3000);
+  };
+  ws.onclose = function() {
+    log('DISCONNECT');
+  };
+  ws.onmessage = function(event) {
+    log('MESSAGE: ' + event.data);
+  };
+</script>
+</body>
+</html>

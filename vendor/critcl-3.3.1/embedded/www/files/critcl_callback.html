@@ -1,0 +1,279 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>critcl::callback - C Runtime In Tcl (CriTcl)</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'critcl_callback.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2011-2024 Andreas Kupries
+   -->
+<!-- critcl::callback.n
+   -->
+<body><hr> [
+   <a href="../toc.html">Table Of Contents</a>
+&#124; <a href="../index.html">Keyword Index</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">critcl::callback(n) 1.1 doc &quot;C Runtime In Tcl (CriTcl)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>critcl::callback - CriTcl - C-level Callback Utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Examples</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Simple callback</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Multiple methods</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Authors</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">critcl <span class="opt">?3.2?</span></b></li>
+<li>package require <b class="pkgname">critcl::callback <span class="opt">?1.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="type">critcl_callback_p</b> <b class="function">critcl_callback_new</b> <i class="arg">interp</i> <i class="arg">objc</i> <i class="arg">objv</i> <i class="arg">nargs</i></a></li>
+<li><a href="#2"><b class="type">void</b> <b class="function">critcl_callback_extend</b> <i class="arg">callback</i> <i class="arg">argument</i></a></li>
+<li><a href="#3"><b class="type">void</b> <b class="function">critcl_callback_destroy</b> <i class="arg">callback</i></a></li>
+<li><a href="#4"><b class="type">int</b> <b class="function">critcl_callback_invoke</b> <i class="arg">callback</i> <i class="arg">objc</i> <i class="arg">objv</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Be welcome to the <i class="term">C Runtime In Tcl</i> (short: <i class="term"><a href="critcl.html">CriTcl</a></i>), a system for embedding and using C
+code from within <a href="http://core.tcl-lang.org/tcl">Tcl</a> scripts.</p>
+<p>This document is the reference manpage for the
+<b class="package">critcl::callback</b> package.
+This package provides, via a stubs API table, data structures and
+functions to manage callbacks from C to Tcl. The package has no
+Tcl-level facilities.
+Its intended audience are mainly developers wishing to write Tcl
+packages with embedded C code who have to invoke user-specified
+command (prefixes) in Tcl.</p>
+<p>This package resides in the Support Package Layer of CriTcl.</p>
+<p><img alt="arch_support" src="../image/arch_support.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The package API consist of one opaque data structure
+(<b class="type">critcl_callback_p</b>) and four functions operating on the same.
+These functions are</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="type">critcl_callback_p</b> <b class="function">critcl_callback_new</b> <i class="arg">interp</i> <i class="arg">objc</i> <i class="arg">objv</i> <i class="arg">nargs</i></a></dt>
+<dd><p>This function creates a new callback (manager) and returns it as its result.</p>
+<p>The callback is initialized with the Tcl_Interp* <i class="arg">interp</i>
+specifying where to run the callback, the fixed part of the command to
+run in standard <i class="arg">objc</i>/<i class="arg">objv</i> notation, plus the number of
+free arguments to expect after the fixed part.</p>
+<p>The fixed part is the essentially the command prefix of the callback.</p>
+<p>All <b class="type">Tcl_Obj*</b> elements of <i class="arg">objv</i> are protected against early
+release by incrementing their reference counts. The callback
+effectively takes ownership of these objects.</p></dd>
+<dt><a name="2"><b class="type">void</b> <b class="function">critcl_callback_extend</b> <i class="arg">callback</i> <i class="arg">argument</i></a></dt>
+<dd><p>This function takes a <i class="arg">callback</i> of type <b class="type">critcl_callback_p</b>
+and extends its fixed part with the <i class="arg">argument</i>, taking the first
+free slot for arguments to do so.
+This means that after the application of this function the specified
+callback has one free argument less.</p>
+<p>With assertions active attempting to extend beyond the number of free
+arguments will cause a panic. Without assertions active expect a crash
+at some point.</p>
+<p>This allows the user to extend the fixed part of the callback with
+semi-fixed elements, like method names (See <span class="sectref"><a href="#subsection2">Multiple methods</a></span>).</p>
+<p>The <i class="arg">argument</i> is protected against early release by incrementing
+its reference count. The callback effectively takes ownership of this
+object.</p></dd>
+<dt><a name="3"><b class="type">void</b> <b class="function">critcl_callback_destroy</b> <i class="arg">callback</i></a></dt>
+<dd><p>This function takes a <i class="arg">callback</i> of type <b class="type">critcl_callback_p</b>
+and releases all memory associated with it.
+After application of this function the callback cannot be used anymore.</p>
+<p>All fixed elements of the callback (owned by it) are released by
+decrementing their reference counts.</p></dd>
+<dt><a name="4"><b class="type">int</b> <b class="function">critcl_callback_invoke</b> <i class="arg">callback</i> <i class="arg">objc</i> <i class="arg">objv</i></a></dt>
+<dd><p>This function invokes the callback in the Tcl interpreter specified at
+the time of construction, in the global level and namespace, with the
+free arguments filled by the <b class="type">Tcl_Obj*</b> objects specified via
+<i class="arg">objc</i>/<i class="arg">objv</i>.</p>
+<p>It returns the Tcl status of the invoked command as its result.
+Any further results or error messages will be found in the result area
+of the Tcl interpreter in question. The exact nature of such is
+dependent on the callback itself.</p>
+<p>With assertions active attempting to use more arguments than available
+will cause a panic. Without assertions active expect a crash at some
+point.</p>
+<p>While the callback is running all <b class="type">Tcl_Obj*</b> elements of the
+command, fixed and arguments, are protected against early release by
+temporarily incrementing their reference counts.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Examples</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Simple callback</a></h3>
+<p>The example here shows the important parts of using the functions of
+this package for a simple callback which is invoked with a single
+argument, some kind of data to hand to the Tcl level.</p>
+<pre class="doctools_example">
+    // Create the callback with interpreter and command prefix in
+    // oc/ov, plus space for the argument
+    critcl_callback_p cb = critcl_callback_new (interp, oc, ov, 1);
+    // Invoke the callback somewhere in the C package using this one,
+    // with Tcl_Obj* data holding the information to pass up.
+    critcl_callback_invoke (cb, 1, &amp;data);
+    // At the end of the lifetime, release the callback.
+    critcl_callback_destroy (cb);
+</pre>
+<p>Note that the functions of this package are designed for the case
+where the created callback (<b class="const">cb</b> above) is kept around for a
+long time, and many different invokations.</p>
+<p>Using the sequence above as is, creating and destroying the callback
+each time it is invoked will yield very poor performance and lots of
+undesirable memory churn.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Multiple methods</a></h3>
+<p>While we can use the methodology of the previous section when a single
+(Tcl-level) callback is invoked from different places in C, with
+different methods, simply having another argument slot and filling it
+an invokation time with the method object, a second methodology is
+open to us due to <b class="function">critcl_callback_extend</b>.</p>
+<pre class="doctools_example">
+    // Create one callback manager per different method the callback
+    // will be used with. Fill the first of the two declared arguments
+    // with the different methods.
+    critcl_callback_p cb_a = critcl_callback_new (interp, oc, ov, 2);
+    critcl_callback_p cb_b = critcl_callback_new (interp, oc, ov, 2);
+    critcl_callback_extend (cb_a, Tcl_NewStringObj (&quot;method1&quot;, -1));
+    critcl_callback_extend (cb_b, Tcl_NewStringObj (&quot;method2&quot;, -1));
+    // After the extension we have one free argument left, for use in
+    // the invokations.
+    critcl_callback_invoke (cb_a, 1, &amp;dataX);
+    critcl_callback_invoke (cb_b, 1, &amp;dataY);
+    // At the end release both managers again
+    critcl_callback_destroy (cb_a);
+    critcl_callback_destroy (cb_b);
+</pre>
+<p>The nice thing here is that the method objects are allocated only once
+and automatically shared by all the calls. No memory churn to
+repeatedly allocate the same string objects over and over again.</p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Authors</a></h2>
+<p>Andreas Kupries</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such at <a href="https://github.com/andreas-kupries/critcl">https://github.com/andreas-kupries/critcl</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../index.html#c_code">C code</a>, <a href="../index.html#embedded_c_code">Embedded C Code</a>, <a href="../index.html#code_generator">code generator</a>, <a href="../index.html#compile_run">compile &amp; run</a>, <a href="../index.html#compiler">compiler</a>, <a href="../index.html#dynamic_code_generation">dynamic code generation</a>, <a href="../index.html#dynamic_compilation">dynamic compilation</a>, <a href="../index.html#generate_package">generate package</a>, <a href="../index.html#linker">linker</a>, <a href="../index.html#on_demand_compilation">on demand compilation</a>, <a href="../index.html#on_the_fly_compilation">on-the-fly compilation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Glueing/Embedded C code</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2024 Andreas Kupries</p>
+</div>
+</div></body></html>

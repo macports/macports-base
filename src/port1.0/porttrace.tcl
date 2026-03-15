@@ -78,10 +78,9 @@ namespace eval porttrace {
         # path component intact. This will, for instance, prevent /tmp from
         # being resolved to /private/tmp.
         # Use realpath to avoid this behavior.
-        set normalizedPath [file normalize $path]
         # realpath only works on files that exist
-        if {![catch {file type $normalizedPath}]} {
-            set normalizedPath [realpath $normalizedPath]
+        if {[catch {realpath $path} normalizedPath]} {
+            set normalizedPath [file normalize $path]
         }
         lappend sndbxlst "[string map $mapping $path]=$action"
         if {$normalizedPath ne $path} {
@@ -266,6 +265,10 @@ namespace eval porttrace {
 
         # Grant access to the directory we use to mirror binaries under SIP
         allow trace_sandbox ${portutil::autoconf::trace_sipworkaround_path}
+        # Grant access to MacPorts' clonebin utilities
+        if {${portutil::autoconf::clonebin_path} ne ""} {
+            allow trace_sandbox ${portutil::autoconf::clonebin_path}
+        }
         # Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
         # or it'll be used instead of more specific rules.
         ask trace_sandbox $prefix

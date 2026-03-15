@@ -34,7 +34,7 @@
 #set -x
 
 # Script identification:
-VERSION=2.7
+VERSION=2.10
 
 # Abstraction variables:
 PREFIX="@prefix@"
@@ -61,13 +61,23 @@ tcl8/8.4/platform-1.0.14.tm tcl8/8.4/platform-1.0.18.tm \
 tcl8/8.5/msgcat-1.5.2.tm \
 tcl8/8.5/tcltest-2.3.5.tm tcl8/8.5/tcltest-2.3.8.tm \
 tcl8/8.5/tcltest-2.5.3.tm tcl8/8.5/tcltest-2.5.5.tm \
+tcl8/8.5/tcltest-2.5.7.tm tcl8/8.5/tcltest-2.5.8.tm \
+tcl8/8.5/tcltest-2.5.9.tm \
 tcl8/8.6/tdbc/sqlite3-1.1.3.tm tcl8/8.6/tdbc/sqlite3-1.1.5.tm \
+tcl8/8.6/tdbc/sqlite3-1.1.7.tm tcl8/8.6/tdbc/sqlite3-1.1.9.tm \
+tcl8/8.6/tdbc/sqlite3-1.1.9.uuid tcl8/8.6/tdbc/sqlite3-1.1.10.tm \
+tcl8/8.6/tdbc/sqlite3-1.1.10.uuid \
 libtcl8.5.dylib libtclstub8.5.a"
 OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 thread2.7.3 thread2.8.7 \
-thread2.8.8 \
-tcllib1.15 tcllib1.17 tcllib1.18 tclx8.4 tcl8.5 itcl4.2.2 itcl4.2.3 \
-sqlite3.36.0 sqlite3.40.0 tdbc1.1.3 tdbcmysql1.1.3 tdbcodbc1.1.3 \
-tdbcpostgres1.1.3 tdbc1.1.5 tdbcmysql1.1.5 tdbcodbc1.1.5 tdbcpostgres1.1.5"
+thread2.8.8 thread2.8.9 thread2.8.10 thread2.8.11 \
+tcllib1.15 tcllib1.17 tcllib1.18 tcllib1.21 tclx8.4 tcl8.5 \
+itcl4.2.2 itcl4.2.3 itcl4.2.4 itcl4.3.0 itcl4.3.2 \
+sqlite3.36.0 sqlite3.40.0 sqlite3.44.2 sqlite3.45.3 sqlite3.47.2 \
+tdbc1.1.3 tdbcmysql1.1.3 tdbcodbc1.1.3 tdbcpostgres1.1.3 \
+tdbc1.1.5 tdbcmysql1.1.5 tdbcodbc1.1.5 tdbcpostgres1.1.5 \
+tdbc1.1.7 tdbcmysql1.1.7 tdbcodbc1.1.7 tdbcpostgres1.1.7 \
+tdbc1.1.9 tdbcmysql1.1.9 tdbcodbc1.1.9 tdbcpostgres1.1.9 \
+tdbc1.1.10 tdbcmysql1.1.10 tdbcodbc1.1.10 tdbcpostgres1.1.10"
 
 # Create config files from defaults if not present
 function setup_configs {
@@ -180,7 +190,7 @@ function create_run_user {
         echo "Creating user \"${RUNUSR}\""
         NEXTUID=501
         while [[ -n "$(${DSCL} -q /Search -search /Users UniqueID $NEXTUID)" ]]; do
-            let "NEXTUID=NEXTUID+1"
+            NEXTUID=$((NEXTUID+1))
         done
         ${DSCL} -q . -create "/Users/${RUNUSR}" UniqueID $NEXTUID
 
@@ -199,17 +209,29 @@ function create_run_user {
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
         ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false
     fi
-    if [[ "${OS_MAJOR}" -eq 8 ]]; then
-        GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
-        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
-            echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
-            ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
-            ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
+    RUNUSR_UID=$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $2}')
+    RUNUSR_NAME=$(${DSCL} -q . -read "/Users/${RUNUSR}" RealName | /usr/bin/awk '{print $2}')
+    RUNUSR_SHELL=$(${DSCL} -q . -read "/Users/${RUNUSR}" UserShell | /usr/bin/awk '{print $2}')
+    if test "$RUNUSR_UID" -gt 500 -a "$RUNUSR_SHELL" = "/usr/bin/false" -a "$RUNUSR_NAME" = "MacPorts"; then
+        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
+            echo "Updating home directory location for user \"${RUNUSR}\""
+            if ! ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home" ; then
+                echo "Failed to update home directory!"
+                echo "Please ask the system administrator to manually run:"
+                echo "    ${DSCL} -q . -create \"/Users/${RUNUSR}\" NFSHomeDirectory \"${PREFIX}/var/macports/home\""
+            fi
         fi
-    fi
-    if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
-        echo "Updating home directory location for user \"${RUNUSR}\""
-        ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
+    else
+        echo "Warning: '${RUNUSR}' user has unexpected atrributes:"
+        if test "$RUNUSR_UID" -le 500; then
+            echo "UniqueID: $RUNUSR_UID (expected > 500)"
+        fi
+        if test "$RUNUSR_NAME" != "MacPorts"; then
+            echo "RealName: $RUNUSR_NAME (expected 'MacPorts')"
+        fi
+        if test "$RUNUSR_SHELL" != "/usr/bin/false"; then
+            echo "UserShell: $RUNUSR_SHELL (expected '/usr/bin/false')"
+        fi
     fi
 }
 
@@ -232,7 +254,7 @@ fi
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL=$(${DSCL} . -read "/Users/${USER}" shell) || {
+USHELL=$(${DSCL} . -read "/Users/${USER}" UserShell) || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1
@@ -298,13 +320,6 @@ if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" > /dev/null; then
     else
         write_setting MANPATH "\"${MANPAGES}:\$MANPATH\""
     fi
-fi
-
-# Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
-if [[ "${OS_MAJOR}" -ge 9 ]] || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null; then
-    echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
-else
-    write_setting DISPLAY ":0"
 fi
 
 # Postflight script is done with its job, update MacPorts and exit gracefully!

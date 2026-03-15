@@ -1,0 +1,20 @@
+/* ---------------------------------------------------------------------- */
+
+#define ns__the_alpha0 "::the::alpha"
+
+static int
+tcl__the_alpha0(ClientData cd, Tcl_Interp *interp, Tcl_Size oc, Tcl_Obj *CONST ov[])
+{
+  int rv;
+  if (oc != 1) {
+    Tcl_WrongNumArgs(interp, 1, ov, NULL);
+    return TCL_ERROR;
+  }
+
+  /* Const - - -- --- ----- -------- */
+  rv = 0;
+
+  /* (bool return) - - -- --- ----- -------- */
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(rv));
+	return TCL_OK;
+}

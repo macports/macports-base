@@ -1,0 +1,91 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# critcl::cconst
+# -- Core tests.
+#    Used via cconst.test and cconst-trace.test
+# -- Parameters
+#    (1) suffix  ('' | '-trace')
+#        This parameter affects test naming and directory holding the
+#        expected results.
+# -------------------------------------------------------------------------
+# Parameter validation
+
+global suffix
+if {![info exists suffix]} {
+    error "Missing parameter 'suffix'. Please define as either empty string, or '-trace'"
+} elseif {($suffix ne "") && ($suffix ne "-trace")} {
+    error "Bad value '$suffix' for parameter 'suffix'. Please define as either empty string, or '-trace'"
+}
+
+# -------------------------------------------------------------------------
+# Setup
+
+support {
+    useLocal lib/stubs_container/container.tcl  stubs::container
+    useLocal lib/stubs_reader/reader.tcl        stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl    stubs::gen
+}
+testing {
+    useLocal lib/critcl/critcl.tcl  critcl
+}
+
+# Note: The next command does not influence the standard argument-
+# and result-types.
+#critcl::config lines 0
+overrides
+on-traced-on
+
+# -------------------------------------------------------------------------
+## cconst syntax
+
+test critcl-cconst${suffix}-1.0 {cconst, wrong args, not enough} -setup {
+} -body {
+    critcl::cconst
+} -returnCodes error -result {wrong # args: should be "critcl::cconst name rtype rvalue"}
+
+test critcl-cconst${suffix}-1.1 {cconst, wrong args, not enough} -setup {
+} -body {
+    critcl::cconst N
+} -returnCodes error -result {wrong # args: should be "critcl::cconst name rtype rvalue"}
+
+test critcl-cconst${suffix}-1.2 {cconst, wrong args, not enough} -setup {
+} -body {
+    critcl::cconst N T
+} -returnCodes error -result {wrong # args: should be "critcl::cconst name rtype rvalue"}
+
+test critcl-cconst${suffix}-1.3 {cconst, wrong args, too many} -setup {
+} -body {
+    critcl::cconst N T R X
+} -returnCodes error -result {wrong # args: should be "critcl::cconst name rtype rvalue"}
+
+test critcl-cconst${suffix}-1.4 {cconst, bad result type (void)} -setup {
+} -body {
+    critcl::cconst N void T
+} -returnCodes error -result {Constants cannot be of type "void"}
+
+# -------------------------------------------------------------------------
+## Go through the various knobs we can use to configure the definition and output
+
+test critcl-cconst${suffix}-2.0 {cconst, bool, fixed value} -body {
+    get critcl::cconst alpha bool 1
+} -result [viewFile [localPath test/assets/cconst${suffix}/2.0]]
+
+test critcl-cconst${suffix}-2.1 {cconst, bool, define} -body {
+    get critcl::cconst alpha bool FOO
+} -result [viewFile [localPath test/assets/cconst${suffix}/2.1]]
+
+test critcl-cconst${suffix}-2.2 {cconst, bool, function} -body {
+    get critcl::cconst alpha bool foo()
+} -result [viewFile [localPath test/assets/cconst${suffix}/2.2]]
+
+test critcl-cconst${suffix}-2.3 {cconst, namespaced name} -body {
+    get critcl::cconst the::alpha bool 0
+} -result [viewFile [localPath test/assets/cconst${suffix}/2.3]]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

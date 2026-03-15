@@ -107,6 +107,7 @@
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
+#include "time_connect.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -1150,10 +1151,61 @@ int ClonefileCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
     return TCL_ERROR;
 }
 
+static int fileIsSparseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+#ifdef SEEK_HOLE
+    const char *path;
+    struct stat st;
+    int fd;
+    off_t end_offset;
+    off_t hole_offset;
+
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "filename");
+        return TCL_ERROR;
+    }
+
+    path = Tcl_GetString(objv[1]);
+    if (-1 == lstat(path, &st)) {
+        /* an error occurred */
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "lstat(", path, "):", (char *)Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+    if (!S_ISREG(st.st_mode)) {
+        /* not a regular file, haven't seen directories which are sparse yet */
+        Tcl_SetObjResult(interp, Tcl_NewBooleanObj(false));
+        return TCL_OK;
+    }
+    if ((fd = open(path, O_RDONLY)) < 0) {
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "open(", path, "): ", (char *)Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+
+    lseek(fd, 0, SEEK_SET);
+    hole_offset = lseek(fd, 0, SEEK_HOLE);
+    end_offset = lseek(fd, 0, SEEK_END);
+    close(fd);
+    if (hole_offset >= 0 && end_offset >= 0
+        && hole_offset < end_offset) {
+        Tcl_SetObjResult(interp, Tcl_NewBooleanObj(true));
+        return TCL_OK;
+    }
+#endif /* SEEK_HOLE */
+
+    Tcl_SetObjResult(interp, Tcl_NewBooleanObj(false));
+    return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
-    if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
+    if (Tcl_InitStubs(interp, "8.6-", 0) == NULL)
         return TCL_ERROR;
+
+    Tcl_CreateNamespace(interp, "::pextlib", NULL, NULL);
+    Tcl_CreateNamespace(interp, "::pextlib::curl", NULL, NULL);
 
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "adv-flock", AdvFlockCmd, NULL, NULL);
@@ -1184,6 +1236,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 #ifdef __MACH__
     Tcl_CreateObjCommand(interp, "fileIsBinary", fileIsBinaryCmd, NULL, NULL);
 #endif
+    Tcl_CreateObjCommand(interp, "fileIsSparse", fileIsSparseCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
@@ -1213,6 +1266,8 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "fs_clone_capable", FSCloneCapableCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "clonefile", ClonefileCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "time_connect", TimeConnectCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

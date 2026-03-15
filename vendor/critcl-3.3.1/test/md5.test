@@ -1,0 +1,62 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# md5.test
+##
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [info script]] support testutilities.tcl]
+
+testsNeedTcl     8.6 9
+testsNeedTcltest 2
+
+support {
+    useLocal lib/stubs_container/container.tcl stubs::container
+    useLocal lib/stubs_reader/reader.tcl       stubs::reader
+    useLocal lib/stubs_genframe/genframe.tcl   stubs::gen
+    useLocal lib/critcl/critcl.tcl             critcl
+
+    localcache-setup
+}
+testing {
+    useLocal lib/critcl-md5c/md5c.tcl critcl_md5c
+}
+
+# -------------------------------------------------------------------------
+##
+
+test critcl-md5c-1.0.0 {md5c, wrong\#args, not enough} -body {
+    md5c
+} -returnCodes error -result {wrong # args: should be "md5c data ?context?"}
+
+test critcl-md5c-1.0.1 {md5c, wrong\#args, too many} -body {
+    md5c STR CTX X
+} -returnCodes error -result {wrong # args: should be "md5c data ?context?"}
+
+# -------------------------------------------------------------------------
+## md5c values
+
+foreach {n expected msg} {
+    0 "d41d8cd98f00b204e9800998ecf8427e" ""
+    1 "0cc175b9c0f1b6a831c399e269772661" "a"
+    2 "900150983cd24fb0d6963f7d28e17f72" "abc"
+    3 "f96b697d7cb7938d525a2f31aaf161d0" "message digest"
+    4 "c3fcd3d76192e4007dfb496cca67e13b" "abcdefghijklmnopqrstuvwxyz"
+    5 "d174ab98d277d9f5a5611c2c9f419d9f" "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    6 "57edf4a22be3c955ac49da2e2107b67a" "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    7 "020c3dd6931f7e94ecc99a1f4e4c53e2" "a\$apr1\$a"
+    8 "e859a53f19b3351aaed08583d74e44bf" "\u0000\u0001\u00FF"
+    9 "b63a87afa20522f50750e71f0eaf8e85" "\u0000\u0001\u01FF"
+} {
+    test critcl-md5c-2.0.$n "md5c, msg:($msg)" -body {
+        binary scan [md5c [encoding convertto utf-8 $msg]] H* computed
+        set computed
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:
