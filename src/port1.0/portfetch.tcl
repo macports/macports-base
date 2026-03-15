@@ -468,21 +468,43 @@ proc portfetch::fetchfiles {{async no} args} {
         set async_jobs_copy $async_jobs
         # Ensure we don't try to get results for jobs twice
         unset async_jobs
+        set any_failed 0
         foreach {distfile jobid} $async_jobs_copy {
+            set cancelled 0
             if {![curlwrap_async_is_complete $jobid]} {
-                # Display progress for this fetch while waiting for it to finish
-                curlwrap_async_show_progress $jobid
-                # Loop with a reasonable timeout so we don't wait too long
-                # to handle events like signals.
-                while {![curlwrap_async_is_complete $jobid 500]} {}
+                if {!$any_failed} {
+                    # Display progress for this fetch while waiting for it to finish
+                    curlwrap_async_show_progress $jobid
+                    # Loop with a reasonable timeout so we don't wait too long
+                    # to handle events like signals.
+                    while {![curlwrap_async_is_complete $jobid 500]} {}
+                } else {
+                    # If something failed, stop other incomplete jobs so we fail fast
+                    curlwrap_async_cancel $jobid
+                    set cancelled 1
+                }
             }
-            lassign [curlwrap_async_result $jobid] status result
-            if {$status != 0} {
-                error "Failed to fetch ${distfile}: $result"
+            if {!$cancelled} {
+                lassign [curlwrap_async_result $jobid] status result
+                if {$status != 0} {
+                    # Some ports have a lot of distfiles, so don't print an
+                    # error for all of them outside of debug mode.
+                    if {!$any_failed} {
+                        ui_error "Failed to fetch ${distfile}: $result"
+                    } else {
+                        ui_debug "Failed to fetch ${distfile}: $result"
+                    }
+                    set any_failed 1
+                    file delete -force ${distpath}/${distfile}.TMP
+                } elseif {![file exists ${distpath}/${distfile}]} {
+                    file rename -force ${distpath}/${distfile}.TMP ${distpath}/${distfile}
+                }
+            } else {
+                file delete -force ${distpath}/${distfile}.TMP
             }
-            if {![file exists ${distpath}/${distfile}]} {
-                file rename -force ${distpath}/${distfile}.TMP ${distpath}/${distfile}
-            }
+        }
+        if {$any_failed} {
+            error "Failed to fetch distfiles"
         }
         return 0
     }

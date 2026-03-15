@@ -177,12 +177,10 @@ namespace eval mport_fetch_thread {
                                     break
                                 }
                             }
-                            foreach sigtype $sigtypes {
-                                if {!$sig_fetched || $sigtype ne $fetched_sigtype} {
+                            if {$cancelled} {
+                                foreach sigtype $sigtypes {
                                     catch {file delete ${outpath}.${sigtype}}
                                 }
-                            }
-                            if {!$archive_fetched} {
                                 catch {file delete ${outpath}.TMP}
                             }
                         }
@@ -218,7 +216,7 @@ namespace eval mport_fetch_thread {
                                     }
                                 }
                             }
-                            if {!$fetched} {
+                            if {$cancelled} {
                                 catch {file delete ${outpath}.TMP}
                             }
                         }
