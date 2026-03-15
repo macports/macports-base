@@ -1,0 +1,217 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+mportinit ui_options
+
+# Provide a stub for the port callback mechanism
+namespace eval port {
+    proc register_callback {args} {}
+    proc run_callbacks {args} {}
+}
+
+source ../portextract.tcl
+
+source ./library.tcl
+macports_worker_init
+
+# Helper: set a single use_* option and clear all others
+proc set_use_option {opt} {
+    foreach o $::portextract::all_use_options {
+        global $o
+        unset -nocomplain $o
+    }
+    global $opt
+    set $opt yes
+}
+
+proc clear_use_options {} {
+    foreach o $::portextract::all_use_options {
+        global $o
+        unset -nocomplain $o
+    }
+}
+
+# -----------------------------------------------------------------------
+# get_extract_suffix
+# -----------------------------------------------------------------------
+
+test extract_suffix_default {
+    get_extract_suffix returns .tar.gz when no use_* option is set
+} -setup {
+    clear_use_options
+} -body {
+    portextract::get_extract_suffix
+} -result {.tar.gz}
+
+test extract_suffix_bzip2 {
+    get_extract_suffix returns .tar.bz2 for use_bzip2
+} -setup {
+    set_use_option use_bzip2
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.tar.bz2}
+
+test extract_suffix_lzma {
+    get_extract_suffix returns .tar.lzma for use_lzma
+} -setup {
+    set_use_option use_lzma
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.tar.lzma}
+
+test extract_suffix_tar {
+    get_extract_suffix returns .tar for use_tar
+} -setup {
+    set_use_option use_tar
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.tar}
+
+test extract_suffix_xz {
+    get_extract_suffix returns .tar.xz for use_xz
+} -setup {
+    set_use_option use_xz
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.tar.xz}
+
+test extract_suffix_zip {
+    get_extract_suffix returns .zip for use_zip
+} -setup {
+    set_use_option use_zip
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.zip}
+
+test extract_suffix_7z {
+    get_extract_suffix returns .7z for use_7z
+} -setup {
+    set_use_option use_7z
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.7z}
+
+test extract_suffix_lzip {
+    get_extract_suffix returns .tar.lz for use_lzip
+} -setup {
+    set_use_option use_lzip
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.tar.lz}
+
+test extract_suffix_zstd {
+    get_extract_suffix returns .tar.zst for use_zstd
+} -setup {
+    set_use_option use_zstd
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.tar.zst}
+
+test extract_suffix_dmg {
+    get_extract_suffix returns .dmg for use_dmg
+} -setup {
+    set_use_option use_dmg
+} -body {
+    portextract::get_extract_suffix
+} -cleanup {
+    clear_use_options
+} -result {.dmg}
+
+# -----------------------------------------------------------------------
+# get_extract_pre_args
+# -----------------------------------------------------------------------
+
+test extract_pre_args_default {
+    get_extract_pre_args returns -dc (decompress to stdout) by default
+} -setup {
+    clear_use_options
+} -body {
+    portextract::get_extract_pre_args
+} -result {-dc}
+
+test extract_pre_args_tar {
+    get_extract_pre_args returns -xf for use_tar
+} -setup {
+    set_use_option use_tar
+} -body {
+    portextract::get_extract_pre_args
+} -cleanup {
+    clear_use_options
+} -result {-xf}
+
+test extract_pre_args_zip {
+    get_extract_pre_args returns -q for use_zip
+} -setup {
+    set_use_option use_zip
+} -body {
+    portextract::get_extract_pre_args
+} -cleanup {
+    clear_use_options
+} -result {-q}
+
+test extract_pre_args_7z {
+    get_extract_pre_args returns x for use_7z
+} -setup {
+    set_use_option use_7z
+} -body {
+    portextract::get_extract_pre_args
+} -cleanup {
+    clear_use_options
+} -result {x}
+
+test extract_pre_args_zstd {
+    get_extract_pre_args returns -dc (decompress to stdout, pipe to tar) for use_zstd
+} -setup {
+    set_use_option use_zstd
+} -body {
+    portextract::get_extract_pre_args
+} -cleanup {
+    clear_use_options
+} -result {-dc}
+
+# -----------------------------------------------------------------------
+# get_extract_cmd (binary lookup — mock binaryInPath/findBinary)
+# -----------------------------------------------------------------------
+
+test extract_cmd_zstd {
+    get_extract_cmd returns the zstd binary path for use_zstd
+} -setup {
+    set_use_option use_zstd
+    rename binaryInPath _save_binaryInPath
+    proc binaryInPath {prog} {
+        return "/opt/local/bin/$prog"
+    }
+} -body {
+    portextract::get_extract_cmd
+} -cleanup {
+    clear_use_options
+    rename binaryInPath ""
+    rename _save_binaryInPath binaryInPath
+} -result {/opt/local/bin/zstd}
+
+
+cleanupTests
