@@ -354,7 +354,7 @@ proc portarchivefetch::fetchfiles {{async no} args} {
             if {$async_done} {
                 foreach sigtype $sigtypes {
                     set signature ${incoming_path}/${archive}.${sigtype}
-                    if {[file isfile $signature]} {
+                    if {[file isfile $signature] && [file size $signature] > 0} {
                         set sig_fetched 1
                         break
                     }
