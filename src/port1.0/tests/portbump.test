@@ -1,0 +1,499 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+mportinit ui_options
+
+# Provide a stub for the port callback mechanism
+namespace eval port {
+    proc register_callback {args} {}
+    proc run_callbacks {args} {}
+}
+
+package require portbump 1.0
+
+# ============================================================
+# Tests for portbump::replace_checksums
+# ============================================================
+
+test replace_checksums_basic {
+    Replace a single checksum value
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "version 1.0" \
+        "checksums rmd160 aaa111 \\" \
+        "          sha256 bbb222 \\" \
+        "          size 12345" \
+    ]
+    set both {rmd160 aaa111 ccc333 sha256 bbb222 ddd444}
+    lassign [portbump::replace_checksums $lines $both] result_lines result_indices
+    set rmd_line [lindex $result_lines 3]
+    set sha_line [lindex $result_lines 4]
+    list [string first ccc333 $rmd_line] [string first ddd444 $sha_line] [llength $result_indices]
+} -result {17 17 2}
+
+test replace_checksums_no_change {
+    Skip checksums that already match
+} -body {
+    set lines [list \
+        "checksums rmd160 aaa111 sha256 bbb222" \
+    ]
+    set both {rmd160 aaa111 aaa111 sha256 bbb222 bbb222}
+    lassign [portbump::replace_checksums $lines $both] result_lines result_indices
+    list [lindex $result_lines 0] [llength $result_indices]
+} -result {{checksums rmd160 aaa111 sha256 bbb222} 0}
+
+test replace_checksums_unique_match {
+    Only replace the line containing the specific hash, not other lines
+} -body {
+    # Simulates a Portfile with checksums in two different conditional branches
+    set lines [list \
+        "if cond1 \{" \
+        "    checksums sha256 aaaa1111" \
+        "\}" \
+        "if cond2 \{" \
+        "    checksums sha256 bbbb2222" \
+        "\}" \
+    ]
+    # Only replace aaaa1111, leave bbbb2222 alone
+    set both {sha256 aaaa1111 cccc3333}
+    lassign [portbump::replace_checksums $lines $both] result_lines result_indices
+    list [string first cccc3333 [lindex $result_lines 1]] \
+         [string first bbbb2222 [lindex $result_lines 4]] \
+         $result_indices
+} -result {21 21 1}
+
+test replace_checksums_size_field {
+    Replace size field alongside hash checksums
+} -body {
+    set lines [list \
+        "checksums rmd160 aaa111bbb222 \\" \
+        "          sha256 ccc333ddd444 \\" \
+        "          size   9876543" \
+    ]
+    set both {rmd160 aaa111bbb222 xxx111yyy222 sha256 ccc333ddd444 zzz333www444 size 9876543 1234567}
+    lassign [portbump::replace_checksums $lines $both] result_lines result_indices
+    list [string first xxx111yyy222 [lindex $result_lines 0]] \
+         [string first zzz333www444 [lindex $result_lines 1]] \
+         [string first 1234567       [lindex $result_lines 2]] \
+         [llength $result_indices]
+} -result {17 17 17 3}
+
+test replace_checksums_mixed_implicit_and_explicit_distfiles {
+    Replace checksums in a block with an implicit distfile followed by an explicit one with variable substitution
+} -body {
+    # Simulates a Portfile where the primary distfile is implicit (no filename
+    # in the checksums block) and a secondary distfile uses Tcl variable
+    # substitution in its name. replace_checksums matches on hash values only
+    # and is unaffected by whether or how distfile names appear in the block.
+    set lines [list \
+        "checksums           rmd160 oldrmd1 \\" \
+        "                    sha256 oldsha1 \\" \
+        "                    size   11111 \\" \
+        "                    \${name}-docs-\${version}.tar.gz \\" \
+        "                    rmd160 oldrmd2 \\" \
+        "                    sha256 oldsha2 \\" \
+        "                    size   22222" \
+    ]
+    set both {rmd160 oldrmd1 newrmd1 sha256 oldsha1 newsha1 rmd160 oldrmd2 newrmd2 sha256 oldsha2 newsha2}
+    lassign [portbump::replace_checksums $lines $both] result_lines result_indices
+    set implicit_rmd [expr {[string first newrmd1 [lindex $result_lines 0]] >= 0}]
+    set implicit_sha [expr {[string first newsha1 [lindex $result_lines 1]] >= 0}]
+    set filename_unchanged [expr {[string first {${name}-docs-${version}.tar.gz} [lindex $result_lines 3]] >= 0}]
+    set explicit_rmd [expr {[string first newrmd2 [lindex $result_lines 4]] >= 0}]
+    set explicit_sha [expr {[string first newsha2 [lindex $result_lines 5]] >= 0}]
+    list $implicit_rmd $implicit_sha $filename_unchanged $explicit_rmd $explicit_sha
+} -result {1 1 1 1 1}
+
+test replace_checksums_multiple_distfiles {
+    Replace checksums for multiple distfiles on separate lines
+} -body {
+    # Simulates git Portfile pattern with multiple distfiles
+    set lines [list \
+        "checksums git-2.53.0.tar.xz \\" \
+        "          rmd160 f125aaa \\" \
+        "          sha256 5818bbb \\" \
+        "          size 7993096 \\" \
+        "          git-manpages-2.53.0.tar.xz \\" \
+        "          rmd160 dbc6ccc \\" \
+        "          sha256 957fddd \\" \
+        "          size 614136" \
+    ]
+    set both {rmd160 f125aaa new_rmd1 sha256 5818bbb new_sha1 rmd160 dbc6ccc new_rmd2 sha256 957fddd new_sha2}
+    lassign [portbump::replace_checksums $lines $both] result_lines result_indices
+    set has_new_rmd1 [expr {[string first new_rmd1 [lindex $result_lines 1]] >= 0}]
+    set has_new_sha1 [expr {[string first new_sha1 [lindex $result_lines 2]] >= 0}]
+    set has_new_rmd2 [expr {[string first new_rmd2 [lindex $result_lines 5]] >= 0}]
+    set has_new_sha2 [expr {[string first new_sha2 [lindex $result_lines 6]] >= 0}]
+    list $has_new_rmd1 $has_new_sha1 $has_new_rmd2 $has_new_sha2
+} -result {1 1 1 1}
+
+# ============================================================
+# Tests for portbump::find_revision_line
+# ============================================================
+
+test find_revision_simple {
+    Find the only revision line in a simple Portfile
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "version 1.0" \
+        "revision 2" \
+        "checksums sha256 aaa111" \
+    ]
+    portbump::find_revision_line $lines "foo" "foo" 4
+} -result 3
+
+test find_revision_nearest_to_checksums {
+    Find the revision nearest to the checksum anchor, not the first one
+} -body {
+    # Simulates git Portfile: parent revision on line 2, subport revision on line 6
+    set lines [list \
+        "name git" \
+        "version 2.53.0" \
+        "revision 0" \
+        "" \
+        "subport git-devel \{" \
+        "    version 2.53.0" \
+        "    revision 0" \
+        "\}" \
+        "" \
+        "if \{name eq subport\} \{" \
+        "    checksums sha256 aaa111" \
+        "\} else \{" \
+        "    checksums sha256 bbb222" \
+        "\}" \
+    ]
+    # Bumping git-devel: checksums on line 12, nearest revision is line 6
+    portbump::find_revision_line $lines "git-devel" "git" 12
+} -result 6
+
+test find_revision_parent_port {
+    Find revision for the parent port (subport == name)
+} -body {
+    set lines [list \
+        "name git" \
+        "version 2.53.0" \
+        "revision 1" \
+        "" \
+        "subport git-devel \{" \
+        "    revision 3" \
+        "\}" \
+        "" \
+        "checksums sha256 aaa111" \
+    ]
+    # Bumping git: checksums on line 8, nearest revision is line 2
+    portbump::find_revision_line $lines "git" "git" 8
+} -result 2
+
+test find_revision_inline_subport {
+    Find inline revision on a subport declaration line (llvm pattern)
+} -body {
+    set lines [list \
+        "name llvm-16" \
+        "revision 3" \
+        "subport mlir-16  \{ revision 1 \}" \
+        "subport clang-16 \{ revision 9 \}" \
+        "subport lldb-16  \{ revision 4 \}" \
+        "" \
+        "checksums sha256 aaa111" \
+    ]
+    # Bumping clang-16: should find the inline revision on line 3
+    portbump::find_revision_line $lines "clang-16" "llvm-16" 6
+} -result 3
+
+test find_revision_inline_prefers_over_nearest {
+    Inline revision is preferred even if a standalone one is closer
+} -body {
+    set lines [list \
+        "name llvm-16" \
+        "revision 3" \
+        "subport clang-16 \{ revision 9 \}" \
+        "" \
+        "checksums sha256 aaa111" \
+    ]
+    # The standalone revision on line 1 is closer to checksums (line 4),
+    # but the inline on line 2 should win for clang-16
+    portbump::find_revision_line $lines "clang-16" "llvm-16" 4
+} -result 2
+
+test find_revision_conditional_branches {
+    Find correct revision among multiple conditional branches (go pattern)
+} -body {
+    # Simulates go Portfile with revision in nested conditionals
+    set lines [list \
+        "if \{subport eq name\} \{" \
+        "    if \{os.major < 17\} \{" \
+        "        version 1.11.13" \
+        "        revision 0" \
+        "    \} else \{" \
+        "        version 1.24.8" \
+        "        revision 0" \
+        "    \}" \
+        "\}" \
+        "subport go-devel \{" \
+        "    version 1.26.0" \
+        "    revision 2" \
+        "\}" \
+        "" \
+        "if \{subport eq go-devel\} \{" \
+        "    checksums sha256 ddd444" \
+        "\} else \{" \
+        "    if \{os.major <= 20\} \{" \
+        "        checksums sha256 bbb222" \
+        "    \} else \{" \
+        "        checksums sha256 ccc333" \
+        "    \}" \
+        "\}" \
+    ]
+    # Bumping go on macOS 12+: checksums on line 20, nearest revision is line 6
+    set rev_go [portbump::find_revision_line $lines "go" "go" 20]
+    # Bumping go-devel: checksums on line 15, nearest revision is line 11
+    set rev_devel [portbump::find_revision_line $lines "go-devel" "go" 15]
+    list $rev_go $rev_devel
+} -result {6 11}
+
+test find_revision_subport_nested_braces {
+    Skip revision inside subport block with nested braces when bumping parent
+} -body {
+    # Subport block contains an inner if {} block — tests brace depth counter > 1
+    set lines [list \
+        "name foo" \
+        "version 1.0" \
+        "revision 5" \
+        "" \
+        "subport foo-doc \{" \
+        "    if \{\$os.major >= 20\} \{" \
+        "        revision 2" \
+        "    \}" \
+        "\}" \
+        "" \
+        "checksums sha256 aaa111" \
+    ]
+    # Bumping foo (parent): the revision on line 6 is inside the subport block
+    # and must be excluded; the parent revision on line 2 should be found.
+    portbump::find_revision_line $lines "foo" "foo" 10
+} -result 2
+
+test find_revision_no_revision {
+    Return -1 when no revision line exists
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "checksums sha256 aaa111" \
+    ]
+    portbump::find_revision_line $lines "foo" "foo" 2
+} -result -1
+
+# ============================================================
+# Tests for portbump::reset_revision
+# ============================================================
+
+test reset_revision_basic {
+    Reset a standalone revision line to 0
+} -body {
+    set lines [list "name foo" "revision 5" "checksums sha256 aaa"]
+    set lines [portbump::reset_revision $lines 1]
+    lindex $lines 1
+} -result "revision 0"
+
+test reset_revision_already_zero {
+    No change when revision is already 0
+} -body {
+    set lines [list "name foo" "revision 0" "checksums sha256 aaa"]
+    set result [portbump::reset_revision $lines 1]
+    lindex $result 1
+} -result "revision 0"
+
+test reset_revision_inline {
+    Reset an inline revision on a subport declaration line
+} -body {
+    set lines [list \
+        "name llvm-16" \
+        "subport clang-16 \{ revision 9 \}" \
+    ]
+    set lines [portbump::reset_revision $lines 1]
+    lindex $lines 1
+} -result "subport clang-16 \{ revision 0 \}"
+
+test reset_revision_preserves_indentation {
+    Preserve leading whitespace when resetting revision
+} -body {
+    set lines [list "if cond \{" "    revision    7" "\}"]
+    set lines [portbump::reset_revision $lines 1]
+    lindex $lines 1
+} -result "    revision    0"
+
+# ============================================================
+# Integration-style tests combining all three procs
+# ============================================================
+
+test integration_simple_portfile {
+    Full bump of a simple single-subport Portfile
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "version 2.0" \
+        "revision 1" \
+        "" \
+        "checksums rmd160 oldrmdhash1234567890abcdef01234567 \\" \
+        "          sha256 oldshahash1234567890abcdef01234567890abcdef01234567890abcdef0123" \
+    ]
+    set both {rmd160 oldrmdhash1234567890abcdef01234567 newrmdhash1234567890abcdef01234567 sha256 oldshahash1234567890abcdef01234567890abcdef01234567890abcdef0123 newshahash1234567890abcdef01234567890abcdef01234567890abcdef0123}
+
+    lassign [portbump::replace_checksums $lines $both] lines checksum_lines
+
+    if {[llength $checksum_lines] > 0} {
+        set rev_line [portbump::find_revision_line $lines "foo" "foo" [lindex $checksum_lines 0]]
+        if {$rev_line >= 0} {
+            set lines [portbump::reset_revision $lines $rev_line]
+        }
+    }
+
+    set has_new_rmd [expr {[string first newrmdhash [lindex $lines 5]] >= 0}]
+    set has_new_sha [expr {[string first newshahash [lindex $lines 6]] >= 0}]
+    set rev_reset [expr {[lindex $lines 3] eq "revision 0"}]
+    list $has_new_rmd $has_new_sha $rev_reset
+} -result {1 1 1}
+
+test integration_subport_with_shared_checksums {
+    Bump subport with shared checksums (llvm pattern) resets only the inline revision
+} -body {
+    set lines [list \
+        "name llvm-16" \
+        "revision 3" \
+        "subport mlir-16  \{ revision 1 \}" \
+        "subport clang-16 \{ revision 9 \}" \
+        "" \
+        "checksums sha256 oldhash_aaa111bbb222ccc333ddd444eee555fff666" \
+    ]
+    set both {sha256 oldhash_aaa111bbb222ccc333ddd444eee555fff666 newhash_111aaa222bbb333ccc444ddd555eee666fff}
+
+    lassign [portbump::replace_checksums $lines $both] lines checksum_lines
+    set rev_line [portbump::find_revision_line $lines "clang-16" "llvm-16" [lindex $checksum_lines 0]]
+    set lines [portbump::reset_revision $lines $rev_line]
+
+    set parent_rev [lindex $lines 1]
+    set clang_line [lindex $lines 3]
+    set mlir_line [lindex $lines 2]
+    list $parent_rev $clang_line $mlir_line
+} -result {{revision 3} {subport clang-16 { revision 0 }} {subport mlir-16  { revision 1 }}}
+
+test integration_variant_checksums {
+    Bump with checksums inside a variant block (gradle pattern)
+} -body {
+    set lines [list \
+        "name gradle" \
+        "version 8.12" \
+        "revision 0" \
+        "" \
+        "checksums sha256 basehash_aaa111bbb222ccc333ddd444" \
+        "" \
+        "variant all \{" \
+        "    checksums sha256 varianthash_eee555fff666aaa111bbb222" \
+        "\}" \
+    ]
+    # Bumping with +all variant active — only the variant hash changes
+    set both {sha256 varianthash_eee555fff666aaa111bbb222 newhash_999888777666555444333222}
+
+    lassign [portbump::replace_checksums $lines $both] lines checksum_lines
+    set rev_line [portbump::find_revision_line $lines "gradle" "gradle" [lindex $checksum_lines 0]]
+    set lines [portbump::reset_revision $lines $rev_line]
+
+    set base_unchanged [expr {[string first basehash_ [lindex $lines 4]] >= 0}]
+    set variant_changed [expr {[string first newhash_ [lindex $lines 7]] >= 0}]
+    list $base_unchanged $variant_changed [lindex $lines 2]
+} -result {1 1 {revision 0}}
+
+test integration_multiple_distfiles_all_replaced {
+    Bump with three distfiles replaces checksums in all of them (git pattern)
+} -body {
+    # Simulates git Portfile with three distfiles: git, git-manpages, git-htmldocs.
+    # This specifically tests that both_checksums is accumulated across all distfiles,
+    # not reset per distfile (the bug that caused only the last distfile to be updated).
+    set lines [list \
+        "PortSystem 1.0" \
+        "name git" \
+        "version 2.51.0" \
+        "revision 0" \
+        "" \
+        "checksums git-2.51.0.tar.xz \\" \
+        "          rmd160 old_rmd_git111 \\" \
+        "          sha256 old_sha_git222 \\" \
+        "          size 7993096 \\" \
+        "          git-manpages-2.51.0.tar.xz \\" \
+        "          rmd160 old_rmd_man111 \\" \
+        "          sha256 old_sha_man222 \\" \
+        "          size 614136 \\" \
+        "          git-htmldocs-2.51.0.tar.xz \\" \
+        "          rmd160 old_rmd_html111 \\" \
+        "          sha256 old_sha_html222 \\" \
+        "          size 1675212" \
+    ]
+
+    # Simulate what bump_main's loop builds when both_checksums is accumulated
+    # correctly (outside the foreach distfile loop)
+    set both_checksums [list]
+    # distfile 1: git
+    lappend both_checksums rmd160 old_rmd_git111  new_rmd_git111
+    lappend both_checksums sha256 old_sha_git222  new_sha_git222
+    # distfile 2: git-manpages
+    lappend both_checksums rmd160 old_rmd_man111  new_rmd_man111
+    lappend both_checksums sha256 old_sha_man222  new_sha_man222
+    # distfile 3: git-htmldocs
+    lappend both_checksums rmd160 old_rmd_html111 new_rmd_html111
+    lappend both_checksums sha256 old_sha_html222 new_sha_html222
+
+    lassign [portbump::replace_checksums $lines $both_checksums] lines checksum_lines
+
+    set rev_line [portbump::find_revision_line $lines "git" "git" [lindex $checksum_lines 0]]
+    set lines [portbump::reset_revision $lines $rev_line]
+
+    set git_rmd  [expr {[string first new_rmd_git111  [lindex $lines 6]]  >= 0}]
+    set git_sha  [expr {[string first new_sha_git222  [lindex $lines 7]]  >= 0}]
+    set man_rmd  [expr {[string first new_rmd_man111  [lindex $lines 10]] >= 0}]
+    set man_sha  [expr {[string first new_sha_man222  [lindex $lines 11]] >= 0}]
+    set html_rmd [expr {[string first new_rmd_html111 [lindex $lines 14]] >= 0}]
+    set html_sha [expr {[string first new_sha_html222 [lindex $lines 15]] >= 0}]
+    set rev_reset [expr {[lindex $lines 3] eq "revision 0"}]
+    list $git_rmd $git_sha $man_rmd $man_sha $html_rmd $html_sha $rev_reset
+} -result {1 1 1 1 1 1 1}
+
+test integration_no_revision_line {
+    Bump checksums when no revision line exists: checksums updated, no error
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "version 2.0" \
+        "" \
+        "checksums sha256 oldshahash1234567890abcdef01234567890abcdef01234567890abcdef0123" \
+    ]
+    set both {sha256 oldshahash1234567890abcdef01234567890abcdef01234567890abcdef0123 newshahash1234567890abcdef01234567890abcdef01234567890abcdef0123}
+
+    lassign [portbump::replace_checksums $lines $both] lines checksum_lines
+
+    if {[llength $checksum_lines] > 0} {
+        set rev_line [portbump::find_revision_line $lines "foo" "foo" [lindex $checksum_lines 0]]
+        if {$rev_line >= 0} {
+            set lines [portbump::reset_revision $lines $rev_line]
+        }
+    }
+
+    set has_new_sha [expr {[string first newshahash [lindex $lines 4]] >= 0}]
+    list $has_new_sha [llength $checksum_lines]
+} -result {1 1}
+
+cleanupTests
