@@ -1267,6 +1267,23 @@ Note that any branch besides HEAD should be prefixed by
 git.branch 72bf1c8
 git.branch origin/next
 .Ed
+.It Ic git.submodules
+When set to
+.Em yes ,
+run
+.Ic git submodule update --init --recursive
+after cloning (and checking out
+.Ic git.branch ,
+if set).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em yes
+.br
+.Sy Example:
+.Dl git.submodules no
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.

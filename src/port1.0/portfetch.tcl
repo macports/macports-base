@@ -53,7 +53,7 @@ options master_sites patch_sites distfiles patchfiles \
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
-    git.cmd git.url git.branch \
+    git.cmd git.url git.branch git.submodules \
     hg.cmd hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
@@ -96,6 +96,7 @@ default svn.post_args {}
 default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
 default git.branch {}
+default git.submodules yes
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
@@ -394,7 +395,7 @@ proc portfetch::svnfetch {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global worksrcpath patchfiles \
-           git.url git.branch git.cmd
+           git.url git.branch git.cmd git.submodules
 
     set options "--progress"
     if {${git.branch} eq ""} {
@@ -413,6 +414,15 @@ proc portfetch::gitfetch {args} {
         ui_debug "Executing $cmdstring"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Git checkout failed"]
+        }
+    }
+
+    if {${git.submodules}} {
+        set env "GIT_DIR=[shellescape ${worksrcpath}/.git] GIT_WORK_TREE=[shellescape ${worksrcpath}]"
+        set cmdstring "$env ${git.cmd} submodule update --init --recursive 2>&1"
+        ui_debug "Executing: $cmdstring"
+        if {[catch {system $cmdstring} result]} {
+            return -code error [msgcat::mc "Git submodule update failed"]
         }
     }
 
