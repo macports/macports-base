@@ -32,6 +32,51 @@ proc cleanup {} {
     file delete -force ${cpwd}/PortIndex ${cpwd}/PortIndex.quick
 }
 
+proc without_darwintrace_env {script} {
+    set darwintrace_env_vars {
+        DYLD_INSERT_LIBRARIES
+        DARWINTRACE_LOG
+        DARWINTRACE_DEBUG
+        DARWINTRACE_UNINITIALIZE
+        DARWINTRACE_SPAWN_SETEXEC
+        DARWINTRACE_SIP_WORKAROUND_PATH
+    }
+    set saved_env {}
+
+    foreach var $darwintrace_env_vars {
+        if {[info exists ::env($var)]} {
+            lappend saved_env $var $::env($var)
+            unset ::env($var)
+        }
+    }
+
+    catch {uplevel 1 $script} result options
+
+    foreach {var value} $saved_env {
+        set ::env($var) $value
+    }
+
+    return -options $options $result
+}
+
+proc with_portsrc {portsrc script} {
+    set had_portsrc [info exists ::env(PORTSRC)]
+    if {$had_portsrc} {
+        set saved_portsrc $::env(PORTSRC)
+    }
+    set ::env(PORTSRC) $portsrc
+
+    catch {uplevel 1 $script} result options
+
+    if {$had_portsrc} {
+        set ::env(PORTSRC) $saved_portsrc
+    } else {
+        catch {unset ::env(PORTSRC)}
+    }
+
+    return -options $options $result
+}
+
 # Sets initial directories
 proc set_dir {} {
     global datadir cpwd
@@ -57,9 +102,13 @@ proc port_index {} {
     set path [pwd]
     cd ../..
     # Avoid warning about ports tree being old
-    exec -ignorestderr sh -c {touch */*/Portfile}
+    foreach portfile [glob -nocomplain */*/Portfile] {
+        file mtime $portfile [clock seconds]
+    }
 
-    exec -ignorestderr ${bindir}/portindex 2>@1
+    without_darwintrace_env {
+        exec -ignorestderr ${bindir}/portindex 2>@1
+    }
 
     file copy ${cpwd}/sources.conf /tmp/macports-tests/opt/local/etc/macports/
     file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick /tmp/macports-tests/ports/
@@ -74,7 +123,13 @@ proc port_clean {pwd} {
     set back [pwd]
     cd $pwd
 
-    catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port clean 2>@1}
+    catch {
+        without_darwintrace_env {
+            with_portsrc $portsrc {
+                exec -ignorestderr ${bindir}/port clean 2>@1
+            }
+        }
+    }
     cd $back
 }
 
@@ -85,7 +140,13 @@ proc port_run {pwd} {
     set back [pwd]
     cd $pwd
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port -d -N test >&output} ]
+    set result [catch {
+        without_darwintrace_env {
+            with_portsrc $portsrc {
+                exec -ignorestderr ${bindir}/port -d -N test >&output
+            }
+        }
+    }]
     cd $back
     return $result
 }
@@ -97,7 +158,11 @@ proc port_trace {pwd} {
     set back [pwd]
     cd $pwd
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port -d -N -t test >&output 2>@1} ]
+    set result [catch {
+        with_portsrc $portsrc {
+            exec -ignorestderr ${bindir}/port -d -N -t test >&output 2>@1
+        }
+    }]
     cd $back
     return $result
 }
@@ -106,7 +171,13 @@ proc port_trace {pwd} {
 proc port_install {{name "current"}} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install $name > output 2>@1} ]
+    set result [catch {
+        without_darwintrace_env {
+            with_portsrc $portsrc {
+                exec -ignorestderr ${bindir}/port install $name > output 2>@1
+            }
+        }
+    }]
     return $result
 }
 
@@ -114,7 +185,13 @@ proc port_install {{name "current"}} {
 proc port_config {pwd} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
+    set result [catch {
+        without_darwintrace_env {
+            with_portsrc $portsrc {
+                exec -ignorestderr ${bindir}/port configure 2>@1
+            }
+        }
+    }]
     return $result
 }
 
@@ -126,7 +203,13 @@ proc port_destroot {pwd} {
     if { [exec -ignorestderr id -u] == 0 } {
         exec -ignorestderr chown macports ${work_dir}/.macports.statefile-unknown-version.state
     }
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port destroot >$output_file 2>@1} ]
+    set result [catch {
+        without_darwintrace_env {
+            with_portsrc $portsrc {
+                exec -ignorestderr ${bindir}/port destroot >$output_file 2>@1
+            }
+        }
+    }]
     return $result
 }
 
@@ -134,7 +217,13 @@ proc port_destroot {pwd} {
 proc port_uninstall {{name "current"}} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall $name > output 2>@1} ]
+    set result [catch {
+        without_darwintrace_env {
+            with_portsrc $portsrc {
+                exec -ignorestderr ${bindir}/port uninstall $name > output 2>@1
+            }
+        }
+    }]
     return $result
 }
 
