@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.12.4 (unreleased)
+Release 2.12.4 (2026-03-18 by jmr)
     - Fixed occasional lchown errors when upgrading ports.
       (#73514, jmr in 07ff611)
 
