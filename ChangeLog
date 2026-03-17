@@ -2,11 +2,12 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.12.4 (2026-03-18 by jmr)
+Release 2.13.0 (unreleased)
     - Added a -T flag to prepend ISO 8601 timestamps to each line of
       output, and elapsed time logging for each phase.
       (#2020, herbygillot in 037d168)
 
+Release 2.12.4 (2026-03-18 by jmr)
     - Fixed occasional lchown errors when upgrading ports.
       (#73514, jmr in 07ff611)
 
