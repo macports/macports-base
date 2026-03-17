@@ -14,6 +14,7 @@ SRCS = \
 	mkdir.c \
 	open.c \
 	posix_spawn.c \
+	rmrf.c \
 	readdir.c \
 	readlink.c \
 	rename.c \
