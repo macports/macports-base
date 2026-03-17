@@ -246,12 +246,12 @@ test set_phase_tracks_start_time {
 
 
 test set_phase_emits_elapsed_on_transition {
-    set_phase emits a notice with elapsed seconds when transitioning between real phases.
+    set_phase emits an info message with elapsed seconds when transitioning between real phases.
 } -setup {
     set macports::phase_start_ms {}
     set elapsed_fd [open $pwd/elapsed_output w]
-    set saved_notice_chan $macports::channels(notice)
-    set macports::channels(notice) $elapsed_fd
+    set saved_info_chan $macports::channels(info)
+    set macports::channels(info) $elapsed_fd
 } -body {
     set_phase fetch
     set_phase build
@@ -262,23 +262,23 @@ test set_phase_emits_elapsed_on_transition {
     close $elapsed_fd
 
     if {![regexp {Phase fetch completed in \d+\.\d{3} seconds} $output]} {
-        return "FAIL: elapsed time notice not found in output: $output"
+        return "FAIL: elapsed time info not found in output: $output"
     }
     return "set_phase emits elapsed on transition successful."
 } -cleanup {
-    set macports::channels(notice) $saved_notice_chan
+    set macports::channels(info) $saved_info_chan
     set_phase main
     file delete -force $pwd/elapsed_output
 } -result "set_phase emits elapsed on transition successful."
 
 
 test set_phase_no_elapsed_on_first_phase {
-    set_phase does not emit an elapsed notice when no prior phase has been tracked.
+    set_phase does not emit an elapsed info message when no prior phase has been tracked.
 } -setup {
     set macports::phase_start_ms {}
     set elapsed_fd [open $pwd/elapsed_output w]
-    set saved_notice_chan $macports::channels(notice)
-    set macports::channels(notice) $elapsed_fd
+    set saved_info_chan $macports::channels(info)
+    set macports::channels(info) $elapsed_fd
 } -body {
     set_phase fetch
     close $elapsed_fd
@@ -288,11 +288,11 @@ test set_phase_no_elapsed_on_first_phase {
     close $elapsed_fd
 
     if {[regexp {completed in} $output]} {
-        return "FAIL: unexpected elapsed notice on first phase: $output"
+        return "FAIL: unexpected elapsed info on first phase: $output"
     }
     return "set_phase no elapsed on first phase successful."
 } -cleanup {
-    set macports::channels(notice) $saved_notice_chan
+    set macports::channels(info) $saved_info_chan
     set_phase main
     file delete -force $pwd/elapsed_output
 } -result "set_phase no elapsed on first phase successful."
