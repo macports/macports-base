@@ -33,8 +33,7 @@ test readlink_succeeds_inside_sandbox "Test that readlink(2) succeeds inside of 
 
 test readlink_succeeds_on_missing_file "Test that readlink(2) does not care whether the target exists" \
     -setup {
-        # Tcl's file link -symbolic will fail on links targets that don't exist
-        exec -ignorestderr -- ln -s this_file_does_not_exist link
+        symlink this_file_does_not_exist link
         [setup [list allow /]]
     } \
     -cleanup {
