@@ -635,13 +635,12 @@ proc get_outdated_ports {} {
         if { $comp_result == 0 } {
             set comp_result [expr {[$i revision] - $latest_revision}]
         }
-        if {$comp_result == 0} {
-            if {([$i os_platform] ni [list any "" 0] && [$i os_major] ni [list "" 0]
+        if {$comp_result == 0 && (([$i os_platform] ni [list any "" 0] && [$i os_major] ni [list "" 0]
                 && ([$i os_platform] ne ${os_platform}
                     || ([$i os_major] ne "any" && [$i os_major] != ${os_major})))
-                || ([$i cxx_stdlib_overridden] == 0 && [$i cxx_stdlib] eq $wrong_stdlib)} {
-                set comp_result -1
-            }
+                || (([catch {$i cxx_stdlib_overridden} cxx_stdlib_overridden] || $cxx_stdlib_overridden == 0)
+                     && (![catch {$i cxx_stdlib} cxx_stdlib_installed] && $cxx_stdlib_installed eq $wrong_stdlib)))} {
+            set comp_result -1
         }
 
         # Add outdated ports to our results list
@@ -3244,12 +3243,12 @@ proc action_outdated { action portlist opts } {
                         || ($os_major_installed ne "any" && $os_major_installed != ${os_major}))} {
                     set comp_result -1
                     set reason { (platform $os_platform_installed $os_major_installed != ${os_platform} ${os_major})}
-                } else {
-                    set cxx_stdlib_installed [$i cxx_stdlib]
-                    if {[$i cxx_stdlib_overridden] == 0 && $cxx_stdlib_installed eq $wrong_stdlib} {
-                        set comp_result -1
-                        set reason { (C++ stdlib $cxx_stdlib_installed != ${cxx_stdlib})}
-                    }
+                } elseif {![catch {$i cxx_stdlib} cxx_stdlib_installed]
+                          && $cxx_stdlib_installed eq $wrong_stdlib
+                          && ![catch {$i cxx_stdlib_overridden} cxx_stdlib_overridden]
+                          && $cxx_stdlib_overridden == 0} {
+                    set comp_result -1
+                    set reason { (C++ stdlib $cxx_stdlib_installed != ${cxx_stdlib})}
                 }
             }
 
