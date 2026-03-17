@@ -51,7 +51,7 @@ package require portlist
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfknNopqRstuvy] [-D portdir|portname] [-F cmdfile] action [actionflags]
+        [-bcdfknNopqRstTuvy] [-D portdir|portname] [-F cmdfile] action [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -4461,6 +4461,9 @@ proc parse_options { action ui_options_name global_options_name } {
                     }
                     t {
                         set global_options(ports_trace) yes
+                    }
+                    T {
+                        set ui_options(ports_timestamps) yes
                     }
                     y {
                         set global_options(ports_dryrun) yes

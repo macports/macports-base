@@ -107,10 +107,12 @@ namespace eval macports {
     variable ui_priorities [list error warn msg notice info debug any]
     variable ui_priority_prefixes [dict create]
     variable current_phase main
+    variable phase_start_ms {}
     variable current_log_mport {}
     variable pending_log_messages [dict create]
 
     variable ui_prefix {---> }
+    variable log_timestamp_format {%Y-%m-%dT%T%z}
 
     variable cache_dirty [dict create]
     variable pending_pings [dict create]
@@ -346,14 +348,24 @@ proc macports::pop_log {} {
 
 proc set_phase {phase} {
     global macports::current_phase
+    set now_ms [clock milliseconds]
+
+    if {$::macports::phase_start_ms ne {} && $current_phase ne "main"} {
+        set elapsed_ms [expr {$now_ms - $::macports::phase_start_ms}]
+        ui_notice "Phase $current_phase completed in [format "%.3f" [expr {$elapsed_ms / 1000.0}]] seconds"
+    }
+
     set current_phase $phase
+
     if {$phase ne "main"} {
-        set ms [clock milliseconds]
-        set sec [expr {$ms / 1000}]
-        set fraction [format "%.3u" [expr {$ms % 1000}]]
+        set ::macports::phase_start_ms $now_ms
+        set sec [expr {$now_ms / 1000}]
+        set fraction [format "%.3u" [expr {$now_ms % 1000}]]
         set utc_time [clock format $sec -timezone :UTC -format "%Y-%m-%dT%T.${fraction}%z"]
         set local_time [clock format $sec -format {%+}]
         ui_debug "$phase phase started at $utc_time ($local_time)"
+    } else {
+        set ::macports::phase_start_ms {}
     }
 }
 
@@ -378,9 +390,17 @@ proc macports::log_pending_messages {mport} {
 proc macports::ui_message_async {id priority phase msg} {
     variable ui_priority_prefixes
     set prefix [dict get $ui_priority_prefixes $priority]
+
+    if {[macports::ui_isset ports_timestamps]} {
+        variable log_timestamp_format
+        set ts "[clock format [clock seconds] -format $log_timestamp_format] "
+    } else {
+        set ts ""
+    }
+
     variable channels
     foreach chan $channels($priority) {
-        puts $chan ${prefix}${msg}
+        puts $chan "$ts${prefix}${msg}"
     }
     variable current_log_mport; variable debuglog
     if {$id eq $current_log_mport && [info exists debuglog]} {
@@ -414,11 +434,17 @@ proc ui_message {priority prefix args} {
        }
     } 
 
+    if {[macports::ui_isset ports_timestamps]} {
+        set ts "[clock format [clock seconds] -format $macports::log_timestamp_format] "
+    } else {
+        set ts ""
+    }
+
     foreach chan $channels($priority) {
         if {[lindex $args 0] eq "-nonewline"} {
             puts -nonewline $chan $prefix[lindex $args 1]
         } else {
-            puts $chan $prefix[lindex $args 0]
+            puts $chan "$ts$prefix[lindex $args 0]"
         }
     }
 
@@ -2942,6 +2968,8 @@ proc _mportexec {target mport} {
         (![macports::_target_needs_toolchain $workername $target] || (![catch {$workername eval [list _check_xcode_version]} result] && $result == 0)) &&
         ![catch {$workername eval [list check_supported_archs]} result] && $result == 0 &&
         ![catch {$workername eval [list eval_targets $target]} result] && $result == 0} {
+        set_phase main
+
         # If auto-clean mode, clean-up after dependency install
         global macports::portautoclean
         if {$portautoclean} {
