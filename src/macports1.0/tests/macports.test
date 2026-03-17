@@ -220,7 +220,82 @@ test set_phase {
         return "FAIL: phase not set"
     }
     return "Set phase successful."
+} -cleanup {
+    set_phase main
 } -result "Set phase successful."
+
+
+test set_phase_tracks_start_time {
+    set_phase records phase_start_ms for real phases and clears it for main.
+} -setup {
+    set macports::phase_start_ms {}
+} -body {
+    set_phase fetch
+    if {$macports::phase_start_ms eq {}} {
+        return "FAIL: phase_start_ms not set after entering fetch"
+    }
+    set_phase main
+    if {$macports::phase_start_ms ne {}} {
+        return "FAIL: phase_start_ms not cleared after returning to main"
+    }
+    if {$macports::current_phase ne "main"} {
+        return "FAIL: current_phase not reset to main"
+    }
+    return "set_phase tracks start time successful."
+} -result "set_phase tracks start time successful."
+
+
+test set_phase_emits_elapsed_on_transition {
+    set_phase emits a notice with elapsed seconds when transitioning between real phases.
+} -setup {
+    set macports::phase_start_ms {}
+    set elapsed_fd [open $pwd/elapsed_output w]
+    set saved_notice_chan $macports::channels(notice)
+    set macports::channels(notice) $elapsed_fd
+} -body {
+    set_phase fetch
+    set_phase build
+    close $elapsed_fd
+
+    set elapsed_fd [open $pwd/elapsed_output r]
+    set output [read $elapsed_fd]
+    close $elapsed_fd
+
+    if {![regexp {Phase fetch completed in \d+\.\d{3} seconds} $output]} {
+        return "FAIL: elapsed time notice not found in output: $output"
+    }
+    return "set_phase emits elapsed on transition successful."
+} -cleanup {
+    set macports::channels(notice) $saved_notice_chan
+    set_phase main
+    file delete -force $pwd/elapsed_output
+} -result "set_phase emits elapsed on transition successful."
+
+
+test set_phase_no_elapsed_on_first_phase {
+    set_phase does not emit an elapsed notice when no prior phase has been tracked.
+} -setup {
+    set macports::phase_start_ms {}
+    set elapsed_fd [open $pwd/elapsed_output w]
+    set saved_notice_chan $macports::channels(notice)
+    set macports::channels(notice) $elapsed_fd
+} -body {
+    set_phase fetch
+    close $elapsed_fd
+
+    set elapsed_fd [open $pwd/elapsed_output r]
+    set output [read $elapsed_fd]
+    close $elapsed_fd
+
+    if {[regexp {completed in} $output]} {
+        return "FAIL: unexpected elapsed notice on first phase: $output"
+    }
+    return "set_phase no elapsed on first phase successful."
+} -cleanup {
+    set macports::channels(notice) $saved_notice_chan
+    set_phase main
+    file delete -force $pwd/elapsed_output
+} -result "set_phase no elapsed on first phase successful."
 
 
 test ui_message {
@@ -273,6 +348,55 @@ test ui_message {
     file delete -force $pwd/log
     file delete -force $pwd/message
 } -result "UI message successful."
+
+
+test ui_message_timestamp_enabled {
+    ui_message prepends an ISO 8601 timestamp when ports_timestamps is set.
+} -setup {
+    set fd [open $pwd/message w]
+    set macports::channels(0) $fd
+    set macports::current_phase test
+    set macports::ui_options(ports_timestamps) yes
+} -body {
+    ui_message 0 "" msg
+    close $fd
+
+    set fd [open $pwd/message r]
+    set line [read -nonewline $fd]
+    close $fd
+
+    if {![regexp {^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4} msg$} $line]} {
+        return "FAIL: unexpected format: $line"
+    }
+    return "ui_message timestamp enabled successful."
+} -cleanup {
+    unset macports::ui_options(ports_timestamps)
+    file delete -force $pwd/message
+} -result "ui_message timestamp enabled successful."
+
+
+test ui_message_timestamp_disabled {
+    ui_message does not prepend a timestamp when ports_timestamps is not set.
+} -setup {
+    set fd [open $pwd/message w]
+    set macports::channels(0) $fd
+    set macports::current_phase test
+    unset -nocomplain macports::ui_options(ports_timestamps)
+} -body {
+    ui_message 0 "" msg
+    close $fd
+
+    set fd [open $pwd/message r]
+    set line [read -nonewline $fd]
+    close $fd
+
+    if {$line ne "msg"} {
+        return "FAIL: unexpected output: $line"
+    }
+    return "ui_message timestamp disabled successful."
+} -cleanup {
+    file delete -force $pwd/message
+} -result "ui_message timestamp disabled successful."
 
 
 # test ui_init
