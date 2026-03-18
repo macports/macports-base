@@ -421,6 +421,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		struct CURLMsg *info = NULL;
 		int running; /* number of running transfers */
 		char* acceptEncoding = NULL;
+		char* autoHostHeader = NULL;
 		curl_poll_info_t poll_info;
 
         /* allow cancelling asynchronous transfers */
@@ -758,6 +759,36 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		}
 #endif
 
+		/* Workaround for curl bug with trailing-dot hostnames (ticket #67186).
+		 * Curl 7.37.0-7.81.x enter a redirect loop for such hostnames. Fix:
+		 * explicitly set the Host header when the URL hostname ends with '.'. */
+		{
+			const char* schemeEnd = strstr(theURL, "://");
+			if (schemeEnd != NULL) {
+				const char* hostStart = schemeEnd + 3;
+				/* Skip userinfo (user:pass@) if present */
+				const char* slash = strchr(hostStart, '/');
+				const char* atSign = strchr(hostStart, '@');
+				if (atSign != NULL && (slash == NULL || atSign < slash)) {
+					hostStart = atSign + 1;
+				}
+				/* Find end of host (before port, path, query, or fragment) */
+				size_t hostLen = strcspn(hostStart, ":/?#");
+				if (hostLen > 0 && hostStart[hostLen - 1] == '.') {
+					/* Build "Host: hostname." header string */
+					autoHostHeader = (char*)malloc(6 + hostLen + 1);
+					if (autoHostHeader != NULL) {
+						memcpy(autoHostHeader, "Host: ", 6);
+						memcpy(autoHostHeader + 6, hostStart, hostLen);
+						autoHostHeader[6 + hostLen] = '\0';
+						if (numHTTPHeaders < MAXHTTPHEADERS) {
+							httpHeaders[numHTTPHeaders++] = autoHostHeader;
+						}
+					}
+				}
+			}
+		}
+
 		/* Clear the Pragma: no-cache header */
 		headers = curl_slist_append(headers, "Pragma:");
 		/* Append any optional headers */
@@ -882,6 +913,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
 		/* free header memory */
 		curl_slist_free_all(headers);
+		free(autoHostHeader);
+		autoHostHeader = NULL;
 
 		/* signal cleanup to the progress callback */
 		if (noprogress == 0 && strcmp(progressCallback.proc, "builtin") != 0) {
