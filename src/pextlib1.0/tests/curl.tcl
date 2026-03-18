@@ -38,6 +38,13 @@ proc main {pextlibname} {
     curl fetch --ignore-ssl-cert https://www.whatsmyip.org/http-compression-test/ $tempfile
     grepper $tempfile {gz_no}
 
+    # check that trailing-dot hostnames work (ticket #67186).
+    # curl 7.37.0-7.81.x enter a redirect loop for such hostnames; the fix
+    # injects a Host header automatically when the hostname ends with '.'.
+    set dummyfile_dothost http://distfiles.macports.org./MacPorts/MacPorts-2.6.2.tar.gz.asc
+    curl fetch $dummyfile_dothost $tempfile
+    test "trailing-dot-hostname" {[md5 file $tempfile] == "41023b6070d3dda3b5d34b7e773b40fc"}
+
     file delete -force $tempfile
 }
 
