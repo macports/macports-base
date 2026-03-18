@@ -314,6 +314,95 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+\fIdepends_lib\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends_build\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends_run\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends_fetch\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends_extract\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends_patch\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends_test\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIdepends\fR
+(shorthand for all depends_* selectors)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
 \fIlicense\fR
 .RE
 .sp
@@ -325,7 +414,44 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+\fIreplaced_by\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
 \fIportdir\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIportgroup\fR
+or
+\fIportgroups\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIsubport\fR
+or
+\fIsubports\fR
 .RE
 .sp
 Other pseudo\-portname selectors match ports which have a particular relationship to another port\&. These will match ports that are direct or recursive dependencies or dependents of the given portname:
@@ -383,6 +509,17 @@ Other pseudo\-portname selectors match ports which have a particular relationshi
 .IP \(bu 2.3
 .\}
 \fIrdependentof\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIsubportof\fR
 .RE
 .sp
 Search strings that will expand to a set of matching ports can be constructed based on the "\fIpseudo\-portname selector\fR":regex combination used\&. \fIportnames\fR containing valid UNIX glob patterns will also expand to the set of matching ports\&. Any action passed to port will be invoked on each of them\&.
@@ -451,7 +588,7 @@ Debug mode, generate debugging messages, implies \-v
 \-T
 .RS 4
 Timestamp mode, prepend an ISO 8601 timestamp (e\&.g\&.
-2026\-03\-18T09:42:01\-0400) to every line of output\&.
+\fI2026\-03\-18T09:42:01\-0400\fR) to every line of output\&.
 .RE
 .PP
 \-q

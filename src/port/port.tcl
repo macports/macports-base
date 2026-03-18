@@ -140,6 +140,9 @@ proc map_friendly_field_names { field } {
         category {
             set field "categories"
         }
+        portgroup {
+            set field "portgroups"
+        }
     }
 
     return $field
@@ -1160,6 +1163,8 @@ proc element { resname } {
         ^(revision):(.*)         -
         ^(subport):(.*)          -
         ^(subports):(.*)         -
+        ^(portgroup):(.*)        -
+        ^(portgroups):(.*)       -
         ^(license):(.*)          { # Handle special port selectors
             advance
 
@@ -1751,6 +1756,7 @@ proc action_info { action portlist opts } {
             platforms       {", "  ", "  ","}
             variants        {", "  ", "  ","}
             conflicts       {", "  ", "  ","}
+            portgroups      {", "  ", "  ","}
             subports        {", "  ", "  ","}
             patchfiles      {", "  ", "  ","}
         }]
@@ -1774,6 +1780,7 @@ proc action_info { action portlist opts } {
             maintainers Maintainers
             license     License
             conflicts   "Conflicts with"
+            portgroups  "Port Groups"
             replaced_by "Replaced by"
             subports    "Sub-ports"
             patchfiles  "Patchfiles"
@@ -1797,6 +1804,7 @@ proc action_info { action portlist opts } {
             platforms 22
             license 22
             conflicts 22
+            portgroups 22
             maintainers 22
             subports 22
             patchfiles 22
@@ -1889,6 +1897,7 @@ proc action_info { action portlist opts } {
                 ports_info_depends_lib ports_info_depends_run
                 ports_info_depends_test
                 ports_info_conflicts
+                ports_info_portgroups
                 ports_info_platforms ports_info_license
                 ports_info_maintainers
             }
@@ -1946,6 +1955,15 @@ proc action_info { action portlist opts } {
                 if {!$pretty_print} {
                     set inf [string map {"\n" {\n}} $inf]
                 }
+            }
+
+            # Format portgroups: strip filepath, keep only name and version
+            if {$ropt eq "portgroups"} {
+                set infresult [list]
+                foreach pg $inf {
+                    lappend infresult [lrange $pg 0 1]
+                }
+                set inf $infresult
             }
 
             # Add "(" "or" ")" "and" for human-readable output
@@ -4276,6 +4294,7 @@ set cmd_opts_array [dict create {*}{
                  depends description epoch fullname heading homepage index license
                  line long_description
                  maintainer maintainers name patchfiles platform platforms portdir
+                 portgroup portgroups
                  pretty replaced_by revision subports variant variants version}
     contents    {size {units 1}}
     deps        {index no-build no-test}
@@ -4286,7 +4305,8 @@ set cmd_opts_array [dict create {*}{
                  depends_build depends_lib depends_run depends_test
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
-                 platforms portdir regex revision variant variants version}
+                 platforms portdir portgroup portgroups
+                 regex revision variant variants version}
     selfupdate  {migrate no-sync nosync rsync}
     space       {{units 1} total}
     activate    {no-exec}

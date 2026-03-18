@@ -134,6 +134,17 @@ in the name, but not the description\&.
 Test the search string against the path of the directory that contains the port\&.
 .RE
 .PP
+\fB\-\-portgroup\fR, \fB\-\-portgroups\fR
+.RS 4
+Search for ports that use a given PortGroup\&. For example,
+\fBport search \-\-portgroup python\fR
+will print all ports using the python PortGroup\&. There is also a pseudo\-portname selector
+\fBportgroup:python\fR
+available for use with
+\fBport-echo\fR(1)
+and other commands\&.
+.RE
+.PP
 \fB\-\-variant\fR, \fB\-\-variants\fR
 .RS 4
 Search for variant names\&.
