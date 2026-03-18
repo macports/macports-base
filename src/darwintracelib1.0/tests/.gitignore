@@ -8,6 +8,7 @@ lstat
 mkdir
 open
 posix_spawn
+rmrf
 readdir
 readlink
 rename
