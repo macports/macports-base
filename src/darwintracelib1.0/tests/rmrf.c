@@ -1,6 +1,5 @@
 #include <dirent.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,24 +7,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static int rmrf_at(int parentfd, const char *name) {
+static int rmrf(const char *path) {
     struct stat st;
 
-    if (fstatat(parentfd, name, &st, AT_SYMLINK_NOFOLLOW) != 0) {
+    if (lstat(path, &st) != 0) {
         return errno == ENOENT ? 0 : -1;
     }
 
     if (S_ISDIR(st.st_mode)) {
-        int fd = openat(parentfd, name, O_RDONLY | O_DIRECTORY);
-        if (fd == -1) {
-            return -1;
-        }
-
-        DIR *dir = fdopendir(fd);
+        DIR *dir = opendir(path);
         if (dir == NULL) {
-            int saved_errno = errno;
-            close(fd);
-            errno = saved_errno;
             return -1;
         }
 
@@ -46,21 +37,31 @@ static int rmrf_at(int parentfd, const char *name) {
                 continue;
             }
 
-            if (rmrf_at(fd, entry->d_name) != 0) {
+            size_t child_len = strlen(path) + 1 + strlen(entry->d_name) + 1;
+            char *child = malloc(child_len);
+            if (child == NULL) {
                 int saved_errno = errno;
+                closedir(dir);
+                errno = saved_errno;
+                return -1;
+            }
+            snprintf(child, child_len, "%s/%s", path, entry->d_name);
+
+            int rc = rmrf(child);
+            int saved_errno = errno;
+            free(child);
+
+            if (rc != 0) {
                 closedir(dir);
                 errno = saved_errno;
                 return -1;
             }
         }
 
-        if (unlinkat(parentfd, name, AT_REMOVEDIR) != 0) {
-            return -1;
-        }
-        return 0;
+        return rmdir(path);
     }
 
-    return unlinkat(parentfd, name, 0);
+    return unlink(path);
 }
 
 int main(int argc, char *argv[]) {
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (int i = 1; i < argc; i++) {
-        if (rmrf_at(AT_FDCWD, argv[i]) != 0) {
+        if (rmrf(argv[i]) != 0) {
             fprintf(stderr, "%s: %s: %s\n", argv[0], argv[i], strerror(errno));
             failed = true;
         }
