@@ -98,6 +98,23 @@ Field selection
     Test the search string against the path of the directory that contains the
     port.
 
+*--portgroup*, *--portgroups*::
+    Search for ports that use a given PortGroup. The pattern has the optional
+    form 'NAME@VERSION', where either half may be omitted. For example, *port
+    search --portgroup python* prints all ports using any version of the
+    python PortGroup, while *port search --portgroup pass:[python@1.0]*
+    restricts the match to ports using version 1.0 of that PortGroup. The
+    form *--portgroup @1.0* matches any PortGroup whose version is 1.0.
++
+The pattern on each side of the '@' is interpreted according to the selected
+matching style (*--glob* by default, or *--exact*, *--regex*). Unlike other
+fields, matching is performed against each portgroup entry individually rather
+than against the serialized list, so *--exact --portgroup python* works as
+expected.
++
+There is also a pseudo-portname selector *portgroup:python* available for use
+with man:port-echo[1] and other commands.
+
 *--variant*, *--variants*::
     Search for variant names.
 

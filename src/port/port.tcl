@@ -134,6 +134,7 @@ proc map_friendly_field_names { field } {
         variant -
         platform -
         maintainer -
+        portgroup -
         subport {
             set field "${field}s"
         }
@@ -1160,6 +1161,8 @@ proc element { resname } {
         ^(revision):(.*)         -
         ^(subport):(.*)          -
         ^(subports):(.*)         -
+        ^(portgroup):(.*)        -
+        ^(portgroups):(.*)       -
         ^(license):(.*)          { # Handle special port selectors
             advance
 
@@ -1751,6 +1754,7 @@ proc action_info { action portlist opts } {
             platforms       {", "  ", "  ","}
             variants        {", "  ", "  ","}
             conflicts       {", "  ", "  ","}
+            portgroups      {", "  ", "  ","}
             subports        {", "  ", "  ","}
             patchfiles      {", "  ", "  ","}
         }]
@@ -1774,6 +1778,7 @@ proc action_info { action portlist opts } {
             maintainers Maintainers
             license     License
             conflicts   "Conflicts with"
+            portgroups  "Port Groups"
             replaced_by "Replaced by"
             subports    "Sub-ports"
             patchfiles  "Patchfiles"
@@ -1797,6 +1802,7 @@ proc action_info { action portlist opts } {
             platforms 22
             license 22
             conflicts 22
+            portgroups 22
             maintainers 22
             subports 22
             patchfiles 22
@@ -1889,6 +1895,7 @@ proc action_info { action portlist opts } {
                 ports_info_depends_lib ports_info_depends_run
                 ports_info_depends_test
                 ports_info_conflicts
+                ports_info_portgroups
                 ports_info_platforms ports_info_license
                 ports_info_maintainers
             }
@@ -1946,6 +1953,13 @@ proc action_info { action portlist opts } {
                 if {!$pretty_print} {
                     set inf [string map {"\n" {\n}} $inf]
                 }
+            }
+
+            # Live-parsed portinfo includes the portgroup filepath as a third
+            # element; PortIndex-sourced portinfo is already stripped. Normalize
+            # both sources to {name version} for display.
+            if {$ropt eq "portgroups"} {
+                set inf [macports::strip_portgroup_filepath $inf]
             }
 
             # Add "(" "or" ")" "and" for human-readable output
@@ -3576,12 +3590,41 @@ proc action_search { action portlist opts } {
     foreach portname $portlist {
         puts -nonewline $separator
 
-        set searchstring $portname
+        set searchstring_default $portname
+        # For the portgroups filter the pattern has an optional NAME@VERSION
+        # form. mportsearch splits on @ and matches each half against its
+        # corresponding component of every portgroup entry, so auto-
+        # wildcarding has to be applied to each half independently — a
+        # single *...* wrapper spanning the @ would leak into the opposite
+        # half's match.
+        set searchstring_portgroups $portname
         set matchstyle $filter_matchstyle
         if {$matchstyle eq "none"} {
             # Guess if the given string was a glob expression, if not do a substring search
             if {[string first "*" $portname] == -1 && [string first "?" $portname] == -1} {
-                set searchstring "*$portname*"
+                set searchstring_default "*$portname*"
+            }
+            set at_idx [string last @ $portname]
+            if {$at_idx >= 0} {
+                set name_part [string range $portname 0 $at_idx-1]
+                set version_part [string range $portname $at_idx+1 end]
+            } else {
+                set name_part $portname
+                set version_part ""
+            }
+            set wrapped [list]
+            foreach part [list $name_part $version_part] {
+                if {$part ne "" && [string first "*" $part] == -1
+                        && [string first "?" $part] == -1} {
+                    lappend wrapped "*$part*"
+                } else {
+                    lappend wrapped $part
+                }
+            }
+            if {$at_idx >= 0} {
+                set searchstring_portgroups "[lindex $wrapped 0]@[lindex $wrapped 1]"
+            } else {
+                set searchstring_portgroups [lindex $wrapped 0]
             }
             set matchstyle glob
         }
@@ -3591,6 +3634,12 @@ proc action_search { action portlist opts } {
         foreach opt [dict keys $filters] {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
+
+            if {$opt eq "portgroups"} {
+                set searchstring $searchstring_portgroups
+            } else {
+                set searchstring $searchstring_default
+            }
 
             if {[catch {set matches [mportsearch $searchstring $filter_case $matchstyle $opt]} result]} {
                 ui_debug $::errorInfo
@@ -4276,6 +4325,7 @@ set cmd_opts_array [dict create {*}{
                  depends description epoch fullname heading homepage index license
                  line long_description
                  maintainer maintainers name patchfiles platform platforms portdir
+                 portgroup portgroups
                  pretty replaced_by revision subports variant variants version}
     contents    {size {units 1}}
     deps        {index no-build no-test}
@@ -4286,7 +4336,8 @@ set cmd_opts_array [dict create {*}{
                  depends_build depends_lib depends_run depends_test
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
-                 platforms portdir regex revision variant variants version}
+                 platforms portdir portgroup portgroups
+                 regex revision variant variants version}
     selfupdate  {migrate no-sync nosync rsync}
     space       {{units 1} total}
     activate    {no-exec}

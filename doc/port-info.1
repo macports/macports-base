@@ -26,17 +26,19 @@ port-info \- Return information about the given ports\&.
 .nf
 \fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBinfo\fR
      [\-\-categories|\-\-category] [\-\-conflicts] [\-\-depends] [\-\-depends_fetch]
-     [\-\-depends_extract] [\-\-depends_build] [\-\-depends_lib] [\-\-depends_run]
+     [\-\-depends_extract] [\-\-depends_patch] [\-\-depends_build] [\-\-depends_lib]
+     [\-\-depends_run] [\-\-depends_test]
      [\-\-description] [\-\-epoch] [\-\-fullname] [\-\-heading] [\-\-homepage] [\-\-index]
      [\-\-license] [\-\-line] [\-\-long_description] [\-\-maintainer|\-\-maintainers]
-     [\-\-name] [\-\-patchfiles] [\-\-platform|\-\-platforms] [\-\-portdir] [\-\-pretty]
+     [\-\-name] [\-\-patchfiles] [\-\-platform|\-\-platforms] [\-\-portdir]
+     [\-\-portgroup|\-\-portgroups] [\-\-pretty]
      [\-\-replaced_by] [\-\-revision] [\-\-subports] [\-\-variant|\-\-variants]
      [\-\-version]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport info\fR prints information about the given ports\&. Specifying at least one of the options limits the output to the corresponding field\&. If no fields are specified, a useful default set consisting of name, epoch, version, revision, categories, replaced_by, variants, description, homepage, dependencies, platforms, license, and maintainers is shown\&.
+\fBport info\fR prints information about the given ports\&. Specifying at least one of the options limits the output to the corresponding field\&. If no fields are specified, a useful default set consisting of name, epoch, version, revision, categories, replaced_by, variants, description, homepage, dependencies, portgroups, platforms, license, and maintainers is shown\&.
 .SH "OPTIONS"
 .sp
 The following options do not select fields for the output but change how the information is obtained or formatted:
@@ -69,7 +71,7 @@ List the categories of a port\&.
 List other ports that cannot be active at the same time as the given port\&.
 .RE
 .PP
-\fB\-\-depends\fR, \fB\-\-depends_fetch\fR, \fB\-\-depends_extract\fR, \fB\-\-depends_build\fR, \fB\-\-depends_lib\fR, \fB\-\-depends_run\fR
+\fB\-\-depends\fR, \fB\-\-depends_fetch\fR, \fB\-\-depends_extract\fR, \fB\-\-depends_patch\fR, \fB\-\-depends_build\fR, \fB\-\-depends_lib\fR, \fB\-\-depends_run\fR, \fB\-\-depends_test\fR
 .RS 4
 List the specified dependencies of a port\&.
 \fB\-\-depends\fR
@@ -135,6 +137,11 @@ List the platforms supported by a port\&. This field exists for historical reaso
 \fB\-\-portdir\fR
 .RS 4
 Print the path to a port\(cqs directory relative to the port tree root\&.
+.RE
+.PP
+\fB\-\-portgroup\fR, \fB\-\-portgroups\fR
+.RS 4
+List the PortGroups used by a port, including their versions\&.
 .RE
 .PP
 \fB\-\-replaced_by\fR

@@ -67,6 +67,11 @@ proc _index_from_portinfo {portinfo {is_subport no}} {
         dict set keep_portinfo subports [dict get $portinfo subports]
     }
 
+    if {[dict exists $keep_portinfo portgroups]} {
+        dict set keep_portinfo portgroups \
+            [macports::strip_portgroup_filepath [dict get $keep_portinfo portgroups]]
+    }
+
     set len [expr {[string length $keep_portinfo] + 1}]
     return [list [dict get $portinfo name] $len $keep_portinfo]
 }
@@ -442,7 +447,7 @@ set keepkeys [dict create]
 foreach key {categories depends_fetch depends_extract depends_patch \
              depends_build depends_lib depends_run depends_test \
              description epoch homepage long_description maintainers \
-             name platforms revision variants version portdir \
+             name platforms portgroups revision variants version portdir \
              replaced_by license installs_libs conflicts known_fail} {
     dict set keepkeys $key 1
 }

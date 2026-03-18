@@ -134,6 +134,33 @@ in the name, but not the description\&.
 Test the search string against the path of the directory that contains the port\&.
 .RE
 .PP
+\fB\-\-portgroup\fR, \fB\-\-portgroups\fR
+.RS 4
+Search for ports that use a given PortGroup\&. The pattern has the optional form
+\fINAME@VERSION\fR, where either half may be omitted\&. For example,
+\fBport search \-\-portgroup python\fR
+prints all ports using any version of the python PortGroup, while
+\fBport search \-\-portgroup python@1\&.0\fR
+restricts the match to ports using version 1\&.0 of that PortGroup\&. The form
+\fB\-\-portgroup @1\&.0\fR
+matches any PortGroup whose version is 1\&.0\&.
+.sp
+The pattern on each side of the
+\fI@\fR
+is interpreted according to the selected matching style (\fB\-\-glob\fR
+by default, or
+\fB\-\-exact\fR,
+\fB\-\-regex\fR)\&. Unlike other fields, matching is performed against each portgroup entry individually rather than against the serialized list, so
+\fB\-\-exact \-\-portgroup python\fR
+works as expected\&.
+.sp
+There is also a pseudo\-portname selector
+\fBportgroup:python\fR
+available for use with
+\fBport-echo\fR(1)
+and other commands\&.
+.RE
+.PP
 \fB\-\-variant\fR, \fB\-\-variants\fR
 .RS 4
 Search for variant names\&.
