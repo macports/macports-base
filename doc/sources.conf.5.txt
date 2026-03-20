@@ -12,10 +12,11 @@ DESCRIPTION
 its port definitions. The file is read by the *port* command to find available
 ports and how to install them. Lines beginning with '#' are comments, empty
 lines are ignored. Entries in this file are URIs optionally followed by flags in
-square brackets. Each source specification is given on a separate line.
+square brackets. Each source specification is given on a separate line. The
+supported interface for editing this file is man:port-source[1].
 A grammar in EBNF is given below:
 --------
-line  = URI, [ '[', flag, { space, flag }, ']' ] ;
+line  = URI, [ space, '[', flag, { ',', flag }, ']' ] ;
 flag  = 'default' | 'nosync' ;
 space = ' ' | '\t' ;
 --------
@@ -53,6 +54,8 @@ MacPorts supports a number of different protocols as source descriptions.
     NOTE: The MacPorts user (usually called 'macports') needs to be able to read
     and write to this location. This usually means your home directory is not
     a suitable place for a port tree, unless you adjust permissions accordingly.
+    Literal spaces are supported in 'file://' source entries, including entries
+    written by man:port-source[1].
     +
     *Example*;;
         file:///opt/dports [nosync,default]
@@ -65,6 +68,9 @@ MacPorts supports a number of different protocols as source descriptions.
     extract it to a path of its choice. This possibility is provided as
     a fallback to users that can use neither rsync nor subversion to sync the
     MacPorts port tree.
+    +
+    These values must be valid URIs. Literal spaces are not supported; use
+    '%20' where necessary.
     +
     If the tarball contains a pre-built PortIndex and PortIndex.quick file at
     PortIndex_$\{platform\}_$\{os_major\}_$\{os_arch\}/, those will be used as
@@ -101,7 +107,9 @@ a source:
 'default'::
     Mark this source as the default. The default source is used as a fallback to
     load additional files (such as PortGroups and mirror definitions) from the
-    '_resources/port1.0' directory.
+    '_resources/port1.0' directory. If no source is explicitly marked as
+    'default', MacPorts warns and uses the last listed source as the effective
+    default.
 
 FILES
 -----
@@ -113,8 +121,8 @@ file.
 
 SEE ALSO
 --------
-man:port[1], man:port-selfupdate[1], man:port-sync[1], man:portindex[1],
-man:macports.conf[5]
+man:port[1], man:port-source[1], man:port-selfupdate[1], man:port-sync[1],
+man:portindex[1], man:macports.conf[5]
 
 AUTHORS
 -------

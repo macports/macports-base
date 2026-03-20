@@ -789,6 +789,48 @@ sudo port \-d sync
 If any of the ports tree(s) uses a file: URL that points to a local subversion working copy, sync will perform an svn update on the working copy with the user set to the owner of the working copy\&.
 .RE
 .PP
+source
+.RS 4
+List, add, remove, or manage the explicit default port tree source in
+\fBsources.conf\fR(5)\&. Without a flag,
+\fBport source\fR
+lists the currently configured sources\&. A local path beginning with
+\fI/\fR
+or
+\fI~\fR
+is automatically converted to a
+\fIfile://\fR
+URL for
+\fB\-\-add\fR,
+\fB\-\-remove\fR,
+\fB\-\-set\-default\fR, and
+\fB\-\-unset\-default\fR\&. Local paths with spaces are supported\&. Non\-\fIfile://\fR
+URLs must already be valid URIs, so spaces must be encoded as
+\fI%20\fR\&. The
+\fB\-\-first\fR,
+\fB\-\-no\-sync\fR, and
+\fB\-\-default\fR
+modifiers are valid only with
+\fB\-\-add\fR\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port source
+sudo port source \-\-add \-\-first \-\-no\-sync \-\-default ~/src/macports\-ports
+sudo port source \-\-set\-default ~/src/macports\-ports
+sudo port source \-\-remove ~/src/macports\-ports
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+See
+\fBport-source\fR(1)
+for full details\&.
+.RE
+.PP
 outdated
 .RS 4
 Lists the installed ports which need an

@@ -1,0 +1,265 @@
+'\" t
+.TH "PORT\-SOURCE" "1" "2\&.12\&.99" "MacPorts 2\&.12\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-source \- List, add, remove, and manage MacPorts port tree sources
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-dv\fR] \fBsource\fR [\-\-list]
+.fi
+.sp
+.nf
+\fBsudo\fR \fBport\fR [\fB\-dv\fR] \fBsource\fR \fB\-\-add\fR [\fB\-\-first\fR] [\fB\-\-no\-sync\fR] [\fB\-\-default\fR] \fIurl\fR
+.fi
+.sp
+.nf
+\fBsudo\fR \fBport\fR [\fB\-dv\fR] \fBsource\fR \fB\-\-remove\fR \fIurl\fR
+.fi
+.sp
+.nf
+\fBsudo\fR \fBport\fR [\fB\-dv\fR] \fBsource\fR \fB\-\-set\-default\fR \fIurl\fR
+.fi
+.sp
+.nf
+\fBsudo\fR \fBport\fR [\fB\-dv\fR] \fBsource\fR \fB\-\-unset\-default\fR \fIurl\fR
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport source\fR manages the list of port tree sources configured in \fBsources.conf\fR(5)\&. Port tree sources tell MacPorts where to find port definitions (Portfiles)\&.
+.sp
+\fBport source\fR has five modes of operation: listing the currently configured sources, adding a new source, removing an existing source, marking a source as the explicit default, and removing that explicit default flag\&. See \fBOPTIONS\fR below for details\&. Changes made by \fB\-\-add\fR, \fB\-\-remove\fR, \fB\-\-set\-default\fR, and \fB\-\-unset\-default\fR take effect the next time \fBport\fR is invoked\&.
+.sp
+A local directory path beginning with \fI/\fR or \fI~\fR is automatically expanded to a \fIfile://\fR URL by \fB\-\-add\fR, \fB\-\-remove\fR, \fB\-\-set\-default\fR, and \fB\-\-unset\-default\fR, making it convenient to manage local checkouts of the MacPorts ports tree without needing to type the full \fIfile://\fR URL\&. Local paths containing spaces are supported\&. Non\-\fIfile://\fR URLs must already be valid URIs; encode spaces as \fI%20\fR rather than using literal whitespace\&.
+.sp
+Exactly one of \fB\-\-list\fR, \fB\-\-add\fR, \fB\-\-remove\fR, \fB\-\-set\-default\fR, or \fB\-\-unset\-default\fR may be specified at a time\&. The \fB\-\-first\fR, \fB\-\-no\-sync\fR, and \fB\-\-default\fR modifiers are valid only with \fB\-\-add\fR\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-list\fR
+.RS 4
+Print the currently configured sources, one per line, in the same format used by
+\fBsources.conf\fR(5)\&. This is the default when no option is given\&.
+\fB\-\-list\fR
+does not accept a URL argument\&.
+.RE
+.PP
+\fB\-\-add\fR [\fB\-\-first\fR] [\fB\-\-no\-sync\fR] [\fB\-\-default\fR] \fIurl\fR
+.RS 4
+Add
+\fIurl\fR
+to the list of port tree sources\&. If
+\fIurl\fR
+begins with
+\fI/\fR
+or
+\fI~\fR, it is interpreted as a local directory path; it will be normalised and prefixed with
+\fIfile://\fR\&. Local paths with spaces are written literally in the resulting
+\fIfile://\fR
+URL\&.
+.sp
+By default the new source is appended to the end of
+\fBsources.conf\fR(5)\&. Use
+\fB\-\-first\fR
+to insert it before the first existing source entry, which is useful for a local port tree that should shadow the default remote source\&.
+.sp
+Use
+\fB\-\-no\-sync\fR
+to add the
+\fI[nosync]\fR
+flag to the entry, preventing
+\fBport sync\fR
+from attempting to update this source\&. This is recommended for local development checkouts that are managed independently\&. To change the nosync flag on an existing source, remove and re\-add it\&.
+.sp
+Use
+\fB\-\-default\fR
+to add the
+\fI[default]\fR
+flag to the new entry and remove any existing explicit
+\fI[default]\fR
+flag from other source entries\&.
+.sp
+This command requires write access to
+\fBsources.conf\fR(5)
+and must typically be run with
+\fBsudo\fR\&.
+.RE
+.PP
+\fB\-\-remove\fR \fIurl\fR
+.RS 4
+Remove the source with the given URL from
+\fBsources.conf\fR(5)\&. If
+\fIurl\fR
+begins with
+\fI/\fR
+or
+\fI~\fR, it is normalised to a
+\fIfile://\fR
+URL in the same way as
+\fB\-\-add\fR\&. Comments and other entries are preserved\&. For local paths, the directory need not still exist on disk\&. If the removed source was marked
+\fI[default]\fR, a warning is printed; use
+\fB\-\-set\-default\fR
+to explicitly designate another source as the default\&.
+.sp
+This command requires write access to
+\fBsources.conf\fR(5)
+and must typically be run with
+\fBsudo\fR\&.
+.RE
+.PP
+\fB\-\-set\-default\fR \fIurl\fR
+.RS 4
+Mark the given source as the explicit default in
+\fBsources.conf\fR(5)\&. Any existing explicit
+\fI[default]\fR
+flag is removed from the other source entries\&. If
+\fIurl\fR
+begins with
+\fI/\fR
+or
+\fI~\fR, it is normalised in the same way as
+\fB\-\-remove\fR\&.
+.sp
+This command requires write access to
+\fBsources.conf\fR(5)
+and must typically be run with
+\fBsudo\fR\&.
+.RE
+.PP
+\fB\-\-unset\-default\fR \fIurl\fR
+.RS 4
+Remove the explicit
+\fI[default]\fR
+flag from the given source in
+\fBsources.conf\fR(5)\&. If this leaves no explicit default source, MacPorts warns and continues using the last listed source as the effective default\&. If
+\fIurl\fR
+begins with
+\fI/\fR
+or
+\fI~\fR, it is normalised in the same way as
+\fB\-\-remove\fR\&.
+.sp
+This command requires write access to
+\fBsources.conf\fR(5)
+and must typically be run with
+\fBsudo\fR\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.SH "EXAMPLES"
+.sp
+List the currently configured sources:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port source
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Add a local checkout of the MacPorts ports tree for Portfile development, placing it first so it shadows the default remote source and marking it so that \fBport sync\fR leaves it alone:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+sudo port source \-\-add \-\-first \-\-no\-sync ~/src/macports\-ports
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Add a local checkout first, mark it as the explicit default, and disable sync:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+sudo port source \-\-add \-\-first \-\-no\-sync \-\-default ~/src/macports\-ports
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Add a remote rsync source:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+sudo port source \-\-add rsync://rsync\&.macports\&.org/macports/release/tarballs/ports\&.tar
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Mark an existing source as the explicit default:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+sudo port source \-\-set\-default ~/src/macports\-ports
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Remove a source by path:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+sudo port source \-\-remove ~/src/macports\-ports
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Remove a source by URL:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+sudo port source \-\-remove rsync://rsync\&.macports\&.org/macports/release/tarballs/ports\&.tar
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBport-sync\fR(1), \fBsources.conf\fR(5)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2025 The MacPorts Project
+.fi
+.if n \{\
+.RE
+.\}
