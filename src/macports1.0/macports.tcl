@@ -1287,17 +1287,22 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     # Precompute mapping of source URLs to prefix to use for porturls (used in mportlookup etc)
     set porturl_prefix_map [dict create]
-    set sources_conf_comment_re {^\s*#|^$}
-    set sources_conf_source_re {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$}
-    set fd [open $sources_conf r]
-    while {[gets $fd line] >= 0} {
-        set line [string trimright $line]
-        if {![regexp $sources_conf_comment_re $line]} {
-            if {[regexp $sources_conf_source_re $line _ url flags]} {
-                set flags [split $flags ,]
+    set source_records [macports::source_read_conf]
+    foreach record $source_records {
+        switch -- [dict get $record type] {
+            blank -
+            comment {
+                continue
+            }
+            invalid {
+                ui_warn "$sources_conf specifies invalid source '[dict get $record raw]', ignored."
+            }
+            source {
+                set url [dict get $record url]
+                set flags [dict get $record flags]
                 foreach flag $flags {
                     if {$flag ni [list nosync default]} {
-                        ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+                        ui_warn "$sources_conf source '[dict get $record raw]' specifies invalid flag '$flag'"
                     }
                     if {$flag eq "default"} {
                         if {[info exists sources_default]} {
@@ -1326,12 +1331,9 @@ Please edit sources.conf and change '$url' to '[string range $url 0 26]macports/
                     }
                 }
                 lappend sources [concat [list $url] $flags]
-            } else {
-                ui_warn "$sources_conf specifies invalid source '$line', ignored."
             }
         }
     }
-    close $fd
 
     if {![info exists sources]} {
         return -code error "No sources defined in $sources_conf"
@@ -3437,6 +3439,457 @@ proc macports::getindex {source} {
     }
 
     return [file join [macports::getsourcepath $source] PortIndex]
+}
+
+##
+# Parse a comma-separated list of source flags.
+#
+# @param flag_string Source flag list without surrounding brackets.
+# @return            List of unique flag names in their original order.
+# @error             If the flag list syntax is invalid.
+proc macports::source_parse_flags {flag_string} {
+    set flags {}
+    foreach flag [split $flag_string ,] {
+        set flag [string trim $flag]
+        if {$flag eq "" || ![regexp {^\w+$} $flag]} {
+            return -code error "Invalid source flag list '$flag_string'"
+        }
+        if {[lsearch -exact $flags $flag] < 0} {
+            lappend flags $flag
+        }
+    }
+    return $flags
+}
+
+##
+# Return a stable rendering order for source flags.
+#
+# Managed flags are rendered first in the order [nosync,default], followed by
+# any other flags in their original order.
+#
+# @param flags Source flags.
+# @return      Ordered flag list with duplicates removed.
+proc macports::source_order_flags {flags} {
+    set unique_flags {}
+    foreach flag $flags {
+        if {[lsearch -exact $unique_flags $flag] < 0} {
+            lappend unique_flags $flag
+        }
+    }
+
+    set ordered_flags {}
+    foreach managed_flag {nosync default} {
+        if {[lsearch -exact $unique_flags $managed_flag] >= 0} {
+            lappend ordered_flags $managed_flag
+        }
+    }
+    foreach flag $unique_flags {
+        if {$flag ni {nosync default}} {
+            lappend ordered_flags $flag
+        }
+    }
+    return $ordered_flags
+}
+
+##
+# Render a source line in sources.conf syntax.
+#
+# @param url   Source URL.
+# @param flags Source flag list.
+# @return      Rendered sources.conf line.
+proc macports::source_render_line {url flags} {
+    set flags [macports::source_order_flags $flags]
+    if {[llength $flags] > 0} {
+        return "$url \[[join $flags ,]\]"
+    }
+    return $url
+}
+
+##
+# Validate a source URL.
+#
+# @param url             Source URL to validate.
+# @param require_exists  Whether file:// URLs must point to an existing
+#                        directory.
+# @return                The validated URL.
+# @error                 If the URL is invalid.
+proc macports::source_validate_url {url {require_exists 0}} {
+    if {[regexp {^file://(.*)$} $url _ path]} {
+        if {$path eq ""} {
+            return -code error "Invalid source URL '$url' — must be of the form <scheme>://<path>"
+        }
+        if {$require_exists && ![file isdirectory $path]} {
+            return -code error "Local path '$path' is not a directory"
+        }
+        return $url
+    }
+
+    if {[regexp {\s} $url] || ![regexp {^[\w-]+://\S+$} $url]} {
+        return -code error "Invalid source URL '$url' — must be of the form <scheme>://<path>"
+    }
+
+    return $url
+}
+
+##
+# Parse a single sources.conf line.
+#
+# @param line sources.conf line without trailing newline.
+# @return     A dict describing the parsed line.
+proc macports::source_parse_line {line} {
+    if {[regexp {^\s*$} $line]} {
+        return [dict create type blank raw $line]
+    }
+    if {[regexp {^\s*#} $line]} {
+        return [dict create type comment raw $line]
+    }
+
+    set url $line
+    set flags {}
+    if {[regexp {^(.*\S)\s+\[([^\[\]]+)\]$} $line _ parsed_url flag_string]} {
+        if {[catch {set flags [macports::source_parse_flags $flag_string]} err]} {
+            return [dict create type invalid raw $line error $err]
+        }
+        set url $parsed_url
+    }
+
+    if {[catch {macports::source_validate_url $url 0} err]} {
+        return [dict create type invalid raw $line error $err]
+    }
+
+    return [dict create type source raw $line url $url flags $flags]
+}
+
+##
+# Read and parse sources.conf.
+#
+# @return List of parsed record dicts.
+proc macports::source_read_conf {} {
+    variable sources_conf
+
+    set fd [open $sources_conf r]
+    set content [read $fd]
+    close $fd
+
+    if {$content eq ""} {
+        return {}
+    }
+
+    set lines [split $content \n]
+    if {[string index $content end] eq "\n"} {
+        set lines [lrange $lines 0 end-1]
+    }
+
+    set records {}
+    foreach line $lines {
+        lappend records [macports::source_parse_line $line]
+    }
+    return $records
+}
+
+##
+# Render a parsed sources.conf record back to text.
+#
+# Source records are rendered from structured data only when they are new or
+# have been marked touched; all other records are returned verbatim.
+#
+# @param record Parsed sources.conf record.
+# @return       Serialized line.
+proc macports::source_render_record {record} {
+    if {[dict get $record type] eq "source" && [dict exists $record touched]} {
+        return [macports::source_render_line [dict get $record url] [dict get $record flags]]
+    }
+    return [dict get $record raw]
+}
+
+##
+# Atomically rewrite sources.conf from parsed records.
+#
+# @param records Parsed sources.conf records.
+proc macports::source_write_conf {records} {
+    variable sources_conf
+
+    set tmpfile "${sources_conf}.tmp.[pid]"
+    set rendered_lines {}
+    foreach record $records {
+        lappend rendered_lines [macports::source_render_record $record]
+    }
+
+    set content [join $rendered_lines \n]
+    if {[llength $rendered_lines] > 0} {
+        append content \n
+    }
+
+    set fd [open $tmpfile w]
+    puts -nonewline $fd $content
+    close $fd
+    file rename -force $tmpfile $sources_conf
+}
+
+##
+# Normalise a source URL or local path into a canonical URL.
+#
+# A bare local path beginning with / or ~ is expanded with [file tildeexpand],
+# then canonicalised with [file normalize] and prefixed with file://. Any other
+# value is validated as a scheme://path URL and returned unchanged. file:// URLs
+# are only required to point to an existing directory when require_exists is
+# true.
+#
+# @param url             Source URL or local path to normalise.
+# @param require_exists  Whether local paths must exist.
+# @return                Canonical URL string.
+# @error                 If url is invalid.
+proc macports::source_normalize_url {url {require_exists 1}} {
+    if {[string index $url 0] in {/ ~}} {
+        set path [file normalize [file tildeexpand $url]]
+        if {$require_exists && ![file isdirectory $path]} {
+            return -code error "Local path '$url' is not a directory"
+        }
+        return "file://$path"
+    }
+
+    return [macports::source_validate_url $url $require_exists]
+}
+
+##
+# Add a source to sources.conf.
+#
+# @param url          Source URL, or a local path starting with / or ~/
+# @param first        If true, insert before the first existing source.
+# @param nosync       If true, append the [nosync] flag to the entry.
+# @param make_default If true, mark this source as [default] and clear the
+#                     explicit default flag from all other sources.
+# @return             Canonical URL string.
+# @error "duplicate" if url is already present in sources.conf.
+# @error "Insufficient privileges..." if sources.conf is not writable.
+# @error Propagates errors from source_normalize_url for invalid URLs.
+proc macports::source_add {url {first 0} {nosync 0} {make_default 0}} {
+    variable sources_conf
+
+    set url [macports::source_normalize_url $url 1]
+
+    if {![file writable $sources_conf]} {
+        return -code error "Insufficient privileges to write to ${sources_conf}"
+    }
+
+    set records [macports::source_read_conf]
+
+    foreach record $records {
+        if {[dict get $record type] eq "source" && [dict get $record url] eq $url} {
+            return -code error "duplicate"
+        }
+    }
+
+    if {$make_default} {
+        set updated_records {}
+        foreach record $records {
+            if {[dict get $record type] eq "source"} {
+                set flags [dict get $record flags]
+                if {[lsearch -exact $flags default] >= 0} {
+                    set new_flags {}
+                    foreach flag $flags {
+                        if {$flag ne "default"} {
+                            lappend new_flags $flag
+                        }
+                    }
+                    dict set record flags $new_flags
+                    dict set record touched 1
+                }
+            }
+            lappend updated_records $record
+        }
+        set records $updated_records
+    }
+
+    set new_flags {}
+    if {$nosync} {
+        lappend new_flags nosync
+    }
+    if {$make_default} {
+        lappend new_flags default
+    }
+    set new_record [dict create type source url $url flags $new_flags touched 1]
+
+    set insert_idx [llength $records]
+    if {$first} {
+        for {set i 0} {$i < [llength $records]} {incr i} {
+            if {[dict get [lindex $records $i] type] eq "source"} {
+                set insert_idx $i
+                break
+            }
+        }
+    }
+    set records [linsert $records $insert_idx $new_record]
+
+    macports::source_write_conf $records
+    return $url
+}
+
+##
+# Remove a source from sources.conf by URL.
+#
+# Local paths starting with ~ or / are normalised to file:// URLs, but they do
+# not have to exist. No automatic default-promotion is performed; if the
+# removed source carried the [default] flag, the caller is responsible for
+# warning the user.
+#
+# @param url Source URL, or a local path starting with / or ~/
+# @return    A dict with keys: url (canonical URL), removed_default (boolean
+#            indicating the removed source carried [default]),
+#            has_remaining_default (boolean indicating whether any remaining
+#            source still carries an explicit [default] flag).
+# @error "not-found" if url is not present in sources.conf.
+# @error "Insufficient privileges..." if sources.conf is not writable.
+# @error Propagates errors from source_normalize_url for invalid URLs.
+proc macports::source_remove {url} {
+    variable sources_conf
+
+    set url [macports::source_normalize_url $url 0]
+
+    if {![file writable $sources_conf]} {
+        return -code error "Insufficient privileges to write to ${sources_conf}"
+    }
+
+    set records [macports::source_read_conf]
+
+    set updated_records {}
+    set removed 0
+    set removed_default 0
+    foreach record $records {
+        if {[dict get $record type] eq "source" && [dict get $record url] eq $url} {
+            set removed 1
+            if {[lsearch -exact [dict get $record flags] default] >= 0} {
+                set removed_default 1
+            }
+            continue
+        }
+        lappend updated_records $record
+    }
+
+    if {!$removed} {
+        return -code error "not-found"
+    }
+
+    set has_remaining_default 0
+    if {$removed_default} {
+        foreach record $updated_records {
+            if {[dict get $record type] eq "source"
+                && [lsearch -exact [dict get $record flags] default] >= 0} {
+                set has_remaining_default 1
+                break
+            }
+        }
+    }
+
+    macports::source_write_conf $updated_records
+    return [dict create url $url removed_default $removed_default \
+        has_remaining_default $has_remaining_default]
+}
+
+##
+# Mark a source as the explicit default in sources.conf.
+#
+# @param url Source URL, or a local path starting with / or ~/
+# @return    Canonical URL string.
+# @error "not-found" if url is not present in sources.conf.
+# @error "Insufficient privileges..." if sources.conf is not writable.
+proc macports::source_set_default {url} {
+    variable sources_conf
+
+    set url [macports::source_normalize_url $url 0]
+
+    if {![file writable $sources_conf]} {
+        return -code error "Insufficient privileges to write to ${sources_conf}"
+    }
+
+    set records [macports::source_read_conf]
+
+    set found 0
+    set touched 0
+    set updated_records {}
+    foreach record $records {
+        if {[dict get $record type] eq "source"} {
+            set flags [dict get $record flags]
+            set is_target [expr {[dict get $record url] eq $url}]
+            if {$is_target} {
+                set found 1
+                if {[lsearch -exact $flags default] < 0} {
+                    lappend flags default
+                    dict set record flags $flags
+                    dict set record touched 1
+                    set touched 1
+                }
+            } elseif {[lsearch -exact $flags default] >= 0} {
+                set new_flags {}
+                foreach flag $flags {
+                    if {$flag ne "default"} {
+                        lappend new_flags $flag
+                    }
+                }
+                dict set record flags $new_flags
+                dict set record touched 1
+                set touched 1
+            }
+        }
+        lappend updated_records $record
+    }
+
+    if {!$found} {
+        return -code error "not-found"
+    }
+    if {$touched} {
+        macports::source_write_conf $updated_records
+    }
+    return $url
+}
+
+##
+# Remove the explicit default flag from a source in sources.conf.
+#
+# @param url Source URL, or a local path starting with / or ~/
+# @return    Canonical URL string.
+# @error "not-found" if url is not present in sources.conf.
+# @error "Insufficient privileges..." if sources.conf is not writable.
+proc macports::source_unset_default {url} {
+    variable sources_conf
+
+    set url [macports::source_normalize_url $url 0]
+
+    if {![file writable $sources_conf]} {
+        return -code error "Insufficient privileges to write to ${sources_conf}"
+    }
+
+    set records [macports::source_read_conf]
+
+    set found 0
+    set touched 0
+    set updated_records {}
+    foreach record $records {
+        if {[dict get $record type] eq "source" && [dict get $record url] eq $url} {
+            set found 1
+            set flags [dict get $record flags]
+            if {[lsearch -exact $flags default] >= 0} {
+                set new_flags {}
+                foreach flag $flags {
+                    if {$flag ne "default"} {
+                        lappend new_flags $flag
+                    }
+                }
+                dict set record flags $new_flags
+                dict set record touched 1
+                set touched 1
+            }
+        }
+        lappend updated_records $record
+    }
+
+    if {!$found} {
+        return -code error "not-found"
+    }
+    if {$touched} {
+        macports::source_write_conf $updated_records
+    }
+    return $url
 }
 
 # macports::VCSPrepare
