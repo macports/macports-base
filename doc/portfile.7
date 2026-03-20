@@ -321,7 +321,8 @@ List of checksums for the
 .Ic distfiles .
 The checksum
 .Ar type
-can currently be md5, sha1, rmd160, sha256 or size.
+can currently be md5, sha1, rmd160, sha256, sha3-256 or size.
+The recommended set is sha256, sha3-256 and size.
 The
 .Ar filename
 can be omitted if there is only one distfile.
@@ -331,21 +332,21 @@ can be omitted if there is only one distfile.
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \e
-          magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+checksums   dictd-1.7.1.tar.gz \e
+                sha256   0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \e
+                sha3-256 fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210 \e
+                size     12345 \e
+            magic-words-1.7.1.tar.gz \e
+                sha256   abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789 \e
+                sha3-256 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \e
+                size     54321
 .Ed
 .br
-.Sy Example (ledit 1.11):
+.Sy Example (single distfile):
 .Bd -literal -offset indent -compact
-checksums md5 a2d38ba641682509c1e964ad699a9dd2 \e
-          sha1 1fb6443b5fdf3c83787953f06282d256477c1288
-.Ed
-.br
-.Sy Example (ssldump 0.9b3):
-.Bd -literal -offset indent -compact
-checksums md5 ac8c28fe87508d6bfb06344ec496b1dd \e
-          sha1 a633a9a811a138eac5ed440d583473b644135ef5 \e
-          rmd160 941cf8f2ef8459ec4f9ce65772e134505d46566
+checksums   sha256   424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5 \e
+            sha3-256 15e960568745c9bd61033c82f6c24fc03310f8ef1d189f26393a855f71cc0a18 \e
+            size     18765
 .Ed
 .It Ic macosx_deployment_target
 Value for

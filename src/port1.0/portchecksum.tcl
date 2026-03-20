@@ -42,13 +42,13 @@ target_prerun ${org.macports.checksum} portchecksum::checksum_start
 namespace eval portchecksum {
 
     # The list of the types of checksums we know.
-    variable checksum_types [list md5 sha1 rmd160 sha256 size]
+    variable checksum_types [list md5 sha1 rmd160 sha256 sha3-256 size]
 
     # types to recommend if none are specified in the portfile
-    variable default_checksum_types [list rmd160 sha256 size]
+    variable default_checksum_types [list rmd160 sha256 sha3-256 size]
 
     # types that are considered secure
-    variable secure_checksum_types [list rmd160 sha256]
+    variable secure_checksum_types [list rmd160 sha256 sha3-256]
 }
 
 # Options
@@ -72,6 +72,9 @@ proc portchecksum::verify_checksum_format {type value} {
 
     switch [string tolower $type] {
         sha256 {
+          set result [regexp {^\w{64}$} $value]
+        }
+        sha3-256 {
           set result [regexp {^\w{64}$} $value]
         }
         rmd160 {
@@ -217,6 +220,15 @@ proc portchecksum::calc_rmd160 {file} {
 #
 proc portchecksum::calc_sha256 {file} {
     return [sha256 file $file]
+}
+
+# calc_sha3-256
+#
+# Calculate the sha3-256 checksum for the given file.
+# Return the checksum.
+#
+proc portchecksum::calc_sha3-256 {file} {
+    return [sha3-256 file $file]
 }
 
 # calc_size

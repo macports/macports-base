@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
-# Test file for Pextlib's md5 and sha1 commands.
+# Test file for Pextlib's checksum commands (md5, sha1, rmd160, sha256, sha3-256).
 # Requires r/w access to /tmp/
 # Syntax:
 # tclsh checksums.tcl <Pextlib name>
@@ -49,6 +49,10 @@ proc main {pextlibname} {
     }
     if {[sha256 file $testfile] != "424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5"} {
         puts {[sha256 file $testfile] != "424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5"}
+        exit 1
+    }
+    if {[sha3-256 file $testfile] != "15e960568745c9bd61033c82f6c24fc03310f8ef1d189f26393a855f71cc0a18"} {
+        puts {[sha3-256 file $testfile] != "15e960568745c9bd61033c82f6c24fc03310f8ef1d189f26393a855f71cc0a18"}
         exit 1
     }
 

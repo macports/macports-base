@@ -19,6 +19,7 @@ OBJS= \
 	setmode.o \
 	sha1cmd.o \
 	sha256cmd.o \
+	sha3_256cmd.o \
 	strsed.o \
 	system.o \
 	time_connect.o \

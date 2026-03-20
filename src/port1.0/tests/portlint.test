@@ -19,7 +19,7 @@ test test_lint_checksum_type_list {
     Verify that we get no warnings if we pass in the list of recommended
     checksum types to lint_checksum_type_list.
 } -body {
-    set preferred_checksum_types [list rmd160 sha256 size]
+    set preferred_checksum_types [list rmd160 sha256 sha3-256 size]
     set results [portlint::lint_checksum_type_list $preferred_checksum_types]
 
     if {[llength $results] > 0} {
@@ -33,7 +33,7 @@ test test_lint_checksum_type_list_missing_recommended {
     list of checksums types passed to lint_checksum_type_list.
 } -body {
     set ports_lint_nitpick yes
-    set preferred_checksum_types [list rmd160 sha256]
+    set preferred_checksum_types [list rmd160 sha256 sha3-256]
     set results [portlint::lint_checksum_type_list $preferred_checksum_types]
 
     if {[llength $results] == 0} {
@@ -106,6 +106,10 @@ test test_lint_checksum_type_list_mixed {
         return "FAIL: no mention of missing recommended rmd160 field: $results"
     }
 
+    if {[lsearch -glob $results *missing*sha3-256*] == -1} {
+        return "FAIL: no mention of missing recommended sha3-256 field: $results"
+    }
+
     return "lint_checksum_type_list_mixed passed"
 } -result "lint_checksum_type_list_mixed passed"
 
@@ -134,7 +138,7 @@ test test_lint_checksum_basic {
 
         if {[llength [lsearch -inline \
                               -glob \
-                              -all $warnings *missing*recommended*]] != 2} {
+                              -all $warnings *missing*recommended*]] != 3} {
             return "FAIL: less warnings than expected: $warnings"
         }
     } else {
@@ -171,7 +175,7 @@ test test_lint_checksum_basic_w_filename {
         if {[llength [lsearch -inline \
                               -glob \
                               -all $warnings \
-                              *doop.tgz*missing*recommended*]] != 2} {
+                              *doop.tgz*missing*recommended*]] != 3} {
             return "FAIL: less warnings than expected: $warnings"
         }
     } else {
@@ -185,9 +189,10 @@ test test_lint_checksum_normal {
     Verify linting the standard checksum returns no errors or warnings
 } -body {
     set checksum \
-        "checksum sha256  3b413cdc29d91c91102628eb9b48e65a6827afe5441a46ad4d602e254945b24d
-                  rmd160  b7240735e8ca7ad7a263a4bb69935ad68b34a878
-                  size    11242"
+        "checksum sha256    3b413cdc29d91c91102628eb9b48e65a6827afe5441a46ad4d602e254945b24d
+                  rmd160   b7240735e8ca7ad7a263a4bb69935ad68b34a878
+                  sha3-256 d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592
+                  size     11242"
 
     set results [portlint::lint_checksum $checksum]
 
@@ -215,9 +220,10 @@ test test_lint_checksum_normal_w_filename {
 } -body {
     set checksum \
         "checksum somefile.tar
-                  sha256  3b413cdc29d91c91102628eb9b48e65a6827afe5441a46ad4d602e254945b24d
-                  rmd160  b7240735e8ca7ad7a263a4bb69935ad68b34a878
-                  size    11242"
+                  sha256    3b413cdc29d91c91102628eb9b48e65a6827afe5441a46ad4d602e254945b24d
+                  rmd160   b7240735e8ca7ad7a263a4bb69935ad68b34a878
+                  sha3-256 d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592
+                  size     11242"
 
     set results [portlint::lint_checksum $checksum]
 
@@ -333,17 +339,20 @@ test test_lint_checksum_multi_normal_w_filename {
 } -body {
     set checksum \
         "checksum file1.tar
-                    sha256  3bb9d40e802e51f56f1364abc553758152131803c12d85ba6e14bad6813409d5
-                    rmd160  880690684f35730351dac2cdfd928a7610f69cce
-                    size    34554
+                    sha256   3bb9d40e802e51f56f1364abc553758152131803c12d85ba6e14bad6813409d5
+                    rmd160   880690684f35730351dac2cdfd928a7610f69cce
+                    sha3-256 a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+                    size     34554
                   file2.tar
-                    sha256  2f686816f2a80e3lfn23jknf23jknp8d27ce4205a61ee422d56f8c5e8b4609e4
-                    rmd160  5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6
-                    size    25644
+                    sha256   2f686816f2a80e3lfn23jknf23jknp8d27ce4205a61ee422d56f8c5e8b4609e4
+                    rmd160   5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6
+                    sha3-256 b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3
+                    size     25644
                   file3.tar
-                    sha256  250a86b79c231001c4ae71d2f66428092a4fbb2070971acafd471aa49739c9e4
-                    rmd160  767d402a1a368f083c16a81ff31dde1870f451dc
-                    size    11242"
+                    sha256   250a86b79c231001c4ae71d2f66428092a4fbb2070971acafd471aa49739c9e4
+                    rmd160   767d402a1a368f083c16a81ff31dde1870f451dc
+                    sha3-256 c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+                    size     11242"
 
     set results [portlint::lint_checksum $checksum]
 
@@ -495,7 +504,11 @@ test test_lint_checksum_multi_malformed_w_filename_1 {
     }
 
     if {[lsearch -glob $warnings *missing*recommended*rmd160*] == -1} {
-        return "FAIL: missing expected warning about missing recommended type"
+        return "FAIL: missing expected warning about missing recommended type: rmd160"
+    }
+
+    if {[lsearch -glob $warnings *missing*recommended*sha3-256*] == -1} {
+        return "FAIL: missing expected warning about missing recommended type: sha3-256"
     }
 
     return "lint_checksum_multi_malformed_w_filename_1 passed"
@@ -534,7 +547,11 @@ test test_lint_checksum_multi_malformed_w_filename_2 {
     }
 
     if {[lsearch -glob $warnings *somefile*missing*recommended*rmd160*] == -1} {
-        return "FAIL: missing warnings about missing recommended type"
+        return "FAIL: missing warnings about missing recommended type: rmd160"
+    }
+
+    if {[lsearch -glob $warnings *somefile*missing*recommended*sha3-256*] == -1} {
+        return "FAIL: missing warnings about missing recommended type: sha3-256"
     }
 
     return "lint_checksum_multi_malformed_w_filename_2 passed"
@@ -570,6 +587,10 @@ test test_lint_checksum_multi_adjacent_invalid_w_filename {
 
     if {[lsearch -glob $warnings *somefile*missing*recommended*rmd160*] == -1} {
         return "FAIL: missing warnings about missing recommended type: rmd160"
+    }
+
+    if {[lsearch -glob $warnings *somefile*missing*recommended*sha3-256*] == -1} {
+        return "FAIL: missing warnings about missing recommended type: sha3-256"
     }
 
     return "lint_checksum_multi_adjacent_invalid_w_filename passed"
