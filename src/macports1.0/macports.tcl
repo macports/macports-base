@@ -122,6 +122,7 @@ namespace eval macports {
     variable getprotocol_re {(?x)([^:]+)://.+}
     variable file_porturl_re {^file://(.*)}
     variable source_is_snapshot_re {^((?:https?|ftp|rsync)://.+/)(.+\.(tar\.gz|tar\.bz2|tar))$}
+    variable sources_conf_source_re {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$}
 
     # All valid depends_* options
     variable all_dep_types [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]
@@ -1290,12 +1291,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Precompute mapping of source URLs to prefix to use for porturls (used in mportlookup etc)
     set porturl_prefix_map [dict create]
     set sources_conf_comment_re {^\s*#|^$}
-    set sources_conf_source_re {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$}
     set fd [open $sources_conf r]
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
         if {![regexp $sources_conf_comment_re $line]} {
-            if {[regexp $sources_conf_source_re $line _ url flags]} {
+            if {[regexp $macports::sources_conf_source_re $line _ url flags]} {
                 set flags [split $flags ,]
                 foreach flag $flags {
                     if {$flag ni [list nosync default]} {
@@ -3439,6 +3439,173 @@ proc macports::getindex {source} {
     }
 
     return [file join [macports::getsourcepath $source] PortIndex]
+}
+
+##
+# Normalise a source URL or local path into a canonical URL.
+#
+# A bare local path beginning with / or ~ is expanded via [file normalize]
+# (which resolves ~, symlinks, and redundant . / .. components) and prefixed
+# with file://.  Any other value is validated as a scheme://path URL and
+# returned unchanged.  In both cases, file:// URLs (whether constructed from
+# a bare path or provided directly) are checked to ensure the target directory
+# exists.
+#
+# @param url Source URL or local path to normalise.
+# @return    Canonical URL string.
+# @error     If url is a bare path or file:// URL whose target is not an
+#            existing directory, or if url is not a valid scheme://path URL.
+proc macports::source_normalize_url {url} {
+    if {[string index $url 0] in {/ ~}} {
+        set path [file normalize $url]
+        if {![file isdirectory $path]} {
+            return -code error "Local path '$url' is not a directory"
+        }
+        return "file://$path"
+    }
+    if {![regexp {^[\w-]+://\S+$} $url]} {
+        return -code error "Invalid source URL '$url' — must be of the form <scheme>://<path>"
+    }
+    # Validate that file:// URLs point to an existing directory
+    if {[regexp {^file://(.+)$} $url _ path]} {
+        if {![file isdirectory $path]} {
+            return -code error "Local path '$path' is not a directory"
+        }
+    }
+    return $url
+}
+
+##
+# Add a source to sources.conf.
+#
+# If the url begins with ~ or /, it is treated as a local path: tilde is
+# expanded and the path is normalized, then prefixed with file://.  The file
+# is written atomically via a temporary file and rename.
+#
+# @param url    Source URL, or a local path starting with / or ~/
+# @param first  If true, insert before the first existing source (after any
+#               leading comments) rather than appending.
+# @param nosync If true, append the [nosync] flag to the entry.
+# @error "duplicate" if url is already present in macports::sources.
+# @error "Insufficient privileges..." if sources.conf is not writable.
+# @error Propagates errors from source_normalize_url for invalid URLs.
+proc macports::source_add {url {first 0} {nosync 0}} {
+    variable sources_conf_source_re
+
+    set url [macports::source_normalize_url $url]
+
+    if {![file writable $macports::sources_conf]} {
+        return -code error "Insufficient privileges to write to ${macports::sources_conf}"
+    }
+
+    # Reject duplicates
+    foreach src $macports::sources {
+        if {[lindex $src 0] eq $url} {
+            return -code error "duplicate"
+        }
+    }
+
+    # Build the line to write
+    set new_line $url
+    if {$nosync} {
+        append new_line " \[nosync\]"
+    }
+
+    if {$first} {
+        # Insert before the first source line, preserving leading comments
+        set fd [open $macports::sources_conf r]
+        set lines [split [read $fd] \n]
+        close $fd
+
+        # Find the first source line; insert before it, after leading comments.
+        # If no source line exists, insert before the trailing empty element
+        # produced by split so the file keeps its trailing newline.
+        set last_idx [expr {[llength $lines] - 1}]
+        set insert_idx $last_idx
+        for {set i 0} {$i < [llength $lines]} {incr i} {
+            if {[regexp $sources_conf_source_re [lindex $lines $i]]} {
+                set insert_idx $i
+                break
+            }
+        }
+        set lines [linsert $lines $insert_idx $new_line]
+
+        set tmpfile "${macports::sources_conf}.tmp.[pid]"
+        set fd [open $tmpfile w]
+        puts -nonewline $fd [join $lines \n]
+        close $fd
+        file rename -force $tmpfile $macports::sources_conf
+    } else {
+        # Append, ensuring a trailing newline exists first
+        set fd [open $macports::sources_conf a+]
+        seek $fd 0 end
+        if {[tell $fd] > 0} {
+            seek $fd -1 end
+            if {[read $fd 1] ne "\n"} {
+                puts $fd ""
+            }
+        }
+        puts $fd $new_line
+        close $fd
+    }
+}
+
+##
+# Remove a source from sources.conf by URL.
+#
+# If the url begins with ~ or /, it is treated as a local path and normalised
+# to a file:// URL in the same way as source_add.  The file is written
+# atomically via a temporary file and rename.
+#
+# @param url Source URL, or a local path starting with / or ~/
+# @error "not-found" if url is not present in macports::sources.
+# @error "Insufficient privileges..." if sources.conf is not writable.
+# @error Propagates errors from source_normalize_url for invalid URLs.
+proc macports::source_remove {url} {
+    variable sources_conf_source_re
+
+    set url [macports::source_normalize_url $url]
+
+    if {![file writable $macports::sources_conf]} {
+        return -code error "Insufficient privileges to write to ${macports::sources_conf}"
+    }
+
+    # Confirm the URL exists in the in-memory sources list before touching the file
+    set found 0
+    foreach src $macports::sources {
+        if {[lindex $src 0] eq $url} {
+            set found 1
+            break
+        }
+    }
+    if {!$found} {
+        return -code error "not-found"
+    }
+
+    set fd [open $macports::sources_conf r]
+    set lines [split [read $fd] \n]
+    close $fd
+
+    set new_lines {}
+    set removed 0
+    foreach line $lines {
+        if {[regexp $sources_conf_source_re [string trimright $line] _ line_url]
+            && $line_url eq $url} {
+            set removed 1
+            continue
+        }
+        lappend new_lines $line
+    }
+
+    if {!$removed} {
+        return -code error "Source '$url' was not found in the file (it may have been edited externally)"
+    }
+
+    set tmpfile "${macports::sources_conf}.tmp.[pid]"
+    set fd [open $tmpfile w]
+    puts -nonewline $fd [join $new_lines \n]
+    close $fd
+    file rename -force $tmpfile $macports::sources_conf
 }
 
 # macports::VCSPrepare
