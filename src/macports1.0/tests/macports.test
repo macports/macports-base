@@ -250,8 +250,8 @@ test set_phase_emits_elapsed_on_transition {
 } -setup {
     set macports::phase_start_ms {}
     set elapsed_fd [open $pwd/elapsed_output w]
-    set saved_info_chan $macports::channels(info)
-    set macports::channels(info) $elapsed_fd
+    set saved_debug_chan $macports::channels(debug)
+    set macports::channels(debug) $elapsed_fd
 } -body {
     set_phase fetch
     set_phase build
@@ -266,7 +266,7 @@ test set_phase_emits_elapsed_on_transition {
     }
     return "set_phase emits elapsed on transition successful."
 } -cleanup {
-    set macports::channels(info) $saved_info_chan
+    set macports::channels(debug) $saved_debug_chan
     set_phase main
     file delete -force $pwd/elapsed_output
 } -result "set_phase emits elapsed on transition successful."
