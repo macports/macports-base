@@ -2680,6 +2680,16 @@ proc action_platform { action portlist opts } {
 }
 
 
+proc action_prefix { action portlist opts } {
+    global macports::prefix
+    if {![macports::ui_isset ports_quiet]} {
+        puts -nonewline "Prefix: "
+    }
+    puts ${prefix}
+    return 0
+}
+
+
 proc action_dependents { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
@@ -4152,6 +4162,7 @@ set action_array [dict create \
     \
     version     [list action_version        [ACTION_ARGS_NONE]] \
     platform    [list action_platform       [ACTION_ARGS_NONE]] \
+    prefix      [list action_prefix         [ACTION_ARGS_NONE]] \
     \
     uninstall   [list action_uninstall      [ACTION_ARGS_PORTS]] \
     \
