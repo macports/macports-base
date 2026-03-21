@@ -7,6 +7,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+/*
+ * Recursively remove a file or directory. Uses chdir() to descend into
+ * directories so that all syscalls operate on short, relative names.
+ * This avoids ENAMETOOLONG on deeply nested trees that exceed PATH_MAX.
+ * Uses chdir("..") to return rather than fchdir() to avoid accumulating
+ * open file descriptors during deep recursion.
+ */
 static int rmrf(const char *path) {
     struct stat st;
 
@@ -14,54 +21,55 @@ static int rmrf(const char *path) {
         return errno == ENOENT ? 0 : -1;
     }
 
-    if (S_ISDIR(st.st_mode)) {
-        DIR *dir = opendir(path);
-        if (dir == NULL) {
-            return -1;
-        }
-
-        for (;;) {
-            errno = 0;
-            struct dirent *entry = readdir(dir);
-            if (entry == NULL) {
-                int saved_errno = errno;
-                closedir(dir);
-                if (saved_errno != 0) {
-                    errno = saved_errno;
-                    return -1;
-                }
-                break;
-            }
-
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-                continue;
-            }
-
-            size_t child_len = strlen(path) + 1 + strlen(entry->d_name) + 1;
-            char *child = malloc(child_len);
-            if (child == NULL) {
-                int saved_errno = errno;
-                closedir(dir);
-                errno = saved_errno;
-                return -1;
-            }
-            snprintf(child, child_len, "%s/%s", path, entry->d_name);
-
-            int rc = rmrf(child);
-            int saved_errno = errno;
-            free(child);
-
-            if (rc != 0) {
-                closedir(dir);
-                errno = saved_errno;
-                return -1;
-            }
-        }
-
-        return rmdir(path);
+    if (!S_ISDIR(st.st_mode)) {
+        return unlink(path);
     }
 
-    return unlink(path);
+    if (chdir(path) != 0) {
+        return -1;
+    }
+
+    DIR *dir = opendir(".");
+    if (dir == NULL) {
+        int saved_errno = errno;
+        chdir("..");
+        errno = saved_errno;
+        return -1;
+    }
+
+    int ret = 0;
+    for (;;) {
+        errno = 0;
+        struct dirent *entry = readdir(dir);
+        if (entry == NULL) {
+            if (errno != 0) {
+                ret = -1;
+            }
+            break;
+        }
+
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        if (rmrf(entry->d_name) != 0) {
+            ret = -1;
+            break;
+        }
+    }
+
+    int saved_errno = errno;
+    closedir(dir);
+
+    /* Return to the parent directory before rmdir. */
+    chdir("..");
+
+    if (ret != 0) {
+        errno = saved_errno;
+        return ret;
+    }
+
+    return rmdir(path);
 }
 
 int main(int argc, char *argv[]) {
