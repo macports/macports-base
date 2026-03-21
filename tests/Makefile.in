@@ -10,12 +10,13 @@ install::
 # Run all regression tests
 # tclsh test.tcl -h for more options.
 test::
-	$(TCLSH) $(srcdir)/test.tcl -nocolor
+	$(TEST_TCLSH) $(srcdir)/test.tcl -nocolor
 
 clean::
 
 distclean:: clean
 	rm -f Makefile
 	rm -f test.tcl
+	rm -f test-tclsh
 	rm -f test/library.tcl
 	rm -f test/trace/test.tcl

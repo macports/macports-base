@@ -40,6 +40,7 @@ src/**/*.dylib
 src/**/*.dSYM
 
 tests/test.tcl
+tests/test-tclsh
 tests/test/library.tcl
 tests/test/trace/test.tcl
 

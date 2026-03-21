@@ -47,7 +47,7 @@ distclean:: clean
 	rm -f Makefile
 
 test:: $(BINS)
-	$(foreach test,$(TESTS),DARWINTRACE_SIP_WORKAROUND_PATH=@DARWINTRACE_SIP_WORKAROUND_PATH@ LC_ALL=C $(TCLSH) "$(srcdir)/$(test)";)
+	$(foreach test,$(TESTS),DARWINTRACE_SIP_WORKAROUND_PATH=@DARWINTRACE_SIP_WORKAROUND_PATH@ LC_ALL=C $(TEST_TCLSH) "$(srcdir)/$(test)";)
 
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 # Include dependency information

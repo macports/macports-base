@@ -1,0 +1,21 @@
+#!/bin/sh
+
+DESTROOT="@abs_top_builddir@/vendor/vendor-destroot"
+MP_PREFIX="@prefix@/libexec/macports"
+LIB_PATH="${DESTROOT}${MP_PREFIX}/lib:${DESTROOT}${MP_PREFIX}/lib/@SQLITE3_LIBNAME@"
+
+# For Linux and *BSD
+if [ -z "$LD_LIBRARY_PATH" ]; then
+    export LD_LIBRARY_PATH="$LIB_PATH"
+else
+    export LD_LIBRARY_PATH="$LIB_PATH:$LD_LIBRARY_PATH"
+fi
+# DYLD_LIBRARY_PATH tends to get lost on recent macOS due to basic
+# tools like /bin/sh being subject to SIP, so we have to edit the load
+# commands instead (see vendor/Makefile.in).
+
+# Tcl package search path: vendor libs first, then in-tree src packages
+SRCDIR="@abs_top_builddir@/src"
+export TCLLIBPATH="${DESTROOT}${MP_PREFIX}/lib ${SRCDIR}/macports1.0 ${SRCDIR}/port1.0 ${SRCDIR}/pextlib1.0 ${SRCDIR}/registry2.0 ${SRCDIR}/machista1.0 ${SRCDIR}/mpcommon1.0 ${SRCDIR}/package1.0 ${SRCDIR}/portlist1.0 ${SRCDIR}/darwintracelib1.0"
+
+exec "${DESTROOT}@TCLSH@" "$@"
