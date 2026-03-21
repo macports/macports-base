@@ -32,6 +32,7 @@
 
 namespace eval macports::autoconf {
     variable prefix "@prefix@"
+    variable top_srcdir "@abs_top_srcdir@"
 }
 
 namespace eval portutil::autoconf {

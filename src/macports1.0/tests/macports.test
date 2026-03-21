@@ -15,6 +15,7 @@ package require macports 1.0
 package require Thread
 
 source ./library.tcl
+source ./init_tmp_prefix.tcl
 
 # clean leftovers from interrupted tests
 file delete -force $pwd/tmpdir
