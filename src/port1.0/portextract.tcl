@@ -41,7 +41,7 @@ target_requires ${org.macports.extract} main fetch checksum
 target_prerun ${org.macports.extract} portextract::extract_start
 
 namespace eval portextract {
-    variable all_use_options [list use_7z use_bzip2 use_dmg use_lzip use_lzma use_tar use_xz use_zip]
+    variable all_use_options [list use_7z use_bzip2 use_dmg use_lzip use_lzma use_tar use_xz use_zip use_zstd]
     variable dmg_mount {/tmp/mports.XXXXXXXX}
 }
 
@@ -92,6 +92,8 @@ proc portextract::get_extract_cmd {} {
         return [binaryInPath {7za}]
     } elseif {[tbool use_lzip]} {
         return [binaryInPath {lzip}]
+    } elseif {[tbool use_zstd]} {
+        return [binaryInPath {zstd}]
     } elseif {[tbool use_dmg]} {
         return [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
     }
@@ -149,6 +151,8 @@ proc portextract::get_extract_suffix {} {
         return {.7z}
     } elseif {[tbool use_lzip]} {
         return {.tar.lz}
+    } elseif {[tbool use_zstd]} {
+        return {.tar.zst}
     } elseif {[tbool use_dmg]} {
         return {.dmg}
     }
@@ -184,6 +188,8 @@ proc portextract::add_extract_deps {} {
         depends_extract-append bin:7za:p7zip
     } elseif {[tbool use_lzip]} {
         depends_extract-append bin:lzip:lzip
+    } elseif {[tbool use_zstd]} {
+        depends_extract-append bin:zstd:zstd
     }
 }
 port::register_callback portextract::add_extract_deps
