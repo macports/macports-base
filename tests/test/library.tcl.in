@@ -9,18 +9,19 @@ set work_dir "work"
 # constraint indicating whether the platform supports trace mode
 ::tcltest::testConstraint tracemode_support [expr {@TRACEMODE_SUPPORT@ != 0}]
 
+# In-tree test interpreter and source paths
+set test_tclsh "@TEST_TCLSH@"
+set top_srcdir "@abs_top_srcdir@"
+
 # Set of procs used for testing.
 
-# Sets $bindir variable from autoconf
+# Sets variables from autoconf for in-tree testing
 proc load_variables {pwd} {
-    global bindir datadir portsrc cpwd
+    global datadir portsrc cpwd test_tclsh top_srcdir
 
     set cpwd [file dirname [file dirname $pwd]]
 
-    set prefix "@prefix@"
-    set exec_prefix "@exec_prefix@"
-    set bindir "@bindir@"
-    set datadir "@datarootdir@"
+    set datadir "@prefix@/share"
     set portsrc ${cpwd}/test-macports.conf
 
 }
@@ -79,7 +80,7 @@ proc with_portsrc {portsrc script} {
 
 # Sets initial directories
 proc set_dir {} {
-    global datadir cpwd
+    global datadir cpwd top_srcdir
 
     cleanup
 
@@ -90,13 +91,21 @@ proc set_dir {} {
                /tmp/macports-tests/opt/local/var/macports/registry \
                /tmp/macports-tests/opt/local/var/macports/build
 
-    file link -symbolic /tmp/macports-tests/opt/local/share/macports $datadir/macports
+    # Populate share/macports from the source tree instead of the prefix
+    file mkdir /tmp/macports-tests/opt/local/share/macports/install
+    file copy $top_srcdir/macports-pubkey.pem /tmp/macports-tests/opt/local/share/macports/
+    file copy $top_srcdir/setupenv.bash /tmp/macports-tests/opt/local/share/macports/
+    file copy $top_srcdir/doc/base.mtree /tmp/macports-tests/opt/local/share/macports/install/
+    file copy $top_srcdir/doc/prefix.mtree /tmp/macports-tests/opt/local/share/macports/install/
+    file copy $top_srcdir/doc/macosx.mtree /tmp/macports-tests/opt/local/share/macports/install/
+    file copy $top_srcdir/keys /tmp/macports-tests/opt/local/share/macports/
+    file copy ${cpwd}/sources.conf /tmp/macports-tests/opt/local/etc/macports/
     file link -symbolic /tmp/macports-tests/ports/test $cpwd/test
 }
 
 # Run portindex
 proc port_index {} {
-    global bindir cpwd
+    global cpwd portsrc test_tclsh top_srcdir
 
     # Move up 2 level to run portindex.
     set path [pwd]
@@ -107,10 +116,11 @@ proc port_index {} {
     }
 
     without_darwintrace_env {
-        exec -ignorestderr ${bindir}/portindex 2>@1
+        with_portsrc $portsrc {
+            exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/portindex.tcl 2>@1
+        }
     }
 
-    file copy ${cpwd}/sources.conf /tmp/macports-tests/opt/local/etc/macports/
     file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick /tmp/macports-tests/ports/
 
     cd $path
@@ -118,7 +128,7 @@ proc port_index {} {
 
 # Executes port clean.
 proc port_clean {pwd} {
-    global bindir portsrc
+    global portsrc test_tclsh top_srcdir
 
     set back [pwd]
     cd $pwd
@@ -126,7 +136,7 @@ proc port_clean {pwd} {
     catch {
         without_darwintrace_env {
             with_portsrc $portsrc {
-                exec -ignorestderr ${bindir}/port clean 2>@1
+                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl clean 2>@1
             }
         }
     }
@@ -135,7 +145,7 @@ proc port_clean {pwd} {
 
 # Runs the portfile.
 proc port_run {pwd} {
-    global bindir portsrc
+    global portsrc test_tclsh top_srcdir
 
     set back [pwd]
     cd $pwd
@@ -143,7 +153,7 @@ proc port_run {pwd} {
     set result [catch {
         without_darwintrace_env {
             with_portsrc $portsrc {
-                exec -ignorestderr ${bindir}/port -d -N test >&output
+                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl -d -N test >&output
             }
         }
     }]
@@ -153,14 +163,14 @@ proc port_run {pwd} {
 
 # Runs port trace.
 proc port_trace {pwd} {
-    global bindir portsrc
+    global portsrc test_tclsh top_srcdir
 
     set back [pwd]
     cd $pwd
 
     set result [catch {
         with_portsrc $portsrc {
-            exec -ignorestderr ${bindir}/port -d -N -t test >&output 2>@1
+            exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl -d -N -t test >&output 2>@1
         }
     }]
     cd $back
@@ -169,12 +179,12 @@ proc port_trace {pwd} {
 
 # Installs new portfile.
 proc port_install {{name "current"}} {
-    global bindir portsrc
+    global portsrc test_tclsh top_srcdir
 
     set result [catch {
         without_darwintrace_env {
             with_portsrc $portsrc {
-                exec -ignorestderr ${bindir}/port install $name > output 2>@1
+                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl install $name > output 2>@1
             }
         }
     }]
@@ -183,12 +193,12 @@ proc port_install {{name "current"}} {
 
 # Run configure command.
 proc port_config {pwd} {
-    global bindir portsrc
+    global portsrc test_tclsh top_srcdir
 
     set result [catch {
         without_darwintrace_env {
             with_portsrc $portsrc {
-                exec -ignorestderr ${bindir}/port configure 2>@1
+                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl configure 2>@1
             }
         }
     }]
@@ -197,7 +207,7 @@ proc port_config {pwd} {
 
 # Run destroot command.
 proc port_destroot {pwd} {
-    global path bindir portsrc work_dir output_file
+    global path portsrc work_dir output_file test_tclsh top_srcdir
 
     file copy -force ${path}/statefile ${work_dir}/.macports.statefile-unknown-version.state
     if { [exec -ignorestderr id -u] == 0 } {
@@ -206,7 +216,7 @@ proc port_destroot {pwd} {
     set result [catch {
         without_darwintrace_env {
             with_portsrc $portsrc {
-                exec -ignorestderr ${bindir}/port destroot >$output_file 2>@1
+                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl destroot >$output_file 2>@1
             }
         }
     }]
@@ -215,12 +225,12 @@ proc port_destroot {pwd} {
 
 # Uninstalls portfile.
 proc port_uninstall {{name "current"}} {
-    global bindir portsrc
+    global portsrc test_tclsh top_srcdir
 
     set result [catch {
         without_darwintrace_env {
             with_portsrc $portsrc {
-                exec -ignorestderr ${bindir}/port uninstall $name > output 2>@1
+                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl uninstall $name > output 2>@1
             }
         }
     }]

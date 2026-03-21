@@ -56,15 +56,15 @@ jobs:
             Linux) make -j$(nproc)
             ;;
           esac
-      - name: Install MacPorts Base
-        run: |
-          set -eu
-          sudo make install
       - name: Test MacPorts Base
         if: startsWith(matrix.os,'macos')
         run: |
           set -eu
           make test
+      - name: Install MacPorts Base
+        run: |
+          set -eu
+          sudo make install
       - name: Deploy man pages to web
         if: vars.MP_RELEASE_BRANCH == github.ref_name && startsWith(matrix.os,'ubuntu')
         env:

@@ -13,6 +13,7 @@ package require Thread
 package require Pextlib 1.0
 
 source ./library.tcl
+source ./init_tmp_prefix.tcl
 
 # clean leftovers from interrupted tests
 file delete -force $pwd/tmpdir

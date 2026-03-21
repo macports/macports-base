@@ -111,14 +111,14 @@ endif
 .PHONY: test codesign
 
 test:: ${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/checksums.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/curl.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/filemap.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/fs-traverse.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/symlink.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/system.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/unsetenv.tcl ./${SHLIB_NAME}
-	${TCLSH} $(srcdir)/tests/vercomp.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/checksums.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/curl.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/filemap.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/fs-traverse.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/symlink.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/system.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/unsetenv.tcl ./${SHLIB_NAME}
+	${TEST_TCLSH} $(srcdir)/tests/vercomp.tcl ./${SHLIB_NAME}
 
 clean::
 	rm -f blake3/*.o blake3/*.c

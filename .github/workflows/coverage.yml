@@ -33,14 +33,14 @@ jobs:
         run: |
           set -eu
           make -j$(sysctl -n hw.activecpu)
-      - name: Install MacPorts Base
-        run: |
-          set -eu
-          sudo make install
       - name: Test MacPorts Base
         run: |
           set -eu
           LLVM_PROFILE_FILE="$PWD/cov-%p.profraw" make test
+      - name: Install MacPorts Base
+        run: |
+          set -eu
+          sudo make install
       - name: Report Coverage
         run: |
           set -eu
