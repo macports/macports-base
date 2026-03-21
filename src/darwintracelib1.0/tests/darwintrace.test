@@ -152,6 +152,10 @@ test darwintrace_long_symlinks "Test that resolution of long symlinks does not t
     -result "stat: No such file or directory"
 
 test darwintrace_without_log_env_fails "Test that injecting the lib without setting DARWINTRACE_LOG fails" \
+    -cleanup {
+        array unset ::env DYLD_INSERT_LIBRARIES
+        array unset ::env DARWINTRACE_LOG
+    } \
     -body {
         set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
         exec -ignorestderr -- ./stat . 2>@1
@@ -160,6 +164,10 @@ test darwintrace_without_log_env_fails "Test that injecting the lib without sett
     -result "darwintrace: trace library loaded, but DARWINTRACE_LOG not set\nchild killed: SIGABRT"
 
 test darwintrace_with_incorrect_log_env_fails "Test that DARWINTRACE_LOG pointing to a non-socket fails" \
+    -cleanup {
+        array unset ::env DYLD_INSERT_LIBRARIES
+        array unset ::env DARWINTRACE_LOG
+    } \
     -body {
         set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
         set ::env(DARWINTRACE_LOG) "GARBAGE.RANDOM.DOES.NOT.EXIST"
