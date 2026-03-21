@@ -11,8 +11,10 @@
  * Recursively remove a file or directory. Uses chdir() to descend into
  * directories so that all syscalls operate on short, relative names.
  * This avoids ENAMETOOLONG on deeply nested trees that exceed PATH_MAX.
- * Uses chdir("..") to return rather than fchdir() to avoid accumulating
- * open file descriptors during deep recursion.
+ *
+ * Collects directory entries before closing the DIR handle, then recurses.
+ * This keeps at most one file descriptor open at any recursion depth,
+ * avoiding EMFILE ("Too many open files") on deep trees.
  */
 static int rmrf(const char *path) {
     struct stat st;
@@ -37,7 +39,12 @@ static int rmrf(const char *path) {
         return -1;
     }
 
+    /* Collect entry names first so we can close the DIR before recursing. */
+    char **names = NULL;
+    size_t count = 0;
+    size_t capacity = 0;
     int ret = 0;
+
     for (;;) {
         errno = 0;
         struct dirent *entry = readdir(dir);
@@ -52,20 +59,43 @@ static int rmrf(const char *path) {
             continue;
         }
 
-        if (rmrf(entry->d_name) != 0) {
+        if (count == capacity) {
+            size_t new_cap = capacity == 0 ? 8 : capacity * 2;
+            char **tmp = realloc(names, new_cap * sizeof(*names));
+            if (tmp == NULL) {
+                ret = -1;
+                break;
+            }
+            names = tmp;
+            capacity = new_cap;
+        }
+
+        names[count] = strdup(entry->d_name);
+        if (names[count] == NULL) {
             ret = -1;
             break;
         }
+        count++;
     }
 
-    int saved_errno = errno;
     closedir(dir);
+
+    /* Now recurse over collected entries with the DIR closed. */
+    for (size_t i = 0; i < count && ret == 0; i++) {
+        if (rmrf(names[i]) != 0) {
+            ret = -1;
+        }
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        free(names[i]);
+    }
+    free(names);
 
     /* Return to the parent directory before rmdir. */
     chdir("..");
 
     if (ret != 0) {
-        errno = saved_errno;
         return ret;
     }
 
