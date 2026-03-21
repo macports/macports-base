@@ -5,11 +5,11 @@ set color_out ""
 set tcl ""
 set err ""
 
-# Get tclsh path.
+# Get test tclsh path.
 set autoconf ../../Mk/macports.autoconf.mk
 set fp [open $autoconf r]
 while {[gets $fp line] != -1} {
-    if {[string match "TCLSH*" $line] != 0} {
+    if {[string match "TEST_TCLSH*" $line] != 0} {
         set tcl [lrange [split $line " "] 1 1]
     }
 }

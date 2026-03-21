@@ -3,13 +3,24 @@
 package require tcltest 2
 namespace import tcltest::*
 
+set pwd [file dirname [file normalize $argv0]]
+
 source ../macports_test_autoconf.tcl
 package require macports 1.0
+
+source ./library.tcl
+source ./init_tmp_prefix.tcl
+
+# clean leftovers from interrupted tests
+file delete -force $pwd/tmpdir
+# use a local, temporary prefix for testing
+init_tmp_prefix $pwd $pwd/tmpdir
 
 # Debug options
 array set ui_options {}
 #set ui_options(ports_debug)   yes
 #set ui_options(ports_verbose) yes
+set ui_options(ports_noninteractive) yes
 mportinit ui_options
 
 source ../macports_dlist.tcl

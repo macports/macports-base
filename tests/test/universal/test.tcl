@@ -15,7 +15,7 @@ set_dir
 port_index
 
 proc univ_test {opt} {
-    global output_file path portsrc bindir
+    global output_file path portsrc test_tclsh top_srcdir
 
     # Modify Porfile.in for variants.
     if {$opt ne "yes"} {
@@ -27,10 +27,7 @@ proc univ_test {opt} {
     }
     port_clean $path
 
-    # Build helping string
-    set string "export PORTSRC=${portsrc} ; ${bindir}/port info --variants"
-
-    exec -ignorestderr sh -c $string > output 2>@1
+    exec -ignorestderr env PORTSRC=${portsrc} ${test_tclsh} ${top_srcdir}/src/port/port.tcl info --variants > output 2>@1
     set var "variants:*"
     set line [get_line $path/$output_file $var]
     return $line

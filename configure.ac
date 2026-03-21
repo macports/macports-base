@@ -546,6 +546,7 @@ SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
 INTREE_TCLSH=`(cd vendor; pwd)`/tclsh
+TEST_TCLSH=`(cd tests; pwd)`/test-tclsh
 TCL_PACKAGE_PATH="$macports_libexec_dir/lib"
 
 AC_SUBST(SHLIB_LD)
@@ -560,6 +561,7 @@ AC_SUBST(TCL_SRC_DIR)
 AC_SUBST(TCL_BIN_DIR)
 AC_SUBST(TCLSH)
 AC_SUBST(INTREE_TCLSH)
+AC_SUBST(TEST_TCLSH)
 
 INCLUDES="-I.. -I. $INCLUDES"
 AC_SUBST(INCLUDES)
@@ -618,6 +620,7 @@ AC_CONFIG_FILES([
 ])
 
 AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
+AC_CONFIG_FILES([tests/test-tclsh], [chmod +x tests/test-tclsh])
 AC_CONFIG_FILES([src/cxx_stdlib_overridden.tcl], [chmod +x src/cxx_stdlib_overridden.tcl])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
