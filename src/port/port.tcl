@@ -3907,6 +3907,98 @@ proc action_portcmds { action portlist opts } {
 }
 
 
+proc action_source { action portlist opts } {
+    global macports::sources_conf macports::sources
+
+    # Determine which sub-subcommand was requested; default to list.
+    # Check only the three sub-subcommand flags; first/no-sync are modifiers, not commands.
+    set subcmds {}
+    foreach cmd {list add remove} {
+        if {[dict exists $opts ports_source_$cmd]} {
+            lappend subcmds $cmd
+        }
+    }
+    if {[llength $subcmds] == 0} {
+        set command list
+    } elseif {[llength $subcmds] > 1} {
+        ui_error "Only one of --list, --add, or --remove may be specified at a time."
+        return 1
+    } else {
+        set command [lindex $subcmds 0]
+    }
+
+    switch -- $command {
+        list {
+            foreach src ${macports::sources} {
+                set url   [lindex $src 0]
+                set flags [lrange $src 1 end]
+                if {[llength $flags] > 0} {
+                    ui_msg "$url \[[join $flags ,]\]"
+                } else {
+                    ui_msg $url
+                }
+            }
+            return 0
+        }
+
+        add {
+            set url [lindex $portlist 0]
+            if {$url eq ""} {
+                ui_error "Usage: port source --add \[--first\] \[--no-sync\] <url>"
+                return 1
+            }
+            set first  [dict exists $opts ports_source_first]
+            set nosync [dict exists $opts ports_source_no-sync]
+            if {[catch {macports::source_add $url $first $nosync} err]} {
+                ui_debug $::errorInfo
+                if {$err eq "duplicate"} {
+                    ui_error "Source '$url' is already listed in ${macports::sources_conf}."
+                } elseif {[string match "Insufficient privileges*" $err]} {
+                    ui_error $err
+                    ui_msg "Try running this command with sudo."
+                } else {
+                    ui_error $err
+                }
+                return 1
+            }
+            ui_msg "Source '$url' added to ${macports::sources_conf}."
+            ui_msg "Changes take effect the next time 'port' is invoked."
+            return 0
+        }
+
+        remove {
+            set url [lindex $portlist 0]
+            if {$url eq ""} {
+                ui_error "Usage: port source --remove <url>"
+                return 1
+            }
+            if {[catch {macports::source_remove $url} err]} {
+                ui_debug $::errorInfo
+                if {$err eq "not-found"} {
+                    ui_error "Source '$url' not found in ${macports::sources_conf}."
+                } elseif {[string match "Insufficient privileges*" $err]} {
+                    ui_error $err
+                    ui_msg "Try running this command with sudo."
+                } else {
+                    ui_error $err
+                }
+                return 1
+            }
+            ui_msg "Source '$url' removed from ${macports::sources_conf}."
+            ui_msg "Changes take effect the next time 'port' is invoked."
+            return 0
+        }
+
+        default {
+            ui_error "Unknown source command '$command'."
+            ui_msg "  port source \[--list\]"
+            ui_msg "  port source --add \[--first\] \[--no-sync\] <url>"
+            ui_msg "  port source --remove <url>"
+            return 1
+        }
+    }
+}
+
 proc action_sync { action portlist opts } {
     global global_options
     set status 0
@@ -4137,6 +4229,7 @@ set action_array [dict create \
     deactivate  [list action_deactivate     [ACTION_ARGS_PORTS]] \
     \
     select      [list action_select         [ACTION_ARGS_STRINGS]] \
+    source      [list action_source         [ACTION_ARGS_STRINGS]] \
     \
     sync        [list action_sync           [ACTION_ARGS_NONE]] \
     selfupdate  [list action_selfupdate     [ACTION_ARGS_NONE]] \
@@ -4298,6 +4391,7 @@ set cmd_opts_array [dict create {*}{
     mirror      {new}
     lint        {nitpick}
     select      {list set show summary}
+    source      {list add remove first no-sync}
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}

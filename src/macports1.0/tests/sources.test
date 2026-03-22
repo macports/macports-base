@@ -1,0 +1,434 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+::tcltest::configure {*}$::argv
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../macports_test_autoconf.tcl
+package require macports 1.0
+
+# Load new/modified procs from local macports.tcl that may not yet be
+# installed.  We cannot re-source the whole file (it redefines puts at
+# the top level), so we extract individual proc definitions and the
+# namespace variable they depend on.
+set _fd [open ../macports.tcl r]
+set _lines [split [read $_fd] \n]
+close $_fd
+# Ensure the regex variable is current
+if {[set _i [lsearch -glob $_lines {*variable sources_conf_source_re*}]] >= 0} {
+    namespace eval macports [lindex $_lines $_i]
+}
+# Extract and define each proc by collecting lines from "proc macports::NAME"
+# to the closing "}" at column 0.
+foreach _proc {source_normalize_url source_add source_remove} {
+    set _collecting 0
+    set _depth 0
+    set _body {}
+    foreach _line $_lines {
+        if {!$_collecting} {
+            if {[string match "proc macports::${_proc} *" $_line]} {
+                set _collecting 1
+                set _depth 0
+            } else {
+                continue
+            }
+        }
+        append _body $_line \n
+        incr _depth [expr {[llength [regexp -all -inline {\{} $_line]]
+                          - [llength [regexp -all -inline {\}} $_line]]}]
+        if {$_collecting && $_depth <= 0} {
+            break
+        }
+    }
+    if {$_body ne {}} {
+        eval $_body
+    }
+}
+unset -nocomplain _fd _lines _i _proc _collecting _depth _body _line
+
+source ./library.tcl
+
+# clean leftovers from interrupted tests
+file delete -force $pwd/tmpdir
+init_tmp_prefix $pwd $pwd/tmpdir
+
+# Create real directories for file:// URL tests
+file mkdir $pwd/tmpdir/source_a
+file mkdir $pwd/tmpdir/source_b
+
+array set ui_options {}
+set ui_options(ports_noninteractive) yes
+mportinit ui_options
+
+# ---------------------------------------------------------------------------
+# Shared setup/cleanup scripts
+#
+# Each test gets a fresh writable sources.conf with one existing source, and
+# macports::sources is set to match so duplicate/not-found checks work.
+# ---------------------------------------------------------------------------
+
+set initial_conf_content \
+    "# MacPorts sources\n# another comment\nrsync://rsync.macports.org/macports/release/tarballs/ports.tar \[default\]\n"
+
+set setup_sources {
+    set saved_sources_conf ${macports::sources_conf}
+    set saved_sources      ${macports::sources}
+
+    set temp_conf [makeFile $initial_conf_content sources_test.conf]
+    set macports::sources_conf $temp_conf
+    set macports::sources {{rsync://rsync.macports.org/macports/release/tarballs/ports.tar default}}
+}
+
+set cleanup_sources {
+    set macports::sources_conf $saved_sources_conf
+    set macports::sources      $saved_sources
+    removeFile sources_test.conf
+}
+
+# helper: return the current contents of the test sources.conf
+proc read_conf {} {
+    set fd [open $macports::sources_conf r]
+    set content [read $fd]
+    close $fd
+    return $content
+}
+
+# ---------------------------------------------------------------------------
+# macports::source_add — append (default)
+# ---------------------------------------------------------------------------
+
+test source_add_append {
+    source_add appends a new URL to the end of sources.conf
+} -setup $setup_sources -body {
+    set test_url "file://[file normalize $pwd/tmpdir/source_a]"
+    macports::source_add $test_url
+    set content [read_conf]
+    # New URL must appear, existing content must be preserved
+    if {![string match "*rsync://rsync.macports.org*" $content]} {
+        return "FAIL: existing source lost"
+    }
+    if {![string match "*${test_url}*" $content]} {
+        return "FAIL: new source not appended"
+    }
+    # New URL must come after the rsync line
+    set rsync_pos [string first "rsync://" $content]
+    set file_pos  [string first $test_url $content]
+    if {$file_pos < $rsync_pos} {
+        return "FAIL: new source appeared before existing source"
+    }
+    return "source_add append successful."
+} -cleanup $cleanup_sources -result "source_add append successful."
+
+
+test source_add_preserves_trailing_newline {
+    source_add leaves the file ending with exactly one newline
+} -setup $setup_sources -body {
+    macports::source_add "file://[file normalize $pwd/tmpdir/source_a]"
+    set content [read_conf]
+    if {[string index $content end] ne "\n"} {
+        return "FAIL: file does not end with newline"
+    }
+    if {[string index $content end-1] eq "\n"} {
+        return "FAIL: file has extra trailing newline"
+    }
+    return "trailing newline preserved."
+} -cleanup $cleanup_sources -result "trailing newline preserved."
+
+
+test source_add_preserves_comments {
+    source_add does not disturb comments already in the file
+} -setup $setup_sources -body {
+    macports::source_add "file://[file normalize $pwd/tmpdir/source_a]"
+    set content [read_conf]
+    if {![string match "*# MacPorts sources*" $content]} {
+        return "FAIL: first comment lost"
+    }
+    if {![string match "*# another comment*" $content]} {
+        return "FAIL: second comment lost"
+    }
+    return "comments preserved."
+} -cleanup $cleanup_sources -result "comments preserved."
+
+
+# ---------------------------------------------------------------------------
+# macports::source_add — --first
+# ---------------------------------------------------------------------------
+
+test source_add_first {
+    source_add with first=1 inserts new URL before the existing source
+} -setup $setup_sources -body {
+    set test_url "file://[file normalize $pwd/tmpdir/source_b]"
+    macports::source_add $test_url 1 0
+    set content [read_conf]
+    set rsync_pos [string first "rsync://" $content]
+    set file_pos  [string first $test_url $content]
+    if {$file_pos == -1} {
+        return "FAIL: new source not written"
+    }
+    if {$file_pos > $rsync_pos} {
+        return "FAIL: new source did not appear before existing source"
+    }
+    return "source_add first successful."
+} -cleanup $cleanup_sources -result "source_add first successful."
+
+
+test source_add_first_preserves_comments {
+    source_add with first=1 inserts after leading comments, not at top of file
+} -setup $setup_sources -body {
+    set test_url "file://[file normalize $pwd/tmpdir/source_b]"
+    macports::source_add $test_url 1 0
+    set content [read_conf]
+    set comment_pos [string first "# MacPorts sources" $content]
+    set file_pos    [string first $test_url $content]
+    if {$comment_pos > $file_pos} {
+        return "FAIL: new source inserted before leading comments"
+    }
+    return "comments remain above new source."
+} -cleanup $cleanup_sources -result "comments remain above new source."
+
+
+# ---------------------------------------------------------------------------
+# macports::source_add — nosync flag
+# ---------------------------------------------------------------------------
+
+test source_add_nosync {
+    source_add with nosync=1 appends [nosync] to the written line
+} -setup $setup_sources -body {
+    set test_url "file://[file normalize $pwd/tmpdir/source_b]"
+    macports::source_add $test_url 0 1
+    set content [read_conf]
+    if {[string first "$test_url \[nosync\]" $content] < 0} {
+        return "FAIL: \[nosync\] flag not written"
+    }
+    return "nosync flag written."
+} -cleanup $cleanup_sources -result "nosync flag written."
+
+
+test source_add_first_and_nosync {
+    source_add with first=1 and nosync=1 combines both behaviours
+} -setup $setup_sources -body {
+    set test_url "file://[file normalize $pwd/tmpdir/source_b]"
+    macports::source_add $test_url 1 1
+    set content [read_conf]
+    set rsync_pos [string first "rsync://" $content]
+    set file_pos  [string first "$test_url \[nosync\]" $content]
+    if {$file_pos < 0} {
+        return "FAIL: entry with \[nosync\] not found"
+    }
+    if {$file_pos > $rsync_pos} {
+        return "FAIL: new source did not appear before existing source"
+    }
+    return "first and nosync combined."
+} -cleanup $cleanup_sources -result "first and nosync combined."
+
+
+# ---------------------------------------------------------------------------
+# macports::source_add — local path expansion
+# ---------------------------------------------------------------------------
+
+test source_add_absolute_path {
+    source_add converts an absolute directory path to a file:// URL
+} -setup $setup_sources -body {
+    # Use the tmpdir we know exists
+    macports::source_add $pwd/tmpdir
+    set content [read_conf]
+    set expected "file://[file normalize $pwd/tmpdir]"
+    if {![string match "*${expected}*" $content]} {
+        return "FAIL: file:// URL not written for absolute path (got: $content)"
+    }
+    return "absolute path expanded."
+} -cleanup $cleanup_sources -result "absolute path expanded."
+
+
+test source_add_tilde_path {
+    source_add expands a tilde path to a file:// URL
+} -setup $setup_sources -body {
+    # $env(HOME) is set to $portdbpath/home by mportinit; create a subdir there
+    set testdir [file join $macports::portdbpath home test_ports]
+    file mkdir $testdir
+    macports::source_add ~/test_ports
+    set content [read_conf]
+    set expected "file://[file normalize ~/test_ports]"
+    if {![string match "*${expected}*" $content]} {
+        return "FAIL: file:// URL not written for tilde path (got: $content)"
+    }
+    return "tilde path expanded."
+} -cleanup {
+    eval $cleanup_sources
+    file delete -force [file join $macports::portdbpath home test_ports]
+} -result "tilde path expanded."
+
+
+test source_add_absolute_path_normalized {
+    source_add writes the normalized form of an absolute path
+} -setup $setup_sources -body {
+    # Pass a path with redundant components; the written URL must be canonical
+    set base $pwd/tmpdir
+    set messy "$base/.//../tmpdir"
+    macports::source_add $messy
+    set content [read_conf]
+    set expected "file://[file normalize $messy]"
+    if {![string match "*${expected}*" $content]} {
+        return "FAIL: non-normalized path written (got: $content)"
+    }
+    # Ensure the raw messy path did not appear verbatim
+    if {[string match "*${messy}*" $content]} {
+        return "FAIL: unnormalized path appeared in file"
+    }
+    return "path normalized."
+} -cleanup $cleanup_sources -result "path normalized."
+
+
+test source_add_nonexistent_path {
+    source_add returns an error when a local path does not exist
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_add /nonexistent/path/that/does/not/exist} err]
+    if {$rc == 0} {
+        return "FAIL: no error returned for nonexistent path"
+    }
+    if {![string match "*is not a directory*" $err]} {
+        return "FAIL: unexpected error message: $err"
+    }
+    return "nonexistent path rejected."
+} -cleanup $cleanup_sources -result "nonexistent path rejected."
+
+
+test source_add_file_url_nonexistent {
+    source_add returns an error when a file:// URL points to a nonexistent directory
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_add "file:///nonexistent/path/that/does/not/exist"} err]
+    if {$rc == 0} {
+        return "FAIL: no error returned for nonexistent file:// URL"
+    }
+    if {![string match "*is not a directory*" $err]} {
+        return "FAIL: unexpected error message: $err"
+    }
+    return "nonexistent file:// URL rejected."
+} -cleanup $cleanup_sources -result "nonexistent file:// URL rejected."
+
+
+# ---------------------------------------------------------------------------
+# macports::source_add — validation and duplicate detection
+# ---------------------------------------------------------------------------
+
+test source_add_invalid_url {
+    source_add returns an error for a syntactically invalid URL
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_add "not-a-valid-url"} err]
+    if {$rc == 0} {
+        return "FAIL: no error returned for invalid URL"
+    }
+    if {![string match "*Invalid source URL*" $err]} {
+        return "FAIL: unexpected error message: $err"
+    }
+    return "invalid URL rejected."
+} -cleanup $cleanup_sources -result "invalid URL rejected."
+
+
+test source_add_duplicate {
+    source_add returns the sentinel "duplicate" error for an already-listed URL
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_add \
+        "rsync://rsync.macports.org/macports/release/tarballs/ports.tar"} err]
+    if {$rc == 0} {
+        return "FAIL: no error returned for duplicate"
+    }
+    if {$err ne "duplicate"} {
+        return "FAIL: expected 'duplicate', got: $err"
+    }
+    return "duplicate detected."
+} -cleanup $cleanup_sources -result "duplicate detected."
+
+
+# ---------------------------------------------------------------------------
+# macports::source_remove
+# ---------------------------------------------------------------------------
+
+test source_remove_basic {
+    source_remove deletes the matching line from sources.conf
+} -setup $setup_sources -body {
+    macports::source_remove "rsync://rsync.macports.org/macports/release/tarballs/ports.tar"
+    set content [read_conf]
+    if {[string match "*rsync://*" $content]} {
+        return "FAIL: source line still present after removal"
+    }
+    return "source_remove basic successful."
+} -cleanup $cleanup_sources -result "source_remove basic successful."
+
+
+test source_remove_preserves_comments {
+    source_remove does not disturb comment lines
+} -setup $setup_sources -body {
+    macports::source_remove "rsync://rsync.macports.org/macports/release/tarballs/ports.tar"
+    set content [read_conf]
+    if {![string match "*# MacPorts sources*" $content]} {
+        return "FAIL: first comment lost"
+    }
+    if {![string match "*# another comment*" $content]} {
+        return "FAIL: second comment lost"
+    }
+    return "comments preserved after remove."
+} -cleanup $cleanup_sources -result "comments preserved after remove."
+
+
+test source_remove_with_flags {
+    source_remove correctly removes a line that carries flags like [nosync]
+} -setup {
+    eval $setup_sources
+    # Add a source with flags, and register it in the in-memory list
+    set flagged_url "file://[file normalize $pwd/tmpdir/source_b]"
+    set fd [open $macports::sources_conf a]
+    puts $fd "$flagged_url \[nosync\]"
+    close $fd
+    lappend macports::sources [list $flagged_url nosync]
+} -body {
+    set flagged_url "file://[file normalize $pwd/tmpdir/source_b]"
+    macports::source_remove $flagged_url
+    set content [read_conf]
+    if {[string match "*${flagged_url}*" $content]} {
+        return "FAIL: flagged source line still present"
+    }
+    return "flagged source removed."
+} -cleanup $cleanup_sources -result "flagged source removed."
+
+
+test source_remove_not_found {
+    source_remove returns the sentinel "not-found" error for an unlisted URL
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_remove "rsync://example.org/nonexistent"} err]
+    if {$rc == 0} {
+        return "FAIL: no error returned for missing source"
+    }
+    if {$err ne "not-found"} {
+        return "FAIL: expected 'not-found', got: $err"
+    }
+    return "not-found detected."
+} -cleanup $cleanup_sources -result "not-found detected."
+
+
+# ---------------------------------------------------------------------------
+# macports::source_remove — local path normalisation
+# ---------------------------------------------------------------------------
+
+test source_remove_by_absolute_path {
+    source_remove accepts an absolute path and normalises it to a file:// URL
+} -setup {
+    eval $setup_sources
+    # Register the tmpdir as a source in the conf and in-memory list
+    set fd [open $macports::sources_conf a]
+    puts $fd "file://[file normalize $pwd/tmpdir]"
+    close $fd
+    lappend macports::sources [list "file://[file normalize $pwd/tmpdir]"]
+} -body {
+    macports::source_remove $pwd/tmpdir
+    set content [read_conf]
+    if {[string match "*$pwd/tmpdir*" $content]} {
+        return "FAIL: source still present after removal by path"
+    }
+    return "remove by absolute path successful."
+} -cleanup $cleanup_sources -result "remove by absolute path successful."
+
+
+cleanupTests

@@ -369,6 +369,20 @@ subversion working copy, sync will perform an svn update on the working
 copy with the user set to the owner of the working copy.
 +
 
+source::
+    List, add, or remove port tree sources from man:sources.conf[5]. Without
+    a flag, *port source* lists the currently configured sources. A local path
+    beginning with '/' or '~' is automatically converted to a 'file://' URL
+    for both *--add* and *--remove*.
++
+--------
+port source
+sudo port source --add --first --no-sync ~/src/macports-ports
+sudo port source --remove ~/src/macports-ports
+--------
++
+See man:port-source[1] for full details.
+
 outdated::
     Lists the installed ports which need an 'upgrade'.
 

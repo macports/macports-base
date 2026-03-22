@@ -1,0 +1,103 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-source(1)
+==============
+
+NAME
+----
+port-source - List, add, and remove MacPorts port tree sources
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-dv*] *source* [--list]
+
+[cmdsynopsis]
+*port* [*-dv*] *sudo* *source* *--add* [*--first*] [*--no-sync*] 'url'
+
+[cmdsynopsis]
+*port* [*-dv*] *sudo* *source* *--remove* 'url'
+
+DESCRIPTION
+-----------
+*port source* manages the list of port tree sources configured in
+man:sources.conf[5]. Port tree sources tell MacPorts where to find port
+definitions (Portfiles).
+
+*port source* has three modes of operation: listing the currently configured
+sources, adding a new source, and removing an existing source. See *OPTIONS*
+below for details. Changes made by *--add* and *--remove* take effect the next
+time *port* is invoked.
+
+A local directory path beginning with '/' or '~' is automatically expanded to a
+'file://' URL by both *--add* and *--remove*, making it convenient to manage
+local checkouts of the MacPorts ports tree without needing to type the full
+'file://' URL.
+
+OPTIONS
+-------
+*--list*::
+    Print the currently configured sources, one per line, in the same format
+    used by man:sources.conf[5]. This is the default when no option is given.
+
+*--add* [*--first*] [*--no-sync*] 'url'::
+    Add 'url' to the list of port tree sources. If 'url' begins with '/' or
+    '~', it is interpreted as a local directory path; it will be normalised and
+    prefixed with 'file://'.
++
+By default the new source is appended to the end of man:sources.conf[5].
+Use *--first* to insert it before the first existing source entry, which is
+useful for a local port tree that should shadow the default remote source.
++
+Use *--no-sync* to add the '[nosync]' flag to the entry, preventing
+*port sync* from attempting to update this source. This is recommended for
+local development checkouts that are managed independently.
++
+This command requires write access to man:sources.conf[5] and must typically
+be run with *sudo*.
+
+*--remove* 'url'::
+    Remove the source with the given URL from man:sources.conf[5]. If 'url'
+    begins with '/' or '~', it is normalised to a 'file://' URL in the same
+    way as *--add*. Comments and other entries are preserved.
++
+This command requires write access to man:sources.conf[5] and must typically
+be run with *sudo*.
+
+include::global-flags.txt[]
+
+EXAMPLES
+--------
+List the currently configured sources:
+----
+port source
+----
+
+Add a local checkout of the MacPorts ports tree for Portfile development,
+placing it first so it shadows the default remote source and marking it so
+that *port sync* leaves it alone:
+----
+sudo port source --add --first --no-sync ~/src/macports-ports
+----
+
+Add a remote rsync source:
+----
+sudo port source --add rsync://rsync.macports.org/macports/release/tarballs/ports.tar
+----
+
+Remove a source by path:
+----
+sudo port source --remove ~/src/macports-ports
+----
+
+Remove a source by URL:
+----
+sudo port source --remove rsync://rsync.macports.org/macports/release/tarballs/ports.tar
+----
+
+SEE ALSO
+--------
+man:port[1], man:port-sync[1], man:sources.conf[5]
+
+AUTHORS
+-------
+ (C) 2025 The MacPorts Project
