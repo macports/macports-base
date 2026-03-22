@@ -296,6 +296,119 @@ AC_CHECK_DECLS([atomic_compare_exchange_strong_explicit], [], [], [[#include <st
 # Check for md5 implementation
 AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
+AC_ARG_ENABLE([blake3-simd],
+    AS_HELP_STRING([--disable-blake3-simd],[disable BLAKE3 SIMD acceleration and use the portable C backend]),
+    [enable_blake3_simd=$enableval],
+    [enable_blake3_simd=yes])
+
+# BLAKE3 SIMD support - determine which architecture-specific sources to build
+BLAKE3_OBJS="blake3/blake3.o blake3/blake3_dispatch.o blake3/blake3_portable.o"
+case "$host_cpu" in
+    x86_64)
+        if test "x$enable_blake3_simd" = "xno"; then
+            AC_DEFINE([BLAKE3_NO_SSE2], [1], [Disable BLAKE3 SSE2 support.])
+            AC_DEFINE([BLAKE3_NO_SSE41], [1], [Disable BLAKE3 SSE41 support.])
+            AC_DEFINE([BLAKE3_NO_AVX2], [1], [Disable BLAKE3 AVX2 support.])
+            AC_DEFINE([BLAKE3_NO_AVX512], [1], [Disable BLAKE3 AVX512 support.])
+            AC_MSG_CHECKING([for BLAKE3 SIMD support])
+            AC_MSG_RESULT([portable C (SIMD disabled)])
+        else
+            blake3_x86_simd=
+
+            AC_CACHE_CHECK([whether the assembler supports BLAKE3 SSE2 sources], [mp_cv_blake3_sse2_asm], [
+                rm -f conftest*
+                if ${CC} -c ${CPPFLAGS} ${CFLAGS} "${srcdir}/src/pextlib1.0/blake3/src/blake3_sse2_x86-64_unix.S" -o conftest.o >/dev/null 2>&1; then
+                    mp_cv_blake3_sse2_asm=yes
+                else
+                    mp_cv_blake3_sse2_asm=no
+                fi
+                rm -f conftest*
+            ])
+            if test "x$mp_cv_blake3_sse2_asm" = "xyes"; then
+                BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_sse2_x86-64_unix.o"
+                blake3_x86_simd="${blake3_x86_simd}SSE2/"
+            else
+                AC_DEFINE([BLAKE3_NO_SSE2], [1], [Disable BLAKE3 SSE2 support.])
+            fi
+
+            AC_CACHE_CHECK([whether the assembler supports BLAKE3 SSE4.1 sources], [mp_cv_blake3_sse41_asm], [
+                rm -f conftest*
+                if ${CC} -c ${CPPFLAGS} ${CFLAGS} "${srcdir}/src/pextlib1.0/blake3/src/blake3_sse41_x86-64_unix.S" -o conftest.o >/dev/null 2>&1; then
+                    mp_cv_blake3_sse41_asm=yes
+                else
+                    mp_cv_blake3_sse41_asm=no
+                fi
+                rm -f conftest*
+            ])
+            if test "x$mp_cv_blake3_sse41_asm" = "xyes"; then
+                BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_sse41_x86-64_unix.o"
+                blake3_x86_simd="${blake3_x86_simd}SSE41/"
+            else
+                AC_DEFINE([BLAKE3_NO_SSE41], [1], [Disable BLAKE3 SSE41 support.])
+            fi
+
+            AC_CACHE_CHECK([whether the assembler supports BLAKE3 AVX2 sources], [mp_cv_blake3_avx2_asm], [
+                rm -f conftest*
+                if ${CC} -c ${CPPFLAGS} ${CFLAGS} "${srcdir}/src/pextlib1.0/blake3/src/blake3_avx2_x86-64_unix.S" -o conftest.o >/dev/null 2>&1; then
+                    mp_cv_blake3_avx2_asm=yes
+                else
+                    mp_cv_blake3_avx2_asm=no
+                fi
+                rm -f conftest*
+            ])
+            if test "x$mp_cv_blake3_avx2_asm" = "xyes"; then
+                BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_avx2_x86-64_unix.o"
+                blake3_x86_simd="${blake3_x86_simd}AVX2/"
+            else
+                AC_DEFINE([BLAKE3_NO_AVX2], [1], [Disable BLAKE3 AVX2 support.])
+            fi
+
+            AC_CACHE_CHECK([whether the assembler supports BLAKE3 AVX512 sources], [mp_cv_blake3_avx512_asm], [
+                rm -f conftest*
+                if ${CC} -c ${CPPFLAGS} ${CFLAGS} "${srcdir}/src/pextlib1.0/blake3/src/blake3_avx512_x86-64_unix.S" -o conftest.o >/dev/null 2>&1; then
+                    mp_cv_blake3_avx512_asm=yes
+                else
+                    mp_cv_blake3_avx512_asm=no
+                fi
+                rm -f conftest*
+            ])
+            if test "x$mp_cv_blake3_avx512_asm" = "xyes"; then
+                BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_avx512_x86-64_unix.o"
+                blake3_x86_simd="${blake3_x86_simd}AVX512"
+            else
+                AC_DEFINE([BLAKE3_NO_AVX512], [1], [Disable BLAKE3 AVX512 support.])
+            fi
+
+            AC_MSG_CHECKING([for BLAKE3 SIMD support])
+            if test -n "$blake3_x86_simd"; then
+                blake3_x86_simd=`echo "$blake3_x86_simd" | sed 's:/$::'`
+                AC_MSG_RESULT([x86-64 assembly (${blake3_x86_simd})])
+            else
+                AC_MSG_RESULT([portable C (no supported x86-64 assembly)])
+            fi
+        fi
+        ;;
+    aarch64|arm64)
+        AC_MSG_CHECKING([for BLAKE3 SIMD support])
+        if test "x$enable_blake3_simd" = "xno"; then
+            AC_DEFINE([BLAKE3_USE_NEON], [0], [Disable BLAKE3 NEON support.])
+            AC_MSG_RESULT([portable C (SIMD disabled)])
+        else
+            BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_neon.o"
+            AC_MSG_RESULT([ARM NEON])
+        fi
+        ;;
+    *)
+        AC_DEFINE([BLAKE3_NO_SSE2], [1], [Disable BLAKE3 SSE2 support.])
+        AC_DEFINE([BLAKE3_NO_SSE41], [1], [Disable BLAKE3 SSE41 support.])
+        AC_DEFINE([BLAKE3_NO_AVX2], [1], [Disable BLAKE3 AVX2 support.])
+        AC_DEFINE([BLAKE3_NO_AVX512], [1], [Disable BLAKE3 AVX512 support.])
+        AC_MSG_CHECKING([for BLAKE3 SIMD support])
+        AC_MSG_RESULT([portable C])
+        ;;
+esac
+AC_SUBST(BLAKE3_OBJS)
+
 # Check for readline
 AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[enable readline support, if readline present]),
 [
