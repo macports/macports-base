@@ -296,6 +296,28 @@ AC_CHECK_DECLS([atomic_compare_exchange_strong_explicit], [], [], [[#include <st
 # Check for md5 implementation
 AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
+# BLAKE3 SIMD support - determine which architecture-specific sources to build
+AC_MSG_CHECKING([for BLAKE3 SIMD support])
+BLAKE3_OBJS="blake3/blake3.o blake3/blake3_dispatch.o blake3/blake3_portable.o"
+case "$host_cpu" in
+    x86_64)
+        BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_sse2_x86-64_unix.o blake3/blake3_sse41_x86-64_unix.o blake3/blake3_avx2_x86-64_unix.o blake3/blake3_avx512_x86-64_unix.o"
+        AC_MSG_RESULT([x86-64 assembly (SSE2/SSE41/AVX2/AVX512)])
+        ;;
+    aarch64|arm64)
+        BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_neon.o"
+        AC_MSG_RESULT([ARM NEON])
+        ;;
+    *)
+        AC_DEFINE([BLAKE3_NO_SSE2], [1], [Disable BLAKE3 SSE2 support.])
+        AC_DEFINE([BLAKE3_NO_SSE41], [1], [Disable BLAKE3 SSE41 support.])
+        AC_DEFINE([BLAKE3_NO_AVX2], [1], [Disable BLAKE3 AVX2 support.])
+        AC_DEFINE([BLAKE3_NO_AVX512], [1], [Disable BLAKE3 AVX512 support.])
+        AC_MSG_RESULT([portable C (no SIMD)])
+        ;;
+esac
+AC_SUBST(BLAKE3_OBJS)
+
 # Check for readline
 AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[enable readline support, if readline present]),
 [

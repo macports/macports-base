@@ -678,6 +678,7 @@ localstatedir_expanded
 MPCONFIGDIR_EXPANDED
 DARWINTRACE_SIP_WORKAROUND_PATH
 prefix_expanded
+BLAKE3_OBJS
 TRACEMODE_SUPPORT
 CPP
 LDFLAGS_LIBCURL
@@ -8035,6 +8036,40 @@ fi
  ;;
 esac
 fi
+
+
+# BLAKE3 SIMD support - determine which architecture-specific sources to build
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
+printf %s "checking for BLAKE3 SIMD support... " >&6; }
+BLAKE3_OBJS="blake3/blake3.o blake3/blake3_dispatch.o blake3/blake3_portable.o"
+case "$host_cpu" in
+    x86_64)
+        BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_sse2_x86-64_unix.o blake3/blake3_sse41_x86-64_unix.o blake3/blake3_avx2_x86-64_unix.o blake3/blake3_avx512_x86-64_unix.o"
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: x86-64 assembly (SSE2/SSE41/AVX2/AVX512)" >&5
+printf "%s\n" "x86-64 assembly (SSE2/SSE41/AVX2/AVX512)" >&6; }
+        ;;
+    aarch64|arm64)
+        BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_neon.o"
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ARM NEON" >&5
+printf "%s\n" "ARM NEON" >&6; }
+        ;;
+    *)
+
+printf "%s\n" "#define BLAKE3_NO_SSE2 1" >>confdefs.h
+
+
+printf "%s\n" "#define BLAKE3_NO_SSE41 1" >>confdefs.h
+
+
+printf "%s\n" "#define BLAKE3_NO_AVX2 1" >>confdefs.h
+
+
+printf "%s\n" "#define BLAKE3_NO_AVX512 1" >>confdefs.h
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: portable C (no SIMD)" >&5
+printf "%s\n" "portable C (no SIMD)" >&6; }
+        ;;
+esac
 
 
 # Check for readline
