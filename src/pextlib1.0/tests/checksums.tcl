@@ -1,9 +1,22 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
-# Test file for Pextlib's md5 and sha1 commands.
+# Test file for Pextlib's checksum commands.
 # Requires r/w access to /tmp/
 # Syntax:
 # tclsh checksums.tcl <Pextlib name>
+
+proc write_blake3_test_vector_file {path length} {
+    set chan [open $path w]
+    fconfigure $chan -translation binary -encoding binary
+
+    set hex {}
+    for {set i 0} {$i < $length} {incr i} {
+        append hex [format %02x [expr {$i % 251}]]
+    }
+
+    puts -nonewline $chan [binary format H* $hex]
+    close $chan
+}
 
 proc main {pextlibname} {
     load $pextlibname
@@ -11,7 +24,9 @@ proc main {pextlibname} {
     encoding system utf-8
 
     set testfile "/tmp/macports-pextlib-testchecksums"
+    set largetestfile "/tmp/macports-pextlib-testchecksums-large"
     file delete -force $testfile
+    file delete -force $largetestfile
 
     # create a dummy file.
     set chan [open $testfile w]
@@ -51,9 +66,21 @@ proc main {pextlibname} {
         puts {[sha256 file $testfile] != "424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5"}
         exit 1
     }
+    if {[blake3 file $testfile] != "756171f6ef52a9255a4d4ef375ace3338f5f175bf1089cdb0db17761f505cec2"} {
+        puts {[blake3 file $testfile] != "756171f6ef52a9255a4d4ef375ace3338f5f175bf1089cdb0db17761f505cec2"}
+        exit 1
+    }
+
+    # Exercise the upstream 1025-byte test vector to cross the chunk boundary.
+    write_blake3_test_vector_file $largetestfile 1025
+    if {[blake3 file $largetestfile] != "d00278ae47eb27b34faecf67b4fe263f82d5412916c1ffd97c8cb7fb814b8444"} {
+        puts {[blake3 file $largetestfile] != "d00278ae47eb27b34faecf67b4fe263f82d5412916c1ffd97c8cb7fb814b8444"}
+        exit 1
+    }
 
     # delete the file.
     file delete -force $testfile
+    file delete -force $largetestfile
 }
 
 main $argv

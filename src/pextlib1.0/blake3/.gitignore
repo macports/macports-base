@@ -1,0 +1,3 @@
+# Build artifacts (patched sources and object files)
+*.c
+*.o

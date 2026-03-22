@@ -337,7 +337,7 @@ test test_lint_checksum_multi_normal_w_filename {
                     rmd160  880690684f35730351dac2cdfd928a7610f69cce
                     size    34554
                   file2.tar
-                    sha256  2f686816f2a80e3lfn23jknf23jknp8d27ce4205a61ee422d56f8c5e8b4609e4
+                    sha256  2f686816f2a80e31fa23bcaf23bca98d27ce4205a61ee422d56f8c5e8b4609e4
                     rmd160  5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6
                     size    25644
                   file3.tar
@@ -414,6 +414,31 @@ test test_lint_checksum_malformed_rmd160 {
 
     return "lint_checksum_malformed_rmd160 passed"
 } -result "lint_checksum_malformed_rmd160 passed"
+
+test test_lint_checksum_malformed_blake3 {
+    Verify that we catch malformed BLAKE3 checksums
+} -body {
+    set checksum "checksum blake3 thisisnotcorrect"
+
+    set results [portlint::lint_checksum $checksum]
+
+    if {[llength $results] == 0} {
+        return "FAIL: invalid results returned: empty list"
+    }
+
+    set errors [lindex $results 0]
+    set warnings [lindex $results 1]
+
+    if {[llength $errors] == 0} {
+        return "FAIL: unexpectedly encountered no errors"
+    }
+
+    if {[lsearch -glob $errors *checksum*blake3*invalid*] == -1} {
+        return "FAIL: missing error about invalid checksum: $errors"
+    }
+
+    return "lint_checksum_malformed_blake3 passed"
+} -result "lint_checksum_malformed_blake3 passed"
 
 test test_lint_checksum_malformed_size {
     Verify that we catch malformed size checksum fields
