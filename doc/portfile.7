@@ -1267,6 +1267,44 @@ Note that any branch besides HEAD should be prefixed by
 git.branch 72bf1c8
 git.branch origin/next
 .Ed
+.It Ic git.submodule_paths
+If empty,
+.Ic port
+passes
+.Ic --recurse-submodules
+to
+.Ic git clone
+and initialises all submodules recursively. If set, each list element is
+passed as a separate
+.Ic --recurse-submodules=\*(Ltpathspec\*(Gt
+argument to limit which submodules are initialised.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+git.submodule_paths {deps/libfoo plugins/bar}
+.Ed
+.It Ic git.shallow_submodules
+When set to
+.Em yes ,
+pass
+.Ic --shallow-submodules
+to
+.Ic git clone .
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl git.shallow_submodules yes
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.

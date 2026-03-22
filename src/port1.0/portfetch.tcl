@@ -53,7 +53,7 @@ options master_sites patch_sites distfiles patchfiles \
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
-    git.cmd git.url git.branch \
+    git.cmd git.url git.branch git.submodule_paths git.shallow_submodules \
     hg.cmd hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
@@ -96,6 +96,8 @@ default svn.post_args {}
 default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
 default git.branch {}
+default git.submodule_paths {}
+default git.shallow_submodules no
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
@@ -394,14 +396,25 @@ proc portfetch::svnfetch {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global worksrcpath patchfiles \
-           git.url git.branch git.cmd
+           git.url git.branch git.cmd git.submodule_paths git.shallow_submodules
 
-    set options "--progress"
+    set clone_args [list ${git.cmd} clone --progress]
+    if {[llength ${git.submodule_paths}] > 0} {
+        foreach pathspec ${git.submodule_paths} {
+            lappend clone_args "--recurse-submodules=${pathspec}"
+        }
+    } else {
+        lappend clone_args --recurse-submodules
+    }
+    if {${git.shallow_submodules}} {
+        lappend clone_args --shallow-submodules
+    }
     if {${git.branch} eq ""} {
         # if we're just using HEAD, we can make a shallow repo
-        append options " --depth=1"
+        lappend clone_args --depth=1
     }
-    set cmdstring "${git.cmd} clone $options ${git.url} [shellescape ${worksrcpath}] 2>&1"
+    lappend clone_args ${git.url} ${worksrcpath}
+    set cmdstring "[join [lmap arg $clone_args {shellescape $arg}] " "] 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
@@ -409,7 +422,8 @@ proc portfetch::gitfetch {args} {
 
     if {${git.branch} ne ""} {
         set env "GIT_DIR=[shellescape ${worksrcpath}/.git] GIT_WORK_TREE=[shellescape ${worksrcpath}]"
-        set cmdstring "$env ${git.cmd} checkout -q ${git.branch} 2>&1"
+        set checkout_args [list ${git.cmd} checkout -q --recurse-submodules ${git.branch}]
+        set cmdstring "$env [join [lmap arg $checkout_args {shellescape $arg}] " "] 2>&1"
         ui_debug "Executing $cmdstring"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Git checkout failed"]
