@@ -51,6 +51,10 @@ proc main {pextlibname} {
         puts {[sha256 file $testfile] != "424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5"}
         exit 1
     }
+    if {[blake3 file $testfile] != "756171f6ef52a9255a4d4ef375ace3338f5f175bf1089cdb0db17761f505cec2"} {
+        puts {[blake3 file $testfile] != "756171f6ef52a9255a4d4ef375ace3338f5f175bf1089cdb0db17761f505cec2"}
+        exit 1
+    }
 
     # delete the file.
     file delete -force $testfile

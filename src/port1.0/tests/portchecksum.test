@@ -105,6 +105,24 @@ test calc_sha256 {
     file delete -force $pwd/file
 } -result "Calc sha256 successful."
 
+test calc_blake3 {
+    Calculate blake3 unit test.
+} -body {
+    set fd [open $pwd/file w+]
+    puts $fd "test.file"
+    close $fd
+
+    set res [portchecksum::calc_blake3 $pwd/file]
+    if {$res != "bb25f9a3571c6a1580e33ea64b34124c93fed104092497a91450c21a66ee57e3"} {
+        return "FAIL: unexpected blake3"
+    }
+    return "Calc blake3 successful."
+
+} -cleanup {
+    file delete -force $pwd/file
+} -result "Calc blake3 successful."
+
+
 test verify_checksum_format_md5 {
     Test that we properly verify an MD5 checksum
 } -body {
@@ -144,6 +162,16 @@ test verify_checksum_format_sha256 {
     }
     return "Verify sha256 successful"
 } -result "Verify sha256 successful"
+
+test verify_checksum_format_blake3 {
+    Test that we properly verify a BLAKE3 checksum
+} -body {
+    set checksum "bb25f9a3571c6a1580e33ea64b34124c93fed104092497a91450c21a66ee57e3"
+    if {[portchecksum::verify_checksum_format "blake3" $checksum] != 1} {
+        return "FAIL: did not verify $checksum as blake3"
+    }
+    return "Verify blake3 successful"
+} -result "Verify blake3 successful"
 
 test verify_unknown_checksum_format {
     Test that we respond as expected to an unknown checksum format
