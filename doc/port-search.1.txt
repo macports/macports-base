@@ -98,6 +98,12 @@ Field selection
     Test the search string against the path of the directory that contains the
     port.
 
+*--portgroup*, *--portgroups*::
+    Search for ports that use a given PortGroup. For example, *port search
+    --portgroup python* will print all ports using the python PortGroup. There
+    is also a pseudo-portname selector *portgroup:python* available for use
+    with man:port-echo[1] and other commands.
+
 *--variant*, *--variants*::
     Search for variant names.
 

@@ -940,7 +940,69 @@ test GetVCSUpdateCmd-none {
 
 # test updatevcs
 # test mportsync
-# test mportsearch
+
+test mportsearch_portgroups {
+    Test mportsearch with portgroups field.
+} -setup {
+    # Create a temporary source directory with a crafted PortIndex
+    set tmpdir [makeDirectory mportsearch_test_source $pwd/tmpdir]
+    set portinfo1 {description {A test port} portgroups {{python 1.0} {github 1.0}} homepage https://example.com epoch 0 platforms darwin name testport1 maintainers nomaintainer license MIT long_description {A test port} categories devel version 1.0 revision 0 portdir test/testport1}
+    set portinfo2 {description {Another test port} portgroups {{golang 1.0}} homepage https://example.com epoch 0 platforms darwin name testport2 maintainers nomaintainer license BSD long_description {Another test port} categories net version 2.0 revision 0 portdir test/testport2}
+    set portinfo3 {description {Port without portgroups} homepage https://example.com epoch 0 platforms darwin name testport3 maintainers nomaintainer license GPL-2 long_description {Port without portgroups} categories sysutils version 3.0 revision 0 portdir test/testport3}
+
+    set fd [open $tmpdir/PortIndex w]
+    puts $fd "testport1 [expr {[string length $portinfo1] + 1}]"
+    puts $fd $portinfo1
+    puts $fd "testport2 [expr {[string length $portinfo2] + 1}]"
+    puts $fd $portinfo2
+    puts $fd "testport3 [expr {[string length $portinfo3] + 1}]"
+    puts $fd $portinfo3
+    close $fd
+
+    # Save original sources and set up test source
+    set save_sources $macports::sources
+    set save_prefix_map $macports::porturl_prefix_map
+    set macports::sources [list "file://${tmpdir}"]
+    dict set macports::porturl_prefix_map "file://${tmpdir}" "file://${tmpdir}"
+} -body {
+    # Search for ports using the python portgroup
+    set results [mportsearch "*python*" no glob portgroups]
+    if {[llength $results] != 2} {
+        return "FAIL: expected 2 results (name + info), got [llength $results]"
+    }
+    if {[lindex $results 0] ne "testport1"} {
+        return "FAIL: expected testport1, got [lindex $results 0]"
+    }
+
+    # Search for ports using the golang portgroup
+    set results [mportsearch "*golang*" no glob portgroups]
+    if {[llength $results] != 2} {
+        return "FAIL: expected 2 results for golang, got [llength $results]"
+    }
+    if {[lindex $results 0] ne "testport2"} {
+        return "FAIL: expected testport2, got [lindex $results 0]"
+    }
+
+    # Search for ports using the github portgroup (should match testport1)
+    set results [mportsearch "*github*" no glob portgroups]
+    if {[llength $results] != 2} {
+        return "FAIL: expected 2 results for github, got [llength $results]"
+    }
+
+    # Search for a portgroup that doesn't exist
+    set results [mportsearch "*nonexistent*" no glob portgroups]
+    if {[llength $results] != 0} {
+        return "FAIL: expected 0 results for nonexistent, got [llength $results]"
+    }
+
+    return "mportsearch portgroups successful."
+} -cleanup {
+    set macports::sources $save_sources
+    set macports::porturl_prefix_map $save_prefix_map
+    file delete -force $tmpdir
+} -result "mportsearch portgroups successful."
+
+
 # test mportlookup
 # test mportlistall
 # test _mports_load_quickindex
