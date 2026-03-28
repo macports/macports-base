@@ -86,6 +86,13 @@ proc portlivecheck::_livecheck_main {{async no}} {
            homepage portpath \
            master_sites name subport
 
+    if {${livecheck.type} eq "none"} {
+        if {!$async} {
+            ui_debug "livecheck.type is none"
+        }
+        return 0
+    }
+
     variable async_job
     variable tempfilename
 
@@ -324,6 +331,7 @@ proc portlivecheck::_livecheck_main {{async no}} {
             }
         }
         "none" {
+            ui_debug "livecheck.type is none"
         }
         default {
             ui_error "unknown livecheck.type ${livecheck.type}"
