@@ -525,7 +525,9 @@ proc portarchivefetch::archivefetch_async_start {logid} {
 proc portarchivefetch::_async_cleanup {} {
     variable async_job
     if {[info exists async_job]} {
-        curlwrap_async_cancel [lindex $async_job 0]
+        lassign $async_job jobid tmpfiles
+        curlwrap_async_cancel $jobid
+        file delete {*}$tmpfiles
         unset async_job
     }
 }
