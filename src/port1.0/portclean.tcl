@@ -273,6 +273,9 @@ proc portclean::clean_archive {args} {
                     ui_debug "$::errorInfo"
                     ui_error "$result"
                 }
+                if {$archivetype eq "TMP"} {
+                    set path [file rootname $path]
+                }
                 foreach sigtype {rmd160 sig} {
                     if {[file isfile ${path}.${sigtype}]} {
                         ui_debug "Removing archive signature: ${path}.${sigtype}"
