@@ -39,10 +39,48 @@ set org.macports.extract [target_new org.macports.extract portextract::extract_m
 target_provides ${org.macports.extract} extract
 target_requires ${org.macports.extract} main fetch checksum
 target_prerun ${org.macports.extract} portextract::extract_start
+target_postrun ${org.macports.extract} portextract::file_extract_execute
 
 namespace eval portextract {
     variable all_use_options [list use_7z use_bzip2 use_dmg use_lzip use_lzma use_tar use_xz use_zip]
     variable dmg_mount {/tmp/mports.XXXXXXXX}
+
+    # Ordered mapping of file suffixes to extraction type names.
+    variable suffix_to_type {
+        .tar.gz     gzip
+        .tgz        gzip
+        .tar.bz2    bzip2
+        .tbz        bzip2
+        .tbz2       bzip2
+        .tar.xz     xz
+        .txz        xz
+        .tar.lzma   lzma
+        .tlz        lzma
+        .tar.lz     lzip
+        .tar.zst    zstd
+        .tzst       zstd
+        .tar.Z      compress
+        .tZ         compress
+        .taZ        compress
+        .tar        tar
+        .zip        zip
+        .7z         7z
+        .dmg        dmg
+    }
+
+    # Mapping of extraction type names to port dependency spec.
+    variable type_to_dep {
+        bzip2       bin:bzip2:bzip2
+        xz          bin:xz:xz
+        lzma        bin:lzma:xz
+        lzip        bin:lzip:lzip
+        zstd        bin:zstd:zstd
+        zip         bin:unzip:unzip
+        7z          bin:7za:p7zip
+    }
+
+    # Queue of file_extract arg-lists to be processed during extract phase.
+    variable file_extract_queue {}
 }
 
 # define options
@@ -199,6 +237,326 @@ proc portextract::disttagclean {list} {
         lappend val [getdistname $name]
     }
     return $val
+}
+
+# portextract::find_archive --
+#     Locate an archive file by name.  Absolute paths are checked
+#     directly; relative names are searched in filespath then distpath.
+#
+# Arguments:
+#     name - Filename or absolute path to look for.
+#
+# Returns:
+#     The resolved absolute path if found, or an empty string.
+proc portextract::find_archive {name} {
+    global filespath distpath
+    if {[file pathtype $name] eq "absolute"} {
+        if {[file exists $name]} {
+            return $name
+        }
+    } elseif {[info exists filespath] && [file exists [file join $filespath $name]]} {
+        return [file join $filespath $name]
+    } elseif {[info exists distpath] && [file exists [file join $distpath $name]]} {
+        return [file join $distpath $name]
+    }
+    return ""
+}
+
+# portextract::detect_type --
+#     Determine the extraction type for a file from its suffix.
+#
+# Arguments:
+#     filename - Filename or path to examine.
+#
+# Returns:
+#     An extraction type name (e.g. "gzip", "bzip2", "xz", "zstd",
+#     "tar", "zip", "7z", "dmg"). Matching is case-insensitive.
+#
+# Errors:
+#     Throws if the suffix is not recognised.
+proc portextract::detect_type {filename} {
+    variable suffix_to_type
+    foreach {suffix type} $suffix_to_type {
+        if {[string match -nocase *$suffix $filename]} {
+            return $type
+        }
+    }
+    return -code error "file_extract: unsupported file type: $filename"
+}
+
+# portextract::add_dep_for_type --
+#     Append a depends_extract entry for the given extraction type,
+#     if one is needed.  Types not listed in type_to_dep are silently
+#     skipped.
+#
+# Arguments:
+#     type - Extraction type name as returned by detect_type.
+proc portextract::add_dep_for_type {type} {
+    variable type_to_dep
+    if {[dict exists $type_to_dep $type]} {
+        depends_extract-append [dict get $type_to_dep $type]
+    }
+}
+
+# portextract::extract_dmg --
+#     Extract a DMG file by mounting it, copying its contents into
+#     a ${distname} subdirectory of the target directory, and
+#     detaching.  Handles privilege escalation and chownAsRoot.
+#
+# Arguments:
+#     filepath - Absolute path to the DMG file.
+#     dirname  - Absolute path to the target directory.
+#
+# Errors:
+#     Throws if a required binary cannot be found or extraction fails.
+#     Privileges are always dropped before propagating errors.
+proc portextract::extract_dmg {filepath dirname} {
+    global distname
+
+    set hdiutil [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
+    set find_cmd [findBinary find ${portutil::autoconf::find_path}]
+    set cpio_cmd [findBinary cpio ${portutil::autoconf::cpio_path}]
+    set rmdir_cmd [findBinary rmdir ${portutil::autoconf::rmdir_path}]
+
+    set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
+
+    set cmdstring "cd [shellescape $dirname] && $hdiutil attach [shellescape $filepath] -private -readonly -nobrowse -mountpoint [shellescape $dmg_mount] && cd [shellescape $dmg_mount] && $find_cmd . -depth -perm -+r -print0 | $cpio_cmd -0 -p -d -m -u [shellescape $dirname/$distname]; status=\$?; cd / && $hdiutil detach [shellescape $dmg_mount] && $rmdir_cmd [shellescape $dmg_mount]; exit \$status"
+
+    elevateToRoot {extract dmg}
+    set code [catch {system $cmdstring} result]
+    dropPrivileges
+
+    if {$code} {
+        return -code error $result
+    }
+
+    chownAsRoot $dirname
+}
+
+# portextract::build_extract_command --
+#     Build a shell command string that extracts an archive of the
+#     given type into the given directory.
+#
+# Arguments:
+#     type     - Extraction type name as returned by detect_type (e.g.
+#                "gzip", "bzip2", "xz", "lzma", "lzip", "zstd",
+#                "compress", "tar", "zip", "7z").  DMG is handled
+#                separately by extract_dmg.
+#     filepath - Absolute path to the archive file.
+#     dirname  - Absolute path to the target directory.
+#
+# Returns:
+#     A shell command string suitable for [system].
+#
+# Errors:
+#     Throws if a required binary cannot be found or the type is
+#     unknown.
+proc portextract::build_extract_command {type filepath dirname} {
+    set tar [findBinary tar ${portutil::autoconf::tar_command}]
+    set escaped_file [shellescape $filepath]
+    set escaped_dir [shellescape $dirname]
+
+    switch -- $type {
+        gzip - compress {
+            set cmd [findBinary gzip ${portutil::autoconf::gzip_path}]
+        }
+        bzip2 {
+            set cmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
+        }
+        xz {
+            set cmd [findBinary xz ${portutil::autoconf::xz_path}]
+        }
+        lzma {
+            set cmd [findBinary lzma ${portutil::autoconf::lzma_path}]
+        }
+        lzip {
+            set cmd [binaryInPath lzip]
+        }
+        zstd {
+            set cmd [binaryInPath zstd]
+        }
+        tar {
+            return "cd $escaped_dir && $tar -xf $escaped_file"
+        }
+        zip {
+            set cmd [findBinary unzip ${portutil::autoconf::unzip_path}]
+            return "$cmd -q $escaped_file -d $escaped_dir"
+        }
+        7z {
+            set cmd [binaryInPath 7za]
+            return "cd $escaped_dir && $cmd x $escaped_file"
+        }
+        default {
+            return -code error "file_extract: unknown type: $type"
+        }
+    }
+
+    return "cd $escaped_dir && $cmd -dc $escaped_file | $tar -xf -"
+}
+
+# file_extract --
+#     Register one or more archive files for extraction during the
+#     extract phase.  The archive format is automatically detected
+#     from the file suffix.
+#
+#     This is the user-facing command intended for use in Portfiles.
+#     It validates options, registers any required extraction
+#     dependencies, and queues the request for later execution by
+#     file_extract_execute (which runs as a target_postrun on the
+#     extract target).
+#
+# Usage:
+#     file_extract ?-dirname dir? ?-type type? ?--? filename ...
+#
+# Options:
+#     -dirname dir  - Extract into dir.  Defaults to ${workpath}.
+#     -type type    - Force an extraction type instead of detecting it
+#                     from the suffix.  Applies to all files in the
+#                     same invocation.
+#     --            - End of options.
+#
+# Filename resolution:
+#     Absolute paths are used as-is.  Relative names are looked up
+#     first in ${filespath}, then in ${distpath}. Distfile tags are
+#     ignored for lookup and suffix detection.
+#
+# Notes:
+#     The destination directory is created if it does not already exist.
+#     After extraction, the target directory is chowned to
+#     ${macportsuser}.  DMG extraction additionally elevates to
+#     root for hdiutil and extracts into a ${distname} subdirectory.
+#
+# Errors:
+#     Throws at parse time if option syntax is invalid, no filenames
+#     are given, or a file suffix is unrecognised (and -type was not
+#     given).  Throws at extract time if a file cannot be found, the
+#     destination directory cannot be created, or extraction fails.
+#
+# Examples:
+#     file_extract foo.tar.xz
+#     file_extract -dirname ${worksrcpath}/extra extra-data.tar.gz
+#     file_extract -type gzip renamed-archive.bin
+#     file_extract a.tar.gz b.zip c.tar.xz
+proc file_extract {args} {
+    portextract::file_extract_setup {*}$args
+}
+
+# portextract::file_extract_setup --
+#     Parse and validate file_extract options, register extraction
+#     dependencies, and queue the request for the extract phase.
+#     Called at Portfile parse time via the file_extract command.
+#
+# Arguments:
+#     args - The arguments as passed to file_extract.
+proc portextract::file_extract_setup {args} {
+    global workpath
+
+    set dirname ""
+    set type ""
+
+    while {[string match "-*" [lindex $args 0]]} {
+        set arg [string range [lindex $args 0] 1 end]
+        set args [lrange $args 1 end]
+        switch -- $arg {
+            dirname {
+                set dirname [lindex $args 0]
+                set args [lrange $args 1 end]
+                if {$dirname eq ""} {
+                    return -code error "file_extract: option requires an argument -- dirname"
+                }
+            }
+            type {
+                set type [lindex $args 0]
+                set args [lrange $args 1 end]
+                if {$type eq ""} {
+                    return -code error "file_extract: option requires an argument -- type"
+                }
+            }
+            - break
+            default {
+                return -code error "file_extract: illegal option -- $arg"
+            }
+        }
+    }
+
+    if {[llength $args] == 0} {
+        return -code error "file_extract: no filename specified"
+    }
+
+    if {$dirname eq ""} {
+        set dirname $workpath
+    }
+
+    # Register dependencies and validate type for each file now,
+    # so errors surface at parse time rather than extract time.
+    foreach filename $args {
+        set lookup_name [getdistname $filename]
+        if {$type ne ""} {
+            set filetype $type
+        } else {
+            set filetype [portextract::detect_type $lookup_name]
+        }
+        portextract::add_dep_for_type $filetype
+    }
+
+    # Queue the fully parsed request for extract-phase execution.
+    variable file_extract_queue
+    lappend file_extract_queue [list $dirname $type $args]
+}
+
+# portextract::file_extract_execute --
+#     Process the file_extract queue.  Registered as a target_postrun
+#     on the extract target so it runs after extract_main (or any
+#     user-provided extract override) completes.
+#
+# Arguments:
+#     args - Ignored (required by target_postrun signature).
+proc portextract::file_extract_execute {args} {
+    global UI_PREFIX
+    variable file_extract_queue
+
+    while {[llength $file_extract_queue] > 0} {
+        set entry [lindex $file_extract_queue 0]
+        set file_extract_queue [lrange $file_extract_queue 1 end]
+
+        lassign $entry dirname type filenames
+
+        foreach filename $filenames {
+            set lookup_name [getdistname $filename]
+
+            set filepath [portextract::find_archive $lookup_name]
+            if {$filepath eq ""} {
+                return -code error "file_extract: could not find $filename"
+            }
+
+            if {$type ne ""} {
+                set filetype $type
+            } else {
+                set filetype [portextract::detect_type $lookup_name]
+            }
+
+            if {[file exists $dirname]} {
+                set dir_created no
+            } else {
+                set dir_created yes
+            }
+            file mkdir $dirname
+
+            ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s (%s)"] $lookup_name $filetype]"
+            if {$dir_created} {
+                ui_debug "file_extract: created directory $dirname"
+            }
+            ui_debug "file_extract: extracting $filepath (type: $filetype) to $dirname"
+
+            if {$filetype eq "dmg"} {
+                portextract::extract_dmg $filepath $dirname
+            } else {
+                set cmdstring [portextract::build_extract_command $filetype $filepath $dirname]
+                system $cmdstring
+                chownAsRoot $dirname
+            }
+        }
+    }
 }
 
 proc portextract::extract_start {args} {
