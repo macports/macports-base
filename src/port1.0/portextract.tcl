@@ -93,6 +93,10 @@ proc portextract::method_for_suffix {filename} {
         *.zip {
             return zip
         }
+        *.tzst -
+        *.tar.zst {
+            return zstd
+        }
         *.tlz -
         *.tar.lzma {
             return lzma
@@ -135,6 +139,9 @@ proc portextract::get_extract_cmd {{method {}}} {
         zip {
             return [findBinary unzip ${portutil::autoconf::unzip_path}]
         }
+        zstd {
+            return [binaryInPath zstd]
+        }
         lzma {
             return [findBinary lzma ${portutil::autoconf::lzma_path}]
         }
@@ -164,7 +171,8 @@ proc portextract::get_extract_pre_args {{method {}}} {
         gzip -
         lzip -
         lzma -
-        xz {
+        xz -
+        zstd {
             return {-dc}
         }
         zip {
@@ -193,7 +201,8 @@ proc portextract::get_extract_post_args {{method {}}} {
         gzip -
         lzip -
         lzma -
-        xz {
+        xz -
+        zstd {
             return "| ${portutil::autoconf::tar_command} -xf -"
         }
         zip {
@@ -280,6 +289,9 @@ proc portextract::add_extract_deps {} {
             }
             zip {
                 set depspec bin:unzip:unzip
+            }
+            zstd {
+                set depspec bin:zstd:zstd
             }
             lzip {
                 set depspec bin:lzip:lzip
