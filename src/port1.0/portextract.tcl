@@ -302,13 +302,7 @@ port::register_callback portextract::add_extract_deps
 # Helper function for portextract.tcl that strips all tag names from a list
 # Used to clean ${distfiles} for setting the ${extract.only} default
 proc portextract::disttagclean {list} {
-    if {$list eq ""} {
-        return $list
-    }
-    foreach name $list {
-        lappend val [getdistname $name]
-    }
-    return $val
+    return [lmap fname $list {getdistname $fname}]
 }
 
 proc portextract::extract_start {args} {
