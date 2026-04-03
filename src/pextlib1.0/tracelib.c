@@ -85,7 +85,7 @@ static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *
 #endif /* defined(HAVE_PEERPID_LIST) */
 
 
-static char *name;
+static char *name = NULL;
 static char *sandbox;
 static size_t sandboxLength;
 static char **depends = NULL;
@@ -685,6 +685,11 @@ static void dep_check(int sock, char *path) {
 static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     struct sockaddr_un sun;
 
+    if (name == NULL) {
+        Tcl_SetResult(in, "tracelib opensocket called without first calling tracelib setname", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
     if (-1 == (sock = socket(PF_LOCAL, SOCK_STREAM, 0))) {
         return error2tcl("socket: ", errno, in);
     }
@@ -697,6 +702,12 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
         close(sock);
         sock = -1;
         return error2tcl("bind: ", err, in);
+    }
+
+    if (-1 == chmod(name, 0777)) {
+        /* We create this socket as root, but want non-root users to be able to
+         * connect. */
+        return error2tcl("chmod: ", errno, in);
     }
 
     if (-1 == listen(sock, SOMAXCONN)) {
