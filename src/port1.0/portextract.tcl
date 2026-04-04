@@ -49,7 +49,7 @@ namespace eval portextract {
 
 # define options
 options extract.only extract.mkdir extract.rename extract.suffix extract.asroot \
-        {*}${portextract::all_use_options} extract.methods
+        {*}${portextract::all_use_options} extract.methods extract.add_deps
 commands extract
 
 # Set up defaults
@@ -66,6 +66,7 @@ default extract.suffix .tar.gz
 default extract.methods {}
 default extract.mkdir no
 default extract.rename no
+default extract.add_deps yes
 
 foreach _extract_use_option ${portextract::all_use_options} {
     option_proc ${_extract_use_option} portextract::set_extract_type
@@ -270,7 +271,10 @@ proc portextract::find_methods {} {
 port::register_callback portextract::find_methods
 
 proc portextract::add_extract_deps {} {
-    global depends_extract
+    global depends_extract extract.add_deps
+    if {!${extract.add_deps}} {
+        return
+    }
     variable methods_used
     if {![info exists methods_used]} {
         find_methods
