@@ -312,8 +312,9 @@ proc portarchivefetch::fetchfiles {{async no} args} {
     }
     set sorted no
 
-    set existing_archive [find_portarchive_path]
-    if {$existing_archive eq "" && ![tbool force_archive_refresh]
+    set include_installed [expr {![tbool force_archive_refresh]}]
+    set existing_archive [find_portarchive_path $include_installed]
+    if {$existing_archive eq "" && $include_installed
         && [file isdirectory [file rootname [get_portimage_path]]]} {
         set existing_archive yes
     }
@@ -496,8 +497,9 @@ proc portarchivefetch::archives_present {} {
     global archivefetch.fulldestpath force_archive_refresh
     variable archivefetch_urls
 
-    set existing_archive [find_portarchive_path]
-    if {$existing_archive eq "" && ![tbool force_archive_refresh]
+    set include_installed [expr {![tbool force_archive_refresh]}]
+    set existing_archive [find_portarchive_path $include_installed]
+    if {$existing_archive eq "" && $include_installed
         && [file isdirectory [file rootname [get_portimage_path]]]} {
         set existing_archive yes
     }

@@ -2727,16 +2727,13 @@ proc supportedArchiveTypes {} {
 }
 
 # return path to a downloaded or installed archive for this port
-proc find_portarchive_path {} {
-    global portdbpath subport version revision portvariants force_archive_refresh
-    set installed 0
-    if {[registry_exists $subport $version $revision $portvariants]} {
-        set installed 1
-    }
+proc find_portarchive_path {{include_installed 1}} {
+    global portdbpath subport version revision portvariants
+    set installed [expr {$include_installed && [registry_exists $subport $version $revision $portvariants]}]
     set archiverootname [file rootname [get_portimage_name]]
     foreach unarchive.type [supportedArchiveTypes] {
         set fullarchivename "${archiverootname}.${unarchive.type}"
-        if {$installed && ![tbool force_archive_refresh]} {
+        if {$installed} {
             set fullarchivepath [file join $portdbpath software $subport $fullarchivename]
         } else {
             set fullarchivepath [file join $portdbpath incoming/verified $fullarchivename]
@@ -3529,7 +3526,7 @@ proc portutil::_eval_archive_available {{async no}} {
         return
     }
 
-    if {[find_portarchive_path] ne ""} {
+    if {[find_portarchive_path 0] ne ""} {
         set archive_available_result 1
         return
     }
