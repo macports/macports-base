@@ -5779,7 +5779,7 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         if {!$source_only} {
                             if {[catch {mportexec $mport archivefetch} result]} {
                                 ui_debug $::errorInfo
-                            } elseif {$result == 0 && [$workername eval [list find_portarchive_path]] ne ""} {
+                            } elseif {$result == 0 && [$workername eval [list find_portarchive_path 0]] ne ""} {
                                 set destroot_needed 0
                             }
                         }
