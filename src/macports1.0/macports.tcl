@@ -3336,7 +3336,7 @@ proc macports::_upgrade_mport_deps {mport target} {
             variable ui_prefix
             set portname [dict get $portinfo name]
             if {!$msg_printed} {
-                ui_msg "$ui_prefix Upgrading already installed dependencies of $portname"
+                ui_msg "$ui_prefix Upgrading dependencies of $portname"
                 set msg_printed 1
             }
             set status [macports::upgrade_multi $depnames_to_upgrade $depdict $options]
