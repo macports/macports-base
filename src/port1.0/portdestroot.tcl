@@ -158,7 +158,6 @@ proc portdestroot::destroot_finish {args} {
 
     # Prevent overlinking due to glibtool .la files: https://trac.macports.org/ticket/38010
     ui_debug "Fixing glibtool .la files in destroot for ${subport}"
-    set la_file_list [list]
     if {[getuid] == 0} {
         set macports_uid [name_to_uid $macportsuser]
         set macports_gid [uname_to_gid $macportsuser]
@@ -204,23 +203,24 @@ proc portdestroot::destroot_finish {args} {
                 set checkpath $fullpath
             }
             # Make sure it is from glibtool ... "a libtool library file" will appear in the first line
-            if {![catch {set fp [open $checkpath]}]} {
+            set is_la_file 0
+            if {![catch {open $checkpath} fp]} {
                 if {[gets $fp line] > 0 && [string first "a libtool library file" $line] != -1} {
-                    lappend la_file_list $fullpath
+                    set is_la_file 1
                 }
+                catch {close $fp}
             } else {
                 ui_debug "Failed to open $checkpath"
             }
-            catch {close $fp}
-        }
-    }
-    foreach fullpath $la_file_list {
-        if {${destroot.delete_la_files}} {
-            ui_debug "Removing [file tail $fullpath]"
-            file delete -force ${fullpath}
-        } elseif {[file type $fullpath] eq "file"} {
-            ui_debug "Clearing dependency_libs in [file tail $fullpath]"
-            reinplace -q "/dependency_libs/ s/'.*'/''/" ${fullpath}
+            if {$is_la_file} {
+                if {${destroot.delete_la_files}} {
+                    ui_debug "Removing [file tail $fullpath]"
+                    file delete ${fullpath}
+                } elseif {$statinfo(type) eq "file"} {
+                    ui_debug "Clearing dependency_libs in [file tail $fullpath]"
+                    reinplace -q "/dependency_libs/ s/'.*'/''/" ${fullpath}
+                }
+            }
         }
     }
 
