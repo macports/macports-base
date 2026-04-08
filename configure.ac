@@ -400,7 +400,7 @@ if test "$CRITCL_PLATFORMS" = "" -a "$OS_PLATFORM" = darwin; then
 fi
 CRITCL_PLATFORMS="$(echo "$CRITCL_PLATFORMS" | \
     sed -E -e 's/macosx-a(rm|arch)64/macosx-aarch64 macosx-arm macosx-arm64/' \
-        -e 's/macosx-i[3-6]86/macosx-ix86/' \
+        -e 's/macosx-i[[3-6]]86/macosx-ix86/' \
         -e 's/macosx-ppc/macosx-powerpc/' \
         | tr '\n' ' ')"
 AC_SUBST(CRITCL_PLATFORMS)
