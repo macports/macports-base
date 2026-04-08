@@ -4079,6 +4079,12 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+# Remove automatically added C standard option
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking CC without -std" >&5
+printf %s "checking CC without -std... " >&6; }
+CC=$(echo "$CC" | sed -E "s/[[:space:]]+-std=(gnu|c)$(echo "$ac_prog_cc_stdc" | tr -d c)//")
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $CC" >&5
+printf '%s\n' "$CC" >&6; }
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
 printf %s "checking for grep that handles long lines and -e... " >&6; }
 if test ${ac_cv_path_GREP+y}
