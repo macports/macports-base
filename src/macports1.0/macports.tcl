@@ -7212,13 +7212,15 @@ proc macports::compare_pingtimes {a b} {
     }
     lassign [get_pingtime [dict get $a_parts host]] a_status a_pingtime
     lassign [get_pingtime [dict get $b_parts host]] b_status b_pingtime
-    if {($a_status != 1 || $b_status != 1) && !($a_status == 0 && $b_status == 0)} {
-        # not both stale and at least one not cached and fresh, best status wins
-        return [expr {$b_status - $a_status}]
+    if {$a_pingtime ne {} && $b_pingtime ne {}} {
+        # compare actual ping times (make sure to return an integer)
+        set result [expr {round($a_pingtime - $b_pingtime)}]
+        if {$result != 0} {
+            return $result
+        }
     }
-
-    # compare actual ping times (make sure to return an integer)
-    return [expr {round($a_pingtime - $b_pingtime)}]
+    # for ties or unknown times, status is all that counts
+    return [expr {$b_status - $a_status}]
 }
 
 # Deferred loading of compiler version cache
