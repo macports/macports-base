@@ -49,7 +49,7 @@ const char* snapshot_props[] = {
 
 /* ${snapshot} id */
 static int snapshot_obj_id(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int index;
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?value?");
@@ -69,7 +69,7 @@ static int snapshot_obj_id(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
 
 /* ${snapshot} prop */
 static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int index;
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?value?");
@@ -100,7 +100,7 @@ static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int obj
 
 /* ${snapshot} ports */
 static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int index;
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?value?");
@@ -157,7 +157,7 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
-            Tcl_Obj* CONST objv[]);
+            Tcl_Obj* const objv[]);
 } snapshot_obj_cmd_type;
 
 static snapshot_obj_cmd_type snapshot_cmds[] = {
@@ -179,7 +179,7 @@ static snapshot_obj_cmd_type snapshot_cmds[] = {
  * chance to touch it.
  */
 int snapshot_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int cmd_index;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");

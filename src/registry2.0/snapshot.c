@@ -59,7 +59,7 @@ void delete_snapshot(ClientData clientData) {
  * registry::snapshot create note
  * note is required
  */
-static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "create_snapshot ?note?");
@@ -85,7 +85,7 @@ static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
  * registry::snapshot get snapshot_id
  * snapshot_id is required
  */
-static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "get_by_id ?snapshot_id?");
@@ -110,7 +110,7 @@ static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 /*
  * registry::snapshot get_last
  */
-static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "get_last");
@@ -145,7 +145,7 @@ static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]
 /*
  * registry::snapshot get_all
  */
-static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "get_all");
@@ -179,7 +179,7 @@ static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]
 
 typedef struct {
     char* name;
-    int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+    int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 } snapshot_cmd_type;
 
 static snapshot_cmd_type snapshot_cmds[] = {
@@ -197,7 +197,7 @@ static snapshot_cmd_type snapshot_cmds[] = {
  * Commands manipulating snapshots in the registry.
  */
 int snapshot_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int cmd_index;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");
