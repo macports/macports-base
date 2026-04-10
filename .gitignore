@@ -56,14 +56,17 @@ vendor/**/config.log
 vendor/**/config.status
 vendor/**/.critcl
 vendor/critcl*/lib/critcl/Config
-vendor/tcl8.*/unix/Tcl-Info.plist
-vendor/tcl8.*/unix/Tclsh-Info.plist
-vendor/tcl8.*/unix/tcl.pc
-vendor/tcl8.*/unix/tclConfig.sh
-vendor/tcl8.*/unix/tclsh
-vendor/tcl8.*/unix/pkgs/itcl*/itclConfig.sh
-vendor/tcl8.*/unix/pkgs/tdbc*/tdbcConfig.sh
-vendor/tcl8.*/unix/**/*Uuid.h
+vendor/tcl9.*/**/*.vfs
+vendor/tcl9.*/**/*.zip
+vendor/tcl9.*/unix/Tcl-Info.plist
+vendor/tcl9.*/unix/Tclsh-Info.plist
+vendor/tcl9.*/unix/libtcl*.zip
+vendor/tcl9.*/unix/tcl.pc
+vendor/tcl9.*/unix/tclConfig.sh
+vendor/tcl9.*/unix/tclsh
+vendor/tcl9.*/unix/pkgs*/itcl*/itclConfig.sh
+vendor/tcl9.*/unix/pkgs*/tdbc*/tdbcConfig.sh
+vendor/tcl9.*/unix/**/*Uuid.h
 
 !*.in
 
