@@ -41,7 +41,7 @@ proc usage {{status 1}} {
 	![string match {invalid command name "_*"*} $errorInfo]
     } {
 	puts stderr $::errorInfo
-	exit
+	exit $status
     }
 
     global argv0

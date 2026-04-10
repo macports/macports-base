@@ -1977,7 +1977,7 @@ proc ::critcl::framework {args} {
     # Check if we are building for OSX and ignore the command if we
     # are not. Our usage of "actualtarget" means that we allow for a
     # cross-compilation environment to OS X as well.
-    if {![string match "macosx*" [actualtarget]]} return
+    if {![string match "macos*" [actualtarget]]} return
 
     foreach arg $args {
 	# if an arg contains a slash it must be a framework path

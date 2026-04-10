@@ -80,7 +80,7 @@ threadflags     -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1    \
 
 # OSX - check if universal binaries supported by the installed toolchain
 
-if {[string match macosx-* $platform]} {
+if {[regexp macosx?- $platform]} {
     if {[info exists ::env(osxmin)] && $::env(osxmin) ne ""} {
         set osxmin $::env(osxmin)
     } elseif {[info exists ::env(MACOSX_DEPLOYMENT_TARGET)] && $::env(MACOSX_DEPLOYMENT_TARGET) ne ""} {
