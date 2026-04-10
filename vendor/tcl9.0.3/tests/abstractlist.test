@@ -1,0 +1,635 @@
+# Exercise AbstractList via the "lstring" command defined in tclTestABSList.c
+#
+# Copyright © 2022 Brian Griffin
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+catch {
+    ::tcltest::loadTestedCommands
+    package require -exact tcl::test [info patchlevel]
+}
+
+testConstraint testevalex [llength [info commands testevalex]]
+testConstraint testobj [llength [info commands testobj]]
+testConstraint lstring [llength [info commands lstring]]
+testConstraint lgen [llength [info commands lgegenn]]
+
+set abstractlisttestvars [info var *]
+
+proc value-cmp {vara varb} {
+    upvar $vara a
+    upvar $varb b
+    set ta [tcl::unsupported::representation $a]
+    set tb [tcl::unsupported::representation $b]
+    return [string compare $ta $tb]
+}
+
+set str "If you can keep your head when all about you Are losing theirs and blaming it on you,"
+set str2 "If you can trust yourself when all men doubt you, But make allowance for their doubting, too."
+
+test abstractlist-1.0 {error cases} -constraints lstring -body {
+    lstring
+} \
+    -returnCodes 1 \
+    -result {wrong # args: should be "lstring string"}
+
+test abstractlist-1.1 {error cases} -constraints lstring -body {
+    lstring a b c
+} -returnCodes 1 \
+    -result {wrong # args: should be "lstring string"}
+
+test abstractlist-2.0 {no shimmer llength} -constraints {testobj lstring} -body {
+    set l [lstring $str]
+    set l-isa [testobj objtype $l]
+    set len [llength $l]
+    set l-isa2 [testobj objtype $l]
+    list $l ${l-isa} ${len} ${l-isa2}
+} -cleanup {
+unset l
+} -result {{I f { } y o u { } c a n { } k e e p { } y o u r { } h e a d { } w h e n { } a l l { } a b o u t { } y o u { } A r e { } l o s i n g { } t h e i r s { } a n d { } b l a m i n g { } i t { } o n { } y o u ,} lstring 85 lstring}
+
+test abstractlist-2.1 {no shimmer lindex} {testobj lstring} {
+    set l [lstring $str]
+    set l-isa [testobj objtype $l]
+    set ele [lindex $l 22]
+    set l-isa2 [testobj objtype $l]
+    list $l ${l-isa} ${ele} ${l-isa2}
+} {{I f { } y o u { } c a n { } k e e p { } y o u r { } h e a d { } w h e n { } a l l { } a b o u t { } y o u { } A r e { } l o s i n g { } t h e i r s { } a n d { } b l a m i n g { } i t { } o n { } y o u ,} lstring e lstring}
+
+test abstractlist-2.2 {no shimmer lreverse} {testobj lstring} {
+    set l [lstring $str]
+    set l-isa [testobj objtype $l]
+    set r [lreverse $l]
+    set r-isa [testobj objtype $r]
+    set l-isa2 [testobj objtype $l]
+    list $r ${l-isa} ${r-isa} ${l-isa2}
+} {{, u o y { } n o { } t i { } g n i m a l b { } d n a { } s r i e h t { } g n i s o l { } e r A { } u o y { } t u o b a { } l l a { } n e h w { } d a e h { } r u o y { } p e e k { } n a c { } u o y { } f I} lstring lstring lstring}
+
+test abstractlist-2.3 {no shimmer lrange} {testobj lstring} {
+    set l [lstring $str]
+    set l-isa [testobj objtype $l]
+    set il [lsearch -all [lstring $str] { }]
+    set l-isa2 [testobj objtype $l]
+    lappend il [llength $l]
+    set start 0
+    set words [lmap i $il {
+	set w [join [lrange $l $start $i-1] {} ]
+	set start [expr {$i+1}]
+	set w
+    }]
+    set l-isa3 [testobj objtype $l]
+    list ${l-isa} $il ${l-isa2} ${l-isa3} $words
+} {lstring {2 6 10 15 20 25 30 34 40 44 48 55 62 66 74 77 80 85} lstring lstring {If you can keep your head when all about you Are losing theirs and blaming it on you,}}
+
+test abstractlist-2.4 {no shimmer foreach} {testobj lstring} {
+    set l [lstring $str]
+    set l-isa [testobj objtype $l]
+    set word {}
+    set words {}
+    foreach c $l {
+	if {$c eq { }} {
+	    lappend words $word
+	    set word {}
+	} else {
+	    append word $c
+	}
+    }
+    if {$word ne ""} {
+	lappend words $word
+    }
+    set l-isa2 [testobj objtype $l]
+    list ${l-isa} ${l-isa2} $words
+} {lstring lstring {If you can keep your head when all about you Are losing theirs and blaming it on you,}}
+
+#
+# The TBCE implements lreplace as a lrange + lappend operation, so, in this case, $m list, not an lstring.
+#
+test abstractlist-2.5 {!no shimmer lreplace} {testobj lstring} {
+    set l [lstring $str2]
+    set l-isa [testobj objtype $l]
+    set m [lreplace $l 78 86 { } f a i l i n g]
+    set m-isa [testobj objtype $m]
+    set l-isa1 [testobj objtype $l]
+    list ${l-isa} $m ${m-isa} ${l-isa1}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } f a i l i n g , { } t o o .} lstring lstring}
+
+test abstractlist-2.6 {no shimmer ledit} {testobj lstring} {
+    # "ledit m 9 8 S"
+    set l [lstring $str2]
+    set l-isa [testobj objtype $l]
+    set e [ledit l 68 67 s]
+    set e-isa [testobj objtype $e]
+    list ${l-isa} $e ${e-isa}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e s { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring}
+
+test abstractlist-2.7 {no shimmer linsert} -constraints {testobj lstring} -body {
+    # "ledit m 9 8 S"
+    set l [lstring $str2]
+    set l-isa [testobj objtype $l]
+    set i [linsert $l 11 {*}[split "truly " {}]]
+    set i-isa [testobj objtype $i]
+    set res [list ${l-isa} $i ${i-isa}]
+    set p [lpop i 23]
+    set p-isa [testobj objtype $p]
+    set i-isa2 [testobj objtype $i]
+    lappend res $p ${p-isa} $i ${i-isa2}
+} -cleanup {
+unset l i l-isa i-isa res p p-isa
+} -result {lstring {I f { } y o u { } c a n { } t r u l y { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring y none {I f { } y o u { } c a n { } t r u l y { } t r u s t { } o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring}
+
+test abstractlist-2.8 {shimmer lassign} {testobj lstring} {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lassign $l i n c]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {o n c e i v a b l e} lstring lstring}
+
+test abstractlist-2.9 {no shimmer lremove} {testobj lstring} {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lremove $l 0 1]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {c o n c e i v a b l e} lstring lstring}
+
+test abstractlist-2.10 {shimmer lreverse} {testobj lstring} {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lreverse $l]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {e l b a v i e c n o c n I} lstring lstring}
+
+test abstractlist-2.11 {shimmer lset} {testobj lstring} {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [lset l 2 k]
+    set m-isa [testobj objtype $m]
+    list $l ${l-isa} $m ${m-isa} [value-cmp l m]
+} {{I n k o n c e i v a b l e} lstring {I n k o n c e i v a b l e} lstring 0}
+
+# lrepeat
+test abstractlist-2.12 {shimmer lrepeat} {testobj lstring} {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [lrepeat 3 $l]
+    set m-isa [testobj objtype $m]
+    set n [lindex $m 1]
+    list $l ${l-isa} $m ${m-isa} [testobj objtype $n] [value-cmp l n]
+} {{I n c o n c e i v a b l e} lstring {{I n c o n c e i v a b l e} {I n c o n c e i v a b l e} {I n c o n c e i v a b l e}} list lstring 0}
+
+test abstractlist-2.13 {no shimmer join llength==1} {testobj lstring} {
+    set l [lstring G]
+    set l-isa [testobj objtype $l]
+    set j [join $l :]
+    set j-isa [testobj objtype $j]
+    list ${l-isa} $l ${j-isa} $j
+} {lstring G none G}
+
+test abstractlist-2.14 {error case lset multiple indicies} -constraints {testobj lstring} -body {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [lset l 2 0 1 k]
+    set m-isa [testobj objtype $m]
+    list $l ${l-isa} $m ${m-isa} [value-cmp l m]
+} -returnCodes 1 \
+    -result {Multiple indicies not supported by lstring.}
+
+# lsort
+
+test abstractlist-3.0 {no shimmer llength} {testobj lstring} {
+    set l [lstring -not SLICE $str]
+    set l-isa [testobj objtype $l]
+    set len [llength $l]
+    set l-isa2 [testobj objtype $l]
+    list $l ${l-isa} ${len} ${l-isa2}
+} {{I f { } y o u { } c a n { } k e e p { } y o u r { } h e a d { } w h e n { } a l l { } a b o u t { } y o u { } A r e { } l o s i n g { } t h e i r s { } a n d { } b l a m i n g { } i t { } o n { } y o u ,} lstring 85 lstring}
+
+test abstractlist-3.1 {no shimmer lindex} {testobj lstring} {
+    set l [lstring -not SLICE $str]
+    set l-isa [testobj objtype $l]
+    set n 22
+    set ele [lindex $l $n] ;# exercise INST_LIST_INDEX
+    set l-isa2 [testobj objtype $l]
+    list $l ${l-isa} ${ele} ${l-isa2}
+} {{I f { } y o u { } c a n { } k e e p { } y o u r { } h e a d { } w h e n { } a l l { } a b o u t { } y o u { } A r e { } l o s i n g { } t h e i r s { } a n d { } b l a m i n g { } i t { } o n { } y o u ,} lstring e lstring}
+
+test abstractlist-3.2 {no shimmer lreverse} {testobj lstring} {
+    set l [lstring -not SLICE $str]
+    set l-isa [testobj objtype $l]
+    set r [lreverse $l]
+    set r-isa [testobj objtype $r]
+    set l-isa2 [testobj objtype $l]
+    list $r ${l-isa} ${r-isa} ${l-isa2}
+} {{, u o y { } n o { } t i { } g n i m a l b { } d n a { } s r i e h t { } g n i s o l { } e r A { } u o y { } t u o b a { } l l a { } n e h w { } d a e h { } r u o y { } p e e k { } n a c { } u o y { } f I} lstring lstring lstring}
+
+test abstractlist-3.3 {shimmer lrange} {testobj lstring} {
+    set l [lstring -not SLICE $str]
+    set l-isa [testobj objtype $l]
+    set il [lsearch -all [lstring -not SLICE $str] { }]
+    set l-isa2 [testobj objtype $l]
+    lappend il [llength $l]
+    set start 0
+    set words [lmap i $il {
+	set w [join [lrange $l $start $i-1] {} ]
+	set start [expr {$i+1}]
+	set w
+    }]
+    set l-isa3 [testobj objtype $l]; # lrange defaults to list behavior
+    list ${l-isa} $il ${l-isa2} ${l-isa3} $words
+} {lstring {2 6 10 15 20 25 30 34 40 44 48 55 62 66 74 77 80 85} lstring list {If you can keep your head when all about you Are losing theirs and blaming it on you,}}
+
+test abstractlist-3.4 {no shimmer foreach} {testobj lstring} {
+    set l [lstring -not SLICE $str]
+    set l-isa [testobj objtype $l]
+    set word {}
+    set words {}
+    foreach c $l {
+	if {$c eq { }} {
+	    lappend words $word
+	    set word {}
+	} else {
+	    append word $c
+	}
+    }
+    if {$word ne ""} {
+	lappend words $word
+    }
+    set l-isa2 [testobj objtype $l]
+    list ${l-isa} ${l-isa2} $words
+} {lstring lstring {If you can keep your head when all about you Are losing theirs and blaming it on you,}}
+
+#
+# The TBCE implements lreplace as a lrange + lappend operation, so, in this case, $m list, not an lstring.
+#
+test abstractlist-3.5 {!no shimmer lreplace} {testobj lstring} {
+    set l [lstring -not SLICE $str2]
+    set l-isa [testobj objtype $l]
+    set m [lreplace $l 79 86 f a i l i n g]
+    set m-isa [testobj objtype $m]
+    set l-isa1 [testobj objtype $l]
+    list ${l-isa} $m ${m-isa} ${l-isa1}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } f a i l i n g , { } t o o .} lstring lstring}
+
+test abstractlist-3.6 {no shimmer ledit} {testobj lstring} {
+    # "ledit m 9 8 S"
+    set l [lstring -not SLICE $str2]
+    set l-isa [testobj objtype $l]
+    set e [ledit l 68 67 s]
+    set e-isa [testobj objtype $e]
+    list ${l-isa} $e ${e-isa}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e s { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring}
+
+test abstractlist-3.7 {no shimmer linsert} {testobj lstring} {
+    # "ledit m 9 8 S"
+    set res {}
+    set l [lstring -not SLICE $str2]
+    set l-isa [testobj objtype $l]
+    set i [linsert $l 35 {*}[split "wo" {}]]
+    set i-isa [testobj objtype $i]
+    set res [list ${l-isa} $i ${i-isa}]
+    set p [lpop i 23]
+    set p-isa [testobj objtype $p]
+    set i-isa2 [testobj objtype $i]
+    lappend res $p ${p-isa} $i ${i-isa2}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } w o m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring l none {I f { } y o u { } c a n { } t r u s t { } y o u r s e f { } w h e n { } a l l { } w o m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring}
+
+test abstractlist-3.8 {shimmer lassign} {testobj lstring} {
+    set l [lstring -not SLICE Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lassign $l i n c] ;# must be using lrange internally
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {o n c e i v a b l e} list list}
+
+test abstractlist-3.9 {no shimmer lremove} {testobj lstring} {
+    set l [lstring -not SLICE Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lremove $l 0 1]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {c o n c e i v a b l e} lstring lstring}
+
+test abstractlist-3.10 {shimmer lreverse} {testobj lstring} {
+    set l [lstring -not SLICE Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lreverse $l]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {e l b a v i e c n o c n I} lstring lstring}
+
+test abstractlist-3.11 {shimmer lset} {testobj lstring} {
+    set l [lstring -not SLICE Inconceivable]
+    set l-isa [testobj objtype $l]
+    set four 4
+    set m [lset l $four-2 k]
+    set m-isa [testobj objtype $m]
+    list $l ${l-isa} $m ${m-isa} [value-cmp l m]
+} {{I n k o n c e i v a b l e} lstring {I n k o n c e i v a b l e} lstring 0}
+
+# lrepeat
+test abstractlist-3.12 {shimmer lrepeat} {testobj lstring} {
+    set l [lstring -not SLICE Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [lrepeat 3 $l]
+    set m-isa [testobj objtype $m]
+    set n [lindex $m 1]
+    list $l ${l-isa} $m ${m-isa} [testobj objtype $n] [value-cmp l n]
+} {{I n c o n c e i v a b l e} lstring {{I n c o n c e i v a b l e} {I n c o n c e i v a b l e} {I n c o n c e i v a b l e}} list lstring 0}
+
+# lsort
+foreach not {{} REVERSE SLICE SETELEMENT REPLACE GETELEMENTS} {
+
+    testConstraint [format "%sShimmer" [string totitle $not]] [expr {$not eq ""}]
+    set options [expr {$not ne "" ? "-not $not" : ""}]
+
+test abstractlist-$not-4.0 {no shimmer llength} {testobj lstring} {
+    set l [lstring {*}$options $str]
+    set l-isa [testobj objtype $l]
+    set len [llength $l]
+    set l-isa2 [testobj objtype $l]
+    list $l ${l-isa} ${len} ${l-isa2}
+} {{I f { } y o u { } c a n { } k e e p { } y o u r { } h e a d { } w h e n { } a l l { } a b o u t { } y o u { } A r e { } l o s i n g { } t h e i r s { } a n d { } b l a m i n g { } i t { } o n { } y o u ,} lstring 85 lstring}
+
+test abstractlist-$not-4.1 {no shimmer lindex} {testobj lstring} {
+    set l [lstring {*}$options $str]
+    set l-isa [testobj objtype $l]
+    set ele [lindex $l 22]
+    set l-isa2 [testobj objtype $l]
+    list $l ${l-isa} ${ele} ${l-isa2}
+} {{I f { } y o u { } c a n { } k e e p { } y o u r { } h e a d { } w h e n { } a l l { } a b o u t { } y o u { } A r e { } l o s i n g { } t h e i r s { } a n d { } b l a m i n g { } i t { } o n { } y o u ,} lstring e lstring}
+
+test abstractlist-$not-4.2 {lreverse} {ReverseShimmer testobj lstring} {
+    set l [lstring {*}$options $str]
+    set l-isa [testobj objtype $l]
+    set r [lreverse $l]
+    set r-isa [testobj objtype $r]
+    set l-isa2 [testobj objtype $l]
+    list $r ${l-isa} ${r-isa} ${l-isa2}
+} {{, u o y { } n o { } t i { } g n i m a l b { } d n a { } s r i e h t { } g n i s o l { } e r A { } u o y { } t u o b a { } l l a { } n e h w { } d a e h { } r u o y { } p e e k { } n a c { } u o y { } f I} lstring lstring lstring}
+
+test abstractlist-$not-4.3 {no shimmer lrange} {RangeShimmer testobj lstring} {
+    set l [lstring {*}$options $str]
+    set l-isa [testobj objtype $l]
+    set il [lsearch -all [lstring {*}$options $str] { }]
+    set l-isa2 [testobj objtype $l]
+    lappend il [llength $l]
+    set start 0
+    set words [lmap i $il {
+	set w [join [lrange $l $start $i-1] {} ]
+	set start [expr {$i+1}]
+	set w
+    }]
+    set l-isa3 [testobj objtype $l]
+    list ${l-isa} $il ${l-isa2} ${l-isa3} $words
+} {lstring {2 7 10 16 25 29 36 39 47 55 58 63} lstring lstring {If you can keep your head when all about you Are losing theirs and blaming it on you,}}
+
+test abstractlist-$not-4.4 {no shimmer foreach} {testobj lstring} {
+    set l [lstring {*}$options $str]
+    set l-isa [testobj objtype $l]
+    set word {}
+    set words {}
+    foreach c $l {
+	if {$c eq { }} {
+	    lappend words $word
+	    set word {}
+	} else {
+	    append word $c
+	}
+    }
+    if {$word ne ""} {
+	lappend words $word
+    }
+    set l-isa2 [testobj objtype $l]
+    list ${l-isa} ${l-isa2} $words
+} {lstring lstring {If you can keep your head when all about you Are losing theirs and blaming it on you,}}
+
+#
+# The TBCE implements lreplace as a lrange + lappend operation, so, in this case, $m list, not an lstring.
+#
+test abstractlist-$not-4.5 {!no shimmer lreplace} {RangeShimmer testobj lstring} {
+    set l [lstring {*}$options $str2]
+    set l-isa [testobj objtype $l]
+    set m [lreplace $l 18 23 { } f a i l ?]
+    set m-isa [testobj objtype $m]
+    set l-isa1 [testobj objtype $l]
+    list ${l-isa} $m ${m-isa} ${l-isa1}
+} {lstring {} list lstring}
+
+test abstractlist-$not-4.6 {no shimmer ledit} {SetelementShimmer ReplaceShimmer testobj lstring} {
+    set l [lstring {*}$options $str2]
+    set l-isa [testobj objtype $l]
+    set e [ledit l 68 67 s]
+    set e-isa [testobj objtype $e]
+    list ${l-isa} $e ${e-isa}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e s { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring}
+
+test abstractlist-$not-4.7 {no shimmer linsert} {ReplaceShimmer GetelementsShimmer testobj lstring}  {
+    set l [lstring {*}$options $str2]
+    set l-isa [testobj objtype $l]
+    set i [linsert $l 12 {*}[split "almost " {}]]
+    set i-isa [testobj objtype $i]
+    set res [list ${l-isa} $i ${i-isa}]
+    set p [lpop i 23]
+    set p-isa [testobj objtype $p]
+    set i-isa2 [testobj objtype $i]
+    lappend res $p ${p-isa} $i ${i-isa2}
+} {lstring {I f { } y o u { } c a n { } t r u s t { } y o u r s e l f { } w h e n { } a l l { } m e n { } d o u b t { } y o u , { } B u t { } m a k e { } a l l o w a n c e { } f o r { } t h e i r { } d o u b t i n g , { } t o o .} lstring}
+
+# lassign probably uses lrange internally
+test abstractlist-$not-4.8 {shimmer lassign} {RangeShimmer testobj lstring} {
+    set l [lstring {*}$options Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lassign $l i n c]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {o n c e i v a b l e} lstring lstring}
+
+test abstractlist-$not-4.9 {no shimmer lremove} {ReplaceShimmer testobj lstring} {
+    set l [lstring {*}$options Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lremove $l 0 1]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {c o n c e i v a b l e} lstring lstring}
+
+test abstractlist-$not-4.10 {shimmer lreverse} {ReverseShimmer testobj lstring} {
+    set l [lstring {*}$options Inconceivable]
+    set l-isa [testobj objtype $l]
+    set l2 [lreverse $l]
+    set l-isa2 [testobj objtype $l]
+    set l2-isa [testobj objtype $l2]
+    list $l ${l-isa} $l2 ${l-isa2} ${l2-isa}
+} {{I n c o n c e i v a b l e} lstring {e l b a v i e c n o c n I} lstring lstring}
+
+test abstractlist-$not-4.11 {shimmer lset} {SetelementShimmer testobj lstring} {
+    set l [lstring {*}$options Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [lset l 2 k]
+    set m-isa [testobj objtype $m]
+    list $l ${l-isa} $m ${m-isa} [value-cmp l m]
+} {{I n k o n c e i v a b l e} lstring {I n k o n c e i v a b l e} lstring 0}
+
+test abstractlist-$not-4.11x {lset not compiled} {SetelementShimmer testobj lstring testevalex} {
+    set l [lstring {*}$options Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [testevalex {lset l 2 k}]
+    set m-isa [testobj objtype $m]
+    list $l ${l-isa} $m ${m-isa} [value-cmp l m]
+} {{I n k o n c e i v a b l e} lstring {I n k o n c e i v a b l e} lstring 0}
+
+test abstractlist-$not-4.11e {error case lset multiple indicies} \
+    -constraints {SetelementShimmer testobj lstring testevalex} -body {
+    set l [lstring Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [testevalex {lset l 2 0 1 k}]
+    set m-isa [testobj objtype $m]
+    list $l ${l-isa} $m ${m-isa} [value-cmp l m]
+} -returnCodes 1 \
+    -result {Multiple indicies not supported by lstring.}
+
+# lrepeat
+test abstractlist-$not-4.12 {shimmer lrepeat} -constraints {testobj lstring} -body {
+    set l [lstring {*}$options Inconceivable]
+    set l-isa [testobj objtype $l]
+    set m [lrepeat 3 $l]
+    set m-isa [testobj objtype $m]
+    set n [lindex $m 1]
+    list $l ${l-isa} $m ${m-isa} [testobj objtype $n] [value-cmp l n]
+} -cleanup {
+} -result {{I n c o n c e i v a b l e} lstring {{I n c o n c e i v a b l e} {I n c o n c e i v a b l e} {I n c o n c e i v a b l e}} list lstring 0}
+
+# Disable constraint
+testConstraint [format "%sShimmer" [string totitle $not]] 1
+
+}
+
+#
+# Test fix for bug in TEBC for STR CONCAT, and LIST INDEX
+# instructions.
+# This example abstract list (lgen) causes a rescursive call in TEBC,
+# stack management was not included for these instructions in TEBC.
+#
+test abstractlist-lgen-bug {bug in str concat and list operations} -constraints lgen -setup {
+    set lgenfile [makeFile {
+	# Test TIP 192 - Lazy Lists
+
+	set res {}
+	set cntr 0
+
+	# Fatal error here when [source]'d -- It is a refcounting problem...
+	lappend res Index*2:[lgen 1 expr 2* ]:--
+	set x [lseq 17]
+	set y [lgen 17 apply {{index} {expr {$index * 6}}}] ;# expr * 6
+	foreach i $x n $y {
+	    lappend res "$i -> $n"
+	}
+	proc my_expr {offset index} {
+	    expr {$index + $offset}
+	}
+	lappend res my_expr(3):[my_expr 3 0]
+
+	lappend res [set ss [lgen 15 my_expr 7]]
+	lappend res s2:[list "Index+7:" $ss ":--"]
+
+	lappend res  foo:[list "Index-8:" [lgen 15 my_expr -8] ":--"]
+
+	set 9 [lgen 15 my_expr 7]
+	lappend res 9len=[llength $9]
+	lappend res 9(3)=[lindex $9 3]
+	lappend res bar:[list "Index+7:" $9 ":--"]
+
+	lappend res Index+7:$9:--
+
+	lappend res Index+7:[lgen 15 my_expr 7]:--
+
+	proc fib {phi n} {
+	    set d [expr {round(pow($phi, $n) / sqrt(5.0))}]
+	    return $d
+	}
+	set phi [expr {(1 + sqrt(5.0)) / 2.0}]
+
+	lappend res fib:[lmap n [lseq 5] {fib $phi $n}]
+
+	set x [lgen 20 fib $phi]
+	lappend res "First 20 fibbinacci:[lgen 20 fib $phi]"
+	lappend res "First 20 fibbinacci from x :$x"
+	unset x
+	lappend res Good-Bye!
+	set res
+    } source.file]
+} -body {
+    set tcl_traceExec 0
+    set tcl_traceCompile 0
+    set f $lgenfile
+    #set script [format "puts ====-%s-====\nsource %s\nputs ====-done-====\n" $f $f]
+    set script [format "source %s" $f]
+    #puts stderr "eval $script"
+    eval $script
+} -cleanup {
+    removeFile source.file
+    unset res
+} -result {Index*2:0:-- {0 -> 0} {1 -> 6} {2 -> 12} {3 -> 18} {4 -> 24} {5 -> 30} {6 -> 36} {7 -> 42} {8 -> 48} {9 -> 54} {10 -> 60} {11 -> 66} {12 -> 72} {13 -> 78} {14 -> 84} {15 -> 90} {16 -> 96} my_expr(3):3 {7 8 9 10 11 12 13 14 15 16 17 18 19 20 21} {s2:Index+7: {7 8 9 10 11 12 13 14 15 16 17 18 19 20 21} :--} {foo:Index-8: {-8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6} :--} 9len=15 9(3)=10 {bar:Index+7: {7 8 9 10 11 12 13 14 15 16 17 18 19 20 21} :--} {Index+7:7 8 9 10 11 12 13 14 15 16 17 18 19 20 21:--} {Index+7:7 8 9 10 11 12 13 14 15 16 17 18 19 20 21:--} {fib:0 1 1 2 3} {First 20 fibbinacci:0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181} {First 20 fibbinacci from x :0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181} Good-Bye!}
+
+test abstractlist-lgen-bug2 {bug in foreach} -constraints lgen -body {
+
+    set x [lseq 17]
+    set y [lgen 17 expr 6*]
+
+    lappend res x-[lrange [tcl::unsupported::representation $x] 0 3]
+    lappend res y-[lrange [tcl::unsupported::representation $y] 0 3]
+    foreach i $x n $y {
+	lappend res "$i -> $n"
+    }
+    lappend res x-[lrange [tcl::unsupported::representation $x] 0 3]
+    lappend res y-[lrange [tcl::unsupported::representation $y] 0 3]
+
+} -cleanup {
+    unset res
+} -result {{x-value is a arithseries} {y-value is a lgenseries} {0 -> 0} {1 -> 6} {2 -> 12} {3 -> 18} {4 -> 24} {5 -> 30} {6 -> 36} {7 -> 42} {8 -> 48} {9 -> 54} {10 -> 60} {11 -> 66} {12 -> 72} {13 -> 78} {14 -> 84} {15 -> 90} {16 -> 96} {x-value is a arithseries} {y-value is a lgenseries}}
+
+# scalar values
+test abstractlist-int {TclLengthOne: anti-shimmer of boolean, int, double, bignum} testobj {
+    set res {}
+    foreach i [list [expr {1+0}] [expr {true}] [expr {3.141592}] [expr {round(double(0x7fffffffffffffff))}]] {
+	lappend res [testobj objtype $i]
+	lappend res [llength $i]
+	lappend res [testobj objtype $i]
+    }
+#set w [expr {3.141592}]
+#lappend res [testobj objtype $w] [llength $w] [testobj objtype $w]
+    set res
+} {int 1 int boolean 1 boolean double 1 double bignum 1 bignum}
+
+# lsort
+
+# cleanup
+::tcltest::cleanupTests
+
+proc my_abstl_cleanup {vars} {
+    set nowvars [uplevel info vars]
+    foreach var $nowvars {
+	if {$var ni $vars} {
+	    uplevel unset $var
+	    lappend clean-list $var
+	}
+    }
+    return ${clean-list}
+}
+
+my_abstl_cleanup $abstractlisttestvars

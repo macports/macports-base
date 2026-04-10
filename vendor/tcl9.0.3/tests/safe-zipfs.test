@@ -1,0 +1,837 @@
+# safe-zipfs.test --
+#
+# This file contains tests for safe Tcl that test its compatibility with the
+# zipfs facilities introduced in Tcl 8.7.  Test numbering is for comparison
+# with similar tests in safe.test that do not use the zipfs file system.
+#
+# Sourcing this file into tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright © 1995-1996 Sun Microsystems, Inc.
+# Copyright © 1998-1999 Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+
+apply [list {} {
+    global auto_path
+    global tcl_library
+    if {"::tcltest" ni [namespace children]} {
+	package require tcltest 2.5
+	namespace import -force ::tcltest::*
+    }
+
+    foreach i [interp children] {
+	interp delete $i
+    }
+
+    set SaveAutoPath $::auto_path
+    set ::auto_path [info library]
+    set TestsDir [file normalize [file dirname [info script]]]
+
+    set ZipMountPoint [zipfs root]auto-files
+    zipfs mount [file join $TestsDir auto-files.zip] $ZipMountPoint
+
+    set PathMapp {}
+    lappend PathMapp $tcl_library TCLLIB $TestsDir TESTSDIR $ZipMountPoint ZIPDIR
+
+    proc mapList {map listIn} {
+	set listOut {}
+	foreach element $listIn {
+	    lappend listOut [string map $map $element]
+	}
+	return $listOut
+    }
+    proc mapAndSortList {map listIn} {
+	set listOut {}
+	foreach element $listIn {
+	    lappend listOut [string map $map $element]
+	}
+	lsort $listOut
+    }
+
+    # Force actual loading of the safe package because we use un-exported (and
+    # thus un-autoindexed) APIs in this test result arguments:
+    catch {safe::interpConfigure}
+
+    testConstraint AutoSyncDefined 1
+
+    # Tests 5.* test the example files before using them to test safe interpreters.
+
+    test safe-zipfs-5.1 {example tclIndex commands, test in parent interpreter; zipfs} -setup {
+	set tmpAutoPath $::auto_path
+	lappend ::auto_path [file join $ZipMountPoint auto0 auto1] [file join $ZipMountPoint auto0 auto2]
+    } -body {
+	# Try to load the commands.
+	set code3 [catch report1 msg3]
+	set code4 [catch report2 msg4]
+	list $code3 $msg3 $code4 $msg4
+    } -cleanup {
+	catch {rename report1 {}}
+	catch {rename report2 {}}
+	set ::auto_path $tmpAutoPath
+	auto_reset
+    } -match glob -result {0 ok1 0 ok2}
+    test safe-zipfs-5.2 {example tclIndex commands, negative test in parent interpreter; zipfs} -setup {
+	set tmpAutoPath $::auto_path
+	lappend ::auto_path [file join $ZipMountPoint auto0]
+    } -body {
+	# Try to load the commands.
+	set code3 [catch report1 msg3]
+	set code4 [catch report2 msg4]
+	list $code3 $msg3 $code4 $msg4
+    } -cleanup {
+	catch {rename report1 {}}
+	catch {rename report2 {}}
+	set ::auto_path $tmpAutoPath
+	auto_reset
+    } -match glob -result {1 {invalid command name "report1"} 1 {invalid command name "report2"}}
+    test safe-zipfs-5.3 {example pkgIndex.tcl packages, test in parent interpreter, child directories; zipfs} -setup {
+	set tmpAutoPath $::auto_path
+	lappend ::auto_path [file join $ZipMountPoint auto0]
+    } -body {
+	# Try to load the packages and run a command from each one.
+	set code3 [catch {package require SafeTestPackage1} msg3]
+	set code4 [catch {package require SafeTestPackage2} msg4]
+	set code5 [catch HeresPackage1 msg5]
+	set code6 [catch HeresPackage2 msg6]
+	list $code3 $msg3 $code4 $msg4 $code5 $msg5 $code6 $msg6
+    } -cleanup {
+	set ::auto_path $tmpAutoPath
+	catch {package forget SafeTestPackage1}
+	catch {package forget SafeTestPackage2}
+	catch {rename HeresPackage1 {}}
+	catch {rename HeresPackage2 {}}
+    } -match glob -result {0 1.2.3 0 2.3.4 0 OK1 0 OK2}
+    test safe-zipfs-5.4 {example pkgIndex.tcl packages, test in parent interpreter, main directories; zipfs} -setup {
+	set tmpAutoPath $::auto_path
+	lappend ::auto_path [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]
+    } -body {
+	# Try to load the packages and run a command from each one.
+	set code3 [catch {package require SafeTestPackage1} msg3]
+	set code4 [catch {package require SafeTestPackage2} msg4]
+	set code5 [catch HeresPackage1 msg5]
+	set code6 [catch HeresPackage2 msg6]
+	list $code3 $msg3 $code4 $msg4 $code5 $msg5 $code6 $msg6
+    } -cleanup {
+	set ::auto_path $tmpAutoPath
+	catch {package forget SafeTestPackage1}
+	catch {package forget SafeTestPackage2}
+	catch {rename HeresPackage1 {}}
+	catch {rename HeresPackage2 {}}
+    } -match glob -result {0 1.2.3 0 2.3.4 0 OK1 0 OK2}
+    test safe-zipfs-5.5 {example modules packages, test in parent interpreter, replace path; zipfs} -setup {
+	set oldTm [tcl::tm::path list]
+	foreach path $oldTm {
+	    tcl::tm::path remove $path
+	}
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	# Try to load the modules and run a command from each one.
+	set code0 [catch {package require test0} msg0]
+	set code1 [catch {package require mod1::test1} msg1]
+	set code2 [catch {package require mod2::test2} msg2]
+	set out0  [test0::try0]
+	set out1  [mod1::test1::try1]
+	set out2  [mod2::test2::try2]
+	list $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	foreach path [lreverse $oldTm] {
+	    tcl::tm::path add $path
+	}
+	catch {package forget test0}
+	catch {package forget mod1::test1}
+	catch {package forget mod2::test2}
+	catch {namespace delete ::test0}
+	catch {namespace delete ::mod1}
+    } -match glob -result {0 0.5 0 1.0 0 2.0 -- res0 res1 res2}
+    test safe-zipfs-5.6 {example modules packages, test in parent interpreter, append to path; zipfs} -setup {
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	# Try to load the modules and run a command from each one.
+	set code0 [catch {package require test0} msg0]
+	set code1 [catch {package require mod1::test1} msg1]
+	set code2 [catch {package require mod2::test2} msg2]
+	set out0  [test0::try0]
+	set out1  [mod1::test1::try1]
+	set out2  [mod2::test2::try2]
+	list $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	catch {package forget test0}
+	catch {package forget mod1::test1}
+	catch {package forget mod2::test2}
+	catch {namespace delete ::test0}
+	catch {namespace delete ::mod1}
+    } -match glob -result {0 0.5 0 1.0 0 2.0 -- res0 res1 res2}
+
+    # high level general test
+    # Use zipped example packages not http1.0 etc
+    test safe-zipfs-7.1 {tests that everything works at high level with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+	set tmpAutoPath $::auto_path
+	lappend ::auto_path [file join $ZipMountPoint auto0]
+	set i [safe::interpCreate]
+	set ::auto_path $tmpAutoPath
+    } -body {
+	# no error shall occur:
+	# (because the default access_path shall include 1st level sub dirs so
+	#  package require in a child works like in the parent)
+	set v [interp eval $i {package require SafeTestPackage1}]
+	# no error shall occur:
+	interp eval $i {HeresPackage1}
+	set v
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result 1.2.3
+    test safe-zipfs-7.2 {tests specific path and interpFind/AddToAccessPath with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	} else {
+	    set SyncVal_TMP 1
+	}
+    } -body {
+	set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+	# should not add anything (p0)
+	set token1 [safe::interpAddToAccessPath $i [info library]]
+	# should add as p* (not p1 if parent has a module path)
+	set token2 [safe::interpAddToAccessPath $i "/dummy/unixlike/test/path"]
+	# should add as p* (not p2 if parent has a module path)
+	set token3 [safe::interpAddToAccessPath $i [file join $ZipMountPoint auto0]]
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	# an error shall occur (SafeTestPackage1 is not anymore in the secure 0-level
+	# provided deep path)
+	list $token1 $token2 $token3 --  [catch {interp eval $i {package require SafeTestPackage1}} msg] $msg --  $mappA -- [safe::interpDelete $i]
+    } -cleanup {
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:0:)} {$p(:*:)} {$p(:*:)} -- 1 {can't find package SafeTestPackage1} -- {TCLLIB */dummy/unixlike/test/path ZIPDIR/auto0} -- {}}
+    test safe-zipfs-7.4 {tests specific path and positive search with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	} else {
+	    set SyncVal_TMP 1
+	}
+    } -body {
+	set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+	# should not add anything (p0)
+	set token1 [safe::interpAddToAccessPath $i [info library]]
+	# should add as p* (not p1 if parent has a module path)
+	set token2 [safe::interpAddToAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	# this time, unlike test safe-zipfs-7.2, SafeTestPackage1 should be found
+	list $token1 $token2 --  [catch {interp eval $i {package require SafeTestPackage1}} msg] $msg --  $mappA -- [safe::interpDelete $i]
+	# Note that the glob match elides directories (those from the module path)
+	# other than the first and last in the access path.
+    } -cleanup {
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:0:)} {$p(:*:)} -- 0 1.2.3 -- {TCLLIB * ZIPDIR/auto0/auto1} -- {}}
+
+    test safe-zipfs-9.9 {interpConfigure change the access path; tclIndex commands unaffected by token rearrangement (dummy test of doreset) with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]]
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Load auto_load data.
+	interp eval $i {catch nonExistentCommand}
+
+	# Load and run the commands.
+	# This guarantees the test will pass even if the tokens are swapped.
+	set code1 [catch {interp eval $i {report1}} msg1]
+	set code2 [catch {interp eval $i {report2}} msg2]
+
+	# Rearrange access path.  Swap tokens {$p(:1:)} and {$p(:2:)}.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto2]  [file join $ZipMountPoint auto0 auto1]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Run the commands.
+	set code3 [catch {interp eval $i {report1}} msg3]
+	set code4 [catch {interp eval $i {report2}} msg4]
+
+	list $path1 $path2 -- $path3 $path4 -- $code3 $msg3 $code4 $msg4 -- $mappA -- $mappB
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:1:)} {$p(:2:)} -- {$p(:2:)} {$p(:1:)} -- 0 ok1 0 ok2 -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2*} -- {TCLLIB ZIPDIR/auto0/auto2 ZIPDIR/auto0/auto1*}}
+    test safe-zipfs-9.10 {interpConfigure change the access path; tclIndex commands unaffected by token rearrangement (actual test of doreset) with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]]
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Load auto_load data.
+	interp eval $i {catch nonExistentCommand}
+
+	# Do not load the commands.  With the tokens swapped, the test
+	# will pass only if the Safe Base has called auto_reset.
+
+	# Rearrange access path.  Swap tokens {$p(:1:)} and {$p(:2:)}.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto2]  [file join $ZipMountPoint auto0 auto1]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Load and run the commands.
+	set code3 [catch {interp eval $i {report1}} msg3]
+	set code4 [catch {interp eval $i {report2}} msg4]
+
+	list $path1 $path2 -- $path3 $path4 -- $code3 $msg3 $code4 $msg4 -- $mappA -- $mappB
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:1:)} {$p(:2:)} -- {$p(:2:)} {$p(:1:)} -- 0 ok1 0 ok2 -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2*} -- {TCLLIB ZIPDIR/auto0/auto2 ZIPDIR/auto0/auto1*}}
+    test safe-zipfs-9.11 {interpConfigure change the access path; pkgIndex.tcl packages unaffected by token rearrangement with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+    } -body {
+	# For complete correspondence to safe-stock-9.11, include auto0 in access path.
+	set i [safe::interpCreate -accessPath [list $tcl_library  [file join $ZipMountPoint auto0]  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]]
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	set path0 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Load pkgIndex.tcl data.
+	catch {interp eval $i {package require NOEXIST}}
+
+	# Rearrange access path.  Swap tokens {$p(:2:)} and {$p(:3:)}.
+	# This would have no effect because the records in Pkg of these directories
+	# were from access as children of {$p(:1:)}.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0]  [file join $ZipMountPoint auto0 auto2]  [file join $ZipMountPoint auto0 auto1]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Try to load the packages and run a command from each one.
+	set code3 [catch {interp eval $i {package require SafeTestPackage1}} msg3 opts3]
+	set code4 [catch {interp eval $i {package require SafeTestPackage2}} msg4 opts4]
+	set code5 [catch {interp eval $i {HeresPackage1}} msg5 opts5]
+	set code6 [catch {interp eval $i {HeresPackage2}} msg6 opts6]
+
+	list $path1 $path2 -- $path3 $path4 -- $code3 $msg3 $code4 $msg4 --  $mappA -- $mappB -- $code5 $msg5 $code6 $msg6
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:2:)} {$p(:3:)} -- {$p(:3:)} {$p(:2:)} -- 0 1.2.3 0 2.3.4 -- {TCLLIB ZIPDIR/auto0 ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2*} -- {TCLLIB ZIPDIR/auto0 ZIPDIR/auto0/auto2 ZIPDIR/auto0/auto1*} -- 0 OK1 0 OK2}
+    test safe-zipfs-9.12 {interpConfigure change the access path; pkgIndex.tcl packages unaffected by token rearrangement, 9.10 without path auto0 with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]]
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Load pkgIndex.tcl data.
+	catch {interp eval $i {package require NOEXIST}}
+
+	# Rearrange access path.  Swap tokens {$p(:1:)} and {$p(:2:)}.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto2]  [file join $ZipMountPoint auto0 auto1]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Try to load the packages and run a command from each one.
+	set code3 [catch {interp eval $i {package require SafeTestPackage1}} msg3 opts3]
+	set code4 [catch {interp eval $i {package require SafeTestPackage2}} msg4 opts4]
+	set code5 [catch {interp eval $i {HeresPackage1}} msg5 opts5]
+	set code6 [catch {interp eval $i {HeresPackage2}} msg6 opts6]
+
+	list $path1 $path2 -- $path3 $path4 -- $code3 $msg3 $code4 $msg4 --  $mappA -- $mappB -- $code5 $msg5 $code6 $msg6
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:1:)} {$p(:2:)} -- {$p(:2:)} {$p(:1:)} -- 0 1.2.3 0 2.3.4 -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2*} -- {TCLLIB ZIPDIR/auto0/auto2 ZIPDIR/auto0/auto1*} -- 0 OK1 0 OK2}
+    test safe-zipfs-9.13 {interpConfigure change the access path; pkgIndex.tcl packages fail if directory de-listed, with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]]
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]]
+
+	# Load pkgIndex.tcl data.
+	catch {interp eval $i {package require NOEXIST}}
+
+	# Limit access path.  Remove tokens {$p(:1:)} and {$p(:2:)}.
+	safe::interpConfigure $i -accessPath [list $tcl_library]
+
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+	set code4 [catch {::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto1]} path4]
+	set code5 [catch {::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 auto2]} path5]
+
+	# Try to load the packages.
+	set code3 [catch {interp eval $i {package require SafeTestPackage1}} msg3]
+	set code6 [catch {interp eval $i {package require SafeTestPackage2}} msg6]
+
+	list $path1 $path2 -- $code4 $path4 -- $code5 $path5 -- $code3 $code6 --  $mappA -- $mappB
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{$p(:1:)} {$p(:2:)} -- 1 {* not found in access path} -- 1 {* not found in access path} -- 1 1 -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2*} -- {TCLLIB*}}
+    test safe-zipfs-9.20 {check module loading, with conventional AutoPathSync; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+	set oldTm [tcl::tm::path list]
+	foreach path $oldTm {
+	    tcl::tm::path remove $path
+	}
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library]]
+
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set sortA [mapAndSortList $PathMapp [dict get $confA -accessPath]]
+	set modsA [interp eval $i {tcl::tm::path list}]
+	set path0 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Try to load the packages and run a command from each one.
+	set code0 [catch {interp eval $i {package require test0}} msg0]
+	set code1 [catch {interp eval $i {package require mod1::test1}} msg1]
+	set code2 [catch {interp eval $i {package require mod2::test2}} msg2]
+	set out0  [interp eval $i {test0::try0}]
+	set out1  [interp eval $i {mod1::test1::try1}]
+	set out2  [interp eval $i {mod2::test2::try2}]
+
+	list [lsort [list $path0 $path1 $path2]] -- $modsA --  $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $sortA -- $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	foreach path [lreverse $oldTm] {
+	    tcl::tm::path add $path
+	}
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{{$p(:1:)} {$p(:2:)} {$p(:3:)}} -- {{$p(:1:)}} -- 0 0.5 0 1.0 0 2.0 -- {TCLLIB ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- res0 res1 res2}
+    # - The command safe::InterpSetConfig adds the parent's [tcl::tm::list] in
+    #   tokenized form to the child's access path, and then adds all the
+    #   descendants, discovered recursively by using glob.
+    # - The order of the directories in the list returned by glob is system-dependent,
+    #   and therefore this is true also for (a) the order of token assignment to
+    #   descendants of the [tcl::tm::list] roots; and (b) the order of those same
+    #   directories in the access path.  Both those things must be sorted before
+    #   comparing with expected results.  The test is therefore not totally strict,
+    #   but will notice missing or surplus directories.
+    test safe-zipfs-9.21 {interpConfigure change the access path; check module loading, with conventional AutoPathSync; stale data case 1; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+	set oldTm [tcl::tm::path list]
+	foreach path $oldTm {
+	    tcl::tm::path remove $path
+	}
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library]]
+
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set sortA [mapAndSortList $PathMapp [dict get $confA -accessPath]]
+	set modsA [interp eval $i {tcl::tm::path list}]
+	set path0 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Add to access path.
+	# This injects more tokens, pushing modules to higher token numbers.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set sortB [mapAndSortList $PathMapp [dict get $confB -accessPath]]
+	set modsB [interp eval $i {tcl::tm::path list}]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path5 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Load pkg data.
+	catch {interp eval $i {package require NOEXIST}}
+	catch {interp eval $i {package require mod1::NOEXIST}}
+	catch {interp eval $i {package require mod2::NOEXIST}}
+
+	# Try to load the packages and run a command from each one.
+	set code0 [catch {interp eval $i {package require test0}} msg0]
+	set code1 [catch {interp eval $i {package require mod1::test1}} msg1]
+	set code2 [catch {interp eval $i {package require mod2::test2}} msg2]
+	set out0  [interp eval $i {test0::try0}]
+	set out1  [interp eval $i {mod1::test1::try1}]
+	set out2  [interp eval $i {mod2::test2::try2}]
+
+	list [lsort [list $path0 $path1 $path2]] -- $modsA --  [lsort [list $path3 $path4 $path5]] -- $modsB --  $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $sortA -- $sortB --  $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	foreach path [lreverse $oldTm] {
+	    tcl::tm::path add $path
+	}
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{{$p(:1:)} {$p(:2:)} {$p(:3:)}} -- {{$p(:1:)}} -- {{$p(:3:)} {$p(:4:)} {$p(:5:)}} -- {{$p(:3:)}} -- 0 0.5 0 1.0 0 2.0 -- {TCLLIB ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2 ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- res0 res1 res2}
+    # See comments on lsort after test safe-zipfs-9.20.
+    test safe-zipfs-9.22 {interpConfigure change the access path; check module loading, with conventional AutoPathSync; stale data case 0; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+	set oldTm [tcl::tm::path list]
+	foreach path $oldTm {
+	    tcl::tm::path remove $path
+	}
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library]]
+
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set sortA [mapAndSortList $PathMapp [dict get $confA -accessPath]]
+	set modsA [interp eval $i {tcl::tm::path list}]
+	set path0 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Add to access path.
+	# This injects more tokens, pushing modules to higher token numbers.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set sortB [mapAndSortList $PathMapp [dict get $confB -accessPath]]
+	set modsB [interp eval $i {tcl::tm::path list}]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path5 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Try to load the packages and run a command from each one.
+	set code0 [catch {interp eval $i {package require test0}} msg0]
+	set code1 [catch {interp eval $i {package require mod1::test1}} msg1]
+	set code2 [catch {interp eval $i {package require mod2::test2}} msg2]
+	set out0  [interp eval $i {test0::try0}]
+	set out1  [interp eval $i {mod1::test1::try1}]
+	set out2  [interp eval $i {mod2::test2::try2}]
+
+	list [lsort [list $path0 $path1 $path2]] -- $modsA --  [lsort [list $path3 $path4 $path5]] -- $modsB --  $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $sortA -- $sortB --  $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	foreach path [lreverse $oldTm] {
+	    tcl::tm::path add $path
+	}
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{{$p(:1:)} {$p(:2:)} {$p(:3:)}} -- {{$p(:1:)}} -- {{$p(:3:)} {$p(:4:)} {$p(:5:)}} -- {{$p(:3:)}} -- 0 0.5 0 1.0 0 2.0 -- {TCLLIB ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2 ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- res0 res1 res2}
+    # See comments on lsort after test safe-zipfs-9.20.
+    test safe-zipfs-9.23 {interpConfigure change the access path; check module loading, with conventional AutoPathSync; stale data case 3; zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+	set oldTm [tcl::tm::path list]
+	foreach path $oldTm {
+	    tcl::tm::path remove $path
+	}
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library]]
+
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set sortA [mapAndSortList $PathMapp [dict get $confA -accessPath]]
+	set modsA [interp eval $i {tcl::tm::path list}]
+	set path0 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Force the interpreter to acquire pkg data which will soon become stale.
+	catch {interp eval $i {package require NOEXIST}}
+	catch {interp eval $i {package require mod1::NOEXIST}}
+	catch {interp eval $i {package require mod2::NOEXIST}}
+
+	# Add to access path.
+	# This injects more tokens, pushing modules to higher token numbers.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set sortB [mapAndSortList $PathMapp [dict get $confB -accessPath]]
+	set modsB [interp eval $i {tcl::tm::path list}]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path5 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Refresh stale pkg data.
+	catch {interp eval $i {package require NOEXIST}}
+	catch {interp eval $i {package require mod1::NOEXIST}}
+	catch {interp eval $i {package require mod2::NOEXIST}}
+
+	# Try to load the packages and run a command from each one.
+	set code0 [catch {interp eval $i {package require test0}} msg0]
+	set code1 [catch {interp eval $i {package require mod1::test1}} msg1]
+	set code2 [catch {interp eval $i {package require mod2::test2}} msg2]
+	set out0  [interp eval $i {test0::try0}]
+	set out1  [interp eval $i {mod1::test1::try1}]
+	set out2  [interp eval $i {mod2::test2::try2}]
+
+	list [lsort [list $path0 $path1 $path2]] -- $modsA --  [lsort [list $path3 $path4 $path5]] -- $modsB --  $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $sortA -- $sortB --  $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	foreach path [lreverse $oldTm] {
+	    tcl::tm::path add $path
+	}
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{{$p(:1:)} {$p(:2:)} {$p(:3:)}} -- {{$p(:1:)}} -- {{$p(:3:)} {$p(:4:)} {$p(:5:)}} -- {{$p(:3:)}} -- 0 0.5 0 1.0 0 2.0 -- {TCLLIB ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2 ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- res0 res1 res2}
+    # See comments on lsort after test safe-zipfs-9.20.
+    test safe-zipfs-9.24 {interpConfigure change the access path; check module loading, with conventional AutoPathSync; stale data case 2 (worst case); zipfs} -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 1
+	}
+	set oldTm [tcl::tm::path list]
+	foreach path $oldTm {
+	    tcl::tm::path remove $path
+	}
+	tcl::tm::path add [file join $ZipMountPoint auto0 modules]
+    } -body {
+	set i [safe::interpCreate -accessPath [list $tcl_library]]
+
+	# Inspect.
+	set confA [safe::interpConfigure $i]
+	set sortA [mapAndSortList $PathMapp [dict get $confA -accessPath]]
+	set modsA [interp eval $i {tcl::tm::path list}]
+	set path0 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path1 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path2 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Force the interpreter to acquire pkg data which will soon become stale.
+	catch {interp eval $i {package require NOEXIST}}
+	catch {interp eval $i {package require mod1::NOEXIST}}
+	catch {interp eval $i {package require mod2::NOEXIST}}
+
+	# Add to access path.
+	# This injects more tokens, pushing modules to higher token numbers.
+	safe::interpConfigure $i -accessPath [list $tcl_library  [file join $ZipMountPoint auto0 auto1]  [file join $ZipMountPoint auto0 auto2]]
+	# Inspect.
+	set confB [safe::interpConfigure $i]
+	set sortB [mapAndSortList $PathMapp [dict get $confB -accessPath]]
+	set modsB [interp eval $i {tcl::tm::path list}]
+	set path3 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules]]
+	set path4 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod1]]
+	set path5 [::safe::interpFindInAccessPath $i [file join $ZipMountPoint auto0 modules mod2]]
+
+	# Try to load the packages and run a command from each one.
+	set code0 [catch {interp eval $i {package require test0}} msg0]
+	set code1 [catch {interp eval $i {package require mod1::test1}} msg1]
+	set code2 [catch {interp eval $i {package require mod2::test2}} msg2]
+	set out0  [interp eval $i {test0::try0}]
+	set out1  [interp eval $i {mod1::test1::try1}]
+	set out2  [interp eval $i {mod2::test2::try2}]
+
+	list [lsort [list $path0 $path1 $path2]] -- $modsA --  [lsort [list $path3 $path4 $path5]] -- $modsB --  $code0 $msg0 $code1 $msg1 $code2 $msg2 -- $sortA -- $sortB --  $out0 $out1 $out2
+    } -cleanup {
+	tcl::tm::path remove [file join $ZipMountPoint auto0 modules]
+	foreach path [lreverse $oldTm] {
+	    tcl::tm::path add $path
+	}
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result {{{$p(:1:)} {$p(:2:)} {$p(:3:)}} -- {{$p(:1:)}} -- {{$p(:3:)} {$p(:4:)} {$p(:5:)}} -- {{$p(:3:)}} -- 0 0.5 0 1.0 0 2.0 -- {TCLLIB ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- {TCLLIB ZIPDIR/auto0/auto1 ZIPDIR/auto0/auto2 ZIPDIR/auto0/modules ZIPDIR/auto0/modules/mod1 ZIPDIR/auto0/modules/mod2} -- res0 res1 res2}
+    # See comments on lsort after test safe-zipfs-9.20.
+
+    test safe-zipfs-18.1 {cf. safe-zipfs-7.1 - tests that everything works at high level without conventional AutoPathSync; zipfs} -constraints AutoSyncDefined -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 0
+	} else {
+	    error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+	}
+	# Without AutoPathSync, we need a more complete auto_path,
+	# because the child will use the same value.
+	set lib1        [info library]
+	set lib2        [file join $ZipMountPoint auto0]
+	set ::auto_TMP  $::auto_path
+	set ::auto_path [list $lib1 $lib2]
+
+	set i [safe::interpCreate]
+	set ::auto_path $::auto_TMP
+    } -body {
+	# no error shall occur:
+	# (because the default access_path shall include 1st level sub dirs so
+	#  package require in a child works like in the parent)
+	set v [interp eval $i {package require SafeTestPackage1}]
+	# no error shall occur:
+	interp eval $i HeresPackage1
+	set v
+    } -cleanup {
+	safe::interpDelete $i
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result 1.2.3
+    test safe-zipfs-18.2 {cf. safe-zipfs-7.2 - tests specific path and interpFind/AddToAccessPath without conventional AutoPathSync; zipfs} -constraints AutoSyncDefined -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 0
+	} else {
+	    error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+	}
+    } -body {
+	set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+	set auto1 [interp eval $i {set ::auto_path}]
+	interp eval $i {set ::auto_path [list {$p(:0:)}]}
+	# should not add anything (p0)
+	set token1 [safe::interpAddToAccessPath $i [info library]]
+	# should add as p* (not p1 if parent has a module path)
+	set token2 [safe::interpAddToAccessPath $i "/dummy/unixlike/test/path"]
+	# should add as p* (not p2 if parent has a module path)
+	set token3 [safe::interpAddToAccessPath $i [file join $ZipMountPoint auto0]]
+	# an error shall occur (SafeTestPackage1 is not anymore in the secure 0-level
+	# provided deep path)
+	list $auto1 $token1 $token2 $token3  [catch {interp eval $i {package require SafeTestPackage1}} msg] $msg  [safe::interpConfigure $i] [safe::interpDelete $i]
+    } -cleanup {
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result "{} {\$p(:0:)} {\$p(:*:)} {\$p(:*:)} 1 {can't find package SafeTestPackage1} {-accessPath {[list $tcl_library  */dummy/unixlike/test/path  $ZipMountPoint/auto0]} -statics 0 -nested 1 -deleteHook {} -autoPath {}} {}"
+    test safe-zipfs-18.4 {cf. safe-zipfs-7.4 - tests specific path and positive search and auto_path without conventional AutoPathSync; zipfs} -constraints AutoSyncDefined -setup {
+	set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+	if {$SyncExists} {
+	    set SyncVal_TMP [safe::setSyncMode]
+	    safe::setSyncMode 0
+	} else {
+	    error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+	}
+    } -body {
+	set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+
+	# should not have been set by Safe Base:
+	set auto1 [interp eval $i {set ::auto_path}]
+
+	# This will differ from the value -autoPath {}
+	interp eval $i {set ::auto_path [list {$p(:0:)}]}
+
+	# should not add anything (p0)
+	set token1 [safe::interpAddToAccessPath $i [info library]]
+
+	# should add as p* (not p1 if parent has a module path)
+	set token2 [safe::interpAddToAccessPath $i [file join $ZipMountPoint auto0]]
+
+	# should add as p* (not p2 if parent has a module path)
+	set token3 [safe::interpAddToAccessPath $i [file join $ZipMountPoint auto0 auto1]]
+
+	# should not have been changed by Safe Base:
+	set auto2 [interp eval $i {set ::auto_path}]
+
+	# This will differ from the value -autoPath {}
+	set auto3 [interp eval $i [list set ::auto_path [list {$p(:0:)} $token2]]]
+
+	# This time, unlike test safe-zipfs-18.2 and the try above, SafeTestPackage1 should be found:
+	list $auto1 $auto2 $token1 $token2 $token3  [catch {interp eval $i {package require SafeTestPackage1}} msg] $msg  [safe::interpConfigure $i] [safe::interpDelete $i]
+    } -cleanup {
+	if {$SyncExists} {
+	    safe::setSyncMode $SyncVal_TMP
+	}
+    } -match glob -result "{} {{\$p(:0:)}} {\$p(:0:)} {\$p(:*:)} {\$p(:*:)} 0 1.2.3 {-accessPath {[list $tcl_library *$ZipMountPoint/auto0 $ZipMountPoint/auto0/auto1]} -statics 0 -nested 1 -deleteHook {} -autoPath {}} {}"
+
+    # cleanup
+    set ::auto_path $SaveAutoPath
+    zipfs unmount ${ZipMountPoint}
+    unset SaveAutoPath TestsDir ZipMountPoint PathMapp
+    rename mapList {}
+    rename mapAndSortList {}
+    ::tcltest::cleanupTests
+    return
+} [namespace current]]
+
+# Local Variables:
+# mode: tcl
+# End:

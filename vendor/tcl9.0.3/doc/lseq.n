@@ -1,0 +1,127 @@
+'\"
+'\" Copyright (c) 2022 Eric Taylor.  All rights reserved.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH lseq n 9.0 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+lseq \- Build a numeric sequence returned as a list
+.SH SYNOPSIS
+.nf
+\fBlseq \fIstart \fR?(\fB..\fR|\fBto\fR)? \fIend\fR ??\fBby\fR? \fIstep\fR?
+\fBlseq \fIstart \fBcount\fI count\fR ??\fBby\fR? \fIstep\fR?
+\fBlseq \fIcount\fR ?\fBby \fIstep\fR?
+.fi
+.BE
+.SH DESCRIPTION
+.PP
+The \fBlseq\fR command creates a sequence of numeric values, which may
+be either wide integers or doubles, using the given
+parameters \fIstart\fR, \fIend\fR, and \fIstep\fR. The \fIoperation\fR
+argument "\fB..\fR" or "\fBto\fR" defines the range. The "\fBcount\fR" option
+is used to define a count of the number of elements in the list. A short form
+use of the command, with a single count value, will create a range from 0 to
+\fIcount\fR-1.
+.PP
+The \fBlseq\fR command can produce both increasing and decreasing
+sequences. When both \fIstart\fR and \fIend\fR are provided without a
+\fIstep\fR value, then if \fIstart\fR <= \fIend\fR, the sequence will be
+increasing and if \fIstart\fR > \fIend\fR it will be decreasing. If a
+\fIstep\fR vale is included, it's sign should agree with the direction of the
+sequence (descending \(-> negative and ascending \(-> positive), otherwise an
+empty list is returned.  For example:
+.RS
+.PP
+.CS \"
+% \fBlseq\fR 1 to 5    ;# increasing
+\fI\(-> 1 2 3 4 5
+
+% \fBlseq\fR 5 to 1    ;# decreasing
+\fI\(-> 5 4 3 2 1
+
+% \fBlseq\fR 0 0.5 by 0.1  ;# doubles
+\fI\(-> 0.0 0.1 0.2 0.3 0.4 0.5\fR
+
+% \fBlseq\fR 6 to 1 by 2   ;# decreasing, step wrong sign, empty list
+
+% \fBlseq\fR 1 to 5 by 0   ;# all step sizes of 0 produce an empty list
+.\"
+.CE
+.RE
+.PP
+The numeric arguments, \fIstart\fR, \fIend\fR, \fIstep\fR, and \fIcount\fR,
+may also be a valid expression. The expression will be evaluated and the
+numeric result will be used.  An expression that does not evaluate to a number
+will produce an invalid argument error.
+.PP
+\fIStart\fR defines the initial value and \fIend\fR defines the limit, not
+necessarily the last value. \fBlseq\fR produces a list with \fIcount\fR
+elements, and if \fIcount\fR is not supplied, it is computed as:
+.RS
+.PP
+.CS
+\fIcount\fR = int( (\fIend\fR - \fIstart\fR + \fIstep\fR) / \fIstep\fR )
+.CE
+.RE
+.SH EXAMPLES
+.CS
+.\"
+\fBlseq\fR 3
+\fI\(-> 0 1 2\fR
+
+\fBlseq\fR 3 0
+\fI\(-> 3 2 1 0\fR
+
+\fBlseq\fR 10 .. 1 by -2
+\fI\(-> 10 8 6 4 2\fR
+
+set l [\fBlseq\fR 0 -5]
+\fI\(-> 0 -1 -2 -3 -4 -5\fR
+
+foreach i [\fBlseq\fR [llength $l]] {
+    puts l($i)=[lindex $l $i]
+}
+\fI\(-> l(0)=0\fR
+\fI\(-> l(1)=-1\fR
+\fI\(-> l(2)=-2\fR
+\fI\(-> l(3)=-3\fR
+\fI\(-> l(4)=-4\fR
+\fI\(-> l(5)=-5\fR
+
+foreach i [\fBlseq\fR {[llength $l]-1} 0] {
+    puts l($i)=[lindex $l $i]
+}
+\fI\(-> l(5)=-5\fR
+\fI\(-> l(4)=-4\fR
+\fI\(-> l(3)=-3\fR
+\fI\(-> l(2)=-2\fR
+\fI\(-> l(1)=-1\fR
+\fI\(-> l(0)=0\fR
+
+set i 17
+         \fI\(-> 17\fR
+if {$i in [\fBlseq\fR 0 50]} { # equivalent to: (0 <= $i && $i <= 50)
+    puts "Ok"
+} else {
+    puts "outside :("
+}
+\fI\(-> Ok\fR
+
+set sqrs [lmap i [\fBlseq\fR 1 10] { expr {$i*$i} }]
+\fI\(-> 1 4 9 16 25 36 49 64 81 100\fR
+.\"
+.CE
+.SH "SEE ALSO"
+foreach(n), list(n), lappend(n), lassign(n), lindex(n), linsert(n), llength(n),
+lmap(n), lpop(n), lrange(n), lremove(n), lreplace(n),
+lreverse(n), lsearch(n), lset(n), lsort(n)
+.SH KEYWORDS
+element, index, list
+'\" Local Variables:
+'\" mode: nroff
+'\" fill-column: 78
+'\" End:

@@ -1,0 +1,43 @@
+# Commands covered:  exit, emphasis on finalization hangs
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright © 1991-1993 The Regents of the University of California.
+# Copyright © 1994-1997 Sun Microsystems, Inc.
+# Copyright © 1998-1999 Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+foreach {fin_on_exit testname} {0 {normal, quick exit} 1 {full-finalized exit}} {
+  test exit-1.[expr {$fin_on_exit+1}] $testname -setup {
+    set tout [expr {1000 + [::tcl::pkgconfig get mem_debug] * 5000}]
+    set tout [after $tout [list set done "Exit hangs (timeout) !!!"]]
+    set f {}
+  } -body {
+    set f [open [list | [interpreter] << "set ::env(TCL_FINALIZE_ON_EXIT) $fin_on_exit; exit"] r]
+    fileevent $f readable [namespace code {after cancel $tout; set done OK}]
+    vwait done
+    if {$done eq "OK"} {
+	if {[catch {close $f} err]} {
+	    set done "Exit misbehaves: $err"
+	}
+    }
+    set done
+  } -cleanup {
+    after cancel $tout
+    if {$f ne {}} { catch { close $f } }
+    unset -nocomplain fin_on_exit testname done f
+  } -result OK
+}
+
+# cleanup
+::tcltest::cleanupTests
+return

@@ -1,0 +1,72 @@
+# This file contains a collection of tests for the routine TclMSB() in the
+# file tclUtil.c.
+#
+# Contributions from Don Porter, NIST, 2013. (not subject to US copyright)
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+package require Tcl 8.6-
+package require tcltest 2
+
+namespace eval ::tcl::test::brodnik {
+    namespace import ::tcltest::loadTestedCommands
+    namespace import ::tcltest::testConstraint
+    namespace import ::tcltest::test
+    namespace import ::tcltest::cleanupTests
+
+    loadTestedCommands
+    try {package require tcl::test}
+    testConstraint testmsb [expr {[namespace which -command testmsb] ne {}}]
+
+    namespace eval tcl {
+	namespace eval mathfunc {
+	    proc log2 {i} {
+		set k 0
+		while {[set i [expr {$i>>1}]]} {
+		    incr k
+		}
+		return $k
+	    }
+	}
+    }
+
+    # Test out-of-range rejection
+    test brodnik-1.0 {TclMSB correctness} -constraints testmsb -body {
+	    testmsb 0
+    } -returnCodes error -match glob -result *
+
+    # Tests for values with MSB in the low block
+    variable v 1
+    while {$v < 1<<8} {
+	test brodnik-1.$v {TclMSB correctness} testmsb {
+	    testmsb $v
+	} [expr {int(log2($v))}]
+	incr v
+    }
+
+    variable i 8
+    while {$i < 8*$::tcl_platform(pointerSize) - 1} {
+
+	variable j -1
+	while {$j < 2} {
+	    set v [expr {(1<<$i) + $j}]
+
+	    test brodnik-2.$i.$j {TclMSB correctness} testmsb {
+		testmsb $v
+	    } [expr {int(log2($v))}]
+
+	    incr j
+	}
+	incr i
+    }
+
+    # Test out-of-range rejection
+    test brodnik-3.0 {TclMSB correctness} -constraints testmsb -body {
+	    testmsb [expr 1<<64]
+    } -returnCodes error -match glob -result *
+
+    cleanupTests
+}
+namespace delete ::tcl::test::brodnik
+return

@@ -1,0 +1,158 @@
+'\"
+'\" Copyright (c) 2017 Frederic Bonnet.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH process n 9.0 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+tcl::process \- Subprocess management
+.SH SYNOPSIS
+\fB::tcl::process \fIoption \fR?\fIarg arg ...\fR?
+.BE
+.SH DESCRIPTION
+.PP
+This command provides a way to manage subprocesses created by the \fBopen\fR
+and \fBexec\fR commands, as identified by the process identifiers (PIDs) of
+those subprocesses. The legal \fIoptions\fR (which may be abbreviated) are:
+.\" METHOD: autopurge
+.TP
+\fB::tcl::process autopurge\fR ?\fIflag\fR?
+.
+Automatic purge facility. If \fIflag\fR is specified as a boolean value then
+it activates or deactivate autopurge. In all cases it returns the current
+status as a boolean value. When autopurge is active,
+\fBTcl_ReapDetachedProcs\fR is called each time the \fBexec\fR command is
+executed or a pipe channel created by \fBopen\fR is closed. When autopurge is
+inactive, \fB::tcl::process\fR purge must be called explicitly. By default
+autopurge is active.
+.\" METHOD: list
+.TP
+\fB::tcl::process list\fR
+.
+Returns the list of subprocess PIDs. This includes all currently executing
+subprocesses and all terminated subprocesses that have not yet had their
+corresponding process table entries purged.
+.\" METHOD: purge
+.TP
+\fB::tcl::process purge\fR ?\fIpids\fR?
+.
+Cleans up all data associated with terminated subprocesses. If \fIpids\fR is
+specified as a list of PIDs then the command only cleans up data for the matching
+subprocesses if they exist. If a process listed is
+still active, this command does nothing to that process.
+Any PID that does not correspond to a subprocess is ignored.
+.\" METHOD: status
+.TP
+\fB::tcl::process status\fR ?\fIswitches\fR? ?\fIpids\fR?
+.
+Returns a dictionary mapping subprocess PIDs to their respective status. If
+\fIpids\fR is specified as a list of PIDs then the command only returns the
+status of the matching subprocesses if they exist.
+Any PID that does not correspond to a subprocess is ignored.
+For active processes, the status is an empty value. For terminated
+processes, the status is a list with the following format:
+.QW "\fB{\fIcode\fR ?\fImsg errorCode\fR?\fB}\fR" ,
+where:
+.RS
+.TP
+\fIcode\fR
+.
+is a standard Tcl return code, i.e., \fB0\fR for TCL_OK and \fB1\fR
+for TCL_ERROR,
+.TP
+\fImsg\fR
+.
+is the human-readable error message,
+.TP
+\fIerrorCode\fR
+.
+uses the same format as the \fBerrorCode\fR global variable
+.PP
+Note that \fBmsg\fR and \fBerrorCode\fR are only present for abnormally
+terminated processes (i.e. those where the \fIcode\fR is nonzero). Under the
+hood this command calls \fBTcl_WaitPid\fR with the \fBWNOHANG\fR flag set for
+non-blocking behavior, unless the \fB\-wait\fR switch is set (see below).
+.PP
+Additionally, \fB::tcl::process status\fR accepts the following switches:
+.\" OPTION: -wait
+.TP
+\fB\-wait\fR
+.
+By default the command returns immediately (the underlying \fBTcl_WaitPid\fR is
+called with the \fBWNOHANG\fR flag set) unless this switch is set. If \fIpids\fR
+is specified as a list of PIDs then the command waits until the status of the
+matching subprocesses are available. If \fIpids\fR was not specified, this
+command will wait for all known subprocesses.
+.\" OPTION: --
+.TP
+\fB\-\|\-\fR
+.
+Marks the end of switches.  The argument following this one will
+be treated as the first \fIarg\fR even if it starts with a \fB\-\fR.
+.RE
+.SH "EXAMPLES"
+.PP
+These show the use of \fB::tcl::process\fR. Some of the results from
+\fB::tcl::process status\fR are split over multiple lines for readability.
+.PP
+.CS
+\fB::tcl::process autopurge\fR
+     \fI\(-> true\fR
+\fB::tcl::process autopurge\fR false
+     \fI\(-> false\fR
+
+set pid1 [exec command1 a b c | command2 d e f &]
+     \fI\(-> 123 456\fR
+set chan [open "|command1 a b c | command2 d e f"]
+     \fI\(-> file123\fR
+set pid2 [pid $chan]
+     \fI\(-> 789 1011\fR
+
+\fB::tcl::process list\fR
+     \fI\(-> 123 456 789 1011\fR
+
+\fB::tcl::process status\fR
+     \fI\(-> 123 0
+       456 {1 "child killed: write on pipe with no readers" {
+         CHILDKILLED 456 SIGPIPE "write on pipe with no readers"}}
+       789 {1 "child suspended: background tty read" {
+         CHILDSUSP 789 SIGTTIN "background tty read"}}
+       1011 {}\fR
+
+\fB::tcl::process status\fR 123
+     \fI\(-> 123 0\fR
+
+\fB::tcl::process status\fR 1011
+     \fI\(-> 1011 {}\fR
+
+\fB::tcl::process status\fR -wait
+     \fI\(-> 123 0
+       456 {1 "child killed: write on pipe with no readers" {
+         CHILDKILLED 456 SIGPIPE "write on pipe with no readers"}}
+       789 {1 "child suspended: background tty read" {
+         CHILDSUSP 789 SIGTTIN "background tty read"}}
+       1011 {1 "child process exited abnormally" {
+         CHILDSTATUS 1011 -1}}\fR
+
+\fB::tcl::process status\fR 1011
+     \fI\(-> 1011 {1 "child process exited abnormally" {
+         CHILDSTATUS 1011 -1}}\fR
+
+\fB::tcl::process purge\fR
+exec command1 1 2 3 &
+     \fI\(-> 1213\fR
+\fB::tcl::process list\fR
+     \fI\(-> 1213\fR
+.CE
+.SH "SEE ALSO"
+exec(n), open(n), pid(n),
+Tcl_DetachPids(3), Tcl_WaitPid(3), Tcl_ReapDetachedProcs(3)
+.SH "KEYWORDS"
+background, child, detach, process, wait
+'\" Local Variables:
+'\" mode: nroff
+'\" End:

@@ -1,0 +1,27 @@
+'\"
+'\" Copyright (c) 1993 The Regents of the University of California.
+'\" Copyright (c) 1994-1996 Sun Microsystems, Inc.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH read n 8.1 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+read \- Read from a channel
+.SH SYNOPSIS
+\fBread \fR?\fB\-nonewline\fR? \fIchannel\fR
+.sp
+\fBread \fIchannel numChars\fR
+.BE
+.SH DESCRIPTION
+.PP
+The \fBread\fR command has been superceded by the \fBchan read\fR
+command which supports the same syntax and options.
+.SH "SEE ALSO"
+chan(n)
+'\"Local Variables:
+'\"mode: nroff
+'\"End:

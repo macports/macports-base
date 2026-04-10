@@ -1,0 +1,423 @@
+# This file tests the tclWinConsole.c file.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# NOTE THIS CANNOT BE RUN VIA nmake/make test since stdin is connected to
+# nmake in that case.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+catch {package require twapi} ;# Only to bring window to foreground. Not critical
+::tcltest::ConstraintInitializer haveThread { expr {![catch {package require Thread}]} }
+
+# Prompt user for a yes/no response
+proc yesno {question {default "Y"}} {
+    set answer ""
+    # Make sure we are seen but catch because ui and console
+    # packages may not be available
+    catch {twapi::set_foreground_window [twapi::get_console_window]}
+    while {![string is boolean -strict $answer]} {
+	puts -nonewline stdout "$question Type Y/N followed by Enter \[$default\] : "
+	flush stdout
+	set answer [string trim [gets stdin]]
+	if {$answer eq ""} {
+	    set answer $default
+	}
+    }
+    return [expr {!! $answer}]
+}
+
+proc prompt {prompt} {
+    # Make sure we are seen but catch because twapi ui and console
+    # packages may not be available
+    catch {twapi::set_foreground_window [twapi::get_console_window]}
+    puts -nonewline stdout "$prompt"
+    flush stdout
+}
+
+# Input tests
+
+test console-input-1.0 {Console blocking gets} -constraints {win interactive} -body {
+    prompt "Type \"xyz\" and hit Enter: "
+    gets stdin
+} -result xyz
+
+test console-input-1.1 {Console file channel: non-blocking gets} -constraints {
+    win interactive
+} -setup {
+    unset -nocomplain result
+    unset -nocomplain result2
+} -body {
+    set oldmode [fconfigure stdin]
+
+    prompt "Type \"abc\" and hit Enter: "
+    fileevent stdin readable {
+	if {[gets stdin line] >= 0} {
+	    lappend result2 $line
+	    if {[llength $result2] > 1} {
+		set result $result2
+	    } else {
+		prompt "Type \"def\" and hit Enter: "
+	    }
+	} elseif {[eof stdin]} {
+	    set result "gets failed"
+	}
+    }
+
+    fconfigure stdin -blocking 0 -buffering line
+
+    vwait result
+
+    #cleanup the fileevent
+    fileevent stdin readable {}
+    fconfigure stdin {*}$oldmode
+    set result
+
+} -result {abc def}
+
+test console-input-1.1.1 {Bug baa51423c28a: Console file channel: fileevent with blocking gets} -constraints {
+    win interactive
+} -setup {
+    unset -nocomplain result
+    unset -nocomplain result2
+} -body {
+    prompt "Type \"abc\" and hit Enter: "
+    fileevent stdin readable {
+	if {[gets stdin line] >= 0} {
+	    lappend result2 $line
+	    if {[llength $result2] > 1} {
+		set result $result2
+	    } else {
+		prompt "Type \"def\" and hit Enter: "
+	    }
+	} elseif {[eof stdin]} {
+	    set result "gets failed"
+	}
+    }
+
+    vwait result
+
+    #cleanup the fileevent
+    fileevent stdin readable {}
+    set result
+
+} -result {abc def}
+
+test console-input-2.0 {Console blocking read} -constraints {win interactive} -setup {
+    set oldmode [fconfigure stdin]
+    fconfigure stdin -inputmode raw
+} -cleanup {
+    fconfigure stdin {*}$oldmode
+} -body {
+    prompt "Type the key \"a\". Do NOT hit Enter. You will NOT see characters echoed."
+    set c [read stdin 1]
+    puts ""
+    set c
+} -result a
+
+test console-input-2.1 {Console file channel: non-blocking read} -constraints {
+    win interactive
+} -setup {
+    set oldmode [fconfigure stdin]
+} -cleanup {
+    fconfigure stdin {*}$oldmode
+    puts ""; # Because CRLF also would not have been echoed
+} -body {
+    set input ""
+    fconfigure stdin -blocking 0 -buffering line -inputmode raw
+    prompt "Type \"abc\". Do NOT hit Enter. You will NOT see characters echoed."
+
+    fileevent stdin readable {
+	set c [read stdin 1]
+	if {$c eq ""} {
+	    if {[eof stdin]} {
+		set result "read eof"
+	    }
+	} else {
+	    append input $c
+	    if {[string length $input] == 3} {
+		set result $input
+	    }
+	}
+    }
+
+    set result {}
+    vwait result
+    fileevent stdin readable {}
+    set result
+} -result abc
+
+test console-input-3.0 {Console gets blocking - long lines bug-bda99f2393} -constraints {
+    win interactive
+} -body {
+    prompt "Try typing a line of at least 256 characters. Hit ENTER exactly once unless you don't see another prompt.\n"
+    gets stdin line
+    set len [string length $line]
+    list [yesno "Did you hit ENTER only once?"] [expr {$len > 256}] [yesno "Line length was $len characters. Is this correct?"]
+} -result {1 1 1}
+
+test console-input-3.1 {Console gets blocking, small channel buffer size - long lines bug-bda99f2393} -constraints {
+    win interactive
+} -body {
+    prompt "Try typing a line of at least 256 characters. Hit ENTER exactly once unless you don't see another prompt.\n"
+    set bufSize [fconfigure stdin -buffersize]
+    fconfigure stdin -buffersize 10
+    gets stdin line
+    fconfigure stdin -buffersize $bufSize
+    set len [string length $line]
+    list [yesno "Did you hit ENTER only once?"] [expr {$len > 256}] [yesno "Line length was $len characters. Is this correct?"]
+} -result {1 1 1}
+
+test console-input-3.2 {Console gets nonblocking - long lines bug-bda99f2393} -constraints {
+    win interactive
+} -body {
+    prompt "Try typing a line of at least 256 characters. Hit ENTER exactly once unless you don't see another prompt.\n"
+    fconfigure stdin -blocking 0
+    while {[gets stdin line] < 0} {
+	after 1000
+    }
+    fconfigure stdin -blocking 1
+    set len [string length $line]
+    list [yesno "Did you hit ENTER only once?"] [expr {$len > 256}] [yesno "Line length was $len characters. Is this correct?"]
+} -result {1 1 1}
+
+test console-input-3.3 {Console gets nonblocking small channel buffer size - long lines bug-bda99f2393} -constraints {
+    win interactive
+} -body {
+    prompt "Try typing a line of at least 256 characters. Hit ENTER exactly once unless you don't see another prompt.\n"
+    set bufSize [fconfigure stdin -buffersize]
+    fconfigure stdin -blocking 0 -buffersize 10
+    while {[gets stdin line] < 0} {
+	after 1000
+    }
+    fconfigure stdin -blocking 1 -buffersize $bufSize
+    set len [string length $line]
+    list [yesno "Did you hit ENTER only once?"] [expr {$len > 256}] [yesno "Line length was $len characters. Is this correct?"]
+} -result {1 1 1}
+
+# Output tests
+
+test console-output-1.0 {Console blocking puts stdout} -constraints {win interactive} -body {
+    puts stdout "123"
+    yesno "Did you see the string \"123\"?"
+} -result 1
+
+test console-output-1.1 {Console non-blocking puts stdout} -constraints {
+    win interactive
+} -setup {
+    set oldmode [fconfigure stdout]
+    dict unset oldmode -winsize
+} -cleanup {
+    fconfigure stdout {*}$oldmode
+} -body {
+    fconfigure stdout -blocking 0 -buffering line
+    set count 0
+    fileevent stdout writable {
+	if {[incr count] < 4} {
+	    puts "$count"
+	} else {
+	    fileevent stdout writable {}
+	    set done 1
+	}
+    }
+    vwait done
+    yesno "Did you see 1, 2, 3 printed on consecutive lines?"
+} -result 1
+
+test console-output-2.0 {Console blocking puts stderr} -constraints {win interactive} -body {
+    puts stderr "456"
+    yesno "Did you see the string \"456\"?"
+} -result 1
+
+
+# fconfigure get tests
+
+## fconfigure get stdin
+
+test console-fconfigure-get-1.0 {
+    Console get stdin configuration
+} -constraints {win interactive} -body {
+    lsort [dict keys [fconfigure stdin]]
+} -result {-blocking -buffering -buffersize -encoding -eofchar -inputmode -profile -translation}
+
+set testnum 0
+foreach {opt result} {
+    -blocking 1
+    -buffering line
+    -buffersize 4096
+    -encoding utf-16
+    -inputmode normal
+    -translation auto
+} {
+    test console-fconfigure-get-1.[incr testnum] "Console get stdin option $opt" \
+	-constraints {win interactive} -body {
+	fconfigure stdin $opt
+    } -result $result
+}
+test console-fconfigure-get-1.[incr testnum] {
+    Console get stdin option -eofchar
+} -constraints {win interactive} -body {
+    fconfigure stdin -eofchar
+} -result ""
+
+test console-fconfigure-get-1.[incr testnum] {
+    fconfigure -winsize
+} -constraints {win interactive} -body {
+    fconfigure stdin -winsize
+} -result {bad option "-winsize": should be one of -blocking, -buffering, -buffersize, -encoding, -eofchar, -profile, -translation, or -inputmode} -returnCodes error
+
+## fconfigure get stdout/stderr
+foreach chan {stdout stderr} major {2 3} {
+    test console-fconfigure-get-$major.0 "Console get $chan configuration" -constraints {
+	win interactive
+    } -body {
+	lsort [dict keys [fconfigure $chan]]
+    } -result {-blocking -buffering -buffersize -encoding -eofchar -profile -translation -winsize}
+    set testnum 0
+    foreach {opt result} {
+	-blocking 1
+	-buffersize 4096
+	-encoding utf-16
+	-translation crlf
+    } {
+	test console-fconfigure-get-$major.[incr testnum] "Console get $chan option $opt" \
+	    -constraints {win interactive} -body {
+		fconfigure $chan $opt
+	    } -result $result
+    }
+
+    test console-fconfigure-get-$major.[incr testnum] "Console get $chan option -winsize" \
+	-constraints {win interactive} -body {
+	fconfigure $chan -winsize
+    } -result {\d+ \d+} -match regexp
+
+    test console-fconfigure-get-$major.[incr testnum] "Console get $chan option -buffering" \
+	-constraints {win interactive} -body {
+	fconfigure $chan -buffering
+    } -result [expr {$chan eq "stdout" ? "line" : "none"}]
+
+    test console-fconfigure-get-$major.[incr testnum] {
+	fconfigure -inputmode
+    } -constraints {win interactive} -body {
+	fconfigure $chan -inputmode
+    } -result {bad option "-inputmode": should be one of -blocking, -buffering, -buffersize, -encoding, -eofchar, -profile, -translation, or -winsize} -returnCodes error
+
+}
+
+## fconfigure set stdin
+
+test console-fconfigure-set-1.0 {
+    fconfigure -inputmode password
+} -constraints {win interactive} -body {
+    set result {}
+
+    prompt "Type \"pass\" and hit Enter. You should NOT see characters echoed: "
+    fconfigure stdin -inputmode password
+    lappend result [gets stdin]
+    lappend result [fconfigure stdin -inputmode]
+    fconfigure stdin -inputmode normal
+    lappend result [yesno "\nWere the characters echoed?"]
+
+    prompt "Type \"norm\" and hit Enter. You should see characters echoed: "
+    lappend result [gets stdin]
+    lappend result [fconfigure stdin -inputmode]
+    lappend result [yesno "Were the characters echoed?"]
+
+    set result
+} -result [list pass password 0 norm normal 1]
+
+test console-fconfigure-set-1.1 {
+    fconfigure -inputmode raw
+} -constraints {win interactive} -body {
+    set result {}
+
+    prompt "Type the keys \"a\", Ctrl-H, \"b\". Do NOT hit Enter. You should NOT see characters echoed: "
+    fconfigure stdin -inputmode raw
+    lappend result [read stdin 3]
+    lappend result [fconfigure stdin -inputmode]
+    fconfigure stdin -inputmode normal
+    lappend result [yesno "\nWere the characters echoed?"]
+
+    prompt "Type the keys \"c\", Ctrl-H, \"d\" and hit Enter. You should see characters echoed: "
+    lappend result [gets stdin]
+    lappend result [fconfigure stdin -inputmode]
+    lappend result [yesno "Were the characters echoed (c replaced by d)?"]
+
+    set result
+} -result [list a\x08b raw 0 d normal 1]
+
+test console-fconfigure-set-1.2 {
+    fconfigure -inputmode reset
+} -constraints {win interactive} -body {
+    set result {}
+
+    prompt "Type \"pass\" and hit Enter. You should NOT see characters echoed: "
+    fconfigure stdin -inputmode password
+    lappend result [gets stdin]
+    lappend result [fconfigure stdin -inputmode]
+    fconfigure stdin -inputmode reset
+    lappend result [yesno "\nWere the characters echoed?"]
+
+    prompt "Type \"reset\" and hit Enter. You should see characters echoed: "
+    lappend result [gets stdin]
+    lappend result [fconfigure stdin -inputmode]
+    lappend result [yesno "Were the characters echoed?"]
+
+    set result
+} -result [list pass password 0 reset normal 1]
+
+test console-fconfigure-set-1.3 {
+    fconfigure stdin -winsize
+} -constraints {win interactive} -body {
+    fconfigure stdin -winsize {10 30}
+} -result {bad option "-winsize": should be one of -blocking, -buffering, -buffersize, -encoding, -eofchar, -profile, -translation, or -inputmode} -returnCodes error
+
+## fconfigure set stdout,stderr
+
+test console-fconfigure-set-2.0 {
+    fconfigure stdout -winsize
+} -constraints {win interactive} -body {
+    fconfigure stdout -winsize {10 30}
+} -result {bad option "-winsize": should be one of -blocking, -buffering, -buffersize, -encoding, -eofchar, -profile, or -translation} -returnCodes error
+
+test console-fconfigure-set-3.0 {
+    fconfigure stderr -winsize
+} -constraints {win interactive} -body {
+    fconfigure stderr -winsize {10 30}
+} -result {bad option "-winsize": should be one of -blocking, -buffering, -buffersize, -encoding, -eofchar, -profile, or -translation} -returnCodes error
+
+# Multiple threads
+
+test console-thread-input-1.0 {Get input in thread} -constraints {
+    win interactive haveThread
+} -setup {
+    set tid [thread::create]
+} -cleanup {
+    thread::release $tid
+} -body {
+    prompt "Type \"xyz\" and hit Enter: "
+    thread::send $tid {gets stdin}
+} -result xyz
+
+test console-thread-output-1.0 {Output from thread} -constraints {
+    win interactive haveThread
+} -setup {
+    set tid [thread::create]
+} -cleanup {
+    thread::release $tid
+} -body {
+    thread::send $tid {puts [thread::id]}
+    yesno "Did you see $tid printed?"
+} -result 1
+
+::tcltest::cleanupTests
+return
+

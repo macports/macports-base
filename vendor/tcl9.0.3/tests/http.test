@@ -1,0 +1,1223 @@
+# Commands covered:  http::config, http::geturl, http::wait, http::reset
+#
+# This file contains a collection of tests for the http script library.
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright © 1991-1993 The Regents of the University of California.
+# Copyright © 1994-1996 Sun Microsystems, Inc.
+# Copyright © 1998-2000 Ajuba Solutions.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+package require http 2.10
+#http::register http 80 ::socket
+
+# To write a separate summary for each value of ThreadLevel, set constraint ThreadLevelSummary.
+#testConstraint ThreadLevelSummary 0
+
+proc bgerror {args} {
+    global errorInfo
+    puts stderr "http.test bgerror"
+    puts stderr [join $args]
+    puts stderr $errorInfo
+}
+
+# Do not use [info hostname].
+# Name resolution is often a problem on OSX; not focus of HTTP package anyway.
+# Also a problem on other platforms for http-4.14 (test with bad port number).
+set HOST localhost
+set bindata "This is binary data\x0D\x0Amore\x0Dmore\x0Amore\x00null"
+catch {unset data}
+
+# Ensure httpd file exists
+
+set origFile [file join [pwd] [file dirname [info script]] httpd]
+set httpdFile [file join [temporaryDirectory] httpd_[pid]]
+if {![file exists $httpdFile]} {
+    makeFile "" $httpdFile
+    file delete $httpdFile
+    file copy $origFile $httpdFile
+    set removeHttpd 1
+}
+
+catch {package require Thread 2.7-}
+if {[catch {package present Thread}] == 0 && [file exists $httpdFile]} {
+    set httpthread [thread::create -preserved]
+    lappend threadStack [list thread::release $httpthread]
+    thread::send $httpthread [list source $httpdFile]
+    thread::send $httpthread [list set bindata $bindata]
+    thread::send $httpthread {httpd_init 0; set port} port
+    puts "Running httpd in thread $httpthread"
+} else {
+    if {![file exists $httpdFile]} {
+	puts "Cannot read $httpdFile script, http test skipped"
+	unset port
+	return
+    }
+    source $httpdFile
+    # Let the OS pick the port; that's much more flexible
+    if {[catch {httpd_init 0} listen]} {
+	puts "Cannot start http server, http test skipped"
+	catch {unset port}
+	return
+    }
+    set threadStack {}
+}
+
+if 0 {
+    # For debugging: run with a single value of ThreadLevel: 0|1|2
+    set ThreadLevel 0
+    testConstraint ThreadLevelSummary 1
+}
+if {![info exists ThreadLevel]} {
+    if {[catch {package require Thread}] == 0} {
+	set ValueRange {0 1 2}
+    } else {
+	set ValueRange {0 1}
+    }
+
+    # For each value of ThreadLevel, source this file recursively in the
+    # same interpreter.
+    foreach ThreadLevel $ValueRange {
+	source [info script]
+    }
+    if {[llength $threadStack]} {
+	eval [lpop threadStack]
+    }
+    catch {unset ThreadLevel}
+    catch {unset ValueRange}
+    if {![testConstraint ThreadLevelSummary]} {
+	::tcltest::cleanupTests
+    }
+    return
+}
+
+catch {puts "==== Test with ThreadLevel $ThreadLevel ===="}
+http::config -threadlevel $ThreadLevel
+
+test http-1.1.$ThreadLevel {http::config} {
+    http::config -useragent UserAgent
+    http::config
+} [list -accept */* -cookiejar {} -pipeline 1 -postfresh 0 -proxyauth {} -proxyfilter http::ProxyRequired -proxyhost {} -proxynot {} -proxyport {} -repost 0 -threadlevel $ThreadLevel -urlencoding utf-8 -useragent UserAgent -zip 1]
+test http-1.2.$ThreadLevel {http::config} {
+    http::config -proxyfilter
+} http::ProxyRequired
+test http-1.3.$ThreadLevel {http::config} {
+    catch {http::config -junk}
+} 1
+test http-1.4.$ThreadLevel {http::config} {
+    set savedconf [http::config]
+    http::config -proxyhost nowhere.come -proxyport 8080 \
+	-proxyfilter myFilter -useragent "Tcl Test Suite" \
+	-urlencoding iso8859-1
+    set x [http::config]
+    http::config {*}$savedconf
+    set x
+} [list -accept */* -cookiejar {} -pipeline 1 -postfresh 0 -proxyauth {} -proxyfilter myFilter -proxyhost nowhere.come -proxynot {} -proxyport 8080 -repost 0 -threadlevel $ThreadLevel -urlencoding iso8859-1 -useragent {Tcl Test Suite} -zip 1]
+test http-1.5.$ThreadLevel {http::config} -returnCodes error -body {
+    http::config -proxyhost {} -junk 8080
+} -result {Unknown option -junk, must be: -accept, -cookiejar, -pipeline, -postfresh, -proxyauth, -proxyfilter, -proxyhost, -proxynot, -proxyport, -repost, -threadlevel, -urlencoding, -useragent, -zip}
+test http-1.6.$ThreadLevel {http::config} -setup {
+    set oldenc [http::config -urlencoding]
+} -body {
+    set enc [list [http::config -urlencoding]]
+    http::config -urlencoding iso8859-1
+    lappend enc [http::config -urlencoding]
+} -cleanup {
+    http::config -urlencoding $oldenc
+} -result {utf-8 iso8859-1}
+
+test http-2.1.$ThreadLevel {http::reset} {
+    catch {http::reset http#1}
+} 0
+test http-2.2.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding iso-8859-11
+} iso8859-11
+test http-2.3.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding iso-2022-kr
+} iso2022-kr
+test http-2.4.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding shift-jis
+} shiftjis
+test http-2.5.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding windows-437
+} cp437
+test http-2.6.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding latin5
+} iso8859-9
+test http-2.7.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding latin1
+} iso8859-1
+test http-2.8.$ThreadLevel {http::CharsetToEncoding} {
+    http::CharsetToEncoding latin4
+} binary
+
+test http-3.1.$ThreadLevel {http::geturl} -returnCodes error -body {
+    http::geturl -bogus flag
+} -result {Unknown option flag, can be: -binary, -blocksize, -channel, -command, -guesstype, -handler, -headers, -keepalive, -method, -myaddr, -progress, -protocol, -query, -queryblocksize, -querychannel, -queryprogress, -strict, -timeout, -type, -validate}
+
+test http-3.2.$ThreadLevel {http::geturl} -returnCodes error -body {
+    http::geturl http:junk
+} -result {Unsupported URL: http:junk}
+
+set url //${::HOST}:$port
+set badurl //${::HOST}:[expr {$port+1}]
+test http-3.3.$ThreadLevel {http::geturl} -body {
+    set token [http::geturl $url]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET /</h2>
+</body></html>"
+
+set tail /a/b/c
+set url //${::HOST}:$port/a/b/c
+set fullurl HTTP://user:pass@${::HOST}:$port/a/b/c
+set binurl //${::HOST}:$port/binary
+set xmlurl //${::HOST}:$port/xml
+set posturl //${::HOST}:$port/post
+set badposturl //${::HOST}:$port/droppost
+set authorityurl //${::HOST}:$port
+set ipv6url http://\[::1\]:$port/
+
+test http-3.4.$ThreadLevel {http::geturl} -body {
+    set token [http::geturl $url]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET $tail</h2>
+</body></html>"
+proc selfproxy {host} {
+    global port
+    return [list ${::HOST} $port]
+}
+test http-3.5.$ThreadLevel {http::geturl} -body {
+    http::config -proxyfilter selfproxy
+    set token [http::geturl $url]
+    http::data $token
+} -cleanup {
+    http::config -proxyfilter http::ProxyRequired
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET http:$url</h2>
+</body></html>"
+test http-3.6.$ThreadLevel {http::geturl} -body {
+    http::config -proxyfilter bogus
+    set token [http::geturl $url]
+    http::data $token
+} -cleanup {
+    http::config -proxyfilter http::ProxyRequired
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET $tail</h2>
+</body></html>"
+test http-3.7.$ThreadLevel {http::geturl} -body {
+    set token [http::geturl $url -headers {Pragma no-cache}]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET $tail</h2>
+</body></html>"
+test http-3.8.$ThreadLevel {http::geturl} -body {
+    set token [http::geturl $url -query Name=Value&Foo=Bar -timeout 3000]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>POST $tail</h2>
+<h2>Query</h2>
+<dl>
+<dt>Name<dd>Value
+<dt>Foo<dd>Bar
+</dl>
+</body></html>"
+test http-3.9.$ThreadLevel {http::geturl} -body {
+    set token [http::geturl $url -validate 1]
+    http::code $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result "HTTP/1.0 200 OK"
+test http-3.10.$ThreadLevel {http::geturl queryprogress} -setup {
+    set query foo=bar
+    set sep ""
+    set i 0
+    # Create about 120K of query data
+    while {$i < 14} {
+	incr i
+	append query $sep$query
+	set sep &
+    }
+} -body {
+    proc postProgress {tok x y} {
+	global postProgress
+	lappend postProgress $y
+    }
+    set postProgress {}
+    set token [http::geturl $posturl -keepalive 0 -query $query \
+	    -queryprogress postProgress -queryblocksize 16384]
+    http::wait $token
+    list [http::status $token] [string length $query] $postProgress [http::data $token]
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {ok 122879 {16384 32768 49152 65536 81920 98304 114688 122879} {Got 122879 bytes}}
+test http-3.11.$ThreadLevel {http::geturl querychannel with -command} -setup {
+    set query foo=bar
+    set sep ""
+    set i 0
+    # Create about 120K of query data
+    while {$i < 14} {
+	incr i
+	append query $sep$query
+	set sep &
+    }
+    set file [makeFile $query outdata]
+} -body {
+    set fp [open $file]
+    proc asyncCB {tok} {
+	global postResult
+	lappend postResult [http::data $tok]
+    }
+    set postResult [list ]
+    set token [http::geturl $posturl -querychannel $fp]
+    http::wait $token
+    set testRes [list [http::status $token] [string length $query] [http::data $token]]
+    # Now do async
+    http::cleanup $token
+    close $fp
+    set fp [open $file]
+    set token [http::geturl $posturl -querychannel $fp -command asyncCB]
+    set postResult [list PostStart]
+    http::wait $token
+    close $fp
+    lappend testRes [http::status $token] $postResult
+} -cleanup {
+    removeFile outdata
+    catch {http::cleanup $token}
+} -result {ok 122879 {Got 122880 bytes} ok {PostStart {Got 122880 bytes}}}
+# On Linux platforms when the client and server are on the same host, the
+# client is unable to read the server's response one it hits the write error.
+# The status is "eof".
+# On Windows, the http::wait procedure gets a "connection reset by peer" error
+# while reading the reply.
+test http-3.12.$ThreadLevel {http::geturl querychannel with aborted request} -setup {
+    set query foo=bar
+    set sep ""
+    set i 0
+    # Create about 120K of query data
+    while {$i < 14} {
+	incr i
+	append query $sep$query
+	set sep &
+    }
+    set file [makeFile $query outdata]
+} -constraints {nonPortable} -body {
+    set fp [open $file]
+    proc asyncCB {tok} {
+	global postResult
+	lappend postResult [http::data $tok]
+    }
+    proc postProgress {tok x y} {
+	global postProgress
+	lappend postProgress $y
+    }
+    set postProgress {}
+    # Now do async
+    set postResult [list PostStart]
+    if {[catch {
+	set token [http::geturl $badposturl -querychannel $fp -command asyncCB \
+		-queryprogress postProgress]
+	http::wait $token
+	upvar #0 $token state
+    } err]} {
+	puts $::errorInfo
+	error $err
+    }
+    list [http::status $token] [http::code $token]
+} -cleanup {
+    removeFile outdata
+    catch {http::cleanup $token}
+} -result {ok {HTTP/1.0 200 Data follows}}
+test http-3.13.$ThreadLevel {http::geturl socket leak test} {
+    set chanCount [llength [file channels]]
+    for {set i 0} {$i < 3} {incr i} {
+	catch {http::geturl $badurl -timeout 5000}
+    }
+    # No extra channels should be taken
+    expr {[llength [file channels]] == $chanCount}
+} 1
+test http-3.14.$ThreadLevel "http::geturl $fullurl" -body {
+    set token [http::geturl $fullurl -validate 1]
+    http::code $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result "HTTP/1.0 200 OK"
+test http-3.15.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl "{invalid}:url"
+} -returnCodes error -result {Unsupported URL: {invalid}:url}
+test http-3.16.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http:relative/url
+} -returnCodes error -result {Unsupported URL: http:relative/url}
+test http-3.17.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl /absolute/url
+} -returnCodes error -result {Missing host part: /absolute/url}
+test http-3.18.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://somewhere:123456789/
+} -returnCodes error -result {Invalid port number: 123456789}
+test http-3.19.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://{user}@somewhere
+} -returnCodes error -result {Illegal characters in URL user}
+test http-3.20.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://%user@somewhere
+} -returnCodes error -result {Illegal encoding character usage "%us" in URL user}
+test http-3.21.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://somewhere/{path}
+} -returnCodes error -result {Illegal characters in URL path}
+test http-3.22.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://somewhere/%path
+} -returnCodes error -result {Illegal encoding character usage "%pa" in URL path}
+test http-3.23.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://somewhere/path?{query}?
+} -returnCodes error -result {Illegal characters in URL path}
+test http-3.24.$ThreadLevel {http::geturl parse failures} -body {
+    http::geturl http://somewhere/path?%query
+} -returnCodes error -result {Illegal encoding character usage "%qu" in URL path}
+test http-3.25.$ThreadLevel {http::meta} -setup {
+    unset -nocomplain m token
+} -body {
+    set token [http::geturl $url -timeout 3000]
+    array set m [http::meta $token]
+    lsort [array names m]
+} -cleanup {
+    catch {http::cleanup $token}
+    unset -nocomplain m token
+} -result {content-length content-type date}
+test http-3.26.$ThreadLevel {http::meta} -setup {
+    unset -nocomplain m token
+} -body {
+    set token [http::geturl $url -headers {X-Check 1} -timeout 3000]
+    array set m [http::meta $token]
+    lsort [array names m]
+} -cleanup {
+    catch {http::cleanup $token}
+    unset -nocomplain m token
+} -result {content-length content-type date x-check}
+test http-3.27.$ThreadLevel {http::geturl: -headers override -type} -body {
+    set token [http::geturl $url/headers -type "text/plain" -query dummy \
+	    -headers [list "Content-Type" "text/plain;charset=utf-8"]]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -match regexp -result {(?n)Host .*
+User-Agent .*
+Content-Type {text/plain;charset=utf-8}
+Accept \*/\*
+Accept-Encoding .*
+Connection close
+Content-Length 5}
+test http-3.28.$ThreadLevel {http::geturl: -headers override -type default} -body {
+    set token [http::geturl $url/headers -query dummy \
+	    -headers [list "Content-Type" "text/plain;charset=utf-8"]]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -match regexp -result {(?n)Host .*
+User-Agent .*
+Content-Type {text/plain;charset=utf-8}
+Accept \*/\*
+Accept-Encoding .*
+Connection close
+Content-Length 5}
+test http-3.29.$ThreadLevel {http::geturl IPv6 address} -body {
+    # We only want to see if the URL gets parsed correctly. This is
+    # the case if http::geturl succeeds or returns a socket related
+    # error. If the parsing is wrong, we'll get a parse error.
+    # It'd be better to separate the URL parser from http::geturl, so
+    # that it can be tested without also trying to make a connection.
+    set error [catch {http::geturl $ipv6url -validate 1} token]
+    if {$error && [string match "couldn't open socket: *" $token]} {
+	set error 0
+    }
+    set error
+} -cleanup {
+    catch {http::cleanup $token}
+} -result 0
+test http-3.30.$ThreadLevel {http::geturl query without path} -body {
+    set token [http::geturl $authorityurl?var=val]
+    http::ncode $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result 200
+test http-3.31.$ThreadLevel {http::geturl fragment without path} -body {
+    set token [http::geturl "$authorityurl#fragment42"]
+    http::ncode $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result 200
+# Bug c11a51c482
+test http-3.32.$ThreadLevel {http::geturl: -headers override -accept default} -body {
+    set token [http::geturl $url/headers -query dummy \
+	    -headers [list "Accept" "text/plain,application/tcl-test-value"]]
+    http::data $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -match regexp -result {(?n)Host .*
+User-Agent .*
+Accept text/plain,application/tcl-test-value
+Accept-Encoding .*
+Connection close
+Content-Type application/x-www-form-urlencoded
+Content-Length 5}
+# Bug 838e99a76d
+test http-3.33.$ThreadLevel {http::geturl application/xml is text} -body {
+    set token [http::geturl "$xmlurl"]
+    scan [http::data $token] "<%\[^>]>%c<%\[^>]>"
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {test 4660 /test}
+test http-3.34.$ThreadLevel {http::geturl -headers not a list} -returnCodes error -body {
+    http::geturl http://test/t -headers \"
+} -result "Bad value for -headers (\"), must be list"
+test http-3.35.$ThreadLevel {http::geturl -headers not even number of elements} -returnCodes error -body {
+    http::geturl http://test/t -headers {List Length 3}
+} -result {Bad value for -headers (List Length 3), number of list elements must be even}
+
+test http-4.1.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url -keepalive 0]
+    upvar #0 $token data
+    array set meta $data(meta)
+    expr {($data(totalsize) == $meta(content-length))}
+} -cleanup {
+    catch {http::cleanup $token}
+} -result 1
+test http-4.2.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url]
+    upvar #0 $token data
+    array set meta $data(meta)
+    string compare $data(type) [string trim $meta(content-type)]
+} -cleanup {
+    catch {http::cleanup $token}
+} -result 0
+test http-4.3.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url]
+    http::code $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {HTTP/1.0 200 Data follows}
+test http-4.4.$ThreadLevel {http::Event} -setup {
+    set testfile [makeFile "" testfile]
+} -body {
+    set out [open $testfile w]
+    set token [http::geturl $url -channel $out]
+    close $out
+    set in [open $testfile]
+    set x [read $in]
+} -cleanup {
+    catch {close $in}
+    catch {close $out}
+    removeFile $testfile
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET $tail</h2>
+</body></html>"
+test http-4.5.$ThreadLevel {http::Event} -setup {
+    set testfile [makeFile "" testfile]
+} -body {
+    set out [open $testfile w]
+    fconfigure $out -translation lf
+    set token [http::geturl $url -channel $out]
+    close $out
+    upvar #0 $token data
+    expr {$data(currentsize) == $data(totalsize)}
+} -cleanup {
+    removeFile $testfile
+    catch {http::cleanup $token}
+} -result 1
+test http-4.6.$ThreadLevel {http::Event} -setup {
+    set testfile [makeFile "" testfile]
+} -body {
+    set out [open $testfile w]
+    set token [http::geturl $binurl -channel $out]
+    close $out
+    set in [open $testfile]
+    fconfigure $in -translation binary
+    read $in
+} -cleanup {
+    catch {close $in}
+    catch {close $out}
+    removeFile $testfile
+    catch {http::cleanup $token}
+} -result "$bindata[string trimleft $binurl /]"
+proc myProgress {token total current} {
+    global progress httpLog
+    if {[info exists httpLog] && $httpLog} {
+	puts "progress $total $current"
+    }
+    set progress [list $total $current]
+}
+test http-4.6.1.$ThreadLevel {http::Event} knownBug {
+    set token [http::geturl $url -blocksize 50 -progress myProgress]
+    return $progress
+} {111 111}
+test http-4.7.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url -keepalive 0 -progress myProgress]
+    return $progress
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {111 111}
+test http-4.8.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url]
+    http::status $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {ok}
+test http-4.9.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url -progress myProgress]
+    http::code $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {HTTP/1.0 200 Data follows}
+test http-4.10.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url -progress myProgress]
+    http::size $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {111}
+
+# Timeout cases
+#	Short timeout to working server (the test server). This lets us try a
+#	reset during the connection.
+test http-4.11.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url -timeout 1 -keepalive 0 -command \#]
+    http::reset $token
+    http::status $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {reset}
+
+#	Longer timeout with reset.
+test http-4.12.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url/?timeout=10 -keepalive 0 -command \#]
+    http::reset $token
+    http::status $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {reset}
+
+#	Medium timeout to working server that waits even longer. The timeout
+#	hits while waiting for a reply.
+test http-4.13.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $url?timeout=30 -keepalive 0 -timeout 10 -command \#]
+    http::wait $token
+    http::status $token
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {timeout}
+
+#	Longer timeout to good host, bad port, gets an error after the
+#	connection "completes" but the socket is bad.
+test http-4.14.$ThreadLevel {http::Event} -body {
+    set token [http::geturl $badurl/?timeout=10 -timeout 10000 -command \#]
+    if {$token eq ""} {
+	error "bogus return from http::geturl"
+    }
+    http::wait $token
+    lindex [http::error $token] 0
+} -cleanup {
+    catch {http::cleanup $token}
+} -result {connect failed: connection refused}
+
+# Bogus host
+test http-4.15.$ThreadLevel {http::Event} -body {
+    # 1. The test assumes that http is not using a proxy server.
+    #    If http is using a proxy server, the latter is responsible for the DNS
+    #    lookup of the non-existent host. Squid responds with
+    #    "503 Service Unavailable" and an explanatory response body; but other
+    #    proxies may respond differently.
+    # 2. The [socket] command blocks during the DNS lookup.
+    #    - When [socket] runs in the main thread (i.e. when -threadlevel is 0 or
+    #      (if Thread package not available) 1), the script cannot time out
+    #      during a prolonged DNS lookup.
+    #    - When [socket] runs in a separate thread (i.e. when the Thread package
+    #      is available and [http::config -threadlevel] is 1 or 2), the main
+    #      thread enters the event loop and has the opportunity to time out
+    #      during the DNS lookup.  This causes the test to fail.
+    #    - The test uses a long -timeout so that it is not confounded by a slow
+    #      DNS lookup.
+    #    - If the error result is "timeout", this suggests a problem with
+    #      negative DNS lookups on the test host.  Compare the timings for
+    #      different values of threadLevel.
+    # set t0 [clock milliseconds]
+    set token [http::geturl //not-a-host.nodns. -timeout 30000 -command \#]
+    http::wait $token
+    # set t1 [clock milliseconds]
+    # puts "Test http-4.15.$ThreadLevel - time taken: [expr {$t1 - $t0}] ms"
+    set result "[http::status $token] -- [lindex [http::error $token] 0]"
+    # error codes vary among platforms.
+} -cleanup {
+    catch {http::cleanup $token}
+} -match glob -result "error -- couldn't open socket*"
+
+test http-4.16.$ThreadLevel {Leak with Close vs Keepalive (bug [6ca52aec14]} -setup {
+    proc list-difference {l1 l2} {
+	lmap item $l2 {if {$item in $l1} continue; set item}
+    }
+} -body {
+    set before [chan names]
+    set token [http::geturl $url -headers {X-Connection keep-alive}]
+    http::cleanup $token
+    update
+    # Compute what channels have been unexpectedly leaked past cleanup
+    list-difference $before [chan names]
+} -cleanup {
+    rename list-difference {}
+} -result {}
+
+test http-5.1.$ThreadLevel {http::formatQuery} {
+    http::formatQuery name1 value1 name2 "value two"
+} {name1=value1&name2=value%20two}
+# test http-5.2 obsoleted by 5.4 and 5.5 with http 2.5
+test http-5.3.$ThreadLevel {http::formatQuery} {
+    http::formatQuery lines "line1\nline2\nline3"
+} {lines=line1%0D%0Aline2%0D%0Aline3}
+test http-5.4.$ThreadLevel {http::formatQuery} {
+    http::formatQuery name1 ~bwelch name2 ¡¢¢
+} {name1=~bwelch&name2=%C2%A1%C2%A2%C2%A2}
+test http-5.5.$ThreadLevel {http::formatQuery} {
+    set enc [http::config -urlencoding]
+    http::config -urlencoding iso8859-1
+    set res [http::formatQuery name1 ~bwelch name2 ¡¢¢]
+    http::config -urlencoding $enc
+    set res
+} {name1=~bwelch&name2=%A1%A2%A2}
+
+test http-6.1.$ThreadLevel {http::ProxyRequired} -body {
+    http::config -proxyhost ${::HOST} -proxyport $port
+    set token [http::geturl $url]
+    http::wait $token
+    upvar #0 $token data
+    set data(body)
+} -cleanup {
+    http::config -proxyhost {} -proxyport {}
+    catch {http::cleanup $token}
+} -result "<html><head><title>HTTP/1.0 TEST</title></head><body>
+<h1>Hello, World!</h1>
+<h2>GET http:$url</h2>
+</body></html>"
+
+test http-7.1.$ThreadLevel {http::mapReply} {
+    http::mapReply "abc\$\[\]\"\\()\}\{"
+} {abc%24%5B%5D%22%5C%28%29%7D%7B}
+test http-7.2.$ThreadLevel {http::mapReply} {
+    # RFC 2718 specifies that we pass urlencoding on utf-8 chars by default,
+    # so make sure this gets converted to utf-8 then urlencoded.
+    http::mapReply "∈"
+} {%E2%88%88}
+test http-7.3.$ThreadLevel {http::formatQuery} -setup {
+    set enc [http::config -urlencoding]
+} -returnCodes error -body {
+    # -urlencoding "" no longer supported. Use "iso8859-1".
+    http::config -urlencoding ""
+    http::mapReply "∈"
+} -cleanup {
+    http::config -urlencoding $enc
+} -result {unknown encoding ""}
+test http-7.4.$ThreadLevel {http::formatQuery} -setup {
+    set enc [http::config -urlencoding]
+} -constraints {
+    knownProfileBug
+} -body {
+    # this would be reverting to http <=2.4 behavior w/o errors
+    # with Tcl 8.x (unknown chars become '?'), generating a
+    # proper exception with Tcl 9.0
+    http::config -urlencoding "iso8859-1"
+    http::mapReply "∈"
+} -cleanup {
+    http::config -urlencoding $enc
+} -errorCode {TCL ENCODING ILLEGALSEQUENCE 0} -result {unexpected character at index 0: 'U+002208'}
+
+package require tcl::idna 1.0
+
+test http-idna-1.1.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna
+} -result {wrong # args: should be "::tcl::idna subcommand ?arg ...?"}
+test http-idna-1.2.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna ?
+} -result {unknown or ambiguous subcommand "?": must be decode, encode, puny, or version}
+test http-idna-1.3.$ThreadLevel {IDNA package: basics} -body {
+    ::tcl::idna version
+} -result 1.0.1
+test http-idna-1.4.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna version what
+} -result {wrong # args: should be "::tcl::idna version"}
+test http-idna-1.5.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna puny
+} -result {wrong # args: should be "::tcl::idna puny subcommand ?arg ...?"}
+test http-idna-1.6.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna puny ?
+} -result {unknown or ambiguous subcommand "?": must be decode, or encode}
+test http-idna-1.7.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna puny encode
+} -result {wrong # args: should be "::tcl::idna puny encode string ?case?"}
+test http-idna-1.8.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna puny encode a b c
+} -result {wrong # args: should be "::tcl::idna puny encode string ?case?"}
+test http-idna-1.9.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna puny decode
+} -result {wrong # args: should be "::tcl::idna puny decode string ?case?"}
+test http-idna-1.10.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna puny decode a b c
+} -result {wrong # args: should be "::tcl::idna puny decode string ?case?"}
+test http-idna-1.11.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna decode
+} -result {wrong # args: should be "::tcl::idna decode hostname"}
+test http-idna-1.12.$ThreadLevel {IDNA package: basics} -returnCodes error -body {
+    ::tcl::idna encode
+} -result {wrong # args: should be "::tcl::idna encode hostname"}
+
+test http-idna-2.1.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode abc
+} abc-
+test http-idna-2.2.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode a€b€c
+} abc-k50ab
+test http-idna-2.3.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode ABC
+} ABC-
+test http-idna-2.4.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode A€B€C
+} ABC-k50ab
+test http-idna-2.5.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode ABC 0
+} abc-
+test http-idna-2.6.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode A€B€C 0
+} abc-k50ab
+test http-idna-2.7.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode ABC 1
+} ABC-
+test http-idna-2.8.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode A€B€C 1
+} ABC-k50ab
+test http-idna-2.9.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode abc 0
+} abc-
+test http-idna-2.10.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode a€b€c 0
+} abc-k50ab
+test http-idna-2.11.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode abc 1
+} ABC-
+test http-idna-2.12.$ThreadLevel {puny encode: functional test} {
+    ::tcl::idna puny encode a€b€c 1
+} ABC-k50ab
+test http-idna-2.13.$ThreadLevel {puny encode: edge cases} {
+    ::tcl::idna puny encode ""
+} ""
+test http-idna-2.14-A.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+0644 u+064A u+0647 u+0645 u+0627 u+0628 u+062A u+0643 u+0644
+	u+0645 u+0648 u+0634 u+0639 u+0631 u+0628 u+064A u+061F
+    }]] ""]
+} egbpdaj6bu4bxfgehfvwxn
+test http-idna-2.14-B.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+4ED6 u+4EEC u+4E3A u+4EC0 u+4E48 u+4E0D u+8BF4 u+4E2D u+6587
+    }]] ""]
+} ihqwcrb4cv8a8dqg056pqjye
+test http-idna-2.14-C.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+4ED6 u+5011 u+7232 u+4EC0 u+9EBD u+4E0D u+8AAA u+4E2D u+6587
+    }]] ""]
+} ihqwctvzc91f659drss3x8bo0yb
+test http-idna-2.14-D.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+0050 u+0072 u+006F u+010D u+0070 u+0072 u+006F u+0073 u+0074
+	u+011B u+006E u+0065 u+006D u+006C u+0075 u+0076 u+00ED u+010D
+	u+0065 u+0073 u+006B u+0079
+    }]] ""]
+} Proprostnemluvesky-uyb24dma41a
+test http-idna-2.14-E.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+05DC u+05DE u+05D4 u+05D4 u+05DD u+05E4 u+05E9 u+05D5 u+05D8
+	u+05DC u+05D0 u+05DE u+05D3 u+05D1 u+05E8 u+05D9 u+05DD u+05E2
+	u+05D1 u+05E8 u+05D9 u+05EA
+    }]] ""]
+} 4dbcagdahymbxekheh6e0a7fei0b
+test http-idna-2.14-F.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+092F u+0939 u+0932 u+094B u+0917 u+0939 u+093F u+0928 u+094D
+	u+0926 u+0940 u+0915 u+094D u+092F u+094B u+0902 u+0928 u+0939
+	u+0940 u+0902 u+092C u+094B u+0932 u+0938 u+0915 u+0924 u+0947
+	u+0939 u+0948 u+0902
+    }]] ""]
+} i1baa7eci9glrd9b2ae1bj0hfcgg6iyaf8o0a1dig0cd
+test http-idna-2.14-G.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+306A u+305C u+307F u+3093 u+306A u+65E5 u+672C u+8A9E u+3092
+	u+8A71 u+3057 u+3066 u+304F u+308C u+306A u+3044 u+306E u+304B
+    }]] ""]
+} n8jok5ay5dzabd5bym9f0cm5685rrjetr6pdxa
+test http-idna-2.14-H.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+C138 u+ACC4 u+C758 u+BAA8 u+B4E0 u+C0AC u+B78C u+B4E4 u+C774
+	u+D55C u+AD6D u+C5B4 u+B97C u+C774 u+D574 u+D55C u+B2E4 u+BA74
+	u+C5BC u+B9C8 u+B098 u+C88B u+C744 u+AE4C
+    }]] ""]
+} 989aomsvi5e83db1d2a355cv1e0vak1dwrv93d5xbh15a0dt30a5jpsd879ccm6fea98c
+test http-idna-2.14-I.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+043F u+043E u+0447 u+0435 u+043C u+0443 u+0436 u+0435 u+043E
+	u+043D u+0438 u+043D u+0435 u+0433 u+043E u+0432 u+043E u+0440
+	u+044F u+0442 u+043F u+043E u+0440 u+0443 u+0441 u+0441 u+043A
+	u+0438
+    }]] ""]
+} b1abfaaepdrnnbgefbadotcwatmq2g4l
+test http-idna-2.14-J.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+0050 u+006F u+0072 u+0071 u+0075 u+00E9 u+006E u+006F u+0070
+	u+0075 u+0065 u+0064 u+0065 u+006E u+0073 u+0069 u+006D u+0070
+	u+006C u+0065 u+006D u+0065 u+006E u+0074 u+0065 u+0068 u+0061
+	u+0062 u+006C u+0061 u+0072 u+0065 u+006E u+0045 u+0073 u+0070
+	u+0061 u+00F1 u+006F u+006C
+    }]] ""]
+} PorqunopuedensimplementehablarenEspaol-fmd56a
+test http-idna-2.14-K.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+0054 u+1EA1 u+0069 u+0073 u+0061 u+006F u+0068 u+1ECD u+006B
+	u+0068 u+00F4 u+006E u+0067 u+0074 u+0068 u+1EC3 u+0063 u+0068
+	u+1EC9 u+006E u+00F3 u+0069 u+0074 u+0069 u+1EBF u+006E u+0067
+	u+0056 u+0069 u+1EC7 u+0074
+    }]] ""]
+} TisaohkhngthchnitingVit-kjcr8268qyxafd2f1b9g
+test http-idna-2.14-L.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+0033 u+5E74 u+0042 u+7D44 u+91D1 u+516B u+5148 u+751F
+    }]] ""]
+} 3B-ww4c5e180e575a65lsy2b
+test http-idna-2.14-M.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+5B89 u+5BA4 u+5948 u+7F8E u+6075 u+002D u+0077 u+0069 u+0074
+	u+0068 u+002D u+0053 u+0055 u+0050 u+0045 u+0052 u+002D u+004D
+	u+004F u+004E u+004B u+0045 u+0059 u+0053
+    }]] ""]
+} -with-SUPER-MONKEYS-pc58ag80a8qai00g7n9n
+test http-idna-2.14-N.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+0048 u+0065 u+006C u+006C u+006F u+002D u+0041 u+006E u+006F
+	u+0074 u+0068 u+0065 u+0072 u+002D u+0057 u+0061 u+0079 u+002D
+	u+305D u+308C u+305E u+308C u+306E u+5834 u+6240
+    }]] ""]
+} Hello-Another-Way--fc4qua05auwb3674vfr0b
+test http-idna-2.14-O.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+3072 u+3068 u+3064 u+5C4B u+6839 u+306E u+4E0B u+0032
+    }]] ""]
+} 2-u9tlzr9756bt3uc0v
+test http-idna-2.14-P.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+004D u+0061 u+006A u+0069 u+3067 u+004B u+006F u+0069 u+3059
+	u+308B u+0035 u+79D2 u+524D
+    }]] ""]
+} MajiKoi5-783gue6qz075azm5e
+test http-idna-2.14-Q.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+30D1 u+30D5 u+30A3 u+30FC u+0064 u+0065 u+30EB u+30F3 u+30D0
+    }]] ""]
+} de-jg4avhby1noc0d
+test http-idna-2.14-R.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode [join [subst [string map {u+ \\u} {
+	u+305D u+306E u+30B9 u+30D4 u+30FC u+30C9 u+3067
+    }]] ""]
+} d9juau41awczczp
+test http-idna-2.14-S.$ThreadLevel {puny encode: examples from RFC 3492} {
+    ::tcl::idna puny encode {-> $1.00 <-}
+} {-> $1.00 <--}
+
+test http-idna-3.1.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc-
+} abc
+test http-idna-3.2.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc-k50ab
+} a€b€c
+test http-idna-3.3.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC-
+} ABC
+test http-idna-3.4.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC-k50ab
+} A€B€C
+test http-idna-3.5.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC-K50AB
+} A€B€C
+test http-idna-3.6.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc-K50AB
+} a€b€c
+test http-idna-3.7.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC- 0
+} abc
+test http-idna-3.8.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC-K50AB 0
+} a€b€c
+test http-idna-3.9.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC- 1
+} ABC
+test http-idna-3.10.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode ABC-K50AB 1
+} A€B€C
+test http-idna-3.11.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc- 0
+} abc
+test http-idna-3.12.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc-k50ab 0
+} a€b€c
+test http-idna-3.13.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc- 1
+} ABC
+test http-idna-3.14.$ThreadLevel {puny decode: functional test} {
+    ::tcl::idna puny decode abc-k50ab 1
+} A€B€C
+test http-idna-3.15.$ThreadLevel {puny decode: edge cases and errors} {
+    # Is this case actually correct?
+    binary encode hex [encoding convertto utf-8 [::tcl::idna puny decode abc]]
+} c282c281c280
+test http-idna-3.16.$ThreadLevel {puny decode: edge cases and errors} -returnCodes error -body {
+    ::tcl::idna puny decode abc!
+} -result {bad decode character "!"}
+test http-idna-3.17.$ThreadLevel {puny decode: edge cases and errors} {
+    catch {::tcl::idna puny decode abc!} -> opt
+    dict get $opt -errorcode
+} {PUNYCODE BAD_INPUT CHAR}
+test http-idna-3.18.$ThreadLevel {puny decode: edge cases and errors} {
+    ::tcl::idna puny decode ""
+} {}
+# A helper so we don't get lots of crap in failures
+proc hexify s {lmap c [split $s ""] {format u+%04X [scan $c %c]}}
+test http-idna-3.19-A.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode egbpdaj6bu4bxfgehfvwxn]
+} [list {*}{
+    u+0644 u+064A u+0647 u+0645 u+0627 u+0628 u+062A u+0643 u+0644
+    u+0645 u+0648 u+0634 u+0639 u+0631 u+0628 u+064A u+061F
+}]
+test http-idna-3.19-B.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode ihqwcrb4cv8a8dqg056pqjye]
+} {u+4ED6 u+4EEC u+4E3A u+4EC0 u+4E48 u+4E0D u+8BF4 u+4E2D u+6587}
+test http-idna-3.19-C.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode ihqwctvzc91f659drss3x8bo0yb]
+} {u+4ED6 u+5011 u+7232 u+4EC0 u+9EBD u+4E0D u+8AAA u+4E2D u+6587}
+test http-idna-3.19-D.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode Proprostnemluvesky-uyb24dma41a]
+} [list {*}{
+    u+0050 u+0072 u+006F u+010D u+0070 u+0072 u+006F u+0073 u+0074
+    u+011B u+006E u+0065 u+006D u+006C u+0075 u+0076 u+00ED u+010D
+    u+0065 u+0073 u+006B u+0079
+}]
+test http-idna-3.19-E.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode 4dbcagdahymbxekheh6e0a7fei0b]
+} [list {*}{
+    u+05DC u+05DE u+05D4 u+05D4 u+05DD u+05E4 u+05E9 u+05D5 u+05D8
+    u+05DC u+05D0 u+05DE u+05D3 u+05D1 u+05E8 u+05D9 u+05DD u+05E2
+    u+05D1 u+05E8 u+05D9 u+05EA
+}]
+test http-idna-3.19-F.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode \
+	i1baa7eci9glrd9b2ae1bj0hfcgg6iyaf8o0a1dig0cd]
+} [list {*}{
+    u+092F u+0939 u+0932 u+094B u+0917 u+0939 u+093F u+0928 u+094D
+    u+0926 u+0940 u+0915 u+094D u+092F u+094B u+0902 u+0928 u+0939
+    u+0940 u+0902 u+092C u+094B u+0932 u+0938 u+0915 u+0924 u+0947
+    u+0939 u+0948 u+0902
+}]
+test http-idna-3.19-G.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode n8jok5ay5dzabd5bym9f0cm5685rrjetr6pdxa]
+} [list {*}{
+    u+306A u+305C u+307F u+3093 u+306A u+65E5 u+672C u+8A9E u+3092
+    u+8A71 u+3057 u+3066 u+304F u+308C u+306A u+3044 u+306E u+304B
+}]
+test http-idna-3.19-H.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode \
+	989aomsvi5e83db1d2a355cv1e0vak1dwrv93d5xbh15a0dt30a5jpsd879ccm6fea98c]
+} [list {*}{
+    u+C138 u+ACC4 u+C758 u+BAA8 u+B4E0 u+C0AC u+B78C u+B4E4 u+C774
+    u+D55C u+AD6D u+C5B4 u+B97C u+C774 u+D574 u+D55C u+B2E4 u+BA74
+    u+C5BC u+B9C8 u+B098 u+C88B u+C744 u+AE4C
+}]
+test http-idna-3.19-I.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode b1abfaaepdrnnbgefbadotcwatmq2g4l]
+} [list {*}{
+    u+043F u+043E u+0447 u+0435 u+043C u+0443 u+0436 u+0435 u+043E
+    u+043D u+0438 u+043D u+0435 u+0433 u+043E u+0432 u+043E u+0440
+    u+044F u+0442 u+043F u+043E u+0440 u+0443 u+0441 u+0441 u+043A
+    u+0438
+}]
+test http-idna-3.19-J.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode \
+	PorqunopuedensimplementehablarenEspaol-fmd56a]
+} [list {*}{
+    u+0050 u+006F u+0072 u+0071 u+0075 u+00E9 u+006E u+006F u+0070
+    u+0075 u+0065 u+0064 u+0065 u+006E u+0073 u+0069 u+006D u+0070
+    u+006C u+0065 u+006D u+0065 u+006E u+0074 u+0065 u+0068 u+0061
+    u+0062 u+006C u+0061 u+0072 u+0065 u+006E u+0045 u+0073 u+0070
+    u+0061 u+00F1 u+006F u+006C
+}]
+test http-idna-3.19-K.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode \
+	TisaohkhngthchnitingVit-kjcr8268qyxafd2f1b9g]
+} [list {*}{
+    u+0054 u+1EA1 u+0069 u+0073 u+0061 u+006F u+0068 u+1ECD u+006B
+    u+0068 u+00F4 u+006E u+0067 u+0074 u+0068 u+1EC3 u+0063 u+0068
+    u+1EC9 u+006E u+00F3 u+0069 u+0074 u+0069 u+1EBF u+006E u+0067
+    u+0056 u+0069 u+1EC7 u+0074
+}]
+test http-idna-3.19-L.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode 3B-ww4c5e180e575a65lsy2b]
+} {u+0033 u+5E74 u+0042 u+7D44 u+91D1 u+516B u+5148 u+751F}
+test http-idna-3.19-M.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode -with-SUPER-MONKEYS-pc58ag80a8qai00g7n9n]
+} [list {*}{
+    u+5B89 u+5BA4 u+5948 u+7F8E u+6075 u+002D u+0077 u+0069 u+0074
+    u+0068 u+002D u+0053 u+0055 u+0050 u+0045 u+0052 u+002D u+004D
+    u+004F u+004E u+004B u+0045 u+0059 u+0053
+}]
+test http-idna-3.19-N.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode Hello-Another-Way--fc4qua05auwb3674vfr0b]
+} [list {*}{
+    u+0048 u+0065 u+006C u+006C u+006F u+002D u+0041 u+006E u+006F
+    u+0074 u+0068 u+0065 u+0072 u+002D u+0057 u+0061 u+0079 u+002D
+    u+305D u+308C u+305E u+308C u+306E u+5834 u+6240
+}]
+test http-idna-3.19-O.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode 2-u9tlzr9756bt3uc0v]
+} {u+3072 u+3068 u+3064 u+5C4B u+6839 u+306E u+4E0B u+0032}
+test http-idna-3.19-P.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode MajiKoi5-783gue6qz075azm5e]
+} [list {*}{
+    u+004D u+0061 u+006A u+0069 u+3067 u+004B u+006F u+0069 u+3059
+    u+308B u+0035 u+79D2 u+524D
+}]
+test http-idna-3.19-Q.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode de-jg4avhby1noc0d]
+} {u+30D1 u+30D5 u+30A3 u+30FC u+0064 u+0065 u+30EB u+30F3 u+30D0}
+test http-idna-3.19-R.$ThreadLevel {puny decode: examples from RFC 3492} {
+    hexify [::tcl::idna puny decode d9juau41awczczp]
+} {u+305D u+306E u+30B9 u+30D4 u+30FC u+30C9 u+3067}
+test http-idna-3.19-S.$ThreadLevel {puny decode: examples from RFC 3492} {
+    ::tcl::idna puny decode {-> $1.00 <--}
+} {-> $1.00 <-}
+rename hexify ""
+
+test http-idna-4.1.$ThreadLevel {IDNA encoding} {
+    ::tcl::idna encode abc.def
+} abc.def
+test http-idna-4.2.$ThreadLevel {IDNA encoding} {
+    ::tcl::idna encode a€b€c.def
+} xn--abc-k50ab.def
+test http-idna-4.3.$ThreadLevel {IDNA encoding} {
+    ::tcl::idna encode def.a€b€c
+} def.xn--abc-k50ab
+test http-idna-4.4.$ThreadLevel {IDNA encoding} {
+    ::tcl::idna encode ABC.DEF
+} ABC.DEF
+test http-idna-4.5.$ThreadLevel {IDNA encoding} {
+    ::tcl::idna encode A€B€C.def
+} xn--ABC-k50ab.def
+test http-idna-4.6.$ThreadLevel {IDNA encoding: invalid edge case} {
+    # Should this be an error?
+    ::tcl::idna encode abc..def
+} abc..def
+test http-idna-4.7.$ThreadLevel {IDNA encoding: invalid char} -returnCodes error -body {
+    ::tcl::idna encode abc.$.def
+} -result {bad character "$" in DNS name}
+test http-idna-4.7.1.$ThreadLevel {IDNA encoding: invalid char} {
+    catch {::tcl::idna encode abc.$.def} -> opt
+    dict get $opt -errorcode
+} {IDNA INVALID_NAME_CHARACTER {$}}
+test http-idna-4.8.$ThreadLevel {IDNA encoding: empty} {
+    ::tcl::idna encode ""
+} {}
+set overlong www.[join [subst [string map {u+ \\u} {
+    u+C138 u+ACC4 u+C758 u+BAA8 u+B4E0 u+C0AC u+B78C u+B4E4 u+C774
+    u+D55C u+AD6D u+C5B4 u+B97C u+C774 u+D574 u+D55C u+B2E4 u+BA74
+    u+C5BC u+B9C8 u+B098 u+C88B u+C744 u+AE4C
+}]] ""].com
+test http-idna-4.9.$ThreadLevel {IDNA encoding: max lengths from RFC 5890} -body {
+    ::tcl::idna encode $overlong
+} -returnCodes error -result "hostname part too long"
+test http-idna-4.9.1.$ThreadLevel {IDNA encoding: max lengths from RFC 5890} {
+    catch {::tcl::idna encode $overlong} -> opt
+    dict get $opt -errorcode
+} {IDNA OVERLONG_PART xn--989aomsvi5e83db1d2a355cv1e0vak1dwrv93d5xbh15a0dt30a5jpsd879ccm6fea98c}
+unset overlong
+test http-idna-4.10.$ThreadLevel {IDNA encoding: edge cases} {
+    ::tcl::idna encode passé.example.com
+} xn--pass-epa.example.com
+
+test http-idna-5.1.$ThreadLevel {IDNA decoding} {
+    ::tcl::idna decode abc.def
+} abc.def
+test http-idna-5.2.$ThreadLevel {IDNA decoding} {
+    # Invalid entry that's just a wrapper
+    ::tcl::idna decode xn--abc-.def
+} abc.def
+test http-idna-5.3.$ThreadLevel {IDNA decoding} {
+    # Invalid entry that's just a wrapper
+    ::tcl::idna decode xn--abc-.xn--def-
+} abc.def
+test http-idna-5.4.$ThreadLevel {IDNA decoding} {
+    # Invalid entry that's just a wrapper
+    ::tcl::idna decode XN--abc-.XN--def-
+} abc.def
+test http-idna-5.5.$ThreadLevel {IDNA decoding: error cases} -returnCodes error -body {
+    ::tcl::idna decode xn--$$$.example.com
+} -result {bad decode character "$"}
+test http-idna-5.5.1.$ThreadLevel {IDNA decoding: error cases} {
+    catch {::tcl::idna decode xn--$$$.example.com} -> opt
+    dict get $opt -errorcode
+} {PUNYCODE BAD_INPUT CHAR}
+test http-idna-5.6.$ThreadLevel {IDNA decoding: error cases} -returnCodes error -body {
+    ::tcl::idna decode xn--a-zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz.def
+} -result {exceeded input data}
+test http-idna-5.6.1.$ThreadLevel {IDNA decoding: error cases} {
+    catch {::tcl::idna decode xn--a-zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz.def} -> opt
+    dict get $opt -errorcode
+} {PUNYCODE BAD_INPUT LENGTH}
+
+# cleanup
+catch {unset url}
+catch {unset badurl}
+catch {unset port}
+catch {unset data}
+if {[llength $threadStack]} {
+    eval [lpop threadStack]
+} else {
+    close $listen
+}
+
+if {[info exists removeHttpd]} {
+    removeFile $httpdFile
+}
+
+rename bgerror {}
+
+if {[testConstraint ThreadLevelSummary]} {
+    ::tcltest::cleanupTests
+}
+
+# Local variables:
+# mode: tcl
+# End:

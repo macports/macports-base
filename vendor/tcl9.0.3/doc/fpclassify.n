@@ -1,0 +1,73 @@
+'\"
+'\" Copyright (c) 2018 Kevin B. Kenny <kennykb@acm.org>. All rights reserved
+'\" Copyright (c) 2019 Donal Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH fpclassify n 9.0 Tcl "Tcl Float Classifier"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+fpclassify \- Floating point number classification of Tcl values
+.SH SYNOPSIS
+package require \fBtcl 9.0\fR
+.sp
+\fBfpclassify \fIvalue\fR
+.BE
+.SH DESCRIPTION
+The \fBfpclassify\fR command takes a floating point number, \fIvalue\fR, and
+returns one of the following strings that describe it:
+.IP \fBzero\fR
+\fIvalue\fR is a floating point zero.
+.IP \fBsubnormal\fR
+\fIvalue\fR is the result of a gradual underflow.
+.IP \fBnormal\fR
+\fIvalue\fR is an ordinary floating-point number (not zero, subnormal,
+infinite, nor NaN).
+.IP \fBinfinite\fR
+\fIvalue\fR is a floating-point infinity.
+.IP \fBnan\fR
+\fIvalue\fR is Not-a-Number.
+.PP
+The \fBfpclassify\fR command throws an error if value is not a floating-point
+value and cannot be converted to one.
+.SH EXAMPLE
+.PP
+This shows how to check whether the result of a computation is numerically
+safe or not. (Note however that it does not guard against numerical errors;
+just against representational problems.)
+.PP
+.CS
+set value [command-that-computes-a-value]
+switch [\fBfpclassify\fR $value] {
+    normal - zero {
+        puts "Result is $value"
+    }
+    infinite {
+        puts "Result is infinite"
+    }
+    subnormal {
+        puts "Result is $value - WARNING! precision lost"
+    }
+    nan {
+        puts "Computation completely failed"
+    }
+}
+.CE
+.SH "SEE ALSO"
+expr(n), mathfunc(n)
+.SH KEYWORDS
+floating point
+.SH STANDARDS
+This command depends on the \fBfpclassify\fR() C macro conforming to
+.QW "ISO C99"
+(i.e., to ISO/IEC 9899:1999).
+.SH COPYRIGHT
+.nf
+Copyright \(co 2018 Kevin B. Kenny <kennykb@acm.org>. All rights reserved
+.fi
+'\" Local Variables:
+'\" mode: nroff
+'\" End:

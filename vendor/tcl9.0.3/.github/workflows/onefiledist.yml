@@ -1,0 +1,243 @@
+name: Build Binaries
+on:
+  push:
+    branches:
+    - "main"
+    - "core-9-0-branch"
+    tags:
+    - "core-*"
+permissions:
+  contents: read
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Prepare
+        run: |
+          touch generic/tclStubInit.c generic/tclOOStubInit.c
+          mkdir 1dist
+          echo "VER_PATH=$(cd tools; pwd)/addVerToFile.tcl" >> $GITHUB_ENV
+        working-directory: .
+      - name: Configure
+        run: ./configure --disable-symbols --disable-shared --enable-zipfs
+        working-directory: unix
+      - name: Build
+        run: |
+          make tclsh
+          make shell SCRIPT="$VER_PATH $GITHUB_ENV"
+          echo "TCL_ZIP=`pwd`/`echo libtcl*.zip`" >> $GITHUB_ENV
+        working-directory: unix
+      - name: Package
+        run: |
+          cp ../unix/tclsh tclsh${TCL_PATCHLEVEL}_snapshot
+          chmod +x tclsh${TCL_PATCHLEVEL}_snapshot
+          tar -cf tclsh${TCL_PATCHLEVEL}_snapshot.tar tclsh${TCL_PATCHLEVEL}_snapshot
+        working-directory: 1dist
+      - name: Info
+        run: |
+          ulimit -a || echo 'get limit failed'
+          echo 'puts exe:\t[info nameofexecutable]\nver:\t[info patchlevel]\t[if {![catch tcl::build-info ret]} {set ret}]\nlib:\t[info library]\nplat:\t[lsort -dictionary -stride 2 [array get tcl_platform]]' | make runtest || echo 'get info failed'
+      - name: Upload
+        uses: actions/upload-artifact@v5
+        with:
+          name: Tclsh ${{ env.TCL_PATCHLEVEL }} Linux single-file build (snapshot)
+          path: 1dist/*.tar
+        id: upload
+    outputs:
+      url: ${{ steps.upload.outputs.artifact-url }}
+  macos:
+    name: macOS
+    runs-on: macos-15-intel
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Checkout create-dmg
+        uses: actions/checkout@v5
+        with:
+          repository: create-dmg/create-dmg
+          ref: v1.2.2
+          path: create-dmg
+      - name: Prepare
+        run: |
+          mkdir 1dist
+          touch generic/tclStubInit.c generic/tclOOStubInit.c || true
+          wget https://github.com/culler/macher/releases/download/v1.8/macher
+          sudo cp macher /usr/local/bin
+          sudo chmod a+x /usr/local/bin/macher
+          echo "VER_PATH=$(cd tools; pwd)/addVerToFile.tcl" >> $GITHUB_ENV
+          echo "CREATE_DMG=$(cd create-dmg;pwd)/create-dmg" >> $GITHUB_ENV
+          echo "CFLAGS=-arch x86_64 -arch arm64" >> $GITHUB_ENV
+      - name: Configure
+        run: ./configure --disable-symbols --disable-shared --enable-zipfs
+        working-directory: unix
+      - name: Build
+        run: |
+          make -j4 tclsh
+          make -j4 shell SCRIPT="$VER_PATH $GITHUB_ENV"
+          echo "TCL_BIN=`pwd`/tclsh" >> $GITHUB_ENV
+          echo "TCL_ZIP=`pwd`/`echo libtcl*.zip`" >> $GITHUB_ENV
+        working-directory: unix
+      - name: Package
+        run: |
+          mkdir contents
+          cp $TCL_BIN contents/tclsh${TCL_PATCHLEVEL}_snapshot
+          chmod +x contents/tclsh${TCL_PATCHLEVEL}_snapshot
+          cat > contents/README.txt <<EOF
+          This is a single-file executable developer preview of Tcl $TCL_PATCHLEVEL
+
+          It is not intended as an official release at all, so it is unsigned and unnotarized.
+          Use strictly at your own risk.
+
+          To run it, you need to copy the executable out and run:
+              xattr -d com.apple.quarantine tclsh${TCL_PATCHLEVEL}_snapshot
+          to mark the executable as runnable on your machine.
+          EOF
+          $CREATE_DMG \
+              --volname "Tcl $TCL_PATCHLEVEL (snapshot)" \
+              --window-pos 200 120 \
+              --window-size 800 400 \
+              "Tcl-$TCL_PATCHLEVEL-(snapshot).dmg" \
+              "contents/"
+        working-directory: 1dist
+      - name: Info
+        run: |
+          ulimit -a || echo 'get limit failed'
+          echo 'puts exe:\t[info nameofexecutable]\nver:\t[info patchlevel]\t[if {![catch tcl::build-info ret]} {set ret}]\nlib:\t[info library]\nplat:\t[lsort -dictionary -stride 2 [array get tcl_platform]]' | make runtest || echo 'get info failed'
+      - name: Upload
+        uses: actions/upload-artifact@v5
+        with:
+          name: Tclsh ${{ env.TCL_PATCHLEVEL }} macOS single-file build (snapshot)
+          path: 1dist/*.dmg
+        id: upload
+    outputs:
+      url: ${{ steps.upload.outputs.artifact-url }}
+  win:
+    name: Windows
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: msys2 {0}
+    timeout-minutes: 10
+    env:
+      CC: gcc
+      CFGOPT: --disable-symbols --disable-shared
+    steps:
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: git mingw-w64-ucrt-x86_64-toolchain make zip
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Prepare
+        run: |
+          touch generic/tclStubInit.c generic/tclOOStubInit.c
+          echo "VER_PATH=$(cd tools; pwd)/addVerToFile.tcl" >> $GITHUB_ENV
+          mkdir 1dist
+        working-directory: .
+      - name: Configure
+        run: ./configure $CFGOPT
+        working-directory: win
+      - name: Build
+        run: |
+          make binaries libraries
+          echo "TCL_ZIP=`pwd`/`echo libtcl*.zip`" >> $GITHUB_ENV
+        working-directory: win
+      - name: Get Exact Version
+        run: |
+          ./tclsh*.exe $VER_PATH $GITHUB_ENV
+        working-directory: win
+      - name: Set Executable Name
+        run: |
+          cp ../win/tclsh*.exe tclsh${TCL_PATCHLEVEL}_snapshot.exe
+        working-directory: 1dist
+      - name: Info
+        run: |
+          ulimit -a || echo 'get limit failed'
+          echo 'puts exe:\t[info nameofexecutable]\nver:\t[info patchlevel]\t[if {![catch tcl::build-info ret]} {set ret}]\nlib:\t[info library]\nplat:\t[lsort -dictionary -stride 2 [array get tcl_platform]]' | make runtest || echo 'get info failed'
+      - name: Upload
+        uses: actions/upload-artifact@v5
+        with:
+          name: Tclsh ${{ env.TCL_PATCHLEVEL }} Windows single-file build (snapshot)
+          path: '1dist/*_snapshot.exe'
+        id: upload
+    outputs:
+      url: ${{ steps.upload.outputs.artifact-url }}
+  combine:
+    needs:
+      - linux
+      - macos
+      - win
+    name: Combine Artifacts (prototype)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 10
+    env:
+      # See also
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables
+      REMOTE_PATH: ${{ vars.PUBLISH_DROP_PATH }}/data-${{ github.sha }}
+    steps:
+      - name: Make directory
+        run: |
+          mkdir data
+      - name: Get Linux build
+        uses: actions/download-artifact@v6
+        with:
+          path: data
+          # Can't download by artifact ID; stupid missing feature!
+          merge-multiple: true
+      - name: Check data downloaded
+        run: |
+          ls -AlR
+        working-directory: data
+      - name: Transfer built files
+        # https://github.com/marketplace/actions/rsync-deployments-action
+        uses: burnett01/rsync-deployments@7.1.0
+        id: rsync
+        if: false  # Disabled... for now
+        with:
+          # I don't know what the right switches are here, BTW
+          switches: -avzr
+          path: data/
+          remote_path: ${{ env.REMOTE_PATH }}
+          remote_host: ${{ vars.PUBLISH_HOST }}
+          remote_user: ${{ vars.PUBLISH_USER }}
+          remote_key: ${{ secrets.DEPLOY_HOST_KEY }}
+          # MUST be a literal passwordless key
+      - name: Publish files
+        # https://github.com/marketplace/actions/ssh-remote-commands
+        uses: appleboy/ssh-action@v1.2.3
+        id: ssh
+        if: steps.rsync.outcome == 'success'
+        with:
+          host: ${{ vars.PUBLISH_HOST }}
+          username: ${{ vars.PUBLISH_USER }}
+          key: ${{ secrets.DEPLOY_HOST_KEY }}
+          script: |
+            ${{ vars.PUBLISHER_SCRIPT }} ${{ env.REMOTE_PATH }} ${{ github.ref_type }} ${{ github.ref_name }}
+      - name: Report what would be done
+        if: steps.rsync.outcome == 'skipped'
+        env:
+          SWITCHES: -av
+          LOCAL_PATH: data/
+          REMOTE_HOST: ${{ vars.PUBLISH_HOST }}
+          REMOTE_USER: ${{ vars.PUBLISH_USER }}
+          REMOTE_SCRIPT: |
+            ${{ vars.PUBLISHER_SCRIPT }} ${{ env.REMOTE_PATH }} ${{ github.ref_type }} ${{ github.ref_name }}
+        run: |
+          echo "would run: rsync $SWITCHES $LOCAL_PATH $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
+          echo "would run: ssh $REMOTE_USER@$REMOTE_HOST $REMOTE_SCRIPT"
+      # Consider https://github.com/marketplace/actions/slack-notify maybe?

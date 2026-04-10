@@ -1,0 +1,78 @@
+'\"
+'\" Copyright (c) 2011-2015 Andreas Kupries
+'\" Copyright (c) 2018 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH classvariable n 0.3 TclOO "TclOO Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+classvariable \- Create link from local variable to variable in class
+.SH SYNOPSIS
+.nf
+package require tcl::oo
+
+\fBclassvariable\fI variableName\fR ?\fI...\fR?
+.fi
+.BE
+.SH DESCRIPTION
+The \fBclassvariable\fR command is available within methods. It takes a series
+of one or more variable names and makes them available in the method's scope;
+those variable names must not be qualified and must not refer to array
+elements. The originating scope for the variables is the namespace of the
+class that the method was defined by. In other words, the referenced variables
+are shared between all instances of that class.
+.PP
+Note that this command is equivalent to the command \fBtypevariable\fR provided
+by the snit package in tcllib for approximately the same purpose. If used in a
+method defined directly on a class instance (e.g., through the
+\fBoo::objdefine\fR \fBmethod\fR definition) this is very much like just
+using:
+.PP
+.CS
+namespace upvar [namespace current] $var $var
+.CE
+.PP
+for each variable listed to \fBclassvariable\fR.
+.SH EXAMPLE
+This class counts how many instances of it have been made.
+.PP
+.CS
+oo::class create Counted {
+    initialise {
+        variable count 0
+    }
+
+    variable number
+    constructor {} {
+        \fBclassvariable\fR count
+        set number [incr count]
+    }
+
+    method report {} {
+        \fBclassvariable\fR count
+        puts "This is instance $number of $count"
+    }
+}
+
+set a [Counted new]
+set b [Counted new]
+$a report
+        \fI\(-> This is instance 1 of 2\fR
+set c [Counted new]
+$b report
+        \fI\(-> This is instance 2 of 3\fR
+$c report
+        \fI\(-> This is instance 3 of 3\fR
+.CE
+.SH "SEE ALSO"
+global(n), namespace(n), oo::class(n), oo::define(n), upvar(n), variable(n)
+.SH KEYWORDS
+class, class variable, variable
+.\" Local Variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

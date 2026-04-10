@@ -1,0 +1,99 @@
+'\"
+'\" Copyright (c) 2018 Peter Spjuth.  All rights reserved.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH lpop n 9.0 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+lpop \- Get and remove an element in a list
+.SH SYNOPSIS
+\fBlpop \fIvarName ?index ...?\fR
+.BE
+.SH DESCRIPTION
+.PP
+The \fBlpop\fR command accepts a parameter, \fIvarName\fR, which
+it interprets as the name of a variable containing a Tcl list.
+It also accepts one or more \fIindices\fR into
+the list. If no indices are presented, it defaults to "\fBend\fR".
+.PP
+When presented with a single index, the \fBlpop\fR command
+addresses the \fIindex\fR'th element in it, removes if from the list
+and returns the element.
+.PP
+If \fIindex\fR is negative or greater or equal than the number
+of elements in the list in the variable called \fIvarName\fR, an
+error occurs.
+.PP
+The interpretation of each simple \fIindex\fR value is the same as
+for the command \fBstring index\fR, supporting simple index
+arithmetic and indices relative to the end of the list.
+.PP
+If additional \fIindex\fR arguments are supplied, then each argument is
+used in turn to address an element within a sublist designated
+by the previous indexing operation,
+allowing the script to remove elements in sublists, similar to
+\fBlindex\fR and \fBlset\fR.
+The command,
+.PP
+.CS
+\fBlpop\fR a 1 2
+.CE
+.PP
+gets and removes element 2 of sublist 1.
+.PP
+.SH EXAMPLES
+.PP
+In each of these examples, the initial value of \fIx\fR is:
+.PP
+.CS
+set x [list [list a b c] [list d e f] [list g h i]]
+      \fI\(-> {a b c} {d e f} {g h i}\fR
+.CE
+.PP
+The indicated value becomes the new value of \fIx\fR
+(except in the last case, which is an error which leaves the value of
+\fIx\fR unchanged.)
+.PP
+.CS
+\fBlpop\fR x 0
+      \fI\(-> {d e f} {g h i}\fR
+\fBlpop\fR x 2
+      \fI\(-> {a b c} {d e f}\fR
+\fBlpop\fR x end
+      \fI\(-> {a b c} {d e f}\fR
+\fBlpop\fR x end-1
+      \fI\(-> {a b c} {g h i}\fR
+\fBlpop\fR x 2 1
+      \fI\(-> {a b c} {d e f} {g i}\fR
+\fBlpop\fR x 2 3 j
+      \fI\(-> list index out of range\fR
+.CE
+.PP
+In the following examples, the initial value of \fIx\fR is:
+.PP
+.CS
+set x [list [list [list a b] [list c d]] \e
+            [list [list e f] [list g h]]]
+      \fI\(-> {{a b} {c d}} {{e f} {g h}}\fR
+.CE
+.PP
+The indicated value becomes the new value of \fIx\fR.
+.PP
+.CS
+\fBlpop\fR x 1 1 0
+      \fI\(-> {{a b} {c d}} {{e f} h}\fR
+.CE
+.SH "SEE ALSO"
+list(n), lappend(n), lassign(n), ledit(n), lindex(n), linsert(n), llength(n),
+lmap(n), lrange(n), lremove(n), lrepeat(n), lreplace(n),
+lreverse(n), lsearch(n), lseq(n), lset(n), lsort(n),
+string(n)
+.SH KEYWORDS
+element, index, list, remove, pop, stack, queue
+'\"Local Variables:
+'\"mode: nroff
+'\"End:

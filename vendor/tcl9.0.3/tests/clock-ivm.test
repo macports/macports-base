@@ -1,0 +1,8 @@
+# clock-ivm.test --
+#
+# This test file covers the 'clock' command using inverted validity mode.
+#
+# See the file "clock.test" for more information.
+
+::tcl::unsupported::clock::configure -valid [expr {![::tcl::unsupported::clock::configure -valid]}]
+source [file join [file dirname [info script]] clock.test]

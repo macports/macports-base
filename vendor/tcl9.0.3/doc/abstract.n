@@ -1,0 +1,77 @@
+'\"
+'\" Copyright (c) 2018 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH abstract n 0.3 TclOO "TclOO Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+oo::abstract \- A class that does not allow direct instances of itself
+.SH SYNOPSIS
+.nf
+package require tcl::oo
+
+\fBoo::abstract\fI method \fR?\fIarg ...\fR?
+.fi
+.SH "CLASS HIERARCHY"
+.nf
+\fBoo::object\fR
+   \(-> \fBoo::class\fR
+       \(-> \fBoo::abstract\fR
+.fi
+.BE
+.SH DESCRIPTION
+Abstract classes are classes that can contain definitions, but which cannot be
+directly manufactured; they are intended to only ever be inherited from and
+instantiated indirectly. The characteristic methods of \fBoo::class\fR
+(\fBcreate\fR and \fBnew\fR) are not exported by an instance of
+\fBoo::abstract\fR.
+.PP
+Note that \fBoo::abstract\fR is not itself an instance of \fBoo::abstract\fR.
+.SS CONSTRUCTOR
+The \fBoo::abstract\fR class does not define an explicit constructor; this
+means that it is effectively the same as the constructor of the
+\fBoo::class\fR class.
+.SS DESTRUCTOR
+The \fBoo::abstract\fR class does not define an explicit destructor;
+destroying an instance of it is just like destroying an ordinary class (and
+will destroy all its subclasses).
+.SS "EXPORTED METHODS"
+The \fBoo::abstract\fR class defines no new exported methods.
+.SS "NON-EXPORTED METHODS"
+The \fBoo::abstract\fR class explicitly states that \fBcreate\fR,
+\fBcreateWithNamespace\fR, and \fBnew\fR are unexported.
+.SH EXAMPLES
+.PP
+This example defines a simple class hierarchy and creates a new instance of
+it. It then invokes a method of the object before destroying the hierarchy and
+showing that the destruction is transitive.
+.PP
+.CS
+\fBoo::abstract\fR create fruit {
+    method eat {} {
+        puts "yummy!"
+    }
+}
+oo::class create banana {
+    superclass fruit
+    method peel {} {
+        puts "skin now off"
+    }
+}
+set b [banana \fBnew\fR]
+$b peel              \fI\(-> prints 'skin now off'\fR
+$b eat               \fI\(-> prints 'yummy!'\fR
+set f [fruit new]    \fI\(-> error 'unknown method "new"...'\fR
+.CE
+.SH "SEE ALSO"
+oo::define(n), oo::object(n)
+.SH KEYWORDS
+abstract class, class, metaclass, object
+.\" Local variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:
