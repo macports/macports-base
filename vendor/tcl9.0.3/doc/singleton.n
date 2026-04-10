@@ -1,0 +1,101 @@
+'\"
+'\" Copyright (c) 2018 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH singleton n 0.3 TclOO "TclOO Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+oo::singleton \- A class that does only allows one instance of itself
+.SH SYNOPSIS
+.nf
+package require tcl::oo
+
+\fBoo::singleton\fI method \fR?\fIarg ...\fR?
+.fi
+.SH "CLASS HIERARCHY"
+.nf
+\fBoo::object\fR
+   \(-> \fBoo::class\fR
+       \(-> \fBoo::singleton\fR
+.fi
+.BE
+.SH DESCRIPTION
+Singleton classes are classes that only permit at most one instance of
+themselves to exist. They unexport the \fBcreate\fR and
+\fBcreateWithNamespace\fR methods entirely, and override the \fBnew\fR method
+so that it only makes a new instance if there is no existing instance.  It is
+not recommended to inherit from a singleton class; singleton-ness is \fInot\fR
+inherited. It is not recommended that a singleton class's constructor take any
+arguments.
+.PP
+Instances have their\fB destroy\fR method overridden with a method that always
+returns an error in order to discourage destruction of the object, but
+destruction remains possible if strictly necessary (e.g., by destroying the
+class or using \fBrename\fR to delete it). They also have a (non-exported)
+\fB<cloned>\fR method defined on them that similarly always returns errors to
+make attempts to use the singleton instance with \fBoo::copy\fR fail.
+.SS CONSTRUCTOR
+The \fBoo::singleton\fR class does not define an explicit constructor; this
+means that it is effectively the same as the constructor of the
+\fBoo::class\fR class.
+.SS DESTRUCTOR
+The \fBoo::singleton\fR class does not define an explicit destructor;
+destroying an instance of it is just like destroying an ordinary class (and
+will destroy the singleton object).
+.SS "EXPORTED METHODS"
+.\" METHOD: new
+.TP
+\fIcls \fBnew \fR?\fIarg ...\fR?
+.
+This returns the current instance of the singleton class, if one exists, and
+creates a new instance only if there is no existing instance. The additional
+arguments, \fIarg ...\fR, are only used if a new instance is actually
+manufactured; that construction is via the \fBoo::class\fR class's \fBnew\fR
+method.
+.RS
+.PP
+This is an override of the behaviour of a superclass's method with an
+identical call signature to the superclass's implementation.
+.RE
+.SS "NON-EXPORTED METHODS"
+The \fBoo::singleton\fR class explicitly states that \fBcreate\fR and
+\fBcreateWithNamespace\fR are unexported; callers should not assume that they
+have control over either the name or the namespace name of the singleton
+instance.
+.SH EXAMPLE
+.PP
+This example demonstrates that there is only one instance even though the
+\fBnew\fR method is called three times.
+.PP
+.CS
+\fBoo::singleton\fR create Highlander {
+    method say {} {
+        puts "there can be only one"
+    }
+}
+
+set h1 [Highlander new]
+set h2 [Highlander new]
+if {$h1 eq $h2} {
+    puts "equal objects"    \fI\(-> prints "equal objects"\fR
+}
+set h3 [Highlander new]
+if {$h1 eq $h3} {
+    puts "equal objects"    \fI\(-> prints "equal objects"\fR
+}
+.CE
+.PP
+Note that the name of the instance of the singleton is not guaranteed to be
+anything in particular.
+.SH "SEE ALSO"
+oo::class(n)
+.SH KEYWORDS
+class, metaclass, object, single instance
+.\" Local variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

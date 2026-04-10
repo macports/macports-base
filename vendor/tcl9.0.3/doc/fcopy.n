@@ -1,0 +1,206 @@
+'\"
+'\" Copyright (c) 1993 The Regents of the University of California.
+'\" Copyright (c) 1994-1997 Sun Microsystems, Inc.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH fcopy n 8.0 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+fcopy \- Copy data from one channel to another
+.SH SYNOPSIS
+\fBfcopy \fIinputChan outputChan\fR ?\fB\-size \fIsize\fR? ?\fB\-command \fIcallback\fR?
+.BE
+.SH DESCRIPTION
+.PP
+The \fBfcopy\fR command copies data from one I/O channel, \fIinchan\fR, to
+another I/O channel, \fIoutchan\fR.
+The \fBfcopy\fR command leverages the buffering in the Tcl I/O system to
+avoid extra copies and to avoid buffering too much data in
+main memory when copying large files to destinations like
+network sockets.
+.SS "DATA QUANTITY"
+All data until \fIEOF\fR is copied.
+In addition, the quantity of copied data may be specified by the option
+\fB\-size\fR. The given size is in bytes, if the input channel is in binary
+mode. Otherwise, it is in characters.
+.PP
+Depreciated feature: the transfer is treated as a binary transfer, if the
+encoding profile is set to
+.QW tcl8
+and the input encoding matches the output encoding.
+In this case, eventual encoding errors are not handled.
+An eventually given size is in bytes in this case.
+.
+.SS "BLOCKING OPERATION MODE"
+Without the \fB\-command\fR option, \fBfcopy\fR blocks until the copy is complete
+and returns the number of bytes or characters (using the same rules as
+for the \fB\-size\fR option) written to \fIoutchan\fR.
+.
+.SS "BACKGROUND OPERATION MODE"
+The \fB\-command\fR argument makes \fBfcopy\fR work in the background.
+In this case it returns immediately and the \fIcallback\fR is invoked
+later when the copy completes.
+The \fIcallback\fR is called with
+one or two additional
+arguments that indicates how many bytes were written to \fIoutchan\fR.
+If an error occurred during the background copy, the second argument is the
+error string associated with the error.
+With a background copy,
+it is not necessary to put \fIinchan\fR or \fIoutchan\fR into
+non-blocking mode; the \fBfcopy\fR command takes care of that automatically.
+However, it is necessary to enter the event loop by using
+the \fBvwait\fR command or by using Tk.
+.PP
+You are not allowed to do other input operations with \fIinchan\fR, or
+output operations with \fIoutchan\fR, during a background
+\fBfcopy\fR. The converse is entirely legitimate, as exhibited by the
+bidirectional fcopy example below.
+.PP
+If either \fIinchan\fR or \fIoutchan\fR get closed
+while the copy is in progress, the current copy is stopped
+and the command callback is \fInot\fR made.
+If \fIinchan\fR is closed,
+then all data already queued for \fIoutchan\fR is written out.
+.PP
+Note that \fIinchan\fR can become readable during a background copy.
+You should turn off any \fBfileevent\fR handlers during a background
+copy so those handlers do not interfere with the copy.
+Any wrong-sided I/O attempted (by a \fBfileevent\fR handler or otherwise) will
+get a
+.QW "channel busy"
+error.
+.
+.SS "CHANNEL TRANSLATION OPTIONS"
+\fBFcopy\fR translates end-of-line sequences in \fIinchan\fR and \fIoutchan\fR
+according to the \fB\-translation\fR option
+for these channels.
+See the manual entry for \fBfconfigure\fR for details on the
+\fB\-translation\fR option.
+The translations mean that the number of bytes read from \fIinchan\fR
+can be different than the number of bytes written to \fIoutchan\fR.
+Only the number of bytes written to \fIoutchan\fR is reported,
+either as the return value of a synchronous \fBfcopy\fR or
+as the argument to the callback for an asynchronous \fBfcopy\fR.
+.SS "CHANNEL ENCODING OPTIONS"
+\fBFcopy\fR obeys the encodings, profiles and character translations configured
+for the channels. This
+means that the incoming characters are converted internally first
+UTF-8 and then into the encoding of the channel \fBfcopy\fR writes
+to. See the manual entry for \fBfconfigure\fR for details on the
+\fB\-encoding\fR and \fB\-profile\fR options. No conversion is
+done if both channels are
+set to encoding
+.QW binary
+and have matching translations. If only the output channel is set to encoding
+.QW binary
+the system will write the internal UTF-8 representation of the incoming
+characters. If only the input channel is set to encoding
+.QW binary
+the system will assume that the incoming
+bytes are valid UTF-8 characters and convert them according to the
+output encoding. The behaviour of the system for bytes which are not
+valid UTF-8 characters is undefined in this case.
+.PP
+\fBFcopy\fR may throw encoding errors (error code \fBEILSEQ\fR), if input or output
+channel is configured to the
+.QW strict
+encoding profile.
+.PP
+If an encoding error arises on the input channel, any data before the error
+byte is written to the output channel. The input file pointer is located just
+before the values causing the encoding error.
+Error inspection or recovery is possible by changing the encoding parameters and
+invoking a file command (\fBread\fR, \fBfcopy\fR).
+.PP
+If an encoding error arises on the output channel, the erroneous data is lost.
+To make the difference between the input error case and the output error case,
+only the error message may be inspected (read or write), as both throw the
+error code \fIEILSEQ\fR.
+.SH EXAMPLES
+.PP
+The first example transfers the contents of one channel exactly to
+another. Note that when copying one file to another, it is better to
+use \fBfile copy\fR which also copies file metadata (e.g. the file
+access permissions) where possible.
+.PP
+.CS
+fconfigure $in -translation binary
+fconfigure $out -translation binary
+\fBfcopy\fR $in $out
+.CE
+.PP
+This second example shows how the callback gets
+passed the number of bytes transferred.
+It also uses vwait to put the application into the event loop.
+Of course, this simplified example could be done without the command
+callback.
+.PP
+.CS
+proc Cleanup {in out bytes {error {}}} {
+    global total
+    set total $bytes
+    close $in
+    close $out
+    if {[string length $error] != 0} {
+        # error occurred during the copy
+    }
+}
+set in [open $file1]
+set out [socket $server $port]
+\fBfcopy\fR $in $out -command [list Cleanup $in $out]
+vwait total
+.CE
+.PP
+The third example copies in chunks and tests for end of file
+in the command callback.
+.PP
+.CS
+proc CopyMore {in out chunk bytes {error {}}} {
+    global total done
+    incr total $bytes
+    if {([string length $error] != 0) || [eof $in]} {
+        set done $total
+        close $in
+        close $out
+    } else {
+        \fBfcopy\fR $in $out -size $chunk \e
+                -command [list CopyMore $in $out $chunk]
+    }
+}
+set in [open $file1]
+set out [socket $server $port]
+set chunk 1024
+set total 0
+\fBfcopy\fR $in $out -size $chunk \e
+        -command [list CopyMore $in $out $chunk]
+vwait done
+.CE
+.PP
+The fourth example starts an asynchronous, bidirectional fcopy between
+two sockets. Those could also be pipes from two [open "|hal 9000" r+]
+(though their conversation would remain secret to the script, since
+all four fileevent slots are busy).
+.PP
+.CS
+set flows 2
+proc Done {dir args} {
+     global flows done
+     puts "$dir is over."
+     incr flows -1
+     if {$flows<=0} {set done 1}
+}
+\fBfcopy\fR $sok1 $sok2 -command [list Done UP]
+\fBfcopy\fR $sok2 $sok1 -command [list Done DOWN]
+vwait done
+.CE
+.SH "SEE ALSO"
+eof(n), fblocked(n), fconfigure(n), file(n)
+.SH KEYWORDS
+blocking, channel, end of line, end of file, nonblocking, read, translation
+'\" Local Variables:
+'\" mode: nroff
+'\" End:

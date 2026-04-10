@@ -1,0 +1,444 @@
+# safe-stock.test --
+#
+# This file contains tests for safe Tcl that were previously in the file
+# safe.test, and use files and packages of stock Tcl 8.7 to perform the tests.
+# These files may be changed or disappear in future revisions of Tcl, for
+# example package opt will eventually be removed.
+#
+# The tests are replaced in safe.tcl with tests that use files provided in the
+# tests directory.  Test numbering is for comparison with similar tests in
+# safe.test.
+#
+# Sourcing this file into tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# The defunct package http 1.0 was convenient for testing package loading.
+# - This file, safe-stock.test, uses packages opt and (from cookiejar)
+#   tcl::idna to provide alternative tests based on stock Tcl packages.
+#   - These are tests 7.1 7.2 7.4 9.11 9.13
+#   - Tests 7.[124], 9.1[13] use "package require opt".
+#   - Tests 9.1[13] also use "package require tcl::idna".
+# - The corresponding tests in safe.test use example packages provided in
+#   subdirectory auto0 of the tests directory, which are independent of any
+#   changes made to the packages provided with Tcl.
+#
+# Copyright © 1995-1996 Sun Microsystems, Inc.
+# Copyright © 1998-1999 Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+foreach i [interp children] {
+    interp delete $i
+}
+
+# When using package opt for testing positive/negative package search:
+# - The directory location and the error message depend on whether
+#   and how the package is installed.
+
+# Error message for test 7.2 for "package require opt".
+if {[string match *zipfs:/* [info library]]} {
+    # pkgIndex.tcl is in [info library]
+    # file to be sourced is in [info library]/opt*
+    set pkgOptErrMsg {permission denied}
+} else {
+    # pkgIndex.tcl and file to be sourced are
+    # both in [info library]/opt*
+    set pkgOptErrMsg {can't find package opt}
+}
+
+# Directory of opt for tests 7.4, 9.10, 9.12 for "package require opt".
+if {[file exists [file join [info library] opt0.4]]} {
+    # Installed files in lib9.0/opt0.4
+    set pkgOptDir opt0.4
+} elseif {[file exists [file join [info library] opt]]} {
+    # Installed files in zipfs, or source files used by "make test"
+    set pkgOptDir opt
+} else {
+    error {cannot find opt library}
+}
+
+# Directory of cookiejar for tests 9.10, 9.12 for "package require tcl::idna".
+if {[file exists [file join [info library] cookiejar0.2]]} {
+    # Installed files in lib8.7/cookiejar0.2
+    set pkgJarDir cookiejar0.2
+} elseif {[file exists [file join [info library] cookiejar]]} {
+    # Installed files in zipfs, or source files used by "make test"
+    set pkgJarDir cookiejar
+} else {
+    error {cannot find cookiejar library}
+}
+
+set SaveAutoPath $::auto_path
+set ::auto_path [info library]
+set TestsDir [file normalize [file dirname [info script]]]
+set PathMapp {}
+lappend PathMapp [file join [info library] $pkgOptDir] TCLLIB/OPTDIR
+lappend PathMapp [file join [info library] $pkgJarDir] TCLLIB/JARDIR
+lappend PathMapp $tcl_library TCLLIB $TestsDir TESTSDIR
+
+proc mapList {map listIn} {
+    set listOut {}
+    foreach element $listIn {
+	lappend listOut [string map $map $element]
+    }
+    return $listOut
+}
+proc mapAndSortList {map listIn} {
+    set listOut {}
+    foreach element $listIn {
+	lappend listOut [string map $map $element]
+    }
+    lsort $listOut
+}
+
+# Force actual loading of the safe package because we use unexported (and
+# thus unautoindexed) APIs in this test result arguments:
+catch {safe::interpConfigure}
+
+testConstraint AutoSyncDefined 1
+
+# high level general test
+test safe-stock-7.1 {tests that everything works at high level with conventional AutoPathSync, use pkg opt} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 1
+    }
+    set i [safe::interpCreate]
+} -body {
+    # no error shall occur:
+    # (because the default access_path shall include 1st level sub dirs so
+    #  package require in a child works like in the parent)
+    set v [interp eval $i {package require opt}]
+    # no error shall occur:
+    interp eval $i {::tcl::Lempty {a list}}
+    set v
+} -cleanup {
+    safe::interpDelete $i
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result 0.4.*
+test safe-stock-7.2 {tests specific path and interpFind/AddToAccessPath with conventional AutoPathSync, use pkg opt} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 1
+    } else {
+	set SyncVal_TMP 1
+    }
+} -body {
+    set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+    # should not add anything (p0)
+    set token1 [safe::interpAddToAccessPath $i [info library]]
+    # should add as p* (not p1 if parent has a module path)
+    set token2 [safe::interpAddToAccessPath $i "/dummy/unixlike/test/path"]
+    # an error shall occur (opt is not anymore in the secure 0-level
+    # provided deep path)
+    set confA [safe::interpConfigure $i]
+    set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+    list $token1 $token2 -- \
+	    [catch {interp eval $i {package require opt}} msg] $msg -- \
+	    $mappA -- [safe::interpDelete $i]
+} -cleanup {
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result "{\$p(:0:)} {\$p(:*:)} -- 1 {$pkgOptErrMsg} --\
+	{TCLLIB */dummy/unixlike/test/path} -- {}"
+test safe-stock-7.4 {tests specific path and positive search with conventional AutoPathSync, use pkg opt} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 1
+    } else {
+	set SyncVal_TMP 1
+    }
+} -body {
+    set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+    # should not add anything (p0)
+    set token1 [safe::interpAddToAccessPath $i [info library]]
+    # should add as p* (not p1 if parent has a module path)
+    set token2 [safe::interpAddToAccessPath $i [file join [info library] $pkgOptDir]]
+    set confA [safe::interpConfigure $i]
+    set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+    # this time, unlike test safe-stock-7.2, opt should be found
+    list $token1 $token2 -- \
+	    [catch {interp eval $i {package require opt}} msg] $msg -- \
+	    $mappA -- [safe::interpDelete $i]
+    # Note that the glob match elides directories (those from the module path)
+    # other than the first and last in the access path.
+} -cleanup {
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result {{$p(:0:)} {$p(:*:)} -- 0 0.4.* --\
+	{TCLLIB * TCLLIB/OPTDIR} -- {}}
+test safe-stock-7.5 {tests positive and negative module loading with conventional AutoPathSync} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 1
+    }
+    set i [safe::interpCreate]
+    interp eval $i {
+	package forget platform::shell
+	package forget platform
+	catch {namespace delete ::platform}
+    }
+} -body {
+    # Should raise an error (module ancestor directory issue)
+    set code1 [catch {interp eval $i {package require shell}} msg1]
+    # Should not raise an error
+    set code2 [catch {interp eval $i {package require platform::shell}} msg2]
+    return [list $code1 $msg1 $code2]
+} -cleanup {
+    safe::interpDelete $i
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -result {1 {can't find package shell} 0}
+
+# The following test checks whether the definition of tcl_endOfWord can be
+# obtained from auto_loading.  It was previously test "safe-5.1".
+test safe-stock-9.8 {test auto-loading in safe interpreters, was safe-5.1} -setup {
+    catch {safe::interpDelete a}
+    safe::interpCreate a
+} -body {
+    interp eval a {tcl_endOfWord "" 0}
+} -cleanup {
+    safe::interpDelete a
+} -result -1
+test safe-stock-9.11 {interpConfigure change the access path; pkgIndex.tcl packages unaffected by token rearrangement with conventional AutoPathSync, uses pkg opt and tcl::idna} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 1
+    }
+} -body {
+    set i [safe::interpCreate -accessPath [list $tcl_library \
+					    [file join $tcl_library $pkgOptDir] \
+					    [file join $tcl_library $pkgJarDir]]]
+    # Inspect.
+    set confA [safe::interpConfigure $i]
+    set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+    set path1 [::safe::interpFindInAccessPath $i [file join $tcl_library $pkgOptDir]]
+    set path2 [::safe::interpFindInAccessPath $i [file join $tcl_library $pkgJarDir]]
+
+    # Load pkgIndex.tcl data.
+    catch {interp eval $i {package require NOEXIST}}
+
+    # Rearrange access path.  Swap tokens {$p(:1:)} and {$p(:2:)}.
+    # This has no effect because the records in Pkg of these directories were from access as children of {$p(:0:)}.
+    safe::interpConfigure $i -accessPath [list $tcl_library \
+					   [file join $tcl_library $pkgJarDir] \
+					   [file join $tcl_library $pkgOptDir]]
+    # Inspect.
+    set confB [safe::interpConfigure $i]
+    set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+    set path3 [::safe::interpFindInAccessPath $i [file join $tcl_library $pkgOptDir]]
+    set path4 [::safe::interpFindInAccessPath $i [file join $tcl_library $pkgJarDir]]
+
+    # Try to load the packages and run a command from each one.
+    set code3 [catch {interp eval $i {package require tcl::idna}} msg3]
+    set code4 [catch {interp eval $i {package require opt}} msg4]
+    set code5 [catch {interp eval $i {::tcl::Lempty {a list}}} msg5]
+    set code6 [catch {interp eval $i {::tcl::idna::IDNAencode example.com}} msg6]
+
+    list $path1 $path2 -- $path3 $path4 -- $code3 $msg3 $code4 $msg4 -- \
+	 $mappA -- $mappB -- $code5 $msg5 $code6 $msg6
+} -cleanup {
+    safe::interpDelete $i
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result {{$p(:1:)} {$p(:2:)} -- {$p(:2:)} {$p(:1:)} -- 0 1.* 0 0.4.* --\
+	{TCLLIB TCLLIB/OPTDIR TCLLIB/JARDIR*} --\
+	{TCLLIB TCLLIB/JARDIR TCLLIB/OPTDIR*} --\
+	0 0 0 example.com}
+test safe-stock-9.13 {interpConfigure change the access path; pkgIndex.tcl packages fail if directory de-listed with conventional AutoPathSync, uses pkg opt and tcl::idna} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 1
+    }
+} -body {
+    set i [safe::interpCreate -accessPath [list $tcl_library \
+					    [file join $tcl_library $pkgOptDir] \
+					    [file join $tcl_library $pkgJarDir]]]
+    # Inspect.
+    set confA [safe::interpConfigure $i]
+    set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+    set path1 [::safe::interpFindInAccessPath $i [file join $tcl_library $pkgOptDir]]
+    set path2 [::safe::interpFindInAccessPath $i [file join $tcl_library $pkgJarDir]]
+
+    # Load pkgIndex.tcl data.
+    catch {interp eval $i {package require NOEXIST}}
+
+    # Limit access path.  Remove tokens {$p(:1:)} and {$p(:2:)}.
+    safe::interpConfigure $i -accessPath [list $tcl_library]
+
+    # Inspect.
+    set confB [safe::interpConfigure $i]
+    set mappB [mapList $PathMapp [dict get $confB -accessPath]]
+    set code4 [catch {::safe::interpFindInAccessPath $i [file join $tcl_library $pkgOptDir]} path4]
+    set code5 [catch {::safe::interpFindInAccessPath $i [file join $tcl_library $pkgJarDir]} path5]
+
+    # Try to load the packages.
+    set code3 [catch {interp eval $i {package require opt}} msg3]
+    set code6 [catch {interp eval $i {package require tcl::idna}} msg6]
+
+    list $path1 $path2 -- $code4 $path4 -- $code5 $path5 -- $code3 $code6 -- \
+	    $mappA -- $mappB
+} -cleanup {
+    safe::interpDelete $i
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result {{$p(:1:)} {$p(:2:)} -- 1 {* not found in access path} --\
+	1 {* not found in access path} -- 1 1 --\
+	{TCLLIB TCLLIB/OPTDIR TCLLIB/JARDIR*} -- {TCLLIB*}}
+
+test safe-stock-18.1 {cf. safe-stock-7.1opt - tests that everything works at high level without conventional AutoPathSync, use pkg opt} -constraints AutoSyncDefined -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 0
+    } else {
+	error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+    }
+    # Without AutoPathSync, we need a more complete auto_path,
+    # because the child will use the same value.
+    set lib1        [info library]
+    set lib2        [file dirname $lib1]
+    set ::auto_TMP  $::auto_path
+    set ::auto_path [list $lib1 $lib2]
+
+    set i [safe::interpCreate]
+    set ::auto_path $::auto_TMP
+} -body {
+    # no error shall occur:
+    # (because the default access_path shall include 1st level sub dirs so
+    #  package require in a child works like in the parent)
+    set v [interp eval $i {package require opt}]
+    # no error shall occur:
+    interp eval $i {::tcl::Lempty {a list}}
+    set v
+} -cleanup {
+    safe::interpDelete $i
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result 0.4.*
+test safe-stock-18.2 {cf. safe-stock-7.2opt - tests specific path and interpFind/AddToAccessPath without conventional AutoPathSync, use pkg opt} -constraints AutoSyncDefined -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 0
+    } else {
+	error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+    }
+} -body {
+    set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+    set auto1 [interp eval $i {set ::auto_path}]
+    # This will differ from the value -autoPath {}
+    interp eval $i {set ::auto_path [list {$p(:0:)}]}
+    # should not add anything (p0)
+    set token1 [safe::interpAddToAccessPath $i [info library]]
+    # should add as p* (not p1 if parent has a module path)
+    set token2 [safe::interpAddToAccessPath $i "/dummy/unixlike/test/path"]
+    # an error shall occur (opt is not anymore in the secure 0-level
+    # provided deep path)
+    list $auto1 $token1 $token2 \
+	    [catch {interp eval $i {package require opt}} msg] $msg \
+	    [safe::interpConfigure $i]\
+	    [safe::interpDelete $i]
+} -cleanup {
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result "{} {\$p(:0:)} {\$p(:*:)} 1 {$pkgOptErrMsg}\
+	{-accessPath {[list $tcl_library */dummy/unixlike/test/path]}\
+	-statics 0 -nested 1 -deleteHook {} -autoPath {}} {}"
+test safe-stock-18.4 {cf. safe-stock-7.4opt - tests specific path and positive search and auto_path without conventional AutoPathSync, use pkg opt} -constraints AutoSyncDefined -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 0
+    } else {
+	error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+    }
+} -body {
+    set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+
+    # should not have been set by Safe Base:
+    set auto1 [interp eval $i {set ::auto_path}]
+
+    # This will differ from the value -autoPath {}
+    interp eval $i {set ::auto_path [list {$p(:0:)}]}
+
+    # should not add anything (p0)
+    set token1 [safe::interpAddToAccessPath $i [info library]]
+
+    # should add as p* (not p1 if parent has a module path)
+    set token2 [safe::interpAddToAccessPath $i [file join [info library] $pkgOptDir]]
+
+    # should not have been changed by Safe Base:
+    set auto2 [interp eval $i {set ::auto_path}]
+
+    # This time, unlike test safe-stock-18.2opt and the try above, opt should be found:
+    list $auto1 $auto2 $token1 $token2 \
+	    [catch {interp eval $i {package require opt}} msg] $msg \
+	    [safe::interpConfigure $i]\
+	    [safe::interpDelete $i]
+} -cleanup {
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -match glob -result "{} {{\$p(:0:)}} {\$p(:0:)} {\$p(:*:)} 0 0.4.*\
+	{-accessPath {[list $tcl_library *$tcl_library/$pkgOptDir]}\
+	-statics 0 -nested 1 -deleteHook {} -autoPath {}} {}"
+test safe-stock-18.5 {cf. safe-stock-7.5 - tests positive and negative module loading without conventional AutoPathSync} -setup {
+    set SyncExists [expr {[info commands ::safe::setSyncMode] ne {}}]
+    if {$SyncExists} {
+	set SyncVal_TMP [safe::setSyncMode]
+	safe::setSyncMode 0
+    } else {
+	error {This test is meaningful only if the command ::safe::setSyncMode is defined}
+    }
+    set i [safe::interpCreate]
+    interp eval $i {
+	package forget platform::shell
+	package forget platform
+	catch {namespace delete ::platform}
+    }
+} -body {
+    # Should raise an error (tests module ancestor directory rule)
+    set code1 [catch {interp eval $i {package require shell}} msg1]
+    # Should not raise an error
+    set code2 [catch {interp eval $i {package require platform::shell}} msg2]
+    return [list $code1 $msg1 $code2]
+} -cleanup {
+    safe::interpDelete $i
+    if {$SyncExists} {
+	safe::setSyncMode $SyncVal_TMP
+    }
+} -result {1 {can't find package shell} 0}
+
+set ::auto_path $SaveAutoPath
+unset pkgOptErrMsg pkgOptDir pkgJarDir SaveAutoPath TestsDir PathMapp
+rename mapList {}
+rename mapAndSortList {}
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

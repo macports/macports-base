@@ -1,0 +1,105 @@
+name: Linux
+on:
+  push:
+    branches:
+    - "main"
+    - "core-9-0-branch"
+    tags:
+    - "core-*"
+permissions:
+  contents: read
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      gcc: ${{ steps.matrix.outputs.gcc }}
+    steps:
+      - name: Select build matrix based on branch name
+        id: matrix
+        run: |
+          (
+            echo gcc=$(jq -nc '{config: (if env.IsMatched == "true" then env.FULL else env.PARTIAL end) | fromjson }' )
+          ) | tee -a $GITHUB_OUTPUT
+        env:
+          IsMatched: ${{ github.ref_name == 'main' || github.ref_name == 'core-9-0-branch' }}
+          # DO NOT CHANGE THESE MATRIX SPECS; IT AFFECTS OUR COST CONTROLS
+          FULL: >
+            [
+              "",
+              "CFLAGS=-DTCL_NO_DEPRECATED=1",
+              "--disable-shared",
+              "--disable-zipfs",
+              "--enable-symbols",
+              "--enable-symbols=mem",
+              "--enable-symbols=all",
+              "CFLAGS=-ftrapv",
+              "CFLAGS=-m32 CPPFLAGS=-m32 LDFLAGS=-m32 --disable-64bit"
+            ]
+          PARTIAL: >
+            [
+              "",
+              "--enable-symbols=all",
+              "CFLAGS=-m32 CPPFLAGS=-m32 LDFLAGS=-m32 --disable-64bit"
+            ]
+  gcc:
+    needs: plan
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix: ${{ fromJson(needs.plan.outputs.gcc) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: unix
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        timeout-minutes: 5
+      - name: Install 32-bit dependencies if needed
+        # Duplicated from above
+        if: ${{ matrix.config == 'CFLAGS=-m32 CPPFLAGS=-m32 LDFLAGS=-m32 --disable-64bit' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc-multilib libc6-dev-i386
+      - name: Prepare
+        run: |
+          touch tclStubInit.c tclOOStubInit.c tclOOScript.h
+        working-directory: generic
+      - name: Configure ${{ matrix.config }}
+        run: |
+          mkdir "${HOME}/install dir"
+          ./configure ${CFGOPT} "--prefix=$HOME/install dir" || (cat config.log && exit 1)
+        env:
+          CFGOPT: ${{ matrix.config }}
+        timeout-minutes: 5
+      - name: Build
+        run: |
+          make -j4 all
+        timeout-minutes: 5
+      - name: Build Test Harness
+        run: |
+          make -j4 tcltest
+        timeout-minutes: 5
+      - name: Info
+        run: |
+          ulimit -a || echo 'get limit failed'
+          make runtest SCRIPT=../.github/workflows/info.tcl || echo 'get info failed'
+      - name: Run Tests
+        run: |
+          make test
+        env:
+          ERROR_ON_FAILURES: 1
+        timeout-minutes: 30
+      - name: Test-Drive Installation
+        run: |
+          make install
+        timeout-minutes: 5
+      - name: Create Distribution Package
+        if: ${{ matrix.config == '' }}
+        run: |
+          make dist
+        timeout-minutes: 5
+      - name: Convert Documentation to HTML
+        if: ${{ matrix.config == '' }}
+        run: |
+          make html-tcl
+        timeout-minutes: 5

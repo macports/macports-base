@@ -1,0 +1,93 @@
+'\"
+'\" Copyright (c) 2022 Ashok P. Nadkarni <apnmbx-public@yahoo.com>.  All rights reserved.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH ledit n 9.0 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+ledit \- Replace elements of a list stored in variable
+.SH SYNOPSIS
+\fBledit \fIlistVar first last \fR?\fIvalue value ...\fR?
+.BE
+.SH DESCRIPTION
+.PP
+The command fetches the list value in variable \fIlistVar\fR and replaces the
+elements in the range given by indices \fIfirst\fR to \fIlast\fR (inclusive)
+with the \fIvalue\fR arguments. The resulting list is then stored back in
+\fIlistVar\fR and returned as the result of the command.
+.PP
+Arguments \fIfirst\fR and \fIlast\fR are index values specifying the first and
+last elements of the range to replace. They are interpreted
+the same as index values for the command \fBstring index\fR,
+supporting simple index arithmetic and indices relative to the
+end of the list. The index \fB0\fR refers to the first element of the
+list, and \fBend\fR refers to the last element of the list.
+(Unlike with \fBlpop\fR, \fBlset\fR, and \fBlindex\fR, indices into sublists
+are not supported.)
+.PP
+If either \fIfirst\fR or \fIlast\fR is less than zero, it is considered to
+refer to the position before the first element of the list. This allows
+elements to be prepended.
+.PP
+If either \fIfirst\fR or \fIlast\fR indicates a position greater than the
+index of the last element of the list, it is treated as if it is an
+index one greater than the last element. This allows elements to be appended.
+.PP
+If \fIlast\fR is less than \fIfirst\fR, then any specified elements
+will be inserted into the list before the element specified by \fIfirst\fR
+with no elements being deleted.
+.PP
+The \fIvalue\fR arguments specify zero or more new elements to
+be added to the list in place of those that were deleted.
+Each \fIvalue\fR argument will become a separate element of
+the list.  If no \fIvalue\fR arguments are specified, the elements
+between \fIfirst\fR and \fIlast\fR are simply deleted.
+.SH EXAMPLES
+.PP
+Prepend to a list.
+.PP
+.CS
+set lst {c d e f g}
+      \fI\(-> c d e f g\fR
+\fBledit\fR lst -1 -1 a b
+      \fI\(-> a b c d e f g\fR
+.CE
+.PP
+Append to the list.
+.PP
+.CS
+\fBledit\fR lst end+1 end+1 h i
+      \fI\(-> a b c d e f g h i\fR
+.CE
+.PP
+Delete third and fourth elements.
+.PP
+.CS
+\fBledit\fR lst 2 3
+      \fI\(-> a b e f g h i\fR
+.CE
+.PP
+Replace two elements with three.
+.PP
+.CS
+\fBledit\fR lst 2 3 x y z
+      \fI\(-> a b x y z g h i\fR
+set lst
+      \fI\(-> a b x y z g h i\fR
+.CE
+.PP
+.SH "SEE ALSO"
+list(n), lappend(n), lassign(n), lindex(n), linsert(n), llength(n),
+lmap(n), lpop(n), lrange(n), lremove(n), lrepeat(n), lreplace(n),
+lreverse(n), lsearch(n), lseq(n), lset(n), lsort(n),
+string(n)
+.SH KEYWORDS
+element, list, replace
+.\" Local variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

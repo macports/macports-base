@@ -1,0 +1,19 @@
+###
+# Package manifest for all Tcl packages included in the /library file system
+###
+apply {{dir} {
+  set isafe [interp issafe]
+  foreach {safe package version file} {
+    0 http            2.10.1 {http http.tcl}
+    1 msgcat          1.7.1  {msgcat msgcat.tcl}
+    1 opt             0.4.10 {opt optparse.tcl}
+    0 cookiejar       0.2.0  {cookiejar cookiejar.tcl}
+    0 tcl::idna       1.0.1  {cookiejar idna.tcl}
+    0 platform        1.1.0  {platform platform.tcl}
+    0 platform::shell 1.1.4  {platform shell.tcl}
+    1 tcltest         2.5.10 {tcltest tcltest.tcl}
+  } {
+    if {$isafe && !$safe} continue
+    package ifneeded $package $version  [list source [file join $dir {*}$file]]
+  }
+}} $dir

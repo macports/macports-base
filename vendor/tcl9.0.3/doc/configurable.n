@@ -1,0 +1,345 @@
+'\"
+'\" Copyright (c) 2019 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH configurable n 0.4 TclOO "TclOO Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+oo::configurable, configure, property \- A class that makes configurable classes and objects, and supports making configurable properties
+.SH SYNOPSIS
+.nf
+package require TclOO
+
+\fBoo::configurable create \fIclass\fR ?\fIdefinitionScript\fR?
+
+\fBoo::define \fIclass\fB {\fR
+    \fBproperty \fIpropName\fR ?\fIoptions...\fR? ?\fIpropName\fR ?\fIoptions...\fR?...?
+\fB}\fR
+
+\fBoo::objdefine \fIobject\fB {\fR
+    \fBproperty \fIpropName\fR ?\fIoptions...\fR? ?\fIpropName\fR ?\fIoptions...\fR?...?
+\fB}\fR
+
+\fIobjectName \fBconfigure\fR
+\fIobjectName \fBconfigure\fI \-prop\fR
+\fIobjectName \fBconfigure\fI \-prop value\fR ?\fI\-prop value\fR...
+.fi
+.SH "CLASS HIERARCHY"
+.nf
+\fBoo::object\fR
+   \(-> \fBoo::class\fR
+       \(-> \fBoo::configurable\fR
+
+\fBoo::object\fR
+   \(-> \fBoo::class\fR
+       \(-> \fBoo::configurablesupport::configurable\fR
+.fi
+.BE
+.SH DESCRIPTION
+.PP
+Configurable objects are objects that support being configured with a
+\fBconfigure\fR method. Each of the configurable entities of the object is
+known as a property of the object. Properties may be defined on classes or
+instances; when configuring an object, any of the properties defined by its
+classes (direct or indirect) or by the instance itself may be configured.
+.PP
+The \fBoo::configurable\fR metaclass installs basic support for making
+configurable objects into a class. This consists of making a \fBproperty\fR
+definition command available in definition scripts for the class and instances
+(e.g., from the class's constructor, within \fBoo::define\fR and within
+\fBoo::objdefine\fR) and making a \fBconfigure\fR method available within the
+instances.
+.SS "CONFIGURE METHOD"
+.\" METHOD: configure
+.PP
+The behavior of the \fBconfigure\fR method is modelled after the
+\fBfconfigure\fR/\fBchan configure\fR command.
+.PP
+If passed no additional arguments, the \fBconfigure\fR method returns an
+alphabetically sorted dictionary of all \fIreadable\fR and \fIread-write\fR
+properties and their current values.
+.PP
+If passed a single additional argument, that argument to the \fBconfigure\fR
+method must be the name of a property to read (or an unambiguous prefix
+thereof); its value is returned.
+.PP
+Otherwise, if passed an even number of arguments then each pair of arguments
+specifies a property name (or an unambiguous prefix thereof) and the value to
+set it to. The properties will be set in the order specified, including
+duplicates. If the setting of any property fails, the overall \fBconfigure\fR
+method fails, the preceding pairs (if any) will continue to have been applied,
+and the succeeding pairs (if any) will be not applied. On success, the result
+of the \fBconfigure\fR method in this mode operation will be an empty string.
+.SS "PROPERTY DEFINITIONS"
+.\" COMMAND: property
+.PP
+When a class has been manufactured by the \fBoo::configurable\fR metaclass (or
+one of its subclasses), it gains an extra definition, \fBproperty\fR. The
+\fBproperty\fR definition defines one or more properties that will be exposed
+by the class's instances.
+.PP
+The \fBproperty\fR command takes the name of a property to define first,
+\fIwithout a leading hyphen\fR, followed by a number of option-value pairs
+that modify the basic behavior of the property. This can then be followed by
+an arbitrary number of other property definitions. The supported options are:
+.\" OPTION: -get
+.TP
+\fB\-get \fIgetterScript\fR
+.
+This defines the implementation of how to read from the property; the
+\fIgetterScript\fR will become the body of a method (taking no arguments)
+defined on the class, if the kind of the property is such that the property
+can be read from. The method will be named
+\fB<ReadProp-\fIpropertyName\fB>\fR, and will default to being a simple read
+of the instance variable with the same name as the property (e.g.,
+.QW "\fBproperty\fR xyz"
+will result in a method
+.QW <ReadProp-xyz>
+being created).
+.\" OPTION: -kind
+.TP
+\fB\-kind \fIpropertyKind\fR
+.
+This defines what sort of property is being created. The \fIpropertyKind\fR
+must be exactly one of \fBreadable\fR, \fBwritable\fR, or \fBreadwrite\fR
+(which is the default) which will make the property read-only, write-only or
+read-write, respectively.  Read-only properties can only ever be read from,
+write-only properties can only ever be written to, and read-write properties
+can be both read and written.
+.RS
+.PP
+Note that write-only properties are not particularly discoverable as they are
+never reported by the \fBconfigure\fR method other than by error messages when
+attempting to write to a property that does not exist.
+.RE
+.\" OPTION: -set
+.TP
+\fB\-set \fIsetterScript\fR
+.
+This defines the implementation of how to write to the property; the
+\fIsetterScript\fR will become the body of a method taking a single argument,
+\fIvalue\fR, defined on the class, if the kind of the property is such that
+the property can be written to. The method will be named
+\fB<WriteProp-\fIpropertyName\fB>\fR, and will default to being a simple write
+of the instance variable with the same name as the property (e.g.,
+.QW "\fBproperty\fR xyz"
+will result in a method
+.QW <WriteProp-xyz>
+being created).
+.PP
+Instances of the class that was created by \fBoo::configurable\fR will also
+support \fBproperty\fR definitions; the semantics will be exactly as above
+except that the properties will be defined on the instance alone.
+.PP
+Note that the property implementation methods that \fBproperty\fR defines
+should not be private, as this makes them inaccessible from the implementation
+of \fBconfigure\fR (by design; the property configuration mechanism is
+intended for use mainly from outside a class, whereas a class may access
+variables directly). The variables accessed by the default implementations of
+the properties \fImay\fR be private, if so declared.
+.SH "ADVANCED USAGE"
+.PP
+The configurable class system is comprised of several pieces. The
+\fBoo::configurable\fR metaclass works by mixing in a class and setting
+definition namespaces during object creation that provide the other bits and
+pieces of machinery. The key pieces of the implementation are enumerated here
+so that they can be used by other code:
+.\" COMMAND: configurable
+.TP
+\fBoo::configuresupport::configurable\fR
+.
+This is a class that provides the implementation of the \fBconfigure\fR method
+(described above in \fBCONFIGURE METHOD\fR).
+.\" NAMESPACE: configurableclass
+.TP
+\fBoo::configuresupport::configurableclass\fR
+.
+This is a namespace that contains the definition dialect that provides the
+\fBproperty\fR declaration for use in classes (i.e., via \fBoo::define\fR, and
+class constructors under normal circumstances), as described above in
+\fBPROPERTY DEFINITIONS\fR. It \fBnamespace export\fRs its \fBproperty\fR
+command so that it may be used easily in user definition dialects.
+.\" NAMESPACE: configurableobject
+.TP
+\fBoo::configuresupport::configurableobject\fR
+.
+This is a namespace that contains the definition dialect that provides the
+\fBproperty\fR declaration for use in instance objects (i.e., via
+\fBoo::objdefine\fR, and the \fBself\fR declaration in \fBoo::define\fR), as
+described above in \fBPROPERTY DEFINITIONS\fR. It \fBnamespace export\fRs its
+\fBproperty\fR command so that it may be used easily in user definition
+dialects.
+.PP
+The underlying property discovery mechanism relies on four slots (see
+\fBoo::define\fR for what that implies) that list the properties that can be
+configured. These slots do not themselves impose any semantics on what the
+slots mean other than that they have unique names, no important order, can be
+inherited and discovered on classes and instances.
+.PP
+These slots, and their intended semantics, are:
+.\" METHOD: readableproperties
+.TP
+\fBoo::configuresupport::readableproperties\fR
+.
+The set of properties of a class (not including those from its superclasses)
+that may be read from when configuring an instance of the class. This slot can
+also be read with the \fBinfo class properties\fR command.
+.\" METHOD: writableproperties
+.TP
+\fBoo::configuresupport::writableproperties\fR
+.
+The set of properties of a class (not including those from its superclasses)
+that may be written to when configuring an instance of the class. This slot
+can also be read with the \fBinfo class properties\fR command.
+.\" METHOD: objreadableproperties
+.TP
+\fBoo::configuresupport::objreadableproperties\fR
+.
+The set of properties of an object instance (not including those from its
+classes) that may be read from when configuring the object. This slot can
+also be read with the \fBinfo object properties\fR command.
+.\" METHOD: objwritableproperties
+.TP
+\fBoo::configuresupport::objwritableproperties\fR
+.
+The set of properties of an object instance (not including those from its
+classes) that may be written to when configuring the object. This slot can
+also be read with the \fBinfo object properties\fR command.
+.PP
+Note that though these are slots, they are \fInot\fR in the standard
+\fBoo::define\fR or \fBoo::objdefine\fR namespaces; in order to use them
+inside a definition script, they need to be referred to by full name. This is
+because they are intended to be building bricks of configurable property
+system, and not directly used by normal user code.
+.SS "IMPLEMENTATION NOTE"
+.PP
+The implementation of the \fBconfigure\fR method uses
+\fBinfo object properties\fR with the \fB\-all\fR option to discover what
+properties it may manipulate.
+.SH EXAMPLES
+.PP
+Here we create a simple configurable class and demonstrate how it can be
+configured:
+.PP
+.CS
+\fBoo::configurable\fR create Point {
+    \fBproperty\fR x y
+    constructor args {
+        my \fBconfigure\fR -x 0 -y 0 {*}$args
+    }
+    variable x y
+    method print {} {
+        puts "x=$x, y=$y"
+    }
+}
+
+set pt [Point new -x 27]
+$pt print;   \fI# x=27, y=0\fR
+$pt \fBconfigure\fR -y 42
+$pt print;   \fI# x=27, y=42\fR
+puts "distance from origin: [expr {
+    hypot([$pt \fBconfigure\fR -x], [$pt \fBconfigure\fR -y])
+}]";         \fI# distance from origin: 49.92995093127971\fR
+puts [$pt \fBconfigure\fR]
+             \fI# -x 27 -y 42\fR
+.CE
+.PP
+Such a configurable class can be extended by subclassing, though the subclass
+needs to also be created by \fBoo::configurable\fR if it will use the
+\fBproperty\fR definition:
+.PP
+.CS
+\fBoo::configurable\fR create Point3D {
+    superclass Point
+    \fBproperty\fR z
+    constructor args {
+        next -z 0 {*}$args
+    }
+}
+
+set pt2 [Point3D new -x 2 -y 3 -z 4]
+puts [$pt2 \fBconfigure\fR]
+             \fI# -x 2 -y 3 -z 4\fR
+.CE
+.PP
+Once you have a configurable class, you can also add instance properties to
+it. (The backing variables for all properties start unset.) Note below that we
+are using an unambiguous prefix of a property name when setting it; this is
+supported for all properties though full names are normally recommended
+because subclasses will not make an unambiguous prefix become ambiguous in
+that case.
+.PP
+.CS
+oo::objdefine $pt {
+    \fBproperty\fR color
+}
+$pt \fBconfigure\fR -c bisque
+puts [$pt \fBconfigure\fR]
+             \fI# -color bisque -x 27 -y 42\fR
+.CE
+.PP
+You can also do derived properties by making them read-only and supplying a
+script that computes them.
+.PP
+.CS
+\fBoo::configurable\fR create PointMk2 {
+    \fBproperty\fR x y
+    \fBproperty\fR distance -kind readable -get {
+        return [expr {hypot($x, $y)}]
+    }
+    variable x y
+    constructor args {
+        my \fBconfigure\fR -x 0 -y 0 {*}$args
+    }
+}
+
+set pt3 [PointMk2 new -x 3 -y 4]
+puts [$pt3 \fBconfigure\fR -distance]
+             \fI# 5.0\fR
+$pt3 \fBconfigure\fR -distance 10
+             \fI# ERROR: bad property "-distance": must be -x or -y\fR
+.CE
+.PP
+Setters are used to validate the type of a property:
+.PP
+.CS
+\fBoo::configurable\fR create PointMk3 {
+    \fBproperty\fR x -set {
+        if {![string is double -strict $value]} {
+            error "-x property must be a number"
+        }
+        set x $value
+    }
+    \fBproperty\fR y -set {
+        if {![string is double -strict $value]} {
+            error "-y property must be a number"
+        }
+        set y $value
+    }
+    variable x y
+    constructor args {
+        my \fBconfigure\fR -x 0 -y 0 {*}$args
+    }
+}
+
+set pt4 [PointMk3 new]
+puts [$pt4 \fBconfigure\fR]
+             \fI# -x 0 -y 0\fR
+$pt4 \fBconfigure\fR -x 3 -y 4
+puts [$pt4 \fBconfigure\fR]
+             \fI# -x 3 -y 4\fR
+$pt4 \fBconfigure\fR -x "obviously not a number"
+             \fI# ERROR: -x property must be a number\fR
+.CE
+.SH "SEE ALSO"
+info(n), oo::class(n), oo::define(n)
+.SH KEYWORDS
+class, object, properties, configuration
+.\" Local variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

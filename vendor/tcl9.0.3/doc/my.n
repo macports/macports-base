@@ -1,0 +1,131 @@
+'\"
+'\" Copyright (c) 2007 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH my n 0.1 TclOO "TclOO Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+my, myclass \- Invoke any method of current object or its class
+.SH SYNOPSIS
+.nf
+package require tcl::oo
+
+\fBmy\fI methodName\fR ?\fIarg ...\fR?
+\fBmyclass\fI methodName\fR ?\fIarg ...\fR?
+.fi
+.BE
+.SH DESCRIPTION
+.PP
+The \fBmy\fR command is used to allow methods of objects to invoke methods
+of the object (or its class),
+.VS TIP478
+and the \fBmyclass\fR command is used to allow methods of objects to invoke
+methods of the current class of the object \fIas an object\fR.
+.VE TIP478
+In particular, the set of valid values for
+\fImethodName\fR is the set of all methods supported by an object and its
+superclasses, including those that are not exported
+.VS TIP500
+and private methods of the object or class when used within another method
+defined by that object or class.
+.VE TIP500
+.PP
+The object upon which the method is invoked via \fBmy\fR is the one that owns
+the namespace that the \fBmy\fR command is contained in initially (\fBNB:\fR the
+link remains if the command is renamed), which is the currently invoked object
+by default.
+.VS TIP478
+Similarly, the object on which the method is invoked via \fBmyclass\fR is the
+object that is the current class of the object that owns the namespace that
+the \fBmyclass\fR command is contained in initially. As with \fBmy\fR, the
+link remains even if the command is renamed into another namespace, and
+defaults to being the manufacturing class of the current object.
+.VE TIP478
+.PP
+Each object has its own \fBmy\fR and \fBmyclass\fR commands, contained in its
+instance namespace.
+.SH EXAMPLES
+.PP
+This example shows basic use of \fBmy\fR to use the \fBvariables\fR method of
+the \fBoo::object\fR class, which is not publicly visible by default:
+.PP
+.CS
+oo::class create c {
+    method count {} {
+        \fBmy\fR variable counter
+        puts [incr counter]
+    }
+}
+
+c create o
+o count              \fI\(-> prints "1"\fR
+o count              \fI\(-> prints "2"\fR
+o count              \fI\(-> prints "3"\fR
+.CE
+.PP
+This example shows how you can use \fBmy\fR to make callbacks to private
+methods from outside the object (from a \fBtrace\fR), using
+\fBnamespace code\fR to enter the correct context. (See the \fBcallback\fR
+command for the recommended way of doing this.)
+.PP
+.CS
+oo::class create HasCallback {
+    method makeCallback {} {
+        return [namespace code {
+            \fBmy\fR Callback
+        }]
+    }
+
+    method Callback {args} {
+        puts "callback: $args"
+    }
+}
+
+set o [HasCallback new]
+trace add variable xyz write [$o makeCallback]
+set xyz "called"     \fI\(-> prints "callback: xyz {} write"\fR
+.CE
+.PP
+.VS TIP478
+This example shows how to access a private method of a class from an instance
+of that class. (See the \fBclassmethod\fR declaration in \fBoo::define\fR for
+a higher level interface for doing this.)
+.PP
+.CS
+oo::class create CountedSteps {
+    self {
+        variable count
+        method Count {} {
+            return [incr count]
+        }
+    }
+    method advanceTwice {} {
+        puts "in [self] step A: [\fBmyclass\fR Count]"
+        puts "in [self] step B: [\fBmyclass\fR Count]"
+    }
+}
+
+CountedSteps create x
+CountedSteps create y
+x advanceTwice       \fI\(-> prints "in ::x step A: 1"\fR
+                     \fI\(-> prints "in ::x step B: 2"\fR
+y advanceTwice       \fI\(-> prints "in ::y step A: 3"\fR
+                     \fI\(-> prints "in ::y step B: 4"\fR
+x advanceTwice       \fI\(-> prints "in ::x step A: 5"\fR
+                     \fI\(-> prints "in ::x step B: 6"\fR
+y advanceTwice       \fI\(-> prints "in ::y step A: 7"\fR
+                     \fI\(-> prints "in ::y step B: 8"\fR
+.CE
+.VE TIP478
+.SH "SEE ALSO"
+next(n), oo::object(n), self(n)
+.SH KEYWORDS
+method, method visibility, object, private method, public method
+.\" Local variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

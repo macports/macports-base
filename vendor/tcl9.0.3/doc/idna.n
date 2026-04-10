@@ -1,0 +1,93 @@
+'\"
+'\" Copyright (c) 2014-2018 Donal K. Fellows.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH "idna" n 0.1 http "Tcl Bundled Packages"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+tcl::idna \- Support for normalization of Internationalized Domain Names
+.SH SYNOPSIS
+.nf
+package require tcl::idna 1.0
+
+\fBtcl::idna decode\fI hostname\fR
+\fBtcl::idna encode\fI hostname\fR
+\fBtcl::idna puny decode\fI string\fR ?\fIcase\fR?
+\fBtcl::idna puny encode\fI string\fR ?\fIcase\fR?
+\fBtcl::idna version\fR
+.fi
+.BE
+.SH DESCRIPTION
+This package provides an implementation of the punycode scheme used in
+Internationalised Domain Names, and some access commands. (See RFC 3492 for a
+description of punycode.)
+.\" METHOD: decode
+.TP
+\fBtcl::idna decode\fI hostname\fR
+.
+This command takes the name of a host that potentially contains
+punycode-encoded character sequences, \fIhostname\fR, and returns the hostname
+as might be displayed to the user. Note that there are often UNICODE
+characters that have extremely similar glyphs, so care should be taken with
+displaying hostnames to users.
+.\" METHOD: encode
+.TP
+\fBtcl::idna encode\fI hostname\fR
+.
+This command takes the name of a host as might be displayed to the user,
+\fIhostname\fR, and returns the version of the hostname with characters not
+permitted in basic hostnames encoded with punycode.
+.\" METHOD: puny
+.TP
+\fBtcl::idna puny\fI subcommand ...\fR
+.
+This command provides direct access to the basic punycode encoder and
+decoder. It supports two \fIsubcommand\fRs:
+.RS
+.TP
+\fBtcl::idna puny decode\fI string\fR ?\fIcase\fR?
+.
+This command decodes the punycode-encoded string, \fIstring\fR, and returns
+the result. If \fIcase\fR is provided, it is a boolean to make the case be
+folded to upper case (if \fIcase\fR is true) or lower case (if \fIcase\fR is
+false) during the decoding process; if omitted, no case transformation is
+applied.
+.TP
+\fBtcl::idna puny encode\fI string\fR ?\fIcase\fR?
+.
+This command encodes the string, \fIstring\fR, and returns the
+punycode-encoded version of the string. If \fIcase\fR is provided, it is a
+boolean to make the case be folded to upper case (if \fIcase\fR is true) or
+lower case (if \fIcase\fR is false) during the encoding process; if omitted,
+no case transformation is applied.
+.RE
+.\" METHOD: version
+.TP
+\fBtcl::idna version\fR
+.
+This returns the version of the \fBtcl::idna\fR package.
+.SH "EXAMPLE"
+.PP
+This is an example of how punycoding of a string works:
+.PP
+.CS
+package require tcl::idna
+
+puts [\fBtcl::idna puny encode\fR "abc\(->def"]
+#    prints: \fIabcdef-kn2c\fR
+puts [\fBtcl::idna puny decode\fR "abcdef-kn2c"]
+#    prints: \fIabc\(->def\fR
+.CE
+'\" TODO: show how it handles a real domain name
+.SH "SEE ALSO"
+http(n), cookiejar(n)
+.SH KEYWORDS
+internet, www
+'\" Local Variables:
+'\" mode: nroff
+'\" fill-column: 78
+'\" End:

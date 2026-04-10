@@ -1,0 +1,88 @@
+'\"
+'\" Copyright (c) 2018 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH callback n 0.3 TclOO "TclOO Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+callback, mymethod \- Generate callbacks to methods
+.SH SYNOPSIS
+.nf
+package require tcl::oo
+
+\fBcallback\fI methodName\fR ?\fIarg ...\fR?
+\fBmymethod\fI methodName\fR ?\fIarg ...\fR?
+.fi
+.BE
+.SH DESCRIPTION
+The \fBcallback\fR command,
+'\" Based on notes in the tcllib docs, we know the provenance of mymethod
+also called \fBmymethod\fR for compatibility with the ooutil and snit packages
+of Tcllib,
+and which should only be used from within the context of a call to a method
+(i.e. inside a method, constructor or destructor body) is used to generate a
+script fragment that will invoke the method, \fImethodName\fR, on the current
+object (as reported by \fBself\fR) when executed. Any additional arguments
+provided will be provided as leading arguments to the callback. The resulting
+script fragment shall be a proper list.
+.PP
+Note that it is up to the caller to ensure that the current object is able to
+handle the call of \fImethodName\fR; this command does not check that.
+\fImethodName\fR may refer to any exported or unexported method, but may not
+refer to a private method as those can only be invoked directly from within
+methods. If there is no such method present at the point when the callback is
+invoked, the standard \fBunknown\fR method handler will be called.
+.SH EXAMPLE
+This is a simple echo server class. The \fBcallback\fR command is used in two
+places, to arrange for the incoming socket connections to be handled by the
+\fIAccept\fR method, and to arrange for the incoming bytes on those
+connections to be handled by the \fIReceive\fR method.
+.PP
+.CS
+oo::class create EchoServer {
+    variable server clients
+    constructor {port} {
+        set server [socket -server [\fBcallback\fR Accept] $port]
+        set clients {}
+    }
+    destructor {
+        chan close $server
+        foreach client [dict keys $clients] {
+            chan close $client
+        }
+    }
+
+    method Accept {channel clientAddress clientPort} {
+        dict set clients $channel [dict create \e
+                address $clientAddress port $clientPort]
+        chan event $channel readable [\fBcallback\fR Receive $channel]
+    }
+    method Receive {channel} {
+        if {[chan gets $channel line] >= 0} {
+            my echo $channel $line
+        } else {
+            chan close $channel
+            dict unset clients $channel
+        }
+    }
+
+    method echo {channel line} {
+        dict with clients $channel {
+            chan puts $channel \e
+                    [format {[%s:%d] %s} $address $port $line]
+        }
+    }
+}
+.CE
+.SH "SEE ALSO"
+chan(n), fileevent(n), my(n), self(n), socket(n), trace(n)
+.SH KEYWORDS
+callback, object
+.\" Local Variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

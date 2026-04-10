@@ -1,0 +1,1597 @@
+'\"
+'\" Copyright (c) 1995-1997 Sun Microsystems, Inc.
+'\" Copyright (c) 1998-2000 Ajuba Solutions.
+'\" Copyright (c) 2004 ActiveState Corporation.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH "http" n 2.10 http "Tcl Bundled Packages"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+http \- Client-side implementation of the HTTP/1.1 protocol
+.SH SYNOPSIS
+.nf
+\fBpackage require http\fR ?\fB2.10\fR?
+.\" See Also -useragent option documentation in body!
+
+\fB::http::config\fR ?\fI\-option value\fR ...?
+\fB::http::geturl \fIurl\fR ?\fI\-option value\fR ...?
+\fB::http::formatQuery\fI key value\fR ?\fIkey value\fR ...?
+\fB::http::quoteString\fI value\fR
+\fB::http::reset\fI token\fR ?\fIwhy\fR?
+\fB::http::wait \fItoken\fR
+\fB::http::status \fItoken\fR
+\fB::http::size \fItoken\fR
+\fB::http::error \fItoken\fR
+\fB::http::postError \fItoken\fR
+\fB::http::cleanup \fItoken\fR
+\fB::http::requestLine\fI token\fR
+\fB::http::requestHeaders\fI token\fR ?\fIheaderName\fR?
+\fB::http::requestHeaderValue\fI token headerName\fR
+\fB::http::responseLine\fI token\fR
+\fB::http::responseCode\fI token\fR
+\fB::http::reasonPhrase\fI code\fR
+\fB::http::responseHeaders\fI token\fR ?\fIheaderName\fR?
+\fB::http::responseHeaderValue\fI token headerName\fR
+\fB::http::responseInfo\fI token\fR
+\fB::http::responseBody\fI token\fR
+\fB::http::register \fIproto port command\fR ?\fIsocketCmdVarName\fR? ?\fIuseSockThread\fR? ?\fIendToEndProxy\fR?
+\fB::http::registerError \fIsock\fR ?\fImessage\fR?
+\fB::http::unregister \fIproto\fR
+\fB::http::code \fItoken\fR
+\fB::http::data \fItoken\fR
+\fB::http::meta \fItoken\fR ?\fIheaderName\fR?
+\fB::http::metaValue\fI token headerName\fR
+\fB::http::ncode \fItoken\fR
+.fi
+.SH "EXPORTED COMMANDS"
+.PP
+Namespace \fBhttp\fR exports the commands \fBconfig\fR, \fBformatQuery\fR,
+\fBgeturl\fR, \fBpostError\fR, \fBquoteString\fR, \fBreasonPhrase\fR,
+\fBregister\fR,
+\fBregisterError\fR, \fBrequestHeaders\fR, \fBrequestHeaderValue\fR,
+\fBrequestLine\fR, \fBresponseBody\fR, \fBresponseCode\fR,
+\fBresponseHeaders\fR, \fBresponseHeaderValue\fR, \fBresponseInfo\fR,
+\fBresponseLine\fR,
+\fBreset\fR, \fBunregister\fR, and \fBwait\fR.
+.PP
+It does not export the commands \fBcleanup\fR, \fBcode\fR, \fBdata\fR,
+\fBerror\fR, \fBmeta\fR, \fBmetaValue\fR, \fBncode\fR,
+\fBsize\fR, or \fBstatus\fR.
+.BE
+.SH DESCRIPTION
+.PP
+The \fBhttp\fR package provides the client side of the HTTP/1.1
+protocol, as defined in RFC 9110 to 9112, which supersede RFC 7230
+to RFC 7235, which in turn supersede RFC 2616.
+The package implements the GET, POST, and HEAD operations
+of HTTP/1.1.  It allows configuration of a proxy host to get through
+firewalls.  The package is compatible with the \fBSafesock\fR security
+policy, so it can be used by untrusted applets to do URL fetching from
+a restricted set of hosts. This package can be extended to support
+additional HTTP transport protocols, such as HTTPS, by providing
+a custom \fBsocket\fR command, via \fB::http::register\fR.
+.PP
+The \fB::http::geturl\fR procedure does a HTTP transaction.
+Its \fIoptions \fR determine whether a GET, POST, or HEAD transaction
+is performed.
+The return value of \fB::http::geturl\fR is a token for the transaction.
+The token can be supplied as an argument to other commands, to manage the
+transaction and examine its results.
+.PP
+If the \fB\-command\fR option is specified, then
+the HTTP operation is done in the background.
+\fB::http::geturl\fR returns immediately after generating the
+HTTP request and the \fB\-command\fR callback is invoked
+when the transaction completes.  For this to work, the Tcl event loop
+must be active.  In Tk applications this is always true.  For pure-Tcl
+applications, the caller can use \fB::http::wait\fR after calling
+\fB::http::geturl\fR to start the event loop.
+.PP
+\fBNote:\fR The event queue is even used without the \fB\-command\fR option.
+As a side effect, arbitrary commands may be processed while \fBhttp::geturl\fR
+is running.
+.PP
+When the HTTP server has replied to the request, call the command
+\fB::http::responseInfo\fR, which
+returns a \fBdict\fR of metadata that is essential for identifying a
+successful transaction and making use of the response.  See
+section \fBMETADATA\fR for details of the information returned.
+The response itself is returned by command \fB::http::responseBody\fR,
+unless it has been redirected to a file by the \fI\-channel\fR option
+of \fB::http::geturl\fR.
+.SH COMMANDS
+.\" COMMAND: config
+.TP
+\fB::http::config\fR ?\fIoptions\fR?
+.
+The \fB::http::config\fR command is used to set and query the name of the
+proxy server and port, and the User-Agent name used in the HTTP
+requests.  If no options are specified, then the current configuration
+is returned.  If a single argument is specified, then it should be one
+of the flags described below.  In this case the current value of
+that setting is returned.  Otherwise, the options should be a set of
+flags and values that define the configuration:
+.RS
+.\" OPTION: -accept
+.TP
+\fB\-accept\fI mimetypes\fR
+.
+The Accept header of the request.  The default is */*, which means that
+all types of documents are accepted.  Otherwise you can supply a
+comma-separated list of mime type patterns that you are
+willing to receive.  For example,
+.QW "image/gif, image/jpeg, text/*" .
+.\" OPTION: -cookiejar
+.TP
+\fB\-cookiejar\fI command\fR
+.VS TIP406
+The cookie store for the package to use to manage HTTP cookies.
+\fIcommand\fR is a command prefix list; if the empty list (the
+default value) is used, no cookies will be sent by requests or stored
+from responses. The command indicated by \fIcommand\fR, if supplied,
+must obey the \fBCOOKIE JAR PROTOCOL\fR described below.
+.VE TIP406
+.\" OPTION: -pipeline
+.TP
+\fB\-pipeline\fI boolean\fR
+.
+Specifies whether HTTP/1.1 transactions on a persistent socket will be
+pipelined.  See the \fBPERSISTENT SOCKETS\fR section for details. The default
+is 1.
+.\" OPTION: -postfresh
+.TP
+\fB\-postfresh\fI boolean\fR
+.
+Specifies whether requests that use the \fBPOST\fR method will always use a
+fresh socket, overriding the \fB\-keepalive\fR option of
+command \fBhttp::geturl\fR.  See the \fBPERSISTENT SOCKETS\fR section for
+details. The default is 0.
+.\" OPTION: -proxyauth
+.TP
+\fB\-proxyauth\fI string\fR
+.
+If non-empty, the string is supplied to the proxy server as the value of the
+request header Proxy-Authorization.  This option can be used for HTTP Basic
+Authentication.  If the proxy server requires authentication by another
+technique, e.g. Digest Authentication, the \fB\-proxyauth\fR option is not
+useful.  In that case the caller must expect a 407 response from the proxy,
+compute the authentication value to be supplied, and use the \fB\-headers\fR
+option to supply it as the value of the Proxy-Authorization header.
+.\" OPTION: -proxyfilter
+.TP
+\fB\-proxyfilter\fI command\fR
+.
+The command is a callback that is made during
+\fB::http::geturl\fR
+to determine if a proxy is required for a given host.  One argument, a
+host name, is added to \fIcommand\fR when it is invoked.  If a proxy
+is required, the callback should return a two-element list containing
+the proxy server and proxy port.  Otherwise the filter command should return
+an empty list.
+.RS
+.PP
+The default value of \fB\-proxyfilter\fR is \fBhttp::ProxyRequired\fR, and
+this command returns the values of the \fB\-proxyhost\fR and
+\fB\-proxyport\fR settings if they are non-empty.  The options
+\fB\-proxyhost\fR, \fB\-proxyport\fR, and \fB\-proxynot\fR are used only
+by \fBhttp::ProxyRequired\fR, and nowhere else in \fB::http::geturl\fR.
+A user-supplied \fB\-proxyfilter\fR command may use these options, or
+alternatively it may obtain values from elsewhere in the calling script.
+In the latter case, any values provided for \fB\-proxyhost\fR,
+\fB\-proxyport\fR, and \fB\-proxynot\fR are unused.
+.PP
+The \fB::http::geturl\fR command runs the \fB\-proxyfilter\fR callback inside
+a \fBcatch\fR command.  Therefore an error in the callback command does
+not call the \fBbgerror\fR handler.  See the \fBERRORS\fR section for
+details.
+.RE
+.\" OPTION: -proxyhost
+.TP
+\fB\-proxyhost\fI hostname\fR
+.
+The host name or IP address of the proxy server, if any.  If this value is
+the empty string, the URL host is contacted directly.  See
+\fB\-proxyfilter\fR for how the value is used.
+.\" OPTION: -proxynot
+.TP
+\fB\-proxynot\fI list\fR
+.
+A Tcl list of domain names and IP addresses that should be accessed directly,
+not through the proxy server.  The target hostname is compared with each list
+element using a case-insensitive \fBstring match\fR.  It is often convenient
+to use the wildcard "*" at the start of a domain name (e.g. *.example.com) or
+at the end of an IP address (e.g. 192.168.0.*).  See \fB\-proxyfilter\fR for
+how the value is used.
+.\" OPTION: -proxyport
+.TP
+\fB\-proxyport\fI number\fR
+.
+The port number of the proxy server.  See \fB\-proxyfilter\fR for how the
+value is used.
+.\" OPTION: -repost
+.TP
+\fB\-repost\fI boolean\fR
+.
+Specifies what to do if a POST request over a persistent connection fails
+because the server has half-closed the connection.  If boolean \fBtrue\fR, the
+request
+will be automatically retried; if boolean \fBfalse\fR it will not, and the
+application
+that uses \fBhttp::geturl\fR is expected to seek user confirmation before
+retrying the POST.  The value \fBtrue\fR should be used only under certain
+conditions. See the \fBPERSISTENT SOCKETS\fR section for details. The
+default is 0.
+.\" OPTION: -threadlevel
+.TP
+\fB\-threadlevel\fI level\fR
+.
+Specifies whether and how to use the \fBThread\fR package.  Possible values
+of \fIlevel\fR are 0, 1 or 2.
+.RS
+.IP \fB0\fR
+(the default) do not use Thread
+.IP \fB1\fR
+use Thread if it is available, do not use it if it is unavailable
+.IP \fB2\fR
+use Thread if it is available, raise an error if it is unavailable
+.PP
+The Tcl \fBsocket -async\fR command can block in adverse cases (e.g. a slow
+DNS lookup).  Using the Thread package works around this problem, for both
+HTTP and HTTPS transactions.  Values of \fIlevel\fR other than 0 are
+available only to the main interpreter in each thread.  See
+section \fBTHREADS\fR for more information.
+.RE
+.\" OPTION: -urlencoding
+.TP
+\fB\-urlencoding\fI encoding\fR
+.
+The \fIencoding\fR used for creating the x-url-encoded URLs with
+\fB::http::formatQuery\fR and \fB::http::quoteString\fR.
+The default is \fButf-8\fR, as specified by RFC 2718.
+.\" OPTION: -useragent
+.TP
+\fB\-useragent\fI string\fR
+.
+The value of the User-Agent header in the HTTP request.  In an unsafe
+interpreter, the default value depends upon the operating system, and
+the version numbers of \fBhttp\fR and \fBTcl\fR, and is (for example)
+.QW "\fBMozilla/5.0 (Windows; U; Windows NT 10.0) http/2.10.1 Tcl/9.0.0\fR" .
+A safe interpreter cannot determine its operating system, and so the default
+in a safe interpreter is to use a Windows 10 value with the current version
+numbers of \fBhttp\fR and \fBTcl\fR.
+.\" OPTION: -zip
+.TP
+\fB\-zip\fI boolean\fR
+.
+If the value is boolean \fBtrue\fR, then by default requests will send a header
+.QW "\fBAccept-Encoding: gzip,deflate\fR" .
+If the value is boolean \fBfalse\fR, then by default requests will send a header
+.QW "\fBAccept-Encoding: identity\fR" .
+In either case the default can be overridden for an individual request by
+supplying a custom \fBAccept-Encoding\fR header in the \fB\-headers\fR option
+of \fBhttp::geturl\fR. The default value is 1.
+.RE
+.\" COMMAND: geturl
+.TP
+\fB::http::geturl\fI url\fR ?\fIoptions\fR?
+.
+The \fB::http::geturl\fR command is the main procedure in the package.
+The \fB\-query\fR or \fB\-querychannel\fR option causes a POST operation and
+the \fB\-validate\fR option causes a HEAD operation;
+otherwise, a GET operation is performed.  The \fB::http::geturl\fR command
+returns a \fItoken\fR value that can be passed as an argument to other commands
+to get information about the transaction.  See the \fBMETADATA\fR and
+\fBERRORS\fR section for
+details.  The \fB::http::geturl\fR command blocks until the operation
+completes, unless the \fB\-command\fR option specifies a callback
+that is invoked when the HTTP transaction completes.
+\fB::http::geturl\fR takes several options:
+.RS
+.\" OPTION: -binary
+.TP
+\fB\-binary\fI boolean\fR
+.
+Specifies whether to force interpreting the URL data as binary.  Normally
+this is auto-detected (anything not beginning with a \fBtext\fR content
+type or whose content encoding is \fBgzip\fR or \fBdeflate\fR is
+considered binary data).
+.\" OPTION: -blocksize
+.TP
+\fB\-blocksize\fI size\fR
+.
+The block size used when reading the URL.
+At most \fIsize\fR bytes are read at once.  After each block, a call to the
+\fB\-progress\fR callback is made (if that option is specified).
+.\" OPTION: -channel
+.TP
+\fB\-channel\fI name\fR
+.
+Copy the URL contents to channel \fIname\fR instead of saving it in
+a Tcl variable for retrieval by \fB::http::responseBody\fR.
+.\" OPTION: -command
+.TP
+\fB\-command\fI callback\fR
+.
+The presence of this option causes \fB::http::geturl\fR to return immediately.
+After the HTTP transaction completes, the value of \fIcallback\fR is expanded,
+an additional argument is added, and the resulting command is evaluated.
+The additional argument is the \fItoken\fR returned
+from \fB::http::geturl\fR. This token is the name of an array that is
+described in the \fBSTATE ARRAY\fR section.  Here is a template for the
+callback:
+.RS
+.PP
+.CS
+proc httpCallback {token} {
+    upvar 0 $token state
+    # Access state as a Tcl array defined in this proc
+    ...
+    return
+}
+.CE
+.PP
+The \fB::http::geturl\fR command runs the \fB\-command\fR callback inside
+a \fBcatch\fR command.  Therefore an error in the callback command does
+not call the \fBbgerror\fR handler.  See the \fBERRORS\fR section for
+details.
+.RE
+.\" OPTION: -guesstype
+.TP
+\fB\-guesstype\fI boolean\fR
+.
+Attempt to guess the \fBContent-Type\fR and character set when a misconfigured
+server provides no information.  The default value is \fIfalse\fR (do
+nothing).  If boolean \fItrue\fR then, if the server does not send a
+\fBContent-Type\fR header, or if it sends the value "application/octet-stream",
+\fBhttp::geturl\fR will attempt to guess appropriate values.  This is not
+intended to become a general-purpose tool, and currently it is limited to
+detecting XML documents that begin with an XML declaration.  In this case
+the \fBContent-Type\fR is changed to "application/xml", the binary flag
+state(binary) is changed to 0, and the character set is changed to
+the one specified by the "encoding" tag of the XML line, or to utf-8 if no
+encoding is specified.  Not used if a \fB\-channel\fR is specified.
+.\" OPTION: -handler
+.TP
+\fB\-handler\fI callback\fR
+.
+If this option is absent, \fBhttp::geturl\fR processes incoming data itself,
+either appending it to the state(body) variable or writing it to the -channel.
+But if the \fB\-handler\fR option is present, \fBhttp::geturl\fR does not do
+this processing and instead calls \fIcallback\fR.
+Whenever HTTP data is available, the value of \fIcallback\fR is expanded, an
+additional two arguments are added, and the resulting command is evaluated.
+The two additional
+arguments are: the socket for the HTTP data and the \fItoken\fR returned from
+\fB::http::geturl\fR.  The token is the name of a global array that is
+described in the \fBSTATE ARRAY\fR section.  The procedure is expected
+to return the number of bytes read from the socket.  Here is a
+template for the callback:
+.RS
+.PP
+.CS
+proc httpHandlerCallback {socket token} {
+    upvar 0 $token state
+    # Access socket, and state as a Tcl array defined in this proc
+    # For example...
+    ...
+    set data [read $socket 1000]
+    set nbytes [string length $data]
+    ...
+    return $nbytes
+}
+.CE
+.PP
+The \fBhttp::geturl\fR code for the \fB\-handler\fR option is not compatible
+with either compression or chunked transfer-encoding.  If \fB\-handler\fR is
+specified, then to work around these issues \fBhttp::geturl\fR will reduce the
+HTTP protocol to 1.0, and override the \fB\-zip\fR option (i.e. it will
+send the header \fBAccept-Encoding: identity\fR instead
+of \fBAccept-Encoding: gzip,deflate\fR).
+.PP
+If options \fB\-handler\fR and \fB\-channel\fR are used together, the handler
+is responsible for copying the data from the HTTP socket to the specified
+channel.  The name of the channel is available to the handler as element
+\fB\-channel\fR of the token array.
+.PP
+The \fB::http::geturl\fR command runs the \fB\-handler\fR callback inside
+a \fBcatch\fR command.  Therefore an error in the callback command does
+not call the \fBbgerror\fR handler.  See the \fBERRORS\fR section for
+details.
+.RE
+.\" OPTION: -headers
+.TP
+\fB\-headers\fI keyvaluelist\fR
+.
+This option is used to add headers not already specified
+by \fB::http::config\fR to the HTTP request.  The
+\fIkeyvaluelist\fR argument must be a list with an even number of
+elements that alternate between keys and values.  The keys become
+header field names.  Newlines are stripped from the values so the
+header cannot be corrupted.  For example, if \fIkeyvaluelist\fR is
+\fBPragma no-cache\fR then the following header is included in the
+HTTP request:
+.RS
+.PP
+.CS
+Pragma: no-cache
+.CE
+.RE
+.\" OPTION: -keepalive
+.TP
+\fB\-keepalive\fI boolean\fR
+.
+If boolean \fBtrue\fR, attempt to keep the connection open for servicing
+multiple requests.  Default is 0.
+.\" OPTION: -method
+.TP
+\fB\-method\fI type\fR
+.
+Force the HTTP request method to \fItype\fR. \fB::http::geturl\fR will
+auto-select GET, POST or HEAD based on other options, but this option overrides
+that selection and enables choices like PUT and DELETE for WebDAV support.
+.RS
+.PP
+It is the caller's responsibility to ensure that the headers and request body
+(if any) conform to the requirements of the request method.  For example, if
+using \fB\-method\fI POST\fR to send a POST with an empty request body, the
+caller must also supply the option
+.PP
+.CS
+\-headers {Content-Length 0}
+.CE
+.RE
+.\" OPTION: -myaddr
+.TP
+\fB\-myaddr\fI address\fR
+.
+Pass an specific local address to the underlying \fBsocket\fR call in case
+multiple interfaces are available.
+.\" OPTION: -progress
+.TP
+\fB\-progress\fI callback\fR
+.
+If the \fB\-progress\fR option is present,
+then the \fIcallback\fR is made after each transfer of data from the URL.
+The value of \fIcallback\fR is expanded, an additional three arguments are
+added, and the resulting command is evaluated.
+The three additional arguments are: the \fItoken\fR returned from
+\fB::http::geturl\fR, the expected total size of the contents from the
+\fBContent-Length\fR response header, and the current number of bytes
+transferred so far.  The token is the name of a global array that is
+described in the \fBSTATE ARRAY\fR section.  The expected total size may
+be unknown, in which
+case zero is passed to the callback.  Here is a template for the
+progress callback:
+.RS
+.PP
+.CS
+proc httpProgress {token total current} {
+    upvar 0 $token state
+    # Access state as a Tcl array defined in this proc
+    ...
+    return
+}
+.CE
+.RE
+.\" OPTION: -protocol
+.TP
+\fB\-protocol\fI version\fR
+.
+Select the HTTP protocol version to use. This should be 1.0 or 1.1 (the
+default). Should only be necessary for servers that do not understand or
+otherwise complain about HTTP/1.1.
+.\" OPTION: -query
+.TP
+\fB\-query\fI query\fR
+.
+This flag (if the value is non-empty) causes \fB::http::geturl\fR to do a
+POST request that passes the string
+\fIquery\fR verbatim to the server as the request payload.
+The content format (and encoding) of \fIquery\fR is announced by the request
+header \fBContent-Type\fR which is set by the option \fB\-type\fR.  Any value
+of \fB\-type\fR is permitted, and it is the responsibility of the caller to
+supply \fIquery\fR in the correct format.
+.RS
+.PP
+If \fB\-type\fR is not specified, it defaults to
+\fIapplication/x-www-form-urlencoded\fR, which requires \fIquery\fR to be an
+x-url-encoding formatted query-string (this \fB\-type\fR and query format are
+used in a POST submitted from an html form).  The \fB::http::formatQuery\fR
+procedure can be used to do the formatting.
+.RE
+.\" OPTION: -queryblocksize
+.TP
+\fB\-queryblocksize\fI size\fR
+.
+The block size used when posting query data to the URL.
+At most
+\fIsize\fR
+bytes are written at once.  After each block, a call to the
+\fB\-queryprogress\fR
+callback is made (if that option is specified).
+.\" OPTION: -querychannel
+.TP
+\fB\-querychannel\fI channelID\fR
+.
+This flag causes \fB::http::geturl\fR to do a POST request that passes the
+data contained in \fIchannelID\fR to the server. The data contained in
+\fIchannelID\fR must be an x-url-encoding
+formatted query unless the \fB\-type\fR option below is used.
+If a \fBContent-Length\fR header is not specified via the \fB\-headers\fR
+options, \fB::http::geturl\fR attempts to determine the size of the post data
+in order to create that header.  If it is
+unable to determine the size, it returns an error.
+.\" OPTION: -queryprogress
+.TP
+\fB\-queryprogress\fI callback\fR
+.
+If the \fB\-queryprogress\fR option is present,
+then the \fIcallback\fR is made after each transfer of data to the URL
+in a POST request (i.e. a call to \fB::http::geturl\fR with
+option \fB\-query\fR or \fB\-querychannel\fR) and acts exactly like
+the \fB\-progress\fR option (the callback format is the same).
+.\" OPTION: -strict
+.TP
+\fB\-strict\fI boolean\fR
+.
+If true then the command will test that the URL complies with RFC 3986, i.e.
+that it has no characters that should be "x-url-encoded" (e.g. a space should
+be encoded to "%20").  Default value is 1.
+.\" OPTION: -timeout
+.TP
+\fB\-timeout\fI milliseconds\fR
+.
+If \fImilliseconds\fR is non-zero, then \fB::http::geturl\fR sets up a timeout
+to occur after the specified number of milliseconds.
+A timeout results in a call to \fB::http::reset\fR and to
+the \fB\-command\fR callback, if specified.
+The return value of \fB::http::status\fR (and the value of the \fIstatus\fR key
+in the dictionary returned by \fB::http::responseInfo\fR) is \fBtimeout\fR
+after a timeout has occurred.
+.\" OPTION: -type
+.TP
+\fB\-type\fI mime-type\fR
+.
+Use \fImime-type\fR as the \fBContent-Type\fR value, instead of the
+default value (\fBapplication/x-www-form-urlencoded\fR) during a
+POST operation.
+.\" OPTION: -validate
+.TP
+\fB\-validate\fI boolean\fR
+.
+If \fIboolean\fR is non-zero, then \fB::http::geturl\fR does an HTTP HEAD
+request.  This server returns the same status line and response headers as it
+would for a HTTP GET request, but omits the response entity
+(the URL "contents").  The response headers are available after the
+transaction using command \fB::http::responseHeaders\fR or, for selected
+information, \fB::http::responseInfo\fR.
+.RE
+.\" COMMAND: formatQuery
+.TP
+\fB::http::formatQuery\fI key value\fR ?\fIkey value\fR ...?
+.
+This procedure does x-url-encoding of query data.  It takes an even
+number of arguments that are the keys and values of the query.  It
+encodes the keys and values, and generates one string that has the
+proper & and = separators.  The result is suitable for the
+\fB\-query\fR value passed to \fB::http::geturl\fR.
+.\" COMMAND: quoteString
+.TP
+\fB::http::quoteString\fI value\fR
+.
+This procedure does x-url-encoding of string.  It takes a single argument and
+encodes it.
+.\" COMMAND: reset
+.TP
+\fB::http::reset\fI token\fR ?\fIwhy\fR?
+.
+This command resets the HTTP transaction identified by \fItoken\fR, if any.
+This sets the \fBstate(status)\fR value to \fIwhy\fR, which defaults to
+\fBreset\fR, and then calls the registered \fB\-command\fR callback.
+.\" COMMAND: wait
+.TP
+\fB::http::wait\fI token\fR
+.
+This command blocks and waits for the
+transaction to complete.  This only works in trusted code because it
+uses \fBvwait\fR.  Also, it is not useful for the case where
+\fB::http::geturl\fR is called \fIwithout\fR the \fB\-command\fR option
+because in this case the \fB::http::geturl\fR call does not return
+until the HTTP transaction is complete, and thus there is nothing to
+wait for.
+.\" COMMAND: status
+.TP
+\fB::http::status\fI token\fR
+.
+This command returns a description of the status of the HTTP transaction.
+The return value is the empty string until the HTTP transaction is
+completed; after completion it has one of the values ok, eof, error,
+timeout, and reset.  The meaning of these values is described in the
+section \fBERRORS\fR (below).
+.PP
+.RS
+The name "status" is not related to the terms "status line" and
+"status code" that are defined for a HTTP response.
+.RE
+.\" COMMAND: size
+.TP
+\fB::http::size\fI token\fR
+.
+This command returns the number of bytes
+received so far from the URL in the \fB::http::geturl\fR call.
+.\" COMMAND: error
+.TP
+\fB::http::error\fI token\fR
+.
+This command returns the error information if the HTTP transaction failed,
+or the empty string if there was no error.  The information is a Tcl list of
+the error message, stack trace, and error code.
+.\" COMMAND: postError
+.TP
+\fB::http::postError\fI token\fR
+.
+A POST request is a call to \fB::http::geturl\fR with either
+the \fB\-query\fR or \fB\-querychannel\fR option.
+The \fB::http::postError\fR command returns the error information generated
+when a HTTP POST request sends its request-body to the server; or the empty
+string if there was no error.  The information is a Tcl list of the error
+message, stack trace, and error code.  When this type of error occurs,
+the \fB::http::geturl\fR command continues the transaction and attempts to
+receive a response from the server.
+.\" COMMAND: cleanup
+.TP
+\fB::http::cleanup\fI token\fR
+.
+This procedure cleans up the state associated with the connection
+identified by \fItoken\fR.  After this call, the procedures
+like \fB::http::responseBody\fR cannot be used to get information
+about the operation.  It is \fIstrongly\fR recommended that you call
+this function after you are done with a given HTTP request.  Not doing
+so will result in memory not being freed, and if your app calls
+\fB::http::geturl\fR enough times, the memory leak could cause a
+performance hit...or worse.
+.\" COMMAND: requestLine
+.TP
+\fB::http::requestLine\fI token\fR
+.
+This command returns the "request line" sent to the server.
+The "request line" is the first line of a HTTP client request, and has three
+elements separated by spaces: the HTTP method, the URL relative to the server,
+and the HTTP version. Examples:
+.PP
+.RS
+GET / HTTP/1.1
+GET /introduction.html?subject=plumbing HTTP/1.1
+POST /forms/order.html HTTP/1.1
+.RE
+.\" COMMAND: requestHeaders
+.TP
+\fB::http::requestHeaders\fI token\fR ?\fIheaderName\fR?
+.
+This command returns the HTTP request header names and values, in the
+order that they were sent to the server, as a Tcl list of the form
+?name value ...?  Header names are case-insensitive and are converted to lower
+case.  The return value is not a \fBdict\fR because some header names may occur
+more than once.  If one argument is supplied, all request headers
+are returned.  If two arguments are supplied, the
+second provides the value of a header name.  Only headers with the requested
+name (converted to lower case) are returned.  If no such headers are found,
+an empty list is returned.
+.\" COMMAND: requestHeaderValue
+.TP
+\fB::http::requestHeaderValue\fI token headerName\fR
+.
+This command returns the value of the HTTP request header named
+\fIheaderName\fR.  Header names are case-insensitive and are converted to
+lower case.  If no such header exists, the return value is the empty string.
+If there are multiple headers named \fIheaderName\fR, the result is obtained
+by joining the individual values with the string ", " (comma and space),
+preserving their order.
+.\" COMMAND: responseLine
+.TP
+\fB::http::responseLine\fI token\fR
+.
+This command returns the first line of the server response: the
+HTTP "status line".  The "status line" has three
+elements separated by spaces: the HTTP version, a three-digit numerical
+"status code", and a "reason phrase".  Only the reason phrase may contain
+spaces.  Examples:
+.PP
+.RS
+HTTP/1.1 200 OK
+HTTP/1.0 404 Not Found
+.RE
+.RS
+The "status code" is a three-digit number in the range 100 to 599.
+A value of 200 is the normal return from a GET request, and its matching
+"reason phrase" is "OK".  Codes beginning with 4 or 5 indicate errors.
+Codes beginning with 3 are redirection errors.  In this case the
+\fBLocation\fR response header specifies a new URL that contains the
+requested information.
+.PP
+The "reason phrase" is a textual description of the "status code": it may
+vary from server to server,
+and can be changed without affecting the HTTP protocol.  The recommended
+values (RFC 7231 and IANA assignments) for each code are provided by the
+command \fB::http::reasonPhrase\fR.
+.RE
+.\" COMMAND: responseCode
+.TP
+\fB::http::responseCode\fI token\fR
+.
+This command returns the "status code" (200, 404, etc.) of the server
+"status line".  If a three-digit code cannot be found, the full status
+line is returned.  See command \fB::http::responseLine\fR for more information
+on the "status line".
+.\" COMMAND: reasonPhrase
+.TP
+\fB::http::reasonPhrase\fI code\fR
+.
+This command returns the IANA recommended "reason phrase" for a particular
+"status code" returned by a HTTP server.  The argument \fIcode\fR is a valid
+status code, and therefore is an integer in the range 100 to 599 inclusive.
+For numbers in this range with no assigned meaning, the command returns the
+value "Unassigned".  Several status codes are used only in response to the
+methods defined by HTTP extensions such as WebDAV, and not in response to a
+HEAD, GET, or POST request method.
+.PP
+.RS
+The "reason phrase" returned by a HTTP server may differ from the recommended
+value, without affecting the HTTP protocol.  The value returned by
+\fB::http::geturl\fR can be obtained by calling either command
+\fB::http::responseLine\fR (which returns the full status line) or command
+\fB::http::responseInfo\fR (which returns a dictionary, with
+the "reason phrase" stored in key \fIreasonPhrase\fR).
+.PP
+A registry of valid status codes is maintained at
+https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+.RE
+.\" COMMAND: responseHeaders
+.TP
+\fB::http::responseHeaders\fI token\fR ?\fIheaderName\fR?
+.
+The response from a HTTP server includes metadata headers that describe the
+response body and the transaction itself.
+This command returns the HTTP response header names and values, in the
+order that they were received from the server, as a Tcl list of the form
+?name value ...?  Header names are case-insensitive and are converted to lower
+case.  The return value is not a \fBdict\fR because some header names may occur
+more than once, notably \fBSet-Cookie\fR.  If the second argument is not
+supplied, all response headers are returned.  If the second argument is
+supplied, it provides the value of a header name.  Only headers with the
+requested name (converted to lower case) are returned.  If no such headers
+are found, an empty list is returned.  See section \fBMETADATA\fR for more
+information.
+.\" COMMAND: responseHeaderValue
+.TP
+\fB::http::responseHeaderValue\fI token headerName\fR
+.
+This command returns the value of the HTTP response header named
+\fIheaderName\fR.  Header names are case-insensitive and are converted to
+lower case.  If no such header exists, the return value is the empty string.
+If there are multiple headers named \fIheaderName\fR, the result is obtained
+by joining the individual values with the string ", " (comma and space),
+preserving their order.  Multiple headers with the same name may be processed
+in this manner, except \fBSet-Cookie\fR which does not conform to the
+comma-separated-list syntax and cannot be combined into a single value.
+Each \fBSet-Cookie\fR header must be treated individually, e.g. by processing
+the return value of \fB::http::responseHeaders\fI token\fR \fBSet-Cookie\fR.
+.\" COMMAND: responseInfo
+.TP
+\fB::http::responseInfo\fI token\fR
+.
+This command returns a \fBdict\fR of selected response metadata that are
+essential for identifying a successful transaction and making use of the
+response, along with other metadata that are informational.  The keys of
+the \fBdict\fR are \fIstage\fR, \fIstatus\fR, \fIresponseCode\fR,
+\fIreasonPhrase\fR, \fIcontentType\fR, \fIbinary\fR, \fIredirection\fR,
+\fIupgrade\fR, \fIerror\fR, \fIpostError\fR, \fImethod\fR, \fIcharset\fR,
+\fIcompression\fR, \fIhttpRequest\fR, \fIhttpResponse\fR, \fIurl\fR,
+\fIconnectionRequest\fR, \fIconnectionResponse\fR, \fIconnectionActual\fR,
+\fItransferEncoding\fR, \fItotalPost\fR, \fIcurrentPost\fR, \fItotalSize\fR,
+and \fIcurrentSize\fR.  The meaning of these keys is described in the
+section \fBMETADATA\fR below.
+.RS
+.PP
+It is always worth checking the value of \fIbinary\fR after a HTTP transaction,
+to determine whether a misconfigured server has caused http to interpret a
+text resource as a binary, or vice versa.
+.PP
+After a POST transaction, check the value of \fIpostError\fR to verify that
+the request body was uploaded without error.
+.RE
+.\" COMMAND: responseBody
+.TP
+\fB::http::responseBody\fI token\fR
+.
+This command returns the entity sent by the HTTP server (unless
+\fI-channel\fR was used, in which case the entity was delivered to the
+channel, and the command returns the empty string).
+.RS
+.PP
+Other terms for
+"entity", with varying precision, include "representation of resource",
+"resource", "response body after decoding", "payload",
+"message body after decoding", "content(s)", and "file".
+.RE
+.\" COMMAND: register
+.TP
+\fB::http::register\fI proto port command\fR ?\fIsocketCmdVarName\fR? ?\fIuseSockThread\fR? ?\fIendToEndProxy\fR?
+.
+This procedure allows one to provide custom HTTP transport types
+such as HTTPS, by registering a prefix, the default port, and the
+command to execute to create the Tcl \fBchannel\fR. The optional
+arguments configure how \fBhttp\fR uses the custom transport, and have
+default values that are compatible with older versions of \fBhttp\fR
+in which \fB::http::register\fR has no optional arguments.
+.RS
+.PP
+Argument \fIsocketCmdVarName\fR is the name of a variable provided by
+the transport, whose value is the command used by the transport to open
+a socket.  Its default value is set by the transport and is "::socket",
+but if the name of the variable is supplied to \fB::http::register\fR,
+then \fBhttp\fR will set a new value in order to make optional
+facilities available.  These facilities are enabled by the optional
+arguments \fIuseSockThread\fR, \fIendToEndProxy\fR, which take boolean
+values with default value \fIfalse\fR.
+.PP
+Iff argument \fIuseSockThread\fR is supplied and is boolean \fItrue\fR,
+then iff permitted by the value [\fBhttp::config\fI \-threadlevel\fR]
+and by the availability of package \fBThread\fR, sockets created for
+the transport will be opened in a different thread so that a slow DNS
+lookup will not cause the script to block.
+.PP
+Iff argument \fIendToEndProxy\fR is supplied and is boolean \fItrue\fR,
+then when \fBhttp::geturl\fR accesses a server via a proxy, it will
+open a channel by sending a CONNECT request to the proxy, and it will
+then make its request over this channel.  This allows end-to-end
+encryption for HTTPS requests made through a proxy.
+.PP
+For example,
+.RS
+.PP
+.CS
+package require http
+package require tls
+
+::http::register https 443 ::tls::socket ::tls::socketCmd 1 1
+
+set token [::http::geturl https://my.secure.site/]
+.CE
+.RE
+.RE
+.\" COMMAND: registerError
+.TP
+\fB::http::registerError\fI sock\fR ?\fImessage\fR?
+.
+This procedure allows a registered protocol handler to deliver an error
+message for use by \fBhttp\fR.  Calling this command does not raise an
+error. The command is useful when a registered protocol detects an problem
+(for example, an invalid TLS certificate) that will cause an error to
+propagate to \fBhttp\fR.  The command allows \fBhttp\fR to provide a
+precise error message rather than a general one.  The command returns the
+value provided by the last call with argument \fImessage\fR, or the empty
+string if no such call has been made.
+.\" COMMAND: unregister
+.TP
+\fB::http::unregister\fI proto\fR
+.
+This procedure unregisters a protocol handler that was previously
+registered via \fB::http::register\fR, returning a six-item list of
+the values that were previously supplied to \fB::http::register\fR
+if there was such a handler, and an error if there was no such handler.
+.\" COMMAND: code
+.TP
+\fB::http::code\fI token\fR
+.
+An alternative name for the command \fB::http::responseLine\fR
+.\" COMMAND: data
+.TP
+\fB::http::data\fI token\fR
+.
+An alternative name for the command \fB::http::responseBody\fR.
+.\" COMMAND: meta
+.TP
+\fB::http::meta\fI token\fR ?\fIheaderName\fR?
+.
+An alternative name for the command \fB::http::responseHeaders\fR
+.\" COMMAND: ncode
+.TP
+\fB::http::ncode\fI token\fR
+.
+An alternative name for the command \fB::http::responseCode\fR
+.SH ERRORS
+The \fB::http::geturl\fR procedure will raise errors in the following cases:
+invalid command line options,
+or an invalid URL.
+These errors mean that it
+cannot even start the network transaction.
+For synchronous \fB::http::geturl\fR calls (where \fB\-command\fR is
+not specified), it will raise an error if
+the URL is on a non-existent host
+or at a bad port on an existing host.
+It will also raise an error for any I/O errors while
+writing out the HTTP request line and headers, or
+reading the HTTP reply headers or data.  Because \fB::http::geturl\fR
+does not return a token in these cases, it does all the required
+cleanup and there is no issue of your app having to call
+\fB::http::cleanup\fR.
+.PP
+For asynchronous \fB::http::geturl\fR calls, all of the above error
+situations apply, except that if there is any error while reading the
+HTTP reply headers or data, no exception is thrown.  This is because
+after writing the HTTP headers, \fB::http::geturl\fR returns, and the
+rest of the HTTP transaction occurs in the background.  The command
+callback can check if any error occurred during the read by calling
+\fB::http::responseInfo\fR to check the transaction status.
+.PP
+Alternatively, if the main program flow reaches a point where it needs
+to know the result of the asynchronous HTTP request, it can call
+\fB::http::wait\fR and then check status and error, just as the
+synchronous call does.
+.PP
+The \fB::http::geturl\fR command runs the \fB\-command\fR, \fB\-handler\fR,
+and \fB\-proxyfilter\fR callbacks inside a \fBcatch\fR command.  Therefore
+an error in the callback command does not call the \fBbgerror\fR handler.
+When debugging one of these
+callbacks, it may be convenient to report errors by using a
+\fBcatch\fR command within the callback command itself, e.g. to write
+an error message to stdout.
+.PP
+In any case, you must still call
+\fB::http::cleanup\fR to delete the state array when you are done.
+.PP
+There are other possible results of the HTTP transaction
+determined by examining the status from \fB::http::status\fR (or the value
+of the \fIstatus\fR key in the dictionary returned
+by \fB::http::responseInfo\fR).
+These are described below.
+.IP \fBok\fR
+If the HTTP transaction completes entirely, then status will be \fBok\fR.
+However, you should still check the \fB::http::responseLine\fR value to get
+the HTTP status.  The \fB::http::responseCode\fR procedure provides just
+the numeric error (e.g., 200, 404 or 500) while the \fB::http::responseLine\fR
+procedure returns a value like
+.QW "HTTP 404 File not found" .
+.IP \fBeof\fR
+If the server closes the socket without replying, then no error
+is raised, but the status of the transaction will be \fBeof\fR.
+.IP \fBerror\fR
+The error message, stack trace, and error code are accessible
+via \fB::http::error\fR.  The error message is also provided by the value of
+the \fIerror\fR key in the dictionary returned by \fB::http::responseInfo\fR.
+.IP \fBtimeout\fR
+A timeout occurred before the transaction could complete.
+.IP \fBreset\fR
+The user has called \fB::http::reset\fR.
+.IP \fB""\fR
+(empty string) The transaction has not yet finished.
+.PP
+Another error possibility is that \fB::http::geturl\fR failed to
+write the whole of the POST request body (\fB\-query\fR or \fB\-querychannel\fR
+data) to the server.  \fB::http::geturl\fR stores the error message for later
+retrieval by the \fB::http::postError\fR or \fB::http::responseInfo\fR
+commands, and then attempts to complete the transaction.
+If it can read the server's response the status will be \fBok\fR, but it is
+important to call \fB::http::postError\fR or \fB::http::responseInfo\fR after
+every POST to check that the data was sent in full.
+If the server has closed the connection the status will be \fBeof\fR.
+.SH "METADATA"
+.PP
+.SS "MOST USEFUL METADATA"
+When a HTTP server responds to a request, it supplies not only the entity
+requested, but also metadata.  This is provided by the first line (the
+"status line") of the response, and by a number of HTTP headers.  Further
+metadata relates to how \fB::http::geturl\fR has processed the response
+from the server.
+.PP
+The most important metadata can be accessed with the command
+\fB::http::responseInfo\fR.
+This command returns a \fBdict\fR of metadata that are essential for
+identifying a successful transaction and making use of the response,
+along with other metadata that are informational.  The keys of
+the \fBdict\fR are:
+.PP
+.RS
+.RS
+.\" TODO: Find a better way to mark this up!
+\fB===== Essential Values =====\fR
+.RE
+.RE
+.IP \fBstage\fR
+This value, set by \fB::http::geturl\fR, describes the stage that the
+transaction has reached. Values, in order of the transaction lifecycle,
+are: "created", "connecting", "header", "body", and "complete".  The
+other \fBdict\fR keys will not be available until the value of \fBstage\fR
+is "body" or "complete".  The key \fBcurrentSize\fR has its final value only
+when \fBstage\fR is "complete".
+.IP \fBstatus\fR
+This value, set by \fB::http::geturl\fR, is "ok" for a successful transaction;
+"eof", "error", "timeout", or "reset" for an unsuccessful transaction; or ""
+if the transaction is still in progress.  The value is the same as that
+returned by command \fB::http::status\fR. The meaning of these values is
+described in the section \fBERRORS\fR (above).
+.IP \fBresponseCode\fR
+The "HTTP status code" sent by the server in the first line (the "status line")
+of the response.  If the value cannot be extracted from the status line, the
+full status line is returned.
+.IP \fBreasonPhrase\fR
+The "reason phrase" sent by the server as a description of the HTTP status code.
+If the value cannot be extracted from the status line, the full status
+line is returned.
+.IP \fBcontentType\fR
+The value of the \fBContent-Type\fR response header or, if the header was not
+supplied, the default value "application/octet-stream".
+.IP \fBbinary\fR
+This boolean value, set by \fB::http::geturl\fR, describes how the command
+has interpreted the entity returned by the server (after decoding any
+compression specified by the \fBContent-Encoding\fR response header).
+This decoded entity is accessible as the return value of the
+command \fB::http::responseBody\fR.
+.PP
+.RS
+The value is \fBtrue\fR if http has interpreted the decoded entity as binary.
+The value returned by \fB::http::responseBody\fR is a Tcl binary string.
+This is a suitable format for image data, zip files, etc.
+\fB::http::geturl\fR chooses this value if the user has requested a binary
+interpretation by passing the option \fB\-binary\fR to the command, or if the
+server has supplied a binary content type in a \fBContent-Type\fR response
+header, or if the server has not supplied any \fBContent-Type\fR header.
+.PP
+The value is \fBfalse\fR in other cases, and this means that http has
+interpreted the decoded entity as text. The text has been converted, from the
+character set notified by the server, into Tcl's internal Unicode format;
+the value returned by \fB::http::responseBody\fR is an ordinary Tcl string.
+.PP
+It is always worth checking the value of "binary" after a HTTP transaction,
+to determine whether a misconfigured server has caused http to interpret a
+text resource as a binary, or vice versa.
+.RE
+.IP \fBredirection\fR
+The URL that is the redirection target. The value is that of the \fBLocation\fR
+response header.  This header is sent when a response has status code
+3XX (redirection).
+.IP \fBupgrade\fR
+If not empty, the value indicates the protocol(s) to which the server will
+switch after completion of this transaction, while continuing to use the
+same connection.  When the server intends to switch protocols, it will also
+send the value "101" as the status code (the \fBresponseCode\fR key), and the
+word "upgrade" as an element of the \fBConnection\fR response header (the
+\fBconnectionResponse\fR key), and it will not send a response body.
+See the section \fBPROTOCOL UPGRADES\fR for more information.
+.IP \fBerror\fR
+The error message, if there is one.  Further information, including a stack
+trace and error code, are available from command \fB::http::error\fR.
+.IP \fBpostError\fR
+The error message (if any) generated when a HTTP POST request sends its
+request-body to the server.  Further information, including a stack trace
+and error code, are available from command \fB::http::postError\fR.  A POST
+transaction may appear complete, according to the
+keys \fBstage\fR, \fBstatus\fR, and \fBresponseCode\fR, but it is important
+to check this \fBpostError\fR key in case an error occurred when uploading
+the request-body.
+.PP
+.RS
+.RS
+\fB===== Informational Values =====\fR
+.RE
+.RE
+.IP \fBmethod\fR
+The HTTP method used in the request.
+.IP \fBcharset\fR
+The value of the charset attribute of the \fBContent-Type\fR response header.
+The charset value is used only for a text resource.  If the server did not
+specify a charset, the value defaults to that of the
+variable \fB::http::defaultCharset\fR, which unless it has been deliberately
+modified by the caller is \fBiso8859-1\fR.  Incoming text data is automatically
+converted from the character set defined by \fBcharset\fR to Tcl's internal
+Unicode representation, i.e. to a Tcl string.
+.IP \fBcompression\fR
+A copy of the \fBContent-Encoding\fR response-header value.
+.IP \fBhttpRequest\fR
+The version of HTTP specified in the request (i.e. sent in the request line).
+The value is that of the option \fB\-protocol\fR supplied
+to \fB::http::geturl\fR (default value "1.1"), unless the command reduced the
+value to "1.0" because it was passed the \fB\-handler\fR option.
+.IP \fBhttpResponse\fR
+The version of HTTP used by the server (obtained from the response
+"status line").  The server uses this version of HTTP in its response, but
+ensures that this response is compatible with the HTTP version specified in the
+client's request.  If the value cannot be extracted from the status line, the
+full status line is returned.
+.IP \fBurl\fR
+The requested URL, typically the URL supplied as an argument
+to \fB::http::geturl\fR but without its "fragment" (the final part of the URL
+beginning with "#").
+.IP \fBconnectionRequest\fR
+The value, if any, sent to the server in \fBConnection\fR request header(s).
+.IP \fBconnectionResponse\fR
+The value, if any, received from the server in \fBConnection\fR response
+header(s).
+.IP \fBconnectionActual\fR
+This value, set by \fB::http::geturl\fR, reports whether the connection was
+closed after the transaction (value "close"), or left open (value "keep-alive").
+.IP \fBtransferEncoding\fR
+The value of the Transfer-Encoding response header, if it is present.
+The value is either "chunked" (indicating HTTP/1.1 "chunked encoding") or
+the empty string.
+.IP \fBtotalPost\fR
+The total length of the request body in a POST request.
+.IP \fBcurrentPost\fR
+The number of bytes of the POST request body sent to the server so far.
+The value is the same as that returned by command \fB::http::size\fR.
+.IP \fBtotalSize\fR
+A copy of the \fBContent-Length\fR response-header value.
+The number of bytes specified in a \fBContent-Length\fR header, if one
+was sent.  If none was sent, the value is 0.  A correctly configured server
+omits this header if the transfer-encoding is "chunked", or (for older
+servers) if the server closes the connection when it reaches the end of
+the resource.
+.IP \fBcurrentSize\fR
+The number of bytes fetched from the server so far.
+.PP
+.SS "MORE METADATA"
+The dictionary returned by \fB::http::responseInfo\fR is the most useful
+subset of the available metadata.  Other metadata include:
+.PP
+1. The full "status line" of the response, available as the return value
+of command \fB::http::responseLine\fR.
+.PP
+2. The full response headers, available as the return value of
+command \fB::http::responseHeaders\fR.  This return value is a list of the
+response-header names and values, in the order that they were received from
+the server.
+.PP
+The return value is not a \fBdict\fR because some header names may
+occur more than once, notably \fBSet-Cookie\fR. If the value is read
+into a \fBdict\fR or into an array (using array set), only the last header
+with each name will be preserved.
+.PP
+.RS
+Some of the header names (metadata keys) are listed below, but the HTTP
+standard defines several more, and servers are free to add their own.
+When a dictionary key is mentioned below, this refers to the \fBdict\fR
+value returned by command \fB::http::responseInfo\fR.
+.IP \fBContent-Type\fR
+The content type of the URL contents.  Examples include \fBtext/html\fR,
+\fBimage/gif,\fR \fBapplication/postscript\fR and
+\fBapplication/x-tcl\fR.  Text values typically specify a character set, e.g.
+\fBtext/html; charset=UTF-8\fR.  Dictionary key \fIcontentType\fR.
+.IP \fBContent-Length\fR
+The advertised size in bytes of the contents, available as dictionary
+key \fItotalSize\fR.  The actual number of bytes read by \fB::http::geturl\fR
+so far is available as dictionary key \fBcurrentSize\fR.
+.IP \fBContent-Encoding\fR
+The compression algorithm used for the contents.
+Examples include \fBgzip\fR, \fBdeflate\fR.
+Dictionary key \fIcontent\fR.
+.IP \fBLocation\fR
+This header is sent when a response has status code 3XX (redirection).
+It provides the URL that is the redirection target.
+Dictionary key \fIredirection\fR.
+.IP \fBSet-Cookie\fR
+This header is sent to offer a cookie to the client.  Cookie management is
+done by the \fB::http::config\fR option \fB\-cookiejar\fR, and so
+the \fBSet-Cookie\fR headers need not be parsed by user scripts.
+See section \fBCOOKIE JAR PROTOCOL\fR.
+.IP \fBConnection\fR
+The value can be supplied as a comma-separated list, or by multiple headers.
+The list often has only one element, either "close" or "keep-alive".
+The value "upgrade" indicates a successful upgrade request and is typically
+combined with the status code 101, an \fBUpgrade\fR response header, and no
+response body.  Dictionary key \fIconnectionResponse\fR.
+.IP \fBUpgrade\fR
+The value indicates the protocol(s) to which the server will switch
+immediately after the empty line that terminates the 101 response headers.
+Dictionary key \fIupgrade\fR.
+.RE
+.PP
+.SS "EVEN MORE METADATA"
+.IP 1.
+Details of the HTTP request.  The request is determined by the options
+supplied to \fB::http::geturl\fR and \fB::http::config\fR.  However, it is
+sometimes helpful to examine what \fB::http::geturl\fR actually sent to the
+server, and this information is available through
+commands \fB::http::requestHeaders\fR and \fB::http::requestLine\fR.
+.IP 2.
+The state array: the internal variables of \fB::http::geturl\fR.
+It may sometimes be helpful to examine this array.
+Details are given in the next section.
+.SH "STATE ARRAY"
+The \fB::http::geturl\fR procedure returns a \fItoken\fR that can be used
+as an argument to other \fB::http::*\fR commands, which examine and manage
+the state of the HTTP transaction.  For most purposes these commands are
+sufficient.  The \fItoken\fR can also be used to access
+the internal state of the transaction, which is stored in a Tcl array.
+This facility is most useful when writing callback commands for the
+options \fB\-command\fR, \fB\-handler\fR, \fB\-progress\fR,
+or \fB\-queryprogress\fR.
+Use the following command inside the proc to define an easy-to-use
+array \fIstate\fR as a local variable within the proc
+.PP
+.CS
+upvar 0 $token state
+.CE
+.PP
+Once the data associated with the URL is no longer needed, the state
+array should be unset to free up storage.
+The \fB::http::cleanup\fR procedure is provided for that purpose.
+.PP
+The following elements of the array are supported, and are the origin of the
+values returned by commands as described below.  When a dictionary key is
+mentioned below, this refers to the \fBdict\fR value returned by
+command \fB::http::responseInfo\fR.
+.RS
+.IP \fBbinary\fR
+For dictionary key \fIbinary\fR.
+.IP \fBbody\fR
+For command \fB::http::responseBody\fR.
+.IP \fBcharset\fR
+For dictionary key \fIcharset\fR.
+.IP \fBcoding\fR
+For dictionary key \fIcompression\fR.
+.IP \fBconnection\fR
+For dictionary key \fIconnectionActual\fR.
+.IP \fBcurrentsize\fR
+For command \fB::http::size\fR; and for dictionary key \fIcurrentSize\fR.
+.IP \fBerror\fR
+For command \fB::http::error\fR; part is used in dictionary key \fIerror\fR.
+.IP \fBhttp\fR
+For command \fB::http::responseLine\fR.
+.IP \fBhttpResponse\fR
+For dictionary key \fIhttpResponse\fR.
+.IP \fBmeta\fR
+For command \fB::http::responseHeaders\fR. Further discussion above in the
+section \fBMORE METADATA\fR.
+.IP \fBmethod\fR
+For dictionary key \fImethod\fR.
+.IP \fBposterror\fR
+For dictionary key \fIpostError\fR.
+.IP \fBpostErrorFull\fR
+For command \fB::http::postError\fR.
+.IP \fB\-protocol\fR
+For dictionary key \fIhttpRequest\fR.
+.IP \fBquerylength\fR
+For dictionary key \fItotalPost\fR.
+.IP \fBqueryoffset\fR
+For dictionary key \fIcurrentPost\fR.
+.IP \fBreasonPhrase\fR
+For dictionary key \fIreasonPhrase\fR.
+.IP \fBrequestHeaders\fR
+For command \fB::http::requestHeaders\fR.
+.IP \fBrequestLine\fR
+For command \fB::http::requestLine\fR.
+.IP \fBresponseCode\fR
+For dictionary key \fIresponseCode\fR.
+.IP \fBstate\fR
+For dictionary key \fIstage\fR.
+.IP \fBstatus\fR
+For command \fB::http::status\fR; and for dictionary key \fIstatus\fR.
+.IP \fBtotalsize\fR
+For dictionary key \fItotalSize\fR.
+.IP \fBtransfer\fR
+For dictionary key \fItransferEncoding\fR.
+.IP \fBtype\fR
+For dictionary key \fIcontentType\fR.
+.IP \fBupgrade\fR
+For dictionary key \fIupgrade\fR.
+.IP \fBurl\fR
+For dictionary key \fIurl\fR.
+.RE
+.SH "PERSISTENT CONNECTIONS"
+.PP
+.SS "BASICS"
+.PP
+See RFC 7230 Sec 6, which supersedes RFC 2616 Sec 8.1.
+.PP
+A persistent connection allows multiple HTTP/1.1 transactions to be
+carried over the same TCP connection.  Pipelining allows a
+client to make multiple requests over a persistent connection without
+waiting for each response.  The server sends responses in the same order
+that the requests were received.
+.PP
+If a POST request fails to complete, typically user confirmation is
+needed before sending the request again.  The user may wish to verify
+whether the server was modified by the failed POST request, before
+sending the same request again.
+.PP
+A HTTP request will use a persistent socket if the call to
+\fBhttp::geturl\fR has the option \fB\-keepalive true\fR. It will use
+pipelining where permitted if the \fBhttp::config\fR option
+\fB\-pipeline\fR is boolean \fBtrue\fR (its default value).
+.PP
+The http package maintains no more than one persistent connection to each
+server (i.e. each value of
+.QW "domain:port" ).
+If \fBhttp::geturl\fR is called to make a request over a persistent
+connection while the connection is busy with another request, the new
+request will be held in a queue until the connection is free.
+.PP
+The http package does not support HTTP/1.0 persistent connections
+controlled by the \fBKeep-Alive\fR header.
+.SS "SPECIAL CASES"
+.PP
+This subsection discusses issues related to closure of the
+persistent connection by the server, automatic retry of failed requests,
+the special treatment necessary for POST requests, and the options for
+dealing with these cases.
+.PP
+In accordance with RFC 7230, \fBhttp::geturl\fR does not pipeline
+requests that use the POST method.  If a POST uses a persistent
+connection and is not the first request on that connection,
+\fBhttp::geturl\fR waits until it has received the response for the previous
+request; or (if \fBhttp::config\fR option \fB\-postfresh\fR is boolean
+\fBtrue\fR) it uses a new connection for each POST.
+.PP
+If the server is processing a number of pipelined requests, and sends a
+response header
+.QW "\fBConnection: close\fR"
+with one of the responses (other than the last), then subsequent responses
+are unfulfilled. \fBhttp::geturl\fR will send the unfulfilled requests again
+over a new connection.
+.PP
+A difficulty arises when a HTTP client sends a request over a persistent
+connection that has been idle for a while.  The HTTP server may
+half-close an apparently idle connection while the client is sending a
+request, but before the request arrives at the server: in this case (an
+.QW "asynchronous close event" )
+the request will fail.  The difficulty arises because the client cannot
+be certain whether the POST modified the state of the server.  For HEAD or
+GET requests, \fBhttp::geturl\fR opens another connection and retransmits
+the failed request. However, if the request was a POST, RFC 7230 forbids
+automatic retry by default, suggesting either user confirmation, or
+confirmation by user-agent software that has semantic understanding of
+the application.  The \fBhttp::config\fR option \fB\-repost\fR allows for
+either possibility.
+.PP
+Asynchronous close events can occur only in a short interval of time.  The
+\fBhttp\fR package monitors each persistent connection for closure by the
+server.  Upon detection, the connection is also closed at the client end,
+and subsequent requests will use a fresh connection.
+.PP
+If the \fBhttp::geturl\fR command is called with option \fB\-keepalive true\fR,
+then it will both try to use an existing persistent connection
+(if one is available), and it will send the server a
+.QW "\fBConnection: keep-alive\fR"
+request header asking to keep the connection open for future requests.
+.PP
+The \fBhttp::config\fR options \fB\-pipeline\fR, \fB\-postfresh\fR, and
+\fB\-repost\fR relate to persistent connections.
+.PP
+Option \fB\-pipeline\fR, if boolean \fBtrue\fR, will pipeline GET and HEAD
+requests made over a persistent connection.  POST requests will not be
+pipelined - if the
+POST is not the first transaction on the connection, its request will not
+be sent until the previous response has finished.  GET and HEAD requests
+made after a POST will not be sent until the POST response has been
+delivered, and will not be sent if the POST fails.
+.PP
+Option \fB\-postfresh\fR, if boolean \fBtrue\fR, will override the
+\fBhttp::geturl\fR option \fB\-keepalive\fR, and always open a fresh connection
+for a POST request.
+.PP
+Option \fB\-repost\fR, if \fBtrue\fR, permits automatic retry of a POST request
+that fails because it uses a persistent connection that the server has
+half-closed (an
+.QW "asynchronous close event" ).
+Subsequent GET and HEAD requests in a failed pipeline will also be retried.
+\fIThe \fB\-repost\fI option should be used only if the application understands
+that the retry is appropriate\fR - specifically, the application must know
+that if the failed POST successfully modified the state of the server, a repeat
+POST would have no adverse effect.
+.VS TIP406
+.SH "COOKIE JAR PROTOCOL"
+.PP
+Cookies are short key-value pairs used to implement sessions within the
+otherwise-stateless HTTP protocol. (See RFC 6265 for details; Tcl does not
+implement the Cookie2 protocol as that is rarely seen in the wild.)
+.PP
+Cookie storage management commands \(em
+.QW "cookie jars"
+\(em must support these subcommands which form the HTTP cookie storage
+management protocol. Note that \fIcookieJar\fR below does not have to be a
+command name; it is properly a command prefix (a Tcl list of words that will
+be expanded in place) and admits many possible implementations.
+.PP
+Though not formally part of the protocol, it is expected that particular
+values of \fIcookieJar\fR will correspond to sessions; it is up to the caller
+of \fB::http::config\fR to decide what session applies and to manage the
+deletion of said sessions when they are no longer desired (which should be
+when they not configured as the current cookie jar).
+.\" METHOD: getCookies
+.TP
+\fIcookieJar \fBgetCookies \fIprotocol host requestPath\fR
+.
+This command asks the cookie jar what cookies should be supplied for a
+particular request. It should take the \fIprotocol\fR (typically \fBhttp\fR or
+\fBhttps\fR), \fIhost\fR name and \fIrequestPath\fR (parsed from the \fIurl\fR
+argument to \fB::http::geturl\fR) and return a list of cookie keys and values
+that describe the cookies to supply to the remote host. The list must have an
+even number of elements.
+.RS
+.PP
+There should only ever be at most one cookie with a particular key for any
+request (typically the one with the most specific \fIhost\fR/domain match and
+most specific \fIrequestPath\fR/path match), but there may be many cookies
+with different names in any request.
+.RE
+.\" METHOD: storeCookie
+.TP
+\fIcookieJar \fBstoreCookie \fIcookieDictionary\fR
+.
+This command asks the cookie jar to store a particular cookie that was
+returned by a request; the result of this command is ignored. The cookie
+(which will have been parsed by the http package) is described by a
+dictionary, \fIcookieDictionary\fR, that may have the following keys:
+.RS
+.IP \fBdomain\fR
+This is always present. Its value describes the domain hostname \fIor
+prefix\fR that the cookie should be returned for.  The checking of the domain
+against the origin (below) should be careful since sites that issue cookies
+should only do so for domains related to themselves. Cookies that do not obey
+a relevant origin matching rule should be ignored.
+.IP \fBexpires\fR
+This is optional. If present, the cookie is intended to be a persistent cookie
+and the value of the option is the Tcl timestamp (in seconds from the same
+base as \fBclock seconds\fR) of when the cookie expires (which may be in the
+past, which should result in the cookie being deleted immediately). If absent,
+the cookie is intended to be a session cookie that should be not persisted
+beyond the lifetime of the cookie jar.
+.IP \fBhostonly\fR
+This is always present. Its value is a boolean that describes whether the
+cookie is a single host cookie (true) or a domain-level cookie (false).
+.IP \fBhttponly\fR
+This is always present. Its value is a boolean that is true when the site
+wishes the cookie to only ever be used with HTTP (or HTTPS) traffic.
+.IP \fBkey\fR
+This is always present. Its value is the \fIkey\fR of the cookie, which is
+part of the information that must be return when sending this cookie back in a
+future request.
+.IP \fBorigin\fR
+This is always present. Its value describes where the http package believes it
+received the cookie from, which may be useful for checking whether the
+cookie's domain is valid.
+.IP \fBpath\fR
+This is always present. Its value describes the path prefix of requests to the
+cookie domain where the cookie should be returned.
+.IP \fBsecure\fR
+This is always present. Its value is a boolean that is true when the cookie
+should only used on requests sent over secure channels (typically HTTPS).
+.IP \fBvalue\fR
+This is always present. Its value is the value of the cookie, which is part of
+the information that must be return when sending this cookie back in a future
+request.
+.PP
+Other keys may always be ignored; they have no meaning in this protocol.
+.RE
+.VE TIP406
+.SH "PROTOCOL UPGRADES"
+.PP
+The HTTP/1.1 \fBConnection\fR and \fBUpgrade\fR request headers inform the
+server that the client wishes to change the protocol used over the existing
+connection (RFC 7230).
+This mechanism can be used to request a WebSocket (RFC 6455), a
+higher version of the HTTP protocol (HTTP 2), or TLS encryption.  If the
+server accepts the upgrade request, its response code will be 101.
+.PP
+To request a protocol upgrade when calling \fBhttp::geturl\fR,
+the \fB\-headers\fR option must supply appropriate values for \fBConnection\fR
+and \fBUpgrade\fR, and
+the \fB\-command\fR option must supply a command that implements the requested
+protocol and can also handle the server response if the server refuses the
+protocol upgrade.  For upgrade requests \fBhttp::geturl\fR ignores the value of
+option \fB\-keepalive\fR, and always uses the value \fB0\fR so that the upgrade
+request is not made over a connection that is intended for multiple HTTP
+requests.
+.PP
+The Tcllib library \fBwebsocket\fR implements WebSockets, and makes the
+necessary calls to commands in the \fBhttp\fR package.
+.PP
+There is currently no native Tcl client library for HTTP/2.
+.PP
+The \fBUpgrade\fR mechanism is not used to request TLS in web browsers, because
+\fBhttp\fR and \fBhttps\fR are served over different ports.  It is used by
+protocols such as Internet Printing Protocol (IPP) that are built on top of
+\fBhttp(s)\fR and use the same TCP port number for both secure and insecure
+traffic.
+.PP
+In browsers, opportunistic encryption is instead implemented by the
+\fBUpgrade-Insecure-Requests\fR client header.  If a secure service is
+available, the server response code is a 307 redirect, and the response header
+\fBLocation\fR specifies the target URL.  The browser must
+call \fBhttp::geturl\fR again in order to fetch this URL.
+See https://w3c.github.io/webappsec-upgrade-insecure-requests/
+.PP
+.SH THREADS
+.PP
+.SS "PURPOSE"
+.PP
+Command \fB::http::geturl\fR uses the Tcl \fB::socket\fR command with
+the \fB\-async\fR option to connect to a remote server, but the return from
+this command can be delayed in adverse cases (e.g. a slow DNS lookup),
+preventing the event loop from processing other events.
+This delay is avoided if the \fB::socket\fR command is evaluated in another
+thread.  The Thread package is not part of Tcl but is provided in
+"Batteries Included" distributions.  Instead of the \fB::socket\fR command,
+the http package uses \fB::http::socket\fR which makes connections in the
+manner specified by the value of \fB\-threadlevel\fR and the availability
+of package Thread.
+.PP
+.SS "WITH TLS (HTTPS)"
+.PP
+The same \fB\-threadlevel\fR configuration applies to both HTTP and HTTPS
+connections.
+HTTPS is enabled by using the \fBhttp::register\fR command, typically by
+specifying the \fB::tls::socket\fR command of the tls package to handle TLS
+cryptography.  The \fB::tls::socket\fR command connects to the remote server by
+using the command specified by the value of variable \fB::tls::socketCmd\fR, and
+this value defaults to "::socket".  If http::geturl finds
+that \fB::tls::socketCmd\fR has this value, it replaces it with the value
+"::http::socket".  If \fB::tls::socketCmd\fR has a value other than "::socket",
+i.e. if the script or the Tcl installation has replaced the value "::socket"
+with the name of a different command, then http does not change the value.
+The script or installation that modified \fB::tls::socketCmd\fR is responsible
+for integrating \fB::http::socket\fR into its own replacement command.
+.PP
+.SS "WITH A CHILD INTERPRETER"
+.PP
+The peer thread can transfer the socket only to the main interpreter of the
+script's thread.  Therefore the thread-based \fB::http::socket\fR works with
+non-zero \fB\-threadlevel\fR values only if the script runs in the main
+interpreter.  A child interpreter must use \fB\-threadlevel 0\fR unless the
+parent interpreter has provided alternative facilities.  The main parent
+interpreter may grant full \fB\-threadlevel\fR facilities to a child
+interpreter, for example by aliasing, to \fB::http::socket\fR in the child,
+a command that runs \fBhttp::socket\fR in the parent, and then transfers
+the socket to the child.
+.PP
+.SH EXAMPLE
+.PP
+This example creates a procedure to copy a URL to a file while printing a
+progress meter, and prints the response headers associated with the URL.
+.PP
+.CS
+proc httpcopy { url file {chunk 4096} } {
+    set out [open $file w]
+    set token [\fB::http::geturl\fR $url -channel $out \e
+            -progress httpCopyProgress -blocksize $chunk]
+    close $out
+
+    # This ends the line started by httpCopyProgress
+    puts stderr ""
+
+    upvar 0 $token state
+    set max 0
+    foreach {name value} $state(meta) {
+        if {[string length $name] > $max} {
+            set max [string length $name]
+        }
+        if {[regexp -nocase ^location$ $name]} {
+            # Handle URL redirects
+            puts stderr "Location:$value"
+            return [httpcopy [string trim $value] $file $chunk]
+        }
+    }
+    incr max
+    foreach {name value} $state(meta) {
+        puts [format "%-*s %s" $max $name: $value]
+    }
+
+    return $token
+}
+proc httpCopyProgress {args} {
+    puts -nonewline stderr .
+    flush stderr
+}
+.CE
+.SH "SEE ALSO"
+safe(n), socket(n), safesock(n)
+.SH KEYWORDS
+internet, security policy, socket, www
+'\" Local Variables:
+'\" mode: nroff
+'\" End:
