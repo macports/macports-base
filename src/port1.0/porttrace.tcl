@@ -228,8 +228,7 @@ namespace eval porttrace {
         set xcode_paths [list]
         lappend xcode_paths "/var/db/xcode_select_link"
         lappend xcode_paths "/var/db/mds"
-        # XXX Tcl9 unsafe
-        lappend xcode_paths [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
+        lappend xcode_paths [file normalize [file tildeexpand ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]]
         lappend xcode_paths "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
 
         # Allow access to developer_dir; however, if it ends with /Contents/Developer, strip
