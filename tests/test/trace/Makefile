@@ -18,7 +18,7 @@ test:
 	@rm -f /tmp/hello-trace
 	@ln -sf /usr/share/man/man1/awk.1 /tmp/link-trace2
 	@-[ "`id -u`" == "0" ] && chown -h $(RUNUSR) /tmp/link-trace2
-	@PORTSRC=$(PORTSRC) $(bindir)/port -vt test > output 2>&1 || (cat output; exit 1)
+	@PORTSRC=$(PORTSRC) $(TEST_TCLSH) $(top_srcdir)/port/port.tcl -vt test > output 2>&1 || (cat output; exit 1)
 	@rm -f /tmp/link-trace2
 	@rm -f /tmp/hello-trace
 	@rm -rf ../tracetesttmp
