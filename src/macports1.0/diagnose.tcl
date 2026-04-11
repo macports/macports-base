@@ -81,17 +81,18 @@ namespace eval diagnose {
         #           None
 
         # Setting the 'quiet' variable based on what was passed in.
+        variable quiet
         if {$opts ne ""} {
-            set diagnose::quiet 1
+            set quiet 1
         } else {
-            set diagnose::quiet 0
+            set quiet 0
         }
 
         array set config_options    [list]
         set parser_options          [list macports_location profile_path shell_location \
                                     xcode_build]
 
-        set user_config_path        "${macports::autoconf::macports_conf_path}/port_diagnose.ini"
+        set user_config_path        "${::macports::autoconf::macports_conf_path}/port_diagnose.ini"
         set xcode_config_path       [macports::getdefaultportresourcepath "macports1.0/xcode_versions.ini"]
 
         # Make sure the xcode config exists
@@ -101,14 +102,14 @@ namespace eval diagnose {
         get_config config_options $parser_options $user_config_path
         get_config config_options $parser_options $xcode_config_path
         if {![info exists config_options(macports_location)]} {
-            set config_options(macports_location) "${macports::prefix}"
+            set config_options(macports_location) "${::macports::prefix}"
         }
         if {![info exists config_options(profile_path)]} {
-            set config_options(profile_path) "${macports::user_home}/.bash_profile"
+            set config_options(profile_path) "${::macports::user_home}/.bash_profile"
         }
         if {![info exists config_options(shell_location)]} {
-            if {[info exists macports::sudo_user]} {
-                set username ${macports::sudo_user}
+            if {[info exists ::macports::sudo_user]} {
+                set username ${::macports::sudo_user}
             } else {
                 set username [exec id -un]
             }
@@ -149,7 +150,7 @@ namespace eval diagnose {
 
         output "command line tools"
 
-        if {[vercmp ${macports::macos_version_major} >= "10.9"]} {
+        if {[vercmp ${::macports::macos_version_major} >= "10.9"]} {
 
             if {![file exists "/Library/Developer/CommandLineTools/"]} {
 
@@ -157,7 +158,7 @@ namespace eval diagnose {
                                     xcode-select --install"
                 success_fail 0
                 return
-            } elseif {$macports::xcodecltversion eq "none"} {
+            } elseif {$::macports::xcodecltversion eq "none"} {
                 ui_warn "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
                 ui_warn "The Command Line Tools may be outdated, which can cause problems."
                 ui_warn "Please see: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
@@ -214,7 +215,8 @@ namespace eval diagnose {
         # Returns:
         #           None
 
-        if {!${diagnose::quiet}} {
+        variable quiet
+        if {!${quiet}} {
             ui_info -nonewline "Checking for $string... "
         }
     }
@@ -228,7 +230,8 @@ namespace eval diagnose {
         # Returns:
         #           None
 
-        if {!${diagnose::quiet}} {
+        variable quiet
+        if {!${quiet}} {
 
             if {$result == 1} {
 
@@ -303,7 +306,7 @@ namespace eval diagnose {
 
         set uninstaller "/Developer/Library/uninstall-developer-folder"
 
-        if {${macports::xcodeversion} >= 4.3 && [file exists $uninstaller]} {
+        if {${::macports::xcodeversion} >= 4.3 && [file exists $uninstaller]} {
             ui_warn "you have leftover files from an older version of Xcode. You should delete them by using, $uninstaller"
 
             success_fail 0
@@ -372,19 +375,21 @@ namespace eval diagnose {
             #registry::entry close $port
         }
 
+        global macports::ui_options
+        variable quiet
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
                                && ![macports::ui_isset ports_verbose] \
-                               && [info exists macports::ui_options(progress_generic)] \
-                               && !${diagnose::quiet}}]
+                               && [info exists ui_options(progress_generic)] \
+                               && !${quiet}}]
 
         if {$fancyOutput} {
-            set progress $macports::ui_options(progress_generic)
+            set progress $ui_options(progress_generic)
         }
 
         if {$totalFiles > 0} {
             if {$fancyOutput} {
                 output "files installed by ports on disk"
-                if {!${diagnose::quiet}} {
+                if {!${quiet}} {
                     # we need a newline here or the progress bar will overwrite the line
                     ui_msg ""
                 }
@@ -491,7 +496,7 @@ namespace eval diagnose {
         # Returns:
         #           None
 
-        if {${macports::macos_version_major} eq "10.6"} {
+        if {${::macports::macos_version_major} eq "10.6"} {
             output "X11.app on Mac OS X 10.6 systems"
 
             if {[file exists /Applications/X11.app]} {
@@ -544,8 +549,8 @@ namespace eval diagnose {
 
         output "MacPorts' location"
 
-        if {![file exists ${macports::prefix}/bin/port]} {
-            ui_error "the port command was not found in ${macports::prefix}/bin. This can potentially cause errors. It's recommended you move it back to ${macports::prefix}/bin."
+        if {![file exists ${::macports::prefix}/bin/port]} {
+            ui_error "the port command was not found in ${::macports::prefix}/bin. This can potentially cause errors. It's recommended you move it back to ${::macports::prefix}/bin."
             success_fail 0
             return
         }
@@ -587,8 +592,8 @@ namespace eval diagnose {
 
         upvar $config_options config
 
-        set mac_version     ${macports::macos_version_major}
-        set xcode_current   ${macports::xcodeversion}
+        set mac_version     ${::macports::macos_version_major}
+        set xcode_current   ${::macports::xcodeversion}
         if {[info exists config(xcode_version_$mac_version)]} {
             set xcode_versions  $config(xcode_version_$mac_version)
         } else {
@@ -722,7 +727,7 @@ namespace eval diagnose {
             return
         }
 
-        set path ${macports::user_path}
+        set path ${::macports::user_path}
         set split [split $path :]
 
         if {"$port_loc/bin" ni $split || "$port_loc/sbin" ni $split} {
@@ -732,10 +737,11 @@ namespace eval diagnose {
             ui_msg "  https://guide.macports.org/#installing.shell"
 
             # XXX Only works for bash. Should set default profile_path based on the shell.
-            if {[info exists macports::ui_options(questions_yesno)] && $shell_name eq "bash"} {
+            global macports::ui_options
+            if {[info exists ui_options(questions_yesno)] && $shell_name eq "bash"} {
                 ui_msg "MacPorts can also write the required configuration to $profile_path for you."
                 set question "Would you like to add $port_loc/bin to your \$PATH variable now?"
-                set retval [$macports::ui_options(questions_yesno) $msg "DiagnoseFixPATH" "" n 0 $question]
+                set retval [$ui_options(questions_yesno) $msg "DiagnoseFixPATH" "" n 0 $question]
                 if {$retval == 0} {
                     # XXX: this should use the same paths and comments as the
                     # postflight script of the pkg installer. Maybe they could even
@@ -773,7 +779,7 @@ namespace eval diagnose {
         set no_x_dirs [list]
         set ww_dirs [list]
         foreach subdir [list build distfiles incoming logs registry software] {
-            lappend check_paths [file join $macports::portdbpath $subdir]
+            lappend check_paths [file join $::macports::portdbpath $subdir]
         }
         while {[llength $check_paths] > 0} {
             set path [lindex $check_paths end]
@@ -792,13 +798,13 @@ namespace eval diagnose {
                 lappend no_r_dirs $path
             }
             set parent [file dirname $path]
-            if {$parent ni $check_paths && $path ne $macports::prefix && $parent ne "/"} {
+            if {$parent ni $check_paths && $path ne $::macports::prefix && $parent ne "/"} {
                 lappend check_paths $parent
             }
         }
         # don't complain about writable parent dirs of prefix or sources
-        set check_paths [list [file dirname $macports::prefix]]
-        foreach source $macports::sources {
+        set check_paths [list [file dirname $::macports::prefix]]
+        foreach source $::macports::sources {
             set sourcedir [file dirname [macports::getindex [lindex $source 0]]]
             if {$sourcedir ni $check_paths} {
                 lappend check_paths $sourcedir
@@ -848,20 +854,20 @@ namespace eval diagnose {
 
     proc check_archs {} {
         set known_archs [list arm64 i386 ppc ppc64 x86_64]
-        if {($macports::os_subplatform eq "macosx" && [llength $macports::build_arch] != 1)
-                || [llength $macports::build_arch] > 1} {
-            ui_warn "build_arch should contain one architecture name, but it is currently '$macports::build_arch'"
-        } elseif {$macports::build_arch ni $known_archs} {
-            ui_warn "build_arch should be one of '$known_archs', but it is currently '$macports::build_arch'"
+        if {($::macports::os_subplatform eq "macosx" && [llength $::macports::build_arch] != 1)
+                || [llength $::macports::build_arch] > 1} {
+            ui_warn "build_arch should contain one architecture name, but it is currently '$::macports::build_arch'"
+        } elseif {$::macports::build_arch ni $known_archs} {
+            ui_warn "build_arch should be one of '$known_archs', but it is currently '$::macports::build_arch'"
         }
-        if {$macports::os_subplatform eq "macosx" && [llength $macports::universal_archs] > 0} {
-            if {[llength $macports::build_arch] == 1 && $macports::build_arch ni $macports::universal_archs} {
-                ui_warn "universal_archs ($macports::universal_archs) should contain build_arch ($macports::build_arch)"
+        if {$::macports::os_subplatform eq "macosx" && [llength $::macports::universal_archs] > 0} {
+            if {[llength $::macports::build_arch] == 1 && $::macports::build_arch ni $::macports::universal_archs} {
+                ui_warn "universal_archs ($::macports::universal_archs) should contain build_arch ($::macports::build_arch)"
             }
-            if {[llength $macports::universal_archs] < 2 && $macports::os_major ni [list 18 19]} {
-                ui_warn "universal_archs should contain at least 2 archs, but it is currently '$macports::universal_archs'"
+            if {[llength $::macports::universal_archs] < 2 && $::macports::os_major ni [list 18 19]} {
+                ui_warn "universal_archs should contain at least 2 archs, but it is currently '$::macports::universal_archs'"
             }
-            foreach arch $macports::universal_archs {
+            foreach arch $::macports::universal_archs {
                 if {$arch ni $known_archs} {
                     ui_warn "universal_archs contains '$arch' which is not one of '$known_archs'"
                 }

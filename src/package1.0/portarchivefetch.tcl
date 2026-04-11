@@ -550,8 +550,8 @@ proc portarchivefetch::start_pings {} {
     } else {
         set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
     }
-    if {[info exists portfetch::mirror_sites::sites($mirrors)]} {
-        set primary_mirror [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+    if {[info exists ::portfetch::mirror_sites::sites($mirrors)]} {
+        set primary_mirror [lindex $::portfetch::mirror_sites::sites($mirrors) 0]
         if {$primary_mirror ne {}} {
             wait_for_pingtime $primary_mirror
         }

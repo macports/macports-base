@@ -213,8 +213,8 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         write_PkgInfo ${pkgpath}/Contents/PkgInfo
         write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
 
-        system "[findBinary mkbom $portutil::autoconf::mkbom_path] [shellescape ${destpath}] [shellescape ${pkgpath}/Contents/Archive.bom]"
-        system -W ${destpath} "[findBinary pax $portutil::autoconf::pax_path] -x cpio -w -z . > [shellescape ${pkgpath}/Contents/Archive.pax.gz]"
+        system "[findBinary mkbom $::portutil::autoconf::mkbom_path] [shellescape ${destpath}] [shellescape ${pkgpath}/Contents/Archive.bom]"
+        system -W ${destpath} "[findBinary pax $::portutil::autoconf::pax_path] -x cpio -w -z . > [shellescape ${pkgpath}/Contents/Archive.pax.gz]"
 
         write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
         write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${pkgpath} ${destpath}
@@ -369,7 +369,7 @@ proc portpkg::write_welcome_html {filename portname portversion portrevision lon
 
 proc portpkg::write_sizes_file {sizesfile pkgpath destpath} {
 
-    if {[catch {set numFiles [llength [split [exec [findBinary lsbom $portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
+    if {[catch {set numFiles [llength [split [exec [findBinary lsbom $::portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
     if {[catch {set compressedSize [expr {[dirSize ${pkgpath}] / 1024}]} result]} {

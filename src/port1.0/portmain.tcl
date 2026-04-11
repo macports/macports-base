@@ -121,8 +121,8 @@ default depends_skip_archcheck {}
 default add_users {}
 
 # Configure settings
-default install.user {${portutil::autoconf::install_user}}
-default install.group {${portutil::autoconf::install_group}}
+default install.user {${::portutil::autoconf::install_user}}
+default install.group {${::portutil::autoconf::install_group}}
 
 # Platform Settings
 default platforms darwin

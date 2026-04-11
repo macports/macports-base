@@ -148,7 +148,7 @@ namespace eval macports {
 # MacPorts-provided Tcl extension "vercmp" to do version number comparisons on
 # the return value of this function.
 proc macports::version {} {
-    return ${macports::autoconf::macports_version}
+    return ${autoconf::macports_version}
 }
 
 # Provided UI instantiations
@@ -347,25 +347,25 @@ proc macports::pop_log {} {
 }
 
 proc set_phase {phase} {
-    global macports::current_phase
+    global macports::current_phase macports::phase_start_ms
     set now_ms [clock milliseconds]
 
-    if {$::macports::phase_start_ms ne {} && $current_phase ne "main"} {
-        set elapsed_ms [expr {$now_ms - $::macports::phase_start_ms}]
+    if {$phase_start_ms ne {} && $current_phase ne "main"} {
+        set elapsed_ms [expr {$now_ms - $phase_start_ms}]
         ui_debug "Phase $current_phase completed in [format "%.3f" [expr {$elapsed_ms / 1000.0}]] seconds"
     }
 
     set current_phase $phase
 
     if {$phase ne "main"} {
-        set ::macports::phase_start_ms $now_ms
+        set phase_start_ms $now_ms
         set sec [expr {$now_ms / 1000}]
         set fraction [format "%.3u" [expr {$now_ms % 1000}]]
         set utc_time [clock format $sec -timezone :UTC -format "%Y-%m-%dT%T.${fraction}%z"]
         set local_time [clock format $sec -format {%+}]
         ui_debug "$phase phase started at $utc_time ($local_time)"
     } else {
-        set ::macports::phase_start_ms {}
+        set phase_start_ms {}
     }
 }
 
@@ -435,7 +435,7 @@ proc ui_message {priority prefix args} {
     } 
 
     if {[macports::ui_isset ports_timestamps]} {
-        set ts "[clock format [clock seconds] -format $macports::log_timestamp_format] "
+        set ts "[clock format [clock seconds] -format $::macports::log_timestamp_format] "
     } else {
         set ts ""
     }
@@ -731,7 +731,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
 
     if {$xcode_refresh} {
     macports_try -pass_signal {
-        set xcodebuild [findBinary xcodebuild $macports::autoconf::xcodebuild_path]
+        set xcodebuild [findBinary xcodebuild $autoconf::xcodebuild_path]
         if {!${xcodeversion_overridden}} {
             # Determine xcode version
             set xcodeversion 2.0orlower
@@ -831,7 +831,7 @@ proc macports::set_developer_dir {name1 name2 op} {
 
     # Look for xcodeselect, and make sure it has a valid value
     macports_try -pass_signal {
-        set xcodeselect [findBinary xcode-select $macports::autoconf::xcode_select_path]
+        set xcodeselect [findBinary xcode-select $autoconf::xcode_select_path]
 
         # We have xcode-select: ask it where xcode is and check if it's valid.
         # If no xcode is selected, xcode-select will fail, so catch that
@@ -850,7 +850,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         set installed_xcodes [list]
 
         macports_try -pass_signal {
-            set mdfind [findBinary mdfind $macports::autoconf::mdfind_path]
+            set mdfind [findBinary mdfind $autoconf::mdfind_path]
             set installed_xcodes [exec -ignorestderr $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" 2> /dev/null]
         } on error {} {}
 
@@ -871,7 +871,7 @@ proc macports::set_developer_dir {name1 name2 op} {
                 error "No Xcode installation was found."
             }
 
-            set mdls [findBinary mdls $macports::autoconf::mdls_path]
+            set mdls [findBinary mdls $autoconf::mdls_path]
 
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected."
@@ -1018,7 +1018,7 @@ proc macports::set_xcode_license_unaccepted {name1 name2 op} {
         return
     }
 
-    catch {exec [findBinary xcrun $macports::autoconf::xcrun_path] clang 2>@1} output
+    catch {exec [findBinary xcrun $autoconf::xcrun_path] clang 2>@1} output
     set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
     if {[string match -nocase "*license*" $output]} {
         set xcode_license_unaccepted yes
@@ -2416,9 +2416,9 @@ proc macports::fetch_port {url {local 0}} {
 
     # check if this is a binary archive or just the port dir by checking
     # whether the file "+CONTENTS" exists.
-    set tarcmd [findBinary tar $macports::autoconf::tar_path]
+    set tarcmd [findBinary tar $autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $filepath]]
-    set qflag $macports::autoconf::tar_q
+    set qflag $autoconf::tar_q
     set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath ./+CONTENTS]
     ui_debug $cmdline
     if {![catch {set contents [exec {*}$cmdline]}]} {
@@ -3613,7 +3613,7 @@ proc macports::verify_signature_signify {file pubkey signature} {
     set verified 0
     macports_try -pass_signal {
         set command [list \
-            $macports::autoconf::signify_path -V \
+            $autoconf::signify_path -V \
             -p $pubkey \
             -x $signature \
             -m $file]
@@ -3629,7 +3629,7 @@ proc macports::verify_signature_signify {file pubkey signature} {
 }
 
 proc macports::verify_signature_openssl {file pubkey signature} {
-    set openssl [findBinary openssl $macports::autoconf::openssl_path]
+    set openssl [findBinary openssl $autoconf::openssl_path]
     set verified 0
     macports_try -pass_signal {
         set command [list \
@@ -3650,7 +3650,7 @@ proc macports::verify_signature_openssl {file pubkey signature} {
 
 proc macports::verify_ports_signature {path} {
     variable archivefetch_pubkeys
-    set signify_pubkeys [glob -nocomplain -directory $macports::autoconf::macports_keys_ports *.pub]
+    set signify_pubkeys [glob -nocomplain -directory $autoconf::macports_keys_ports *.pub]
     set openssl_pubkeys [list]
     foreach pubkey $archivefetch_pubkeys {
         if {[file extension $pubkey] eq ".pub"} {
@@ -6550,8 +6550,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                 set returncode [lindex $resultlist 0]
                 set result     [lindex $resultlist 1]
 
-                if {$returncode != $machista::SUCCESS} {
-                    if {$returncode == $machista::EMAGIC} {
+                if {$returncode != $::machista::SUCCESS} {
+                    if {$returncode == $::machista::EMAGIC} {
                         # not a Mach-O file
                         # ignore silently, these are only static libs anyway
                         #ui_debug "Error parsing file ${bpath}: [machista::strerror $returncode]"
@@ -6681,8 +6681,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                         set libreturncode [lindex $libresultlist 0]
                         set libresult     [lindex $libresultlist 1]
 
-                        if {$libreturncode != $machista::SUCCESS} {
-                            if {![info exists files_warned_about($filepath)] && $libreturncode != $machista::ECACHE} {
+                        if {$libreturncode != $::machista::SUCCESS} {
+                            if {![info exists files_warned_about($filepath)] && $libreturncode != $::machista::ECACHE} {
                                 if {$fancy_output} {
                                     $revupgrade_progress intermission
                                 }
@@ -6692,7 +6692,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                                 }
                                 set files_warned_about($filepath) yes
                             }
-                            if {$libreturncode == $machista::EFILE} {
+                            if {$libreturncode == $::machista::EFILE} {
                                 ui_debug "Marking $bpath as broken"
                                 lappend broken_files $bpath
                             }
@@ -7295,7 +7295,7 @@ proc macports::get_tool_path {tool} {
     set toolpath "/usr/bin/${tool}"
     if {![file executable $toolpath]} {
         # Use xcode's xcrun to find the named tool.
-        if {[catch {exec -ignorestderr [findBinary xcrun $macports::autoconf::xcrun_path] -find ${tool} 2> /dev/null} toolpath]} {
+        if {[catch {exec -ignorestderr [findBinary xcrun $autoconf::xcrun_path] -find ${tool} 2> /dev/null} toolpath]} {
             set toolpath ""
         }
     }

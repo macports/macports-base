@@ -65,14 +65,14 @@ commands svn
 # Defaults
 default fetch.type standard
 
-default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
+default bzr.cmd {[findBinary bzr $::portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
 default bzr.revision -1
 default bzr.pre_args {--builtin --no-aliases checkout --lightweight --verbose}
 default bzr.args {}
 default bzr.post_args {-r ${bzr.revision} ${bzr.url} ${worksrcdir}}
 
-default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
+default cvs.cmd {[findBinary cvs $::portutil::autoconf::cvs_path]}
 default cvs.password {}
 default cvs.dir {${workpath}}
 default cvs.method export
@@ -97,7 +97,7 @@ default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
 default git.branch {}
 
-default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
+default hg.cmd {[findBinary hg $::portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
 default hg.tag tip
 
@@ -159,7 +159,7 @@ proc portfetch::find_git_path {args} {
     global prefix_frozen os.platform os.major
     # Oldest macOS version whose git can validate GitHub's SSL certificate.
     if {${os.major} >= 14 || ${os.platform} ne "darwin"} {
-        return [findBinary git $portutil::autoconf::git_path]
+        return [findBinary git $::portutil::autoconf::git_path]
     } else {
         return ${prefix_frozen}/bin/git
     }
@@ -675,8 +675,8 @@ proc portfetch::start_pings {} {
     }
     # wait until we have a result for at least the main mirror
     global global_mirror_site
-    if {[info exists portfetch::mirror_sites::sites($global_mirror_site)]} {
-        set primary_mirror [lindex $portfetch::mirror_sites::sites($global_mirror_site) 0]
+    if {[info exists mirror_sites::sites($global_mirror_site)]} {
+        set primary_mirror [lindex $mirror_sites::sites($global_mirror_site) 0]
         if {$primary_mirror ne {}} {
             wait_for_pingtime $primary_mirror
         }

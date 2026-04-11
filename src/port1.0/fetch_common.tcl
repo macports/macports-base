@@ -108,7 +108,7 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
         source $mirrorfile
     }
 
-    if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
+    if {![info exists mirror_sites::sites($mirrors)]} {
         if {$mirrors ne $global_mirror_site} {
             ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         }
@@ -117,7 +117,7 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
 
     set ret [list]
     set name_re {\$(?:name\y|\{name\})}
-    foreach element $portfetch::mirror_sites::sites($mirrors) {
+    foreach element $mirror_sites::sites($mirrors) {
 
         # here we have the chance to take a look at tags, that possibly
         # have been assigned in mirror_sites.tcl

@@ -243,7 +243,7 @@ proc portbump::bump_main {args} {
                 }
 
                 if {![regexp {\.html?$} ${distfile}] &&
-                    ![catch {strsed [exec [findBinary file $portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
+                    ![catch {strsed [exec [findBinary file $::portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
                     && "text/html" eq $mimetype} {
                     # file --mime-type would be preferable to file --mime and strsed, but is only available as of Snow Leopard
                     set wrong_mimetype yes
@@ -333,7 +333,7 @@ proc portbump::bump_main {args} {
 
                 # Construct diff command
                 set diffcmd [list]
-                lappend diffcmd $portutil::autoconf::diff_path -u --label old/Portfile --label new/Portfile
+                lappend diffcmd $::portutil::autoconf::diff_path -u --label old/Portfile --label new/Portfile
                 lappend diffcmd $portfile $tmpfile >@$patchfd
 
                 # Create and write diff to Portfile.patch

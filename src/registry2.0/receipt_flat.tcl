@@ -74,7 +74,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 
     # regex match case
     if {$portversion == 0} {
-	set x [glob -nocomplain -directory [::file join ${macports::registry.path} receipts] -- ${portname}-*]
+	set x [glob -nocomplain -directory [::file join ${registry.path} receipts] -- ${portname}-*]
 	if {[string length $x]} {
 	    set matchfile [lindex $x 0]
 		# Remove trailing .bz2, if any.
@@ -83,7 +83,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 	    set matchfile ""
 	}
     } else {
-	set matchfile [::file join ${macports::registry.path} receipts ${portname}-${portversion}]
+	set matchfile [::file join ${registry.path} receipts ${portname}-${portversion}]
     }
 
     # Might as well bail out early if no file to match
@@ -109,7 +109,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 	    return $ref_index($name,$version,$revision,$variants)
 	}
 
-	set receipt_path [::file join ${macports::registry.path} receipts ${name}]
+	set receipt_path [::file join ${registry.path} receipts ${name}]
 
 	# If the receipt path ${name} doesn't exist, then the receipt probably is
 	# in the old HEAD format.
@@ -147,14 +147,14 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 			return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 		}
 	
-		set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+		set receipt_path [::file join ${registry.path} receipts ${name} ${version}_${revision}${variants}]
 	
 		set receipt_file [::file join ${receipt_path} receipt]
 	}
 
-	if { [::file exists ${receipt_file}.bz2] && [::file exists ${registry::autoconf::bzip2_path}] } {
+	if { [::file exists ${receipt_file}.bz2] && [::file exists ${::registry::autoconf::bzip2_path}] } {
 		set receipt_file ${receipt_file}.bz2
-		set receipt_contents [exec ${registry::autoconf::bzip2_path} -d -c ${receipt_file}]
+		set receipt_contents [exec ${::registry::autoconf::bzip2_path} -d -c ${receipt_file}]
 	} elseif { [::file exists ${receipt_file}] } {
 		set receipt_handle [open ${receipt_file} r]
 		set receipt_contents [read $receipt_handle]
@@ -176,7 +176,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 		convert_entry_from_HEAD $name $version $revision $variants $receipt_contents $ref
 		
 		# move the old receipt
-		set convertedDirPath [::file join ${macports::registry.path} receipts_converted]
+		set convertedDirPath [::file join ${registry.path} receipts_converted]
 		file mkdir $convertedDirPath
 		file rename -- $receipt_file $convertedDirPath
 	} elseif {[string match "# Version: *" $receipt_contents]} {
@@ -313,7 +313,7 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 
 	set receipt_contents [array get receipt_$ref]
 
-	set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_path [::file join ${::macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	set receipt_file [::file join ${receipt_path} receipt]
 
 	if { ![::file isdirectory ${receipt_path}] } {
@@ -333,8 +333,8 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 
 	file rename -force -- "${receipt_file}.tmp" "${receipt_file}"
 
-	if { [::file exists ${receipt_file}] && [::file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
-		system "${registry::autoconf::bzip2_path} -f ${receipt_file}"
+	if { [::file exists ${receipt_file}] && [::file exists ${::registry::autoconf::bzip2_path}] && ![info exists ::registry.nobzip] } {
+		system "${::registry::autoconf::bzip2_path} -f ${receipt_file}"
 	}
 
 	return 1
@@ -344,7 +344,7 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 proc entry_exists {name version {revision 0} {variants ""}} {
 	global macports::registry.path
 
-	set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_path [::file join ${registry.path} receipts ${name} ${version}_${revision}${variants}]
 	set receipt_file [::file join ${receipt_path} receipt]
 
 	if { [::file exists $receipt_file] } {
@@ -360,7 +360,7 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 proc entry_exists_for_name {name} {
 	global macports::registry.path
 
-	set receipt_path [::file join ${macports::registry.path} receipts ${name}]
+	set receipt_path [::file join ${registry.path} receipts ${name}]
 
 	if {[llength [glob -nocomplain -directory $receipt_path */receipt{,.bz2}]] > 0} {
 		return 1
@@ -416,13 +416,13 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 	    array unset ref_index "$name,$version,$revision,$variants"
 	}
 
-	set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_path [::file join ${registry.path} receipts ${name} ${version}_${revision}${variants}]
 	if { [::file exists ${receipt_path}] } {
 		# remove port receipt directory
 		ui_debug "deleting directory: ${receipt_path}"
 		file delete -force -- ${receipt_path}
 		# remove port receipt parent directory (if empty)
-		set receipt_dir [::file join ${macports::registry.path} receipts ${name}]
+		set receipt_dir [::file join ${registry.path} receipts ${name}]
 		if { [::file isdirectory ${receipt_dir}] } {
 			if {[dirempty ${receipt_dir}]} {
 				ui_debug "deleting directory: ${receipt_dir}"
@@ -447,7 +447,7 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 proc installed {{name ""} {version ""}} {
 	global macports::registry.path
 
-	set query_path [::file join ${macports::registry.path} receipts]
+	set query_path [::file join ${registry.path} receipts]
 	
 	if { $name eq "" } {
 		set query_path [::file join ${query_path} *]
@@ -494,9 +494,9 @@ proc installed {{name ""} {version ""}} {
 
 	# append the ports in old HEAD format.
 	if { $name eq "" } {
-		set query_path [::file join ${macports::registry.path} receipts *]
+		set query_path [::file join ${registry.path} receipts *]
 	} else {
-		set query_path [::file join ${macports::registry.path} receipts ${name}-*]
+		set query_path [::file join ${registry.path} receipts ${name}-*]
 	}
     set receiptglob [glob -nocomplain -types f ${query_path}]
     foreach receipt_file $receiptglob {
@@ -537,7 +537,7 @@ proc open_file_map {{readonly 0}} {
 	global macports::registry.path
 	variable file_map
 
-	set receipt_path [::file join ${macports::registry.path} receipts]
+	set receipt_path [::file join ${registry.path} receipts]
 	set map_file [::file join ${receipt_path} file_map]
 
 	# Don't reopen it (it actually would deadlock us), unless it was open r/o.
@@ -556,8 +556,8 @@ proc open_file_map {{readonly 0}} {
 
 	if { ![::file exists ${map_file}.db] } {
 		# Convert to new format
-		if { [::file exists ${map_file}.bz2] && [::file exists ${registry::autoconf::bzip2_path}] } {
-			set old_filemap [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
+		if { [::file exists ${map_file}.bz2] && [::file exists ${::registry::autoconf::bzip2_path}] } {
+			set old_filemap [exec ${::registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
 		} elseif { [::file exists $map_file] } {		
 			set map_handle [open ${map_file} r]
 			set old_filemap [read $map_handle]
@@ -746,12 +746,12 @@ proc open_dep_map {args} {
 	global macports::registry.path
 	variable dep_map
 
-	set receipt_path [::file join ${macports::registry.path} receipts]
+	set receipt_path [::file join ${registry.path} receipts]
 
 	set map_file [::file join ${receipt_path} dep_map]
 
-	if { [::file exists ${map_file}.bz2] && [::file exists ${registry::autoconf::bzip2_path}] } {
-		set dep_map [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
+	if { [::file exists ${map_file}.bz2] && [::file exists ${::registry::autoconf::bzip2_path}] } {
+		set dep_map [exec ${::registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
 	} elseif { [::file exists ${map_file}] } {
 		set map_handle [open ${map_file} r]
 		set dep_map [read $map_handle]
@@ -840,7 +840,7 @@ proc write_dep_map {args} {
 	global macports::registry.path
 	variable dep_map
 
-	set receipt_path [::file join ${macports::registry.path} receipts]
+	set receipt_path [::file join ${registry.path} receipts]
 
 	set map_file [::file join ${receipt_path} dep_map]
 
@@ -853,8 +853,8 @@ proc write_dep_map {args} {
 
     file rename -- ${map_file}.tmp ${map_file}
 
-	if { [::file exists ${map_file}] && [::file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
-		system "${registry::autoconf::bzip2_path} -f ${map_file}"
+	if { [::file exists ${map_file}] && [::file exists ${::registry::autoconf::bzip2_path}] && ![info exists ::registry.nobzip] } {
+		system "${::registry::autoconf::bzip2_path} -f ${map_file}"
 	}
 
 	return 1

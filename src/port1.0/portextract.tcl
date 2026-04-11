@@ -125,29 +125,29 @@ proc portextract::get_extract_cmd {{method {}}} {
     }
     switch $method {
         gzip {
-            return [findBinary gzip ${portutil::autoconf::gzip_path}]
+            return [findBinary gzip ${::portutil::autoconf::gzip_path}]
         }
         bzip2 {
             if {![catch {findBinary lbzip2} result]} {
                 return $result
             } else {
-                return [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
+                return [findBinary bzip2 ${::portutil::autoconf::bzip2_path}]
             }
         }
         xz {
-            return [findBinary xz ${portutil::autoconf::xz_path}]
+            return [findBinary xz ${::portutil::autoconf::xz_path}]
         }
         zip {
-            return [findBinary unzip ${portutil::autoconf::unzip_path}]
+            return [findBinary unzip ${::portutil::autoconf::unzip_path}]
         }
         zstd {
             return [binaryInPath zstd]
         }
         lzma {
-            return [findBinary lzma ${portutil::autoconf::lzma_path}]
+            return [findBinary lzma ${::portutil::autoconf::lzma_path}]
         }
         tar {
-            return [findBinary tar ${portutil::autoconf::tar_command}]
+            return [findBinary tar ${::portutil::autoconf::tar_command}]
         }
         7z {
             return [binaryInPath 7za]
@@ -156,7 +156,7 @@ proc portextract::get_extract_cmd {{method {}}} {
             return [binaryInPath lzip]
         }
         dmg {
-            return [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
+            return [findBinary hdiutil ${::portutil::autoconf::hdiutil_path}]
         }
     }
     return {}
@@ -204,7 +204,7 @@ proc portextract::get_extract_post_args {{method {}}} {
         lzma -
         xz -
         zstd {
-            return "| ${portutil::autoconf::tar_command} -xf -"
+            return "| ${::portutil::autoconf::tar_command} -xf -"
         }
         zip {
             global extract.dir
@@ -217,7 +217,7 @@ proc portextract::get_extract_post_args {{method {}}} {
         dmg {
             global distname extract.dir
             variable dmg_mount
-            return "-private -readonly -nobrowse -mountpoint [shellescape ${dmg_mount}] && cd [shellescape ${dmg_mount}] && [findBinary find ${portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${portutil::autoconf::cpio_path}] -0 -p -d -m -u [shellescape ${extract.dir}/${distname}]; status=\$?; cd / && [get_extract_cmd $method] detach [shellescape ${dmg_mount}] && [findBinary rmdir ${portutil::autoconf::rmdir_path}] [shellescape ${dmg_mount}]; exit \$status"
+            return "-private -readonly -nobrowse -mountpoint [shellescape ${dmg_mount}] && cd [shellescape ${dmg_mount}] && [findBinary find ${::portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${::portutil::autoconf::cpio_path}] -0 -p -d -m -u [shellescape ${extract.dir}/${distname}]; status=\$?; cd / && [get_extract_cmd $method] detach [shellescape ${dmg_mount}] && [findBinary rmdir ${::portutil::autoconf::rmdir_path}] [shellescape ${dmg_mount}]; exit \$status"
         }
     }
     return {}

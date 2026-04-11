@@ -85,7 +85,7 @@ proc selfupdate::get_current_version {mp_source_path} {
     }
 
     set progressflag {}
-    if {$macports::portverbose} {
+    if {$::macports::portverbose} {
         set progressflag "--progress builtin"
     }
     array set selfupdate_errors {}
@@ -205,11 +205,11 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
 
     set progressflag {}
     set quietprogressflag {}
-    if {$macports::portverbose} {
+    if {$::macports::portverbose} {
         set progressflag "--progress builtin"
         set quietprogressflag $progressflag
-    } elseif {[info exists macports::ui_options(progress_download)]} {
-        set progressflag "--progress ${macports::ui_options(progress_download)}"
+    } elseif {[info exists ui_options(progress_download)]} {
+        set progressflag "--progress ${ui_options(progress_download)}"
     }
     array set selfupdate_errors {}
 
@@ -270,7 +270,7 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
     # extract tarball and move into place
     ui_msg "$ui_prefix Extracting MacPorts $macports_version_new"
 
-    set tar [macports::findBinary tar $macports::autoconf::tar_path]
+    set tar [macports::findBinary tar $::macports::autoconf::tar_path]
     file mkdir ${mp_source_path}/tmp
     set tarflags [macports::get_tar_flags [file extension $tarball]]
     set tar_cmd "$tar -C [macports::shellescape ${mp_source_path}/tmp] ${tarflags}xf [macports::shellescape $tarball]"
@@ -364,12 +364,14 @@ proc selfupdate::download_source_rsync {} {
 # @param signature_path The path of the detached signature file
 # @return nothing on success, an error if the signature could not be verified
 proc selfupdate::verify_signature {path signature_path} {
+    global macports::autoconf::macports_keys_base \
+           macports::autoconf::signify_path
     set verified 0
-    foreach pubkey [glob -nocomplain -tails -directory $macports::autoconf::macports_keys_base *.pub] {
+    foreach pubkey [glob -nocomplain -tails -directory $macports_keys_base *.pub] {
         macports_try -pass_signal {
             set command [list \
-                $macports::autoconf::signify_path -V \
-                -p [file join $macports::autoconf::macports_keys_base $pubkey] \
+                $signify_path -V \
+                -p [file join $macports_keys_base $pubkey] \
                 -x $signature_path \
                 -m $path]
             ui_debug "Invoking ${command} to verify signature"

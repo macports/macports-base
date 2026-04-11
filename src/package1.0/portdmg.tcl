@@ -85,7 +85,7 @@ proc portdmg::package_dmg {portname portversion portrevision} {
         set pkgpath ${package.destpath}/${imagename}
     }
 
-    set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
+    set hdiutil [findBinary hdiutil $::portutil::autoconf::hdiutil_path]
     if {[system "$hdiutil create -quiet -fs HFS+ -volname [shellescape ${imagename}] -srcfolder [shellescape ${pkgpath}] [shellescape ${tmp_image}]"] ne ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }

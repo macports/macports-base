@@ -273,7 +273,7 @@ namespace eval reclaim {
         upvar $varname var
         global macports::portdbpath macports::global_variations
         macports_try -pass_signal {
-            set fd [open |[list $macports::autoconf::gzip_path -d < [file join $portdbpath reclaim distfiles.gz]] r]
+            set fd [open |[list $::macports::autoconf::gzip_path -d < [file join $portdbpath reclaim distfiles.gz]] r]
             set data [gets $fd]
             close $fd
             set var [dict create {*}$data]
@@ -299,7 +299,7 @@ namespace eval reclaim {
         global macports::portdbpath macports::global_variations
         macports_try -pass_signal {
             file mkdir [file join $portdbpath reclaim]
-            set fd [open |[list $macports::autoconf::gzip_path > [file join $portdbpath reclaim distfiles.gz]] w]
+            set fd [open |[list $::macports::autoconf::gzip_path > [file join $portdbpath reclaim distfiles.gz]] w]
             dict set cache :global_variations [array get global_variations]
             puts $fd [dict get $cache]
             close $fd

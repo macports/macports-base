@@ -126,7 +126,7 @@ proc portlint::lint_checksum_type_list {types} {
     set issues [list]
     set using_secure false
 
-    foreach preferred $portchecksum::secure_checksum_types {
+    foreach preferred $::portchecksum::secure_checksum_types {
         if {$preferred ni $types} {
             lappend issues "missing recommended checksum type: $preferred"
         } else {
@@ -180,7 +180,7 @@ proc portlint::lint_checksum {checksum_string} {
 
         set current [lindex $checksum_tokens $ctr]
 
-        if {$current in $portchecksum::checksum_types} {
+        if {$current in $::portchecksum::checksum_types} {
             set c_type  $current
             set c_value [lindex $checksum_tokens $ctr+1]
 

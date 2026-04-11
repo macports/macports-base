@@ -54,15 +54,15 @@ default patch.pre_args {-t -N -p0}
 
 proc portpatch::build_getpatchtype {args} {
     if {![exists patch.type]} {
-        return [findBinary patch $portutil::autoconf::patch_path]
+        return [findBinary patch $::portutil::autoconf::patch_path]
     }
     switch -exact -- [option patch.type] {
         gnu {
-            return [findBinary gpatch $portutil::autoconf::gnupatch_path]
+            return [findBinary gpatch $::portutil::autoconf::gnupatch_path]
         }
         default {
             ui_warn "[format [msgcat::mc "Unknown patch.type %s, using 'patch'"] [option patch.type]]"
-            return [findBinary patch $portutil::autoconf::patch_path]
+            return [findBinary patch $::portutil::autoconf::patch_path]
         }
     }
 }
@@ -91,9 +91,9 @@ proc portpatch::patch_main {args} {
         return -code error [msgcat::mc "Patch files missing"]
     }
 
-    set gzcat "[findBinary gzip $portutil::autoconf::gzip_path] -dc"
-    set bzcat "[findBinary bzip2 $portutil::autoconf::bzip2_path] -dc"
-    catch {set xzcat "[findBinary xz $portutil::autoconf::xz_path] -dc"}
+    set gzcat "[findBinary gzip $::portutil::autoconf::gzip_path] -dc"
+    set bzcat "[findBinary bzip2 $::portutil::autoconf::bzip2_path] -dc"
+    catch {set xzcat "[findBinary xz $::portutil::autoconf::xz_path] -dc"}
 
     foreach patch $patchlist {
         ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] [file tail $patch]]"

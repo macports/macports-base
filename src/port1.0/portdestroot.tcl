@@ -106,7 +106,7 @@ proc portdestroot::destroot_start {args} {
     # end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
-    set mtree [findBinary mtree ${portutil::autoconf::mtree_path}]
+    set mtree [findBinary mtree ${::portutil::autoconf::mtree_path}]
 
     if { ${destroot.clean} eq "yes" } {
         delete "${destroot}"
@@ -256,9 +256,9 @@ proc portdestroot::destroot_finish {args} {
     if {[file isdirectory ${manpath}] && [file type ${manpath}] eq "directory"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${subport}]"
 
-        set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
+        set gzip [findBinary gzip ${::portutil::autoconf::gzip_path}]
         set gunzip "$gzip -d"
-        set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
+        set bunzip2 "[findBinary bzip2 ${::portutil::autoconf::bzip2_path}] -d"
 
         set found 0
         set manlinks [list]
