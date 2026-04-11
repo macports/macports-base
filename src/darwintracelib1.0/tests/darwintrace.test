@@ -153,8 +153,8 @@ test darwintrace_long_symlinks "Test that resolution of long symlinks does not t
 
 test darwintrace_without_log_env_fails "Test that injecting the lib without setting DARWINTRACE_LOG fails" \
     -cleanup {
-        array unset ::env DYLD_INSERT_LIBRARIES
-        array unset ::env DARWINTRACE_LOG
+        unset -nocomplain ::env(DYLD_INSERT_LIBRARIES)
+        unset -nocomplain ::env(DARWINTRACE_LOG)
     } \
     -body {
         set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
@@ -165,8 +165,8 @@ test darwintrace_without_log_env_fails "Test that injecting the lib without sett
 
 test darwintrace_with_incorrect_log_env_fails "Test that DARWINTRACE_LOG pointing to a non-socket fails" \
     -cleanup {
-        array unset ::env DYLD_INSERT_LIBRARIES
-        array unset ::env DARWINTRACE_LOG
+        unset -nocomplain ::env(DYLD_INSERT_LIBRARIES)
+        unset -nocomplain ::env(DARWINTRACE_LOG)
     } \
     -body {
         set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
