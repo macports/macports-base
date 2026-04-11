@@ -782,13 +782,13 @@ namespace eval diagnose {
                 continue
             }
             set perms [file attributes $path -permissions]
-            if {$perms & 0002 && $path ni $ww_dirs} {
+            if {$perms & 0o002 && $path ni $ww_dirs} {
                 lappend ww_dirs $path
             }
-            if {!($perms & 0001) && $path ni $no_x_dirs} {
+            if {!($perms & 0o001) && $path ni $no_x_dirs} {
                 lappend no_x_dirs $path
             }
-            if {!($perms & 0004) && $path ni $no_r_dirs} {
+            if {!($perms & 0o004) && $path ni $no_r_dirs} {
                 lappend no_r_dirs $path
             }
             set parent [file dirname $path]
@@ -808,10 +808,10 @@ namespace eval diagnose {
             set path [lindex $check_paths end]
             set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
             set perms [file attributes $path -permissions]
-            if {!($perms & 0001) && $path ni $no_x_dirs} {
+            if {!($perms & 0o001) && $path ni $no_x_dirs} {
                 lappend no_x_dirs $path
             }
-            if {!($perms & 0004) && $path ni $no_r_dirs} {
+            if {!($perms & 0o004) && $path ni $no_r_dirs} {
                 lappend no_r_dirs $path
             }
             set parent [file dirname $path]
