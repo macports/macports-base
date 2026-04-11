@@ -32,9 +32,9 @@ proc porttest::get_file_archs {handle fpath} {
     set resultlist [machista::parse_file $handle $fpath]
     set returncode [lindex $resultlist 0]
     set result     [lindex $resultlist 1]
-    if {$returncode != $machista::SUCCESS} {
+    if {$returncode != $::machista::SUCCESS} {
         # fails on static libs, ignore
-        if {$returncode != $machista::EMAGIC} {
+        if {$returncode != $::machista::EMAGIC} {
             ui_warn "Error parsing file ${fpath}: [machista::strerror $returncode]"
         }
         return ""

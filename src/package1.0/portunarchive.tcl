@@ -142,7 +142,7 @@ proc portunarchive::unarchive_command_setup {args} {
     switch -regex ${unarchive.type} {
         aar {
             set aa "aa"
-            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
+            if {[catch {set aa [findBinary $aa ${::portutil::autoconf::aa_path}]} errmsg] == 0} {
                 ui_debug "Using $aa"
                 set unarchive.cmd "$aa"
                 set unarchive.pre_args {extract -afsc-all -enable-dedup -enable-holes -v}
@@ -154,7 +154,7 @@ proc portunarchive::unarchive_command_setup {args} {
         }
         cp(io|gz) {
             set pax "pax"
-            if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
+            if {[catch {set pax [findBinary $pax ${::portutil::autoconf::pax_path}]} errmsg] == 0} {
                 ui_debug "Using $pax"
                 set unarchive.cmd "$pax"
                 if {[geteuid] == 0} {
@@ -165,7 +165,7 @@ proc portunarchive::unarchive_command_setup {args} {
                 if {[regexp {z$} ${unarchive.type}]} {
                     set unarchive.args {.}
                     set gzip "gzip"
-                    if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
+                    if {[catch {set gzip [findBinary $gzip ${::portutil::autoconf::gzip_path}]} errmsg] == 0} {
                         ui_debug "Using $gzip"
                         set unarchive.pipe_cmd "$gzip -d -c [shellescape ${unarchive.path}] |"
                     } else {
@@ -182,7 +182,7 @@ proc portunarchive::unarchive_command_setup {args} {
         }
         t(ar|bz|lz|xz|gz) {
             set tar "tar"
-            if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
+            if {[catch {set tar [findBinary $tar ${::portutil::autoconf::tar_path}]} errmsg] == 0} {
                 ui_debug "Using $tar"
                 set unarchive.cmd "$tar"
                 set unarchive.pre_args {-xvpf}
@@ -203,8 +203,8 @@ proc portunarchive::unarchive_command_setup {args} {
                     } else {
                         set gzip "gzip"
                     }
-                    if {[info exists portutil::autoconf::${gzip}_path]} {
-                        set hint [set portutil::autoconf::${gzip}_path]
+                    if {[info exists ::portutil::autoconf::${gzip}_path]} {
+                        set hint [set ::portutil::autoconf::${gzip}_path]
                     } else {
                         set hint ""
                     }
@@ -225,7 +225,7 @@ proc portunarchive::unarchive_command_setup {args} {
         }
         xar {
             set xar "xar"
-            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
+            if {[catch {set xar [findBinary $xar ${::portutil::autoconf::xar_path}]} errmsg] == 0} {
                 ui_debug "Using $xar"
                 set unarchive.cmd "$xar"
                 set unarchive.pre_args {-xvpf}
@@ -237,7 +237,7 @@ proc portunarchive::unarchive_command_setup {args} {
         }
         zip {
             set unzip "unzip"
-            if {[catch {set unzip [findBinary $unzip ${portutil::autoconf::unzip_path}]} errmsg] == 0} {
+            if {[catch {set unzip [findBinary $unzip ${::portutil::autoconf::unzip_path}]} errmsg] == 0} {
                 ui_debug "Using $unzip"
                 set unarchive.cmd "$unzip"
                 if {[geteuid] == 0} {

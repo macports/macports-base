@@ -261,9 +261,10 @@ namespace eval snapshot {
 
         # The conversion can take quite a while because we're querying all
         # files installed by the various ports, so display a progress bar
-        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        global macports::ui_options
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists ui_options(progress_generic)]}]
         if {$fancy_output} {
-            set progress $macports::ui_options(progress_generic)
+            set progress $ui_options(progress_generic)
         } else {
             proc noop {args} {}
             set progress noop
@@ -360,7 +361,7 @@ namespace eval snapshot {
             }
         }
 
-        global registry::tdbc_connection
+        global registry::tdbc_connection macports::ui_options
         variable import_snapshot_stmt
         variable import_port_stmt
         variable import_file_stmt
@@ -413,9 +414,9 @@ namespace eval snapshot {
         set counter 0
         set total [llength $ports]
 
-        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists ui_options(progress_generic)]}]
         if {$fancy_output} {
-            set progress $macports::ui_options(progress_generic)
+            set progress $ui_options(progress_generic)
         } else {
             proc noop {args} {}
             set progress noop
@@ -467,10 +468,11 @@ namespace eval snapshot {
                 }
             }
             if {[llength $inactive_ports] != 0} {
+                global macports::ui_options
                 set msg "The following inactive ports will not be a part of this snapshot and won't be installed while restoring:"
                 set inactive_ports [lsort -index 0 -nocase $inactive_ports]
-                if {[info exists macports::ui_options(questions_yesno)]} {
-                    set retvalue [$macports::ui_options(questions_yesno) $msg "Continue?" $inactive_ports {y} 0]
+                if {[info exists ui_options(questions_yesno)]} {
+                    set retvalue [$ui_options(questions_yesno) $msg "Continue?" $inactive_ports {y} 0]
                     if {$retvalue != 0} {
                         ui_msg "Not creating a snapshot!"
                         return 0

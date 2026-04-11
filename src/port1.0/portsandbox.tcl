@@ -35,7 +35,7 @@ namespace eval portsandbox {
 }
 
 options portsandbox_supported portsandbox_active portsandbox_profile
-default portsandbox_supported {[file executable $portutil::autoconf::sandbox_exec_path]}
+default portsandbox_supported {[file executable $::portutil::autoconf::sandbox_exec_path]}
 default portsandbox_active {[expr {$portsandbox_supported && $sandbox_enable}]}
 default portsandbox_profile {}
 
@@ -80,7 +80,7 @@ proc portsandbox::set_profile {target} {
         }
     }
 
-    lappend allow_dirs $workpath ${portutil::autoconf::trace_sipworkaround_path}
+    lappend allow_dirs $workpath ${::portutil::autoconf::trace_sipworkaround_path}
     if {${configure.ccache}} {
         lappend allow_dirs $ccache_dir
     }
@@ -156,7 +156,7 @@ proc portsandbox::set_profile {target} {
                 append portsandbox_profile " (deny network*)"
                 if {$porttrace} {
                     # allow accessing the darwintrace fifo in trace mode
-                    set template [string trimright ${porttrace::fifo_mktemp_template} "X"]
+                    set template [string trimright ${::porttrace::fifo_mktemp_template} "X"]
                     append portsandbox_profile " (allow network-outbound (to unix-socket) (regex #\"^${template}\"))"
                 }
             }

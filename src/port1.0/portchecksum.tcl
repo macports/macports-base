@@ -321,7 +321,7 @@ proc portchecksum::checksum_main {args} {
                 set calculated_checksums_array($distfile) $calculated_checksums
 
                 if {[tbool fail] && ![regexp {\.html?$} ${distfile}] &&
-                    ![catch {strsed [exec [findBinary file $portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
+                    ![catch {strsed [exec [findBinary file $::portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
                     && "text/html" eq $mimetype} {
                     # file --mime-type would be preferable to file --mime and strsed, but is only available as of Snow Leopard
                     set wrong_mimetype yes

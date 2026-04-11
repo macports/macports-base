@@ -126,17 +126,17 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
     int active;
     Tcl_Size len;
 
-    tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_active", NULL, TCL_GLOBAL_ONLY);
+    tcl_result = Tcl_GetVar2Ex(interp, "::portsandbox_active", NULL, TCL_GLOBAL_ONLY);
     if (!tcl_result || Tcl_GetBooleanFromObj(interp, tcl_result, &active) != TCL_OK || !active) {
         return 0;
     }
 
-    tcl_result = Tcl_GetVar2Ex(interp, "portutil::autoconf::sandbox_exec_path", NULL, TCL_GLOBAL_ONLY);
+    tcl_result = Tcl_GetVar2Ex(interp, "::portutil::autoconf::sandbox_exec_path", NULL, TCL_GLOBAL_ONLY);
     if (!tcl_result || !(*sandbox_exec_path = Tcl_GetString(tcl_result))) {
         return 0;
     }
 
-    tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_profile", NULL, TCL_GLOBAL_ONLY);
+    tcl_result = Tcl_GetVar2Ex(interp, "::portsandbox_profile", NULL, TCL_GLOBAL_ONLY);
     if (!tcl_result || !(*profilestr = Tcl_GetStringFromObj(tcl_result, &len)) 
         || len == 0) {
         return 0;

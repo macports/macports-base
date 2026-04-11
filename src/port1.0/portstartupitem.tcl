@@ -532,7 +532,7 @@ proc portstartupitem::startupitem_create {} {
 # Check if this port's startupitems are loaded
 # Returns: list of loaded startupitems
 proc portstartupitem::loaded {} {
-    set launchctl_path ${portutil::autoconf::launchctl_path}
+    set launchctl_path ${::portutil::autoconf::launchctl_path}
     if {$launchctl_path eq ""} {
         # assuming not loaded if there's no launchctl
         return [list]

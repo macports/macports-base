@@ -93,25 +93,25 @@ proc portbuild::build_getmaketype {args} {
     global build.type os.platform
     macports_try -pass_signal {
         if {${build.type} eq "default"} {
-            return [findBinary make $portutil::autoconf::make_path]
+            return [findBinary make $::portutil::autoconf::make_path]
         }
         switch -exact -- ${build.type} {
             bsd {
                 if {${os.platform} eq "darwin"} {
-                    return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
+                    return [findBinary bsdmake $::portutil::autoconf::bsdmake_path]
                 } elseif {${os.platform} eq "freebsd"} {
-                    return [findBinary make $portutil::autoconf::make_path]
+                    return [findBinary make $::portutil::autoconf::make_path]
                 } else {
-                    return [findBinary pmake $portutil::autoconf::bsdmake_path]
+                    return [findBinary pmake $::portutil::autoconf::bsdmake_path]
                 }
             }
             gnu {
                 if {${os.platform} eq "darwin"} {
-                    return [findBinary gnumake $portutil::autoconf::gnumake_path]
+                    return [findBinary gnumake $::portutil::autoconf::gnumake_path]
                 } elseif {${os.platform} eq "linux"} {
-                    return [findBinary make $portutil::autoconf::make_path]
+                    return [findBinary make $::portutil::autoconf::make_path]
                 } else {
-                    return [findBinary gmake $portutil::autoconf::gnumake_path]
+                    return [findBinary gmake $::portutil::autoconf::gnumake_path]
                 }
             }
             pbx -
@@ -129,7 +129,7 @@ proc portbuild::build_getmaketype {args} {
             }
             default {
                 ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] ${build.type}]"
-                return [findBinary gnumake $portutil::autoconf::gnumake_path]
+                return [findBinary gnumake $::portutil::autoconf::gnumake_path]
             }
         }
     } on error {eMessage} {
