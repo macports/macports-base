@@ -137,7 +137,7 @@ static int entry_obj_filemap(Tcl_Interp* interp, reg_entry* entry, int objc,
         char** files;
         reg_error error;
         Tcl_Obj** listv;
-        int listc;
+        Tcl_Size listc;
         int result = TCL_ERROR;
         if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
             return TCL_ERROR;
@@ -239,8 +239,7 @@ static int entry_obj_activate(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* as = NULL;
         Tcl_Obj** as_listv = NULL;
         Tcl_Obj** listv;
-        int listc;
-        int as_listc;
+        Tcl_Size listc, as_listc;
         int result = TCL_ERROR;
         if (objc >= 4) {
             as = objv[3];

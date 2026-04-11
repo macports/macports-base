@@ -124,7 +124,7 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
 {
     Tcl_Obj *tcl_result;
     int active;
-    int len;
+    Tcl_Size len;
 
     tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_active", NULL, TCL_GLOBAL_ONLY);
     if (!tcl_result || Tcl_GetBooleanFromObj(interp, tcl_result, &active) != TCL_OK || !active) {
@@ -193,10 +193,10 @@ static int SystemCmd_Callback_Append(SystemCmd_Callback *cb, Tcl_Obj *callbackPr
     return Tcl_ListObjAppendElement(cb->interp, cb->procs, callbackProc);
 }
 
-static int SystemCmd_Callback_NumProcs(SystemCmd_Callback *cb)
+static Tcl_Size SystemCmd_Callback_NumProcs(SystemCmd_Callback *cb)
 {
     int status;
-    int len;
+    Tcl_Size len;
 
     if ((status = Tcl_ListObjLength(cb->interp, cb->procs, &len)) != TCL_OK) {
         /* We allocate this explicitly as a list; the type should not change */
@@ -223,10 +223,10 @@ static void SystemCmd_Callback_SetPid(SystemCmd_Callback *cb, pid_t pid)
 static int SystemCmd_Callback_Invoke(SystemCmd_Callback *cb, Tcl_Obj *event)
 {
     Tcl_Obj **procs;
-    int numProcs;
+    Tcl_Size numProcs;
 
     Tcl_ListObjGetElements(cb->interp, cb->procs, &numProcs, &procs);
-    for (int i = 0; i < numProcs; i++) {
+    for (Tcl_Size i = 0; i < numProcs; i++) {
         Tcl_Obj *objv[] = { procs[i], event };
         int status;
 
