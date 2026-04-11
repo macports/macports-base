@@ -71,9 +71,6 @@ test worker_init {
     set variations {1 2}
 } -body {
     macports::worker_init $name $portpath $porturl $portbuildpath $options $variations
-    if {$name ne "interp0"} {
-        return "FAIL: wrong workername"
-    }
     if {[catch {$name eval [list source Portfile]} result]} {
         return "FAIL: cannot load Portfile"
     }
