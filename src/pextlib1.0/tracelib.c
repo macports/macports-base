@@ -1042,7 +1042,7 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
 
 static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Tcl_Obj **objects;
-    int length;
+    Tcl_Size length;
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
         return TCL_ERROR;
@@ -1069,10 +1069,10 @@ static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) 
             return TCL_ERROR;
         }
         /* Copy all objects over */
-        for (int i = 0; i < length; ++i) {
+        for (Tcl_Size i = 0; i < length; ++i) {
             if (NULL == (depends[i] = strdup(Tcl_GetString(objects[i])))) {
                 /* Allocation failed, clean up what we have so far */
-                for (int j = 0; j < i; ++j) {
+                for (Tcl_Size j = 0; j < i; ++j) {
                     free(depends[j]);
                 }
                 free(depends);

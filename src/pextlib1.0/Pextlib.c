@@ -61,6 +61,7 @@
 #include <limits.h>
 #include <netdb.h>
 #include <pwd.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -418,15 +419,15 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         for (char **envp = environ; *envp != NULL; envp++) {
             char *equals = strchr(*envp, '=');
             if (equals != NULL) {
-				size_t len = (size_t)(equals - *envp);
+				Tcl_Size len = (Tcl_Size)(equals - *envp);
                 Tcl_ListObjAppendElement(interp, tclList, Tcl_NewStringObj(*envp, len));
             }
         }
 
-		int listLength;
+		Tcl_Size listLength;
 		Tcl_Obj **listArray;
         Tcl_ListObjGetElements(interp, tclList, &listLength, &listArray);
-        for (int loopCounter = 0; loopCounter < listLength; loopCounter++) {
+        for (Tcl_Size loopCounter = 0; loopCounter < listLength; loopCounter++) {
             unsetenv(Tcl_GetString(listArray[loopCounter]));
         }
         Tcl_DecrRefCount( tclList );
