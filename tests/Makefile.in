@@ -19,4 +19,3 @@ distclean:: clean
 	rm -f test.tcl
 	rm -f test-tclsh
 	rm -f test/library.tcl
-	rm -f test/trace/test.tcl

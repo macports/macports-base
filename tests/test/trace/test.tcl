@@ -1,9 +1,8 @@
 package require tcltest 2
+namespace import tcltest::*
 
 # need pextlib to drop privs
 package require Pextlib 1.0
-
-namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
 
@@ -12,14 +11,12 @@ makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 load_variables $path
+set_dir
+port_index
 
 proc test_trace {} {
     global path output_file
 
-    set user "@RUNUSR@"
-
-    set_dir
-    port_index
     port_clean $path
 
     file delete -force /tmp/hello-trace
@@ -27,25 +24,11 @@ proc test_trace {} {
     file link -symbolic /tmp/link-trace2 /usr/share/man/man1/awk.1
 
     makeDirectory ../tracetesttmp
-    if {[getuid] == 0} {
-        file attributes ../tracetesttmp -owner $user
-        exec -ignorestderr chown -h $user /tmp/link-trace2
-    }
-
-    if {[getuid] == 0} {
-        seteuid [name_to_uid $user]
-    }
     exec -ignorestderr touch  ../tracetesttmp/delete-trace
     exec -ignorestderr touch ../tracetesttmp/rename-trace
-    exec -ignorestderr mkdir ../tracetesttmp/rmdir-trace
-    if {[getuid] == 0} {
-        seteuid 0
-    }
+    exec -ignorestderr file mkdir ../tracetesttmp/rmdir-trace
 
     port_trace $path
-
-    file delete -force /tmp/link-trace2
-    file delete -force /tmp/hello-trace
 
     set err "error*"
     set line [get_line $path/$output_file $err]
@@ -57,14 +40,18 @@ proc test_trace {} {
     }
 }
 
-set trace_constraints [list tracemode_support]
+testConstraint notRoot [expr {[getuid] != 0}]
 
-test trace {
-    Regression test for trace.
-} -constraints $trace_constraints \
--body {
-    test_trace
-} -result "No errors found."
+test trace {Regression test for trace.} \
+    -constraints [list tracemode_support notRoot] \
+    -body {
+        test_trace
+    } \
+    -cleanup {
+        file delete -force /tmp/link-trace2
+        file delete -force /tmp/hello-trace
+    } \
+    -result "No errors found."
 
 
 cleanup
