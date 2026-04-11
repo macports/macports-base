@@ -23,6 +23,11 @@ proc test_trace {} {
     file delete -force /tmp/link-trace2
     file link -symbolic /tmp/link-trace2 /usr/share/man/man1/awk.1
 
+    set sip_workaround_path [::mkdtemp "$path/sip-workaround-XXXXXX"]
+    # trigger auto-cleanup after test end
+    makeDirectory $sip_workaround_path
+    set ::env(DARWINTRACE_SIP_WORKAROUND_PATH) $sip_workaround_path
+
     makeDirectory ../tracetesttmp
     exec -ignorestderr touch  ../tracetesttmp/delete-trace
     exec -ignorestderr touch ../tracetesttmp/rename-trace
@@ -50,6 +55,8 @@ test trace {Regression test for trace.} \
     -cleanup {
         file delete -force /tmp/link-trace2
         file delete -force /tmp/hello-trace
+
+        unset -nocomplain ::env(DARWINTRACE_SIP_WORKAROUND_PATH)
     } \
     -result "No errors found."
 

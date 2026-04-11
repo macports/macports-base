@@ -80,7 +80,12 @@ proc portsandbox::set_profile {target} {
         }
     }
 
-    lappend allow_dirs $workpath ${::portutil::autoconf::trace_sipworkaround_path}
+    lappend allow_dirs $workpath
+    if {[info exists ::env(DARWINTRACE_SIP_WORKAROUND_PATH)]} {
+        lappend allow_dirs $::env(DARWINTRACE_SIP_WORKAROUND_PATH)
+    } else {
+        lappend allow_dirs ${::portutil::autoconf::trace_sipworkaround_path}
+    }
     if {${configure.ccache}} {
         lappend allow_dirs $ccache_dir
     }

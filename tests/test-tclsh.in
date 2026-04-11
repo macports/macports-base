@@ -16,6 +16,7 @@ fi
 
 # Tcl package search path: vendor libs first, then in-tree src packages
 SRCDIR="@abs_top_builddir@/src"
-export TCLLIBPATH="${DESTROOT}${MP_PREFIX}/lib ${SRCDIR}/macports1.0 ${SRCDIR}/port1.0 ${SRCDIR}/pextlib1.0 ${SRCDIR}/registry2.0 ${SRCDIR}/machista1.0 ${SRCDIR}/mpcommon1.0 ${SRCDIR}/package1.0 ${SRCDIR}/portlist1.0 ${SRCDIR}/darwintracelib1.0"
+export TCLLIBPATH="${DESTROOT}${MP_PREFIX}/lib ${SRCDIR}/macports1.0 ${SRCDIR}/port1.0 ${SRCDIR}/pextlib1.0 ${SRCDIR}/registry2.0 ${SRCDIR}/machista1.0 ${SRCDIR}/mpcommon1.0 ${SRCDIR}/package1.0 ${SRCDIR}/portlist1.0"
+export MACPORTS_SOURCETREE_DARWINTRACE=${SRCDIR}/darwintracelib1.0
 
 exec "${DESTROOT}@TCLSH@" "$@"
