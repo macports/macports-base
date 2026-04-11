@@ -63,7 +63,7 @@ options prefix name version revision epoch categories maintainers \
         add_users use_xcode source_date_epoch
 
 proc portmain::check_option_integer {option action args} {
-    if {$action eq "set" && ![string is wideinteger -strict $args]} {
+    if {$action eq "set" && ![string is integer -strict $args]} {
         return -code error "$option must be an integer"
     }
 }

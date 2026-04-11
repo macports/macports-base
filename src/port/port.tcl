@@ -5061,12 +5061,12 @@ namespace eval portclient::progress {
         # Subtract the width of the percentage output, also subtract the two
         # characters [ and ] bounding the progress bar.
         set percentageWidth 8
-        set barWidth      [expr {entier($width) - $percentageWidth - 2}]
+        set barWidth      [expr {int($width) - $percentageWidth - 2}]
 
         # Map the range (0, $total) to (0, 4 * $width) where $width is the maximum
         # number of characters to be printed for the progress bar. Multiply the
         # upper bound with 8 because we have 8 sub-states per character.
-        set barProgress   [expr {entier(round(($current * $barWidth * 8) / $total))}]
+        set barProgress   [expr {int(round(($current * $barWidth * 8) / $total))}]
 
         set barInteger    [expr {$barProgress / 8}]
         #set barRemainder  [expr {$barProgress % 8}]
@@ -5427,7 +5427,7 @@ namespace eval portclient::questions {
                 throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
             signal -restart error {TERM INT}
-            if {[string is wideinteger -strict $input] && $input <= [llength $ports] && $input > 0} {
+            if {[string is integer -strict $input] && $input <= [llength $ports] && $input > 0} {
                 return [expr {$input - 1}]
             } else {
                 puts "Please enter an index from the above list."
@@ -5493,7 +5493,7 @@ namespace eval portclient::questions {
             set err_flag 1
             set range_re {(\d+)-(\d+)}
             foreach num $input {
-                if {[string is wideinteger -strict $num] && $num <= [llength $ports] && $num > 0} {
+                if {[string is integer -strict $num] && $num <= [llength $ports] && $num > 0} {
                     lappend selected_opt [expr {$num -1}]
                 } elseif {[regexp $range_re $input _ start end]
                           && $start <= [llength $ports]
