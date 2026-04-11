@@ -33,5 +33,6 @@
 namespace eval macports::autoconf {
     variable prefix "@prefix@"
     variable os_platform "@OS_PLATFORM@"
+    variable test_tclsh "@TEST_TCLSH@"
     variable top_srcdir "@abs_top_srcdir@"
 }
