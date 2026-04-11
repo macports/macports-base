@@ -6055,7 +6055,7 @@ proc mportselect {command {group ""} {version {}}} {
 
     switch -- $command {
         list {
-            if {[catch {set versions [glob -directory $conf_path *]} result]} {
+            if {[catch {set versions [glob -directory $conf_path *]} result] || $result eq {}} {
                 ui_debug "${result}: $::errorInfo"
                 return -code error [concat "No configurations associated" \
                                            "with '$group' were found."]
@@ -6075,7 +6075,7 @@ proc mportselect {command {group ""} {version {}}} {
         }
         summary {
             # Return the list of portgroups in ${macports::prefix}/etc/select
-            if {[catch {set lportgroups [glob -directory $conf_path -tails *]} result]} {
+            if {[catch {set lportgroups [glob -directory $conf_path -tails *]} result] || $result eq {}} {
                 ui_debug "${result}: $::errorInfo"
                 return -code error [concat "No ports with the select" \
                                            "option were found."]
