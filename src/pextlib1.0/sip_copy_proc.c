@@ -554,20 +554,25 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         *endslash = '\0';
     }
 
-    if (-1 == asprintf(&target_folder, "%s/%lu%s", DARWINTRACE_SIP_WORKAROUND_PATH, (unsigned long) euid, dir)) {
+    const char *sip_workaround_path = getenv("DARWINTRACE_SIP_WORKAROUND_PATH");
+    if (sip_workaround_path == NULL) {
+        sip_workaround_path = DARWINTRACE_SIP_WORKAROUND_PATH;
+    }
+
+    if (-1 == asprintf(&target_folder, "%s/%lu%s", sip_workaround_path, (unsigned long) euid, dir)) {
         goto lazy_copy_out;
     }
 
-    if (-1 == asprintf(&target_path, "%s/%lu%s", DARWINTRACE_SIP_WORKAROUND_PATH, (unsigned long) euid, path)) {
+    if (-1 == asprintf(&target_path, "%s/%lu%s", sip_workaround_path, (unsigned long) euid, path)) {
         goto lazy_copy_out;
     }
 
-    if (-1 == asprintf(&target_path_temp, "%s/%lu/.XXXXXXXXXXXXXX", DARWINTRACE_SIP_WORKAROUND_PATH, (unsigned long) euid)) {
+    if (-1 == asprintf(&target_path_temp, "%s/%lu/.XXXXXXXXXXXXXX", sip_workaround_path, (unsigned long) euid)) {
         goto lazy_copy_out;
     }
 
     // ensure directory exists
-    char *pos = target_folder + strlen(DARWINTRACE_SIP_WORKAROUND_PATH);
+    char *pos = target_folder + strlen(sip_workaround_path);
     while (pos && *pos) {
         *pos = '\0';
         if (-1 == mkdir(target_folder, 0755) && errno != EEXIST) {
