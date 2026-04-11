@@ -1196,9 +1196,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Also save $HOME for later use before replacing it with our own.
     if {[info exists env(HOME)]} {
         set user_home $env(HOME)
-        # XXX Relying on file normalize to do tilde expansion for
-        # macports::autoconf::macports_user_dir will not work in Tcl 9.
-        set macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
+        set macports_user_dir [file normalize [file tildeexpand $macports::autoconf::macports_user_dir]]
     } elseif {[info exists env(SUDO_USER)] && $os_platform eq "darwin"} {
         set user_home [exec -ignorestderr dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d ' ' -f 2]
         set macports_user_dir [file join $user_home [string range $macports::autoconf::macports_user_dir 2 end]]
