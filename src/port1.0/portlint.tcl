@@ -84,38 +84,6 @@ namespace eval portlint {
 
 set_ui_prefix
 
-proc portlint::seems_utf8 {str} {
-    set len [string length $str]
-    for {set i 0} {$i<$len} {incr i} {
-        set c [scan [string index $str $i] %c]
-        if {$c < 0x80} {
-            # ASCII
-            continue
-        } elseif {($c & 0xE0) == 0xC0} {
-            set n 1
-        } elseif {($c & 0xF0) == 0xE0} {
-            set n 2
-        } elseif {($c & 0xF8) == 0xF0} {
-            set n 3
-        } elseif {($c & 0xFC) == 0xF8} {
-            set n 4
-        } elseif {($c & 0xFE) == 0xFC} {
-            set n 5
-        } else {
-            return false
-        }
-        for {set j 0} {$j<$n} {incr j} {
-            incr i
-            if {$i == $len} {
-                return false
-            } elseif {([scan [string index $str $i] %c] & 0xC0) != 0x80} {
-                return false
-            }
-        }
-    }
-    return true
-}
-
 # lint_checksum_types
 #
 # Given a list of checksum types, return a list of strings which are warnings
@@ -323,8 +291,6 @@ proc portlint::lint_main {args} {
     set local_variants [list]
 
     set f [open $portfile RDONLY]
-    # read binary (to check UTF-8)
-    fconfigure $f -encoding binary
     set lineno 1
     set hashline false
     while {1} {
@@ -340,11 +306,6 @@ proc portlint::lint_main {args} {
             break
         }
         ui_debug "$lineno: $line"
-
-        if {![seems_utf8 $line]} {
-            ui_error "Line $lineno seems to contain an invalid UTF-8 sequence"
-            incr errors
-        }
 
         if {($require_after eq "PortSystem" || $require_after eq "PortGroup") && \
             [regexp {^\s*PortGroup\s} $line]} {
