@@ -1185,6 +1185,16 @@ AC_DEFUN([MP_TRACEMODE_SUPPORT],[
 		elif test x"${ac_cv_func_kevent}" != "xyes"; then
 			AC_MSG_RESULT([kevent() not available, no])
 			TRACEMODE_SUPPORT=0
+		elif test x"$(arch)" == "xarm64" && test "$(sw_vers --productVersion | cut -d. -f1)" -le 14; then
+			# /bin/ln on macOS 14 is built with a set of relocations that break
+			# when binary-patching the architecture from arm64e to arm64,
+			# leading to 'dyld: bad bind opcode 0x19'.
+			#
+			# Newer versions don't seem to ship such binaries, so until
+			# somebody comes along to find a solution for these few binaries,
+			# let's just disable tracemode support on macOS <= 14.
+			AC_MSG_RESULT([arm64 on macOS <= 14, no])
+			TRACEMODE_SUPPORT=0
 		else
 			AC_EGREP_CPP(yes_have_ev_receipt, [
 				#include <sys/types.h>
