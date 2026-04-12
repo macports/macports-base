@@ -6296,8 +6296,8 @@ proc macports::get_actual_cxx_stdlib {binaries} {
         set resultlist [machista::parse_file $handle $b]
         set returncode [lindex $resultlist 0]
         set result     [lindex $resultlist 1]
-        if {$returncode != $machista::SUCCESS} {
-            if {$returncode == $machista::EMAGIC} {
+        if {$returncode != $::machista::SUCCESS} {
+            if {$returncode == $::machista::EMAGIC} {
                 # not a Mach-O file
                 # ignore silently, these are only static libs anyway
             } else {
