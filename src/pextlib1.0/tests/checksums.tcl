@@ -7,7 +7,7 @@
 
 proc write_blake3_test_vector_file {path length} {
     set chan [open $path w]
-    fconfigure $chan -translation binary -encoding binary
+    fconfigure $chan -translation binary
 
     set hex {}
     for {set i 0} {$i < $length} {incr i} {
