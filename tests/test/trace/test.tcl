@@ -33,7 +33,10 @@ proc test_trace {} {
     exec -ignorestderr touch ../tracetesttmp/rename-trace
     exec -ignorestderr file mkdir ../tracetesttmp/rmdir-trace
 
-    port_trace $path
+    set result [port_trace $path]
+    if {$result} {
+        puts [exec cat $path/$output_file 2>@1]
+    }
 
     set err "error*"
     set line [get_line $path/$output_file $err]
