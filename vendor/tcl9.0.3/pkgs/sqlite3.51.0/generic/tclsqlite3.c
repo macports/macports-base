@@ -52,8 +52,6 @@
 /* Compatability between Tcl8.6 and Tcl9.0 */
 #if TCL_MAJOR_VERSION==9
 # define CONST const
-#elif !defined(Tcl_Size)
-  typedef int Tcl_Size;
 #endif
 #ifndef Tcl_BounceRefCount
 # define Tcl_BounceRefCount(X) Tcl_IncrRefCount(X); Tcl_DecrRefCount(X)
