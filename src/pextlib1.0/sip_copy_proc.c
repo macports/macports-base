@@ -299,7 +299,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
  *
  * See https://trac.macports.org/ticket/66358#comment:58.
  */
-#ifdef CPU_SUBTYPE_ARM64E
+#ifdef CPU_SUBTYPE_PTRAUTH_ABI
 static int strip_pointer_auth(const char *filepath) {
     int fd = -1;
     struct stat st;
@@ -434,7 +434,7 @@ out:
 
     return result;
 }
-#endif /* CPU_SUBTYPE_ARM64E */
+#endif /* CPU_SUBTYPE_PTRAUTH_ABI */
 
 static int resign(const char *filepath) {
     int result = -1;
@@ -706,7 +706,7 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
     }
 #endif /* HAVE_COPYFILE */
 
-#ifdef CPU_SUBTYPE_ARM64E
+#ifdef CPU_SUBTYPE_PTRAUTH_ABI
     if (-1 == strip_pointer_auth(target_path_temp)) {
         fprintf(stderr, "sip_copy_proc: strip_pointer_auth(%s) for source file %s failed\n", target_path_temp, path);
         goto lazy_copy_out;
