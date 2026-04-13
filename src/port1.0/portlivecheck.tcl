@@ -242,6 +242,7 @@ proc portlivecheck::_livecheck_main {{async no}} {
                 if {![info exists tempfd]} {
                     set tempfd [open $tempfilename r]
                 }
+                chan configure $tempfd -profile replace
                 if {${livecheck.type} eq "regexm"} {
                     set data [read $tempfd]
                     if {[regexp -nocase $the_re $data matched updated_version]} {
