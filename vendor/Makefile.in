@@ -139,7 +139,8 @@ OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8 \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/sqlite3.45.3 \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/sqlite3.47.2 \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/sqlite3.50.4 \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/tdbc{,mysql,odbc,postgres}1.1.{3,5,7,9,10,12}
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tdbc1.1.{3,5,7,9,10,12} \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tdbc{mysql,odbc,postgres}*
 
 install-tcl:
 	rm -rf $(OLD_TCL_FILES)
