@@ -8278,25 +8278,25 @@ case "$host_cpu" in
     x86_64)
         if test "x$enable_blake3_simd" = "xno"; then
 
-printf "%s\n" "#define BLAKE3_NO_SSE2 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_SSE2 1" >>confdefs.h
 
 
-printf "%s\n" "#define BLAKE3_NO_SSE41 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_SSE41 1" >>confdefs.h
 
 
-printf "%s\n" "#define BLAKE3_NO_AVX2 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_AVX2 1" >>confdefs.h
 
 
-printf "%s\n" "#define BLAKE3_NO_AVX512 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_AVX512 1" >>confdefs.h
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
 printf %s "checking for BLAKE3 SIMD support... " >&6; }
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: portable C (SIMD disabled)" >&5
-printf "%s\n" "portable C (SIMD disabled)" >&6; }
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: portable C (SIMD disabled)" >&5
+printf '%s\n' "portable C (SIMD disabled)" >&6; }
         else
             blake3_x86_simd=
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 SSE2 sources" >&5
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 SSE2 sources" >&5
 printf %s "checking whether the assembler supports BLAKE3 SSE2 sources... " >&6; }
 if test ${mp_cv_blake3_sse2_asm+y}
 then :
@@ -8313,18 +8313,18 @@ else case e in #(
              ;;
 esac
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_sse2_asm" >&5
-printf "%s\n" "$mp_cv_blake3_sse2_asm" >&6; }
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_sse2_asm" >&5
+printf '%s\n' "$mp_cv_blake3_sse2_asm" >&6; }
             if test "x$mp_cv_blake3_sse2_asm" = "xyes"; then
                 BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_sse2_x86-64_unix.o"
                 blake3_x86_simd="${blake3_x86_simd}SSE2/"
             else
 
-printf "%s\n" "#define BLAKE3_NO_SSE2 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_SSE2 1" >>confdefs.h
 
             fi
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 SSE4.1 sources" >&5
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 SSE4.1 sources" >&5
 printf %s "checking whether the assembler supports BLAKE3 SSE4.1 sources... " >&6; }
 if test ${mp_cv_blake3_sse41_asm+y}
 then :
@@ -8341,18 +8341,18 @@ else case e in #(
              ;;
 esac
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_sse41_asm" >&5
-printf "%s\n" "$mp_cv_blake3_sse41_asm" >&6; }
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_sse41_asm" >&5
+printf '%s\n' "$mp_cv_blake3_sse41_asm" >&6; }
             if test "x$mp_cv_blake3_sse41_asm" = "xyes"; then
                 BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_sse41_x86-64_unix.o"
                 blake3_x86_simd="${blake3_x86_simd}SSE41/"
             else
 
-printf "%s\n" "#define BLAKE3_NO_SSE41 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_SSE41 1" >>confdefs.h
 
             fi
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 AVX2 sources" >&5
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 AVX2 sources" >&5
 printf %s "checking whether the assembler supports BLAKE3 AVX2 sources... " >&6; }
 if test ${mp_cv_blake3_avx2_asm+y}
 then :
@@ -8369,18 +8369,18 @@ else case e in #(
              ;;
 esac
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_avx2_asm" >&5
-printf "%s\n" "$mp_cv_blake3_avx2_asm" >&6; }
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_avx2_asm" >&5
+printf '%s\n' "$mp_cv_blake3_avx2_asm" >&6; }
             if test "x$mp_cv_blake3_avx2_asm" = "xyes"; then
                 BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_avx2_x86-64_unix.o"
                 blake3_x86_simd="${blake3_x86_simd}AVX2/"
             else
 
-printf "%s\n" "#define BLAKE3_NO_AVX2 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_AVX2 1" >>confdefs.h
 
             fi
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 AVX512 sources" >&5
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the assembler supports BLAKE3 AVX512 sources" >&5
 printf %s "checking whether the assembler supports BLAKE3 AVX512 sources... " >&6; }
 if test ${mp_cv_blake3_avx512_asm+y}
 then :
@@ -8397,61 +8397,61 @@ else case e in #(
              ;;
 esac
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_avx512_asm" >&5
-printf "%s\n" "$mp_cv_blake3_avx512_asm" >&6; }
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $mp_cv_blake3_avx512_asm" >&5
+printf '%s\n' "$mp_cv_blake3_avx512_asm" >&6; }
             if test "x$mp_cv_blake3_avx512_asm" = "xyes"; then
                 BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_avx512_x86-64_unix.o"
                 blake3_x86_simd="${blake3_x86_simd}AVX512"
             else
 
-printf "%s\n" "#define BLAKE3_NO_AVX512 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_AVX512 1" >>confdefs.h
 
             fi
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
 printf %s "checking for BLAKE3 SIMD support... " >&6; }
             if test -n "$blake3_x86_simd"; then
                 blake3_x86_simd=`echo "$blake3_x86_simd" | sed 's:/$::'`
-                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: x86-64 assembly (${blake3_x86_simd})" >&5
-printf "%s\n" "x86-64 assembly (${blake3_x86_simd})" >&6; }
+                { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: x86-64 assembly (${blake3_x86_simd})" >&5
+printf '%s\n' "x86-64 assembly (${blake3_x86_simd})" >&6; }
             else
-                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: portable C (no supported x86-64 assembly)" >&5
-printf "%s\n" "portable C (no supported x86-64 assembly)" >&6; }
+                { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: portable C (no supported x86-64 assembly)" >&5
+printf '%s\n' "portable C (no supported x86-64 assembly)" >&6; }
             fi
         fi
         ;;
     aarch64|arm64)
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
 printf %s "checking for BLAKE3 SIMD support... " >&6; }
         if test "x$enable_blake3_simd" = "xno"; then
 
-printf "%s\n" "#define BLAKE3_USE_NEON 0" >>confdefs.h
+printf '%s\n' "#define BLAKE3_USE_NEON 0" >>confdefs.h
 
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: portable C (SIMD disabled)" >&5
-printf "%s\n" "portable C (SIMD disabled)" >&6; }
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: portable C (SIMD disabled)" >&5
+printf '%s\n' "portable C (SIMD disabled)" >&6; }
         else
             BLAKE3_OBJS="$BLAKE3_OBJS blake3/blake3_neon.o"
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ARM NEON" >&5
-printf "%s\n" "ARM NEON" >&6; }
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ARM NEON" >&5
+printf '%s\n' "ARM NEON" >&6; }
         fi
         ;;
     *)
 
-printf "%s\n" "#define BLAKE3_NO_SSE2 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_SSE2 1" >>confdefs.h
 
 
-printf "%s\n" "#define BLAKE3_NO_SSE41 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_SSE41 1" >>confdefs.h
 
 
-printf "%s\n" "#define BLAKE3_NO_AVX2 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_AVX2 1" >>confdefs.h
 
 
-printf "%s\n" "#define BLAKE3_NO_AVX512 1" >>confdefs.h
+printf '%s\n' "#define BLAKE3_NO_AVX512 1" >>confdefs.h
 
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for BLAKE3 SIMD support" >&5
 printf %s "checking for BLAKE3 SIMD support... " >&6; }
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: portable C" >&5
-printf "%s\n" "portable C" >&6; }
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: portable C" >&5
+printf '%s\n' "portable C" >&6; }
         ;;
 esac
 
