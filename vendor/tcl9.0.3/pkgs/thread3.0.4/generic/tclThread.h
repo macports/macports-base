@@ -29,11 +29,6 @@
 # define TCL_INDEX_NONE (-1)
 #endif
 
-#if TCL_MAJOR_VERSION < 9
-  typedef Tcl_ObjCmdProc Tcl_ObjCmdProc2;
-# undef Tcl_Size
-  typedef int Tcl_Size;
-#endif
 #ifndef TCL_HASH_TYPE
 # if TCL_MAJOR_VERSION < 9
 #   define TCL_HASH_TYPE unsigned
