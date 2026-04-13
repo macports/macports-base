@@ -339,18 +339,41 @@ proc ::platform::patterns {id} {
 	    }
 	}
 	macos*-aarch64 {
-	    lappend res macosx-arm macosx-arm64 macosx-universal2
+	    foreach m {macosx macos} {
+	        if {${m}-aarch64 ni $res} {
+	            lappend res ${m}-aarch64
+	        }
+	        lappend res ${m}-arm ${m}-arm64
+	    }
+	    lappend res macosx-universal2
 	}
 	macos*-arm {
-	    lappend res macosx-arm64 macosx-aarch64 macosx-universal2
+	    foreach m {macosx macos} {
+	        if {${m}-aarch64 ni $res} {
+	            lappend res ${m}-arm
+	        }
+	        lappend res ${m}-aarch64 ${m}-arm64
+	    }
+	    lappend res macosx-universal2
 	}
 	macos*-arm64 {
-	    lappend res macosx-arm macosx-aarch64 macosx-universal2
+	    foreach m {macosx macos} {
+	        if {${m}-aarch64 ni $res} {
+	            lappend res ${m}-arm64
+	        }
+	        lappend res ${m}-arm ${m}-aarch64
+	    }
+	    lappend res macosx-universal2
 	}
 	macosx-powerpc {
 	    lappend res macosx-universal
 	}
 	macos*-x86_64 {
+	    foreach m {macosx macos} {
+	        if {${m}-x86_64 ni $res} {
+	            lappend res ${m}-x86_64
+	        }
+	    }
 	    lappend res macosx-i386-x86_64 macosx-universal2
 	}
 	macos*-ix86 {
