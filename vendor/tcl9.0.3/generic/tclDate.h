@@ -319,7 +319,7 @@ typedef struct ClockLastTZOffs {
  * Structure containing the client data for [clock]
  */
 
-typedef struct ClockClientData {
+struct ClockClientData {
     size_t refCount;		/* Number of live references. */
     Tcl_Obj **literals;		/* Pool of object literals (common, locale independent). */
     Tcl_Obj **mcLiterals;	/* Msgcat object literals with mc-keys for search with locale. */
@@ -371,7 +371,7 @@ typedef struct ClockClientData {
 
     int defFlags;		    /* Default flags (from configure), ATM
 				     * only CLF_VALIDATE supported */
-} ClockClientData;
+};
 
 #define ClockDefaultYearCentury 2000
 #define ClockDefaultCenturySwitch 38
