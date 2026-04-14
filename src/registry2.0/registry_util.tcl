@@ -178,7 +178,7 @@ proc run_target {port target options} {
 ## Create and configure a tdbc connection to the registry
 proc tdbc_connect {args} {
     variable tdbc_connection
-    set reg_path [::file join ${macports::registry.path} registry registry.db]
+    set reg_path [::file join ${::macports::registry.path} registry registry.db]
     set tdbc_connection [tdbc::sqlite3::connection new $reg_path]
     trace remove variable tdbc_connection read registry::tdbc_connect
     set stmt [$tdbc_connection prepare {PRAGMA foreign_keys = ON}]
