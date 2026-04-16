@@ -436,22 +436,59 @@ proc selfupdate::install {source} {
     }
     ui_debug "Permissions OK"
 
-    set configure_args [list \
-                        --prefix=$prefix \
-                        --with-install-user=$owner \
-                        --with-install-group=$group \
-                        --with-directory-mode=$perms]
+    # Read previously saved configure arguments if available
+    set saved_args_file [file join $prefix share macports configure_args]
+    if {[file isfile $saved_args_file]} {
+        set fd [open $saved_args_file r]
+        set saved_args_string [string trim [read $fd]]
+        close $fd
+        ui_debug "Using saved configure arguments: $saved_args_string"
+        # Parse the saved arguments, handling shell quoting
+        set configure_args [list]
+        set in_quote 0
+        set current_arg {}
+        foreach char [split $saved_args_string {}] {
+            if {$char eq "'"} {
+                set in_quote [expr {!$in_quote}]
+            } elseif {$char eq " " && !$in_quote} {
+                if {$current_arg ne {}} {
+                    lappend configure_args $current_arg
+                    set current_arg {}
+                }
+            } else {
+                append current_arg $char
+            }
+        }
+        if {$current_arg ne {}} {
+            lappend configure_args $current_arg
+        }
+    } else {
+        ui_debug "No saved configure arguments found, reconstructing"
+        set configure_args [list \
+                            --prefix=$prefix \
+                            --with-install-user=$owner \
+                            --with-install-group=$group \
+                            --with-directory-mode=$perms]
+
+        if {$prefix eq "/usr/local" || $prefix eq "/usr"} {
+            lappend configure_args --with-unsupported-prefix
+        }
+    }
 
     # too many users have an incompatible readline in /usr/local, see ticket #10651
     if {$os_platform ne "darwin" || $prefix eq "/usr/local"
         || ([glob -nocomplain /usr/local/lib/lib{readline,history}*] eq "" && [glob -nocomplain /usr/local/include/readline/*.h] eq "")} {
-        lappend configure_args --enable-readline
+        # Add --enable-readline if not already present
+        if {"--enable-readline" ni $configure_args} {
+            lappend configure_args --enable-readline
+        }
     } else {
         ui_warn "Disabling readline support due to readline in /usr/local"
-    }
-
-    if {$prefix eq "/usr/local" || $prefix eq "/usr"} {
-        lappend configure_args --with-unsupported-prefix
+        # Remove any saved --enable-readline
+        set idx [lsearch -exact $configure_args --enable-readline]
+        if {$idx != -1} {
+            set configure_args [lreplace $configure_args $idx $idx]
+        }
     }
 
     set configure_args_string [join [lmap arg $configure_args {macports::shellescape $arg}]]
