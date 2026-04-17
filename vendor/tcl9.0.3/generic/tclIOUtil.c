@@ -2750,22 +2750,26 @@ Tcl_FSGetCwd(
 	    TclFSGetCwdProc2 *proc2 = (TclFSGetCwdProc2 *) fsPtr->getCwdProc;
 
 	    retCd = proc2(tsdPtr->cwdClientData);
-	    if (retCd == NULL && interp != NULL) {
-		Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-			"error getting working directory name: %s",
-			Tcl_PosixError(interp)));
+	    if (retCd == NULL) {
+		if (interp != NULL) {
+		    Tcl_SetObjResult(interp,
+			Tcl_ObjPrintf(
+			    "error getting working directory name: %s",
+			    Tcl_PosixError(interp)));
+		}
+		retVal = NULL;
+	    } else {
+		if (retCd == tsdPtr->cwdClientData) {
+		    goto cdDidNotChange;
+		}
+
+		/*
+		 * Looks like a new current directory.
+		 */
+
+		retVal = fsPtr->internalToNormalizedProc(retCd);
+		Tcl_IncrRefCount(retVal);
 	    }
-
-	    if (retCd == tsdPtr->cwdClientData) {
-		goto cdDidNotChange;
-	    }
-
-	    /*
-	     * Looks like a new current directory.
-	     */
-
-	    retVal = fsPtr->internalToNormalizedProc(retCd);
-	    Tcl_IncrRefCount(retVal);
 	}
 
 	if (retVal == NULL) {
