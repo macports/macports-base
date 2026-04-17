@@ -7397,10 +7397,10 @@ proc macports::get_archive_sites_conf_values {} {
                                 foreach url $trimmedval {
                                     lappend processed_urls ${url}:nosubdir
                                 }
-                                lappend archive_sites_conf_values portfetch::mirror_sites::sites($cur_name) $processed_urls
+                                lappend archive_sites_conf_values ::portfetch::mirror_sites::sites($cur_name) $processed_urls
                                 set sites($cur_name) $processed_urls
                             } else {
-                                lappend archive_sites_conf_values portfetch::mirror_sites::archive_${option}($cur_name) $trimmedval
+                                lappend archive_sites_conf_values ::portfetch::mirror_sites::archive_${option}($cur_name) $trimmedval
                                 set archive_${option}($cur_name) $trimmedval
                             }
                         } else {
@@ -7418,17 +7418,17 @@ proc macports::get_archive_sites_conf_values {} {
                 foreach key [array names defaults] {
                     if {![info exists archive_${key}($cur_name)]} {
                         set archive_${key}($cur_name) $defaults($key)
-                        lappend archive_sites_conf_values portfetch::mirror_sites::archive_${key}($cur_name) $defaults($key)
+                        lappend archive_sites_conf_values ::portfetch::mirror_sites::archive_${key}($cur_name) $defaults($key)
                     }
                 }
                 if {![info exists archive_frameworks_dir($cur_name)]} {
                     set archive_frameworks_dir($cur_name) $archive_prefix($cur_name)/Library/Frameworks
-                    lappend archive_sites_conf_values portfetch::mirror_sites::archive_frameworks_dir($cur_name) $archive_frameworks_dir($cur_name)
+                    lappend archive_sites_conf_values ::portfetch::mirror_sites::archive_frameworks_dir($cur_name) $archive_frameworks_dir($cur_name)
                 }
                 if {![info exists sites($cur_name)]} {
                     ui_warn "archive_sites.conf: no urls set for $cur_name"
                     set sites($cur_name) {}
-                    lappend archive_sites_conf_values portfetch::mirror_sites::sites($cur_name) {}
+                    lappend archive_sites_conf_values ::portfetch::mirror_sites::sites($cur_name) {}
                 }
             }
         }
