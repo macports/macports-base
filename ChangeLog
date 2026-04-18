@@ -6,14 +6,25 @@ Release 2.13.0 (unreleased)
     - Added a -T flag to prepend ISO 8601 timestamps to each line of
       output, and elapsed time logging for each phase.
       (#2020, herbygillot in 037d168)
-    - Update the bundled copy of Tcl to version 9
-      (jmr in https://github.com/macports/macports-base/pull/406)
-    - Add blake3 as new supported checksum type
-      (herbygillot in 1dadbbf8b, #63885)
-    - Add livecheck.user_agent option
-      (herbygillot in 0d4b57b05, #64369)
-    - Fix trace mode on arm64 for macOS > 14
-      (cal in https://github.com/macports/macports-base/pull/404, #66358)
+
+    - Update the bundled copy of Tcl to version 9.0.3. (jmr in d875700)
+
+    - Add blake3 as new supported checksum type.
+      (#63885, herbygillot in 1dadbbf8b)
+
+    - Add livecheck.user_agent option.
+      (#64369, herbygillot in 0d4b57b05)
+
+    - Fix trace mode on arm64 for macOS > 14.
+      (#66358, cal in aacd364)
+
+Release 2.12.5 (unreleased)
+    - Fixed upgrade --force sometimes failing when an archive cannot be
+      fetched, instead of falling back to building from source.
+      (#73659, jmr in 737d844)
+
+    - Ensure that 'port clean --archive' also removes all associated
+      signature files if present. (jmr in 3e46372)
 
 Release 2.12.4 (2026-03-18 by jmr)
     - Fixed occasional lchown errors when upgrading ports.
