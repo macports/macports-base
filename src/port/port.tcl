@@ -3937,118 +3937,131 @@ proc action_target { action portlist opts } {
     set status 0
     global global_variations macports::ui_options
     set gvariations [dict create {*}[array get global_variations]]
-    set ops [list]
-    foreachport $portlist {
-        set portinfo ""
-        # If we have a url, use that, since it's most specific
-        # otherwise try to map the portname to a url
-        if {$porturl eq ""} {
-            # Verify the portname, getting portinfo to map to a porturl
-            if {[catch {set res [mportlookup $portname]} result]} {
-                ui_debug $::errorInfo
-                break_softcontinue "lookup of portname $portname failed: $result" 1 status
-            }
-            if {[llength $res] < 2} {
-                # don't error for ports that are installed but not in the tree
-                if {[registry::entry imaged $portname] ne ""} {
-                    ui_warn "Skipping $portname (not in the ports tree)"
-                    continue
-                } else {
-                    break_softcontinue "Port $portname not found" 1 status
-                }
-            }
-            lassign $res portname portinfo
-            set porturl [dict get $portinfo porturl]
-        }
-
-        # If version was specified, it can be a version glob for use
-        # with the clean action. For other actions, error out if we're
-        # being asked for a version we can't provide.
-        if {[string length $portversion]} {
-            if {$action eq "clean"} {
-                dict set options ports_version_glob $portversion
-            } elseif {[dict exists $portmetadata explicit_version] && [dict exists $portinfo version] \
-                    && $portversion ne "[dict get $portinfo version]_[dict get $portinfo revision]" && $portversion ne [dict get $portinfo version]} {
-                break_softcontinue "$portname version $portversion is not available (current version is [dict get $portinfo version]_[dict get $portinfo revision])" 1 status
-            }
-        }
-
-        # use existing variants iff none were explicitly requested
-        if {$requested_variations eq "" && $variations ne ""} {
-            set requested_variations $variations
-        }
-
-        # Add any global_variations to the variations
-        # specified for the port
-        set requested_variations [dict merge $gvariations $requested_variations]
-
-        if {$action eq "install"} {
-            if {[dict exists $portinfo replaced_by] && ![dict exists $options ports_install_no-replace]} {
-                ui_notice "$portname is replaced by [dict get $portinfo replaced_by]"
-                set portname [dict get $portinfo replaced_by]
-                if {[catch {mportlookup $portname} result]} {
+    while {[llength $portlist] > 0} {
+        set ops [list]
+        set portlist_index 0
+        foreachport $portlist {
+            incr portlist_index
+            set portinfo {}
+            # If we have a url, use that, since it's most specific
+            # otherwise try to map the portname to a url
+            if {$porturl eq ""} {
+                # Verify the portname, getting portinfo to map to a porturl
+                if {[catch {set res [mportlookup $portname]} result]} {
                     ui_debug $::errorInfo
                     break_softcontinue "lookup of portname $portname failed: $result" 1 status
-                } elseif {[llength $result] < 2} {
-                    break_softcontinue "Port $portname not found" 1 status
                 }
-                lassign $result portname portinfo
+                if {[llength $res] < 2} {
+                    # don't error for ports that are installed but not in the tree
+                    if {[registry::entry imaged $portname] ne ""} {
+                        ui_warn "Skipping $portname (not in the ports tree)"
+                        continue
+                    } else {
+                        break_softcontinue "Port $portname not found" 1 status
+                    }
+                }
+                lassign $res portname portinfo
                 set porturl [dict get $portinfo porturl]
             }
-            if {[dict exists $portinfo known_fail] && [string is true -strict [dict get $portinfo known_fail]]
-                && ![dict exists $options ports_install_allow-failing]} {
-                if {[info exists ui_options(questions_yesno)]} {
-                    set retvalue [$ui_options(questions_yesno) "$portname is known to fail." "KnownFail" {} {n} 0 "Try to install anyway?"]
-                    if {$retvalue != 0} {
-                        break_softcontinue "$portname is known to fail" 1 status
-                    }
-                } else {
-                    break_softcontinue "$portname is known to fail (use --allow-failing to try to install anyway)" 1 status
+
+            # If version was specified, it can be a version glob for use
+            # with the clean action. For other actions, error out if we're
+            # being asked for a version we can't provide.
+            if {[string length $portversion]} {
+                if {$action eq "clean"} {
+                    dict set options ports_version_glob $portversion
+                } elseif {[dict exists $portmetadata explicit_version] && [dict exists $portinfo version] \
+                        && $portversion ne "[dict get $portinfo version]_[dict get $portinfo revision]" && $portversion ne [dict get $portinfo version]} {
+                    break_softcontinue "$portname version $portversion is not available (current version is [dict get $portinfo version]_[dict get $portinfo revision])" 1 status
                 }
             }
-            if {[dict exists $options ports_install_allow-failing]} {
-                dict set options ignore_known_fail 1
-            }
-            # mark the port as explicitly requested
-            if {![dict exists $options ports_install_unrequested]} {
-                dict set options ports_requested 1
-            }
-            # signal intent to install
-            dict set options mport_hint_install 1
-            # we actually activate as well by default
-            if {![dict exists $options ports_install_no-activate]} {
-                set target activate
-            } else {
-                set target install
-            }
-        } else {
-            set target $action
-        }
-        if {![dict exists $options subport]} {
-            dict set options subport $portname
-        }
-        if {[catch {set mport [mportopen $porturl $options $requested_variations]} result]} {
-            ui_debug $::errorInfo
-            break_softcontinue "Unable to open port $portname: $result" 1 status
-        }
-        macports::target_hint $mport $target
-        lappend ops $mport $portname $target
-    }
-    if {$status == 0} {
-        foreach {mport portname target} $ops {
-            if {[catch {mportexec $mport $target} result]} {
-                ui_debug $::errorInfo
-                mportclose $mport
-                break_softcontinue "Unable to execute port $portname: $result" 1 status
-            }
-            mportclose $mport
 
-            # Process any error that wasn't thrown and handled already
-            if {$result} {
-                print_tickets_url
-                break_softcontinue "Processing of port $portname failed" 1 status
+            # use existing variants iff none were explicitly requested
+            if {$requested_variations eq "" && $variations ne ""} {
+                set requested_variations $variations
+            }
+
+            # Add any global_variations to the variations
+            # specified for the port
+            set requested_variations [dict merge $gvariations $requested_variations]
+
+            if {$action eq "install"} {
+                if {[dict exists $portinfo replaced_by] && ![dict exists $options ports_install_no-replace]} {
+                    ui_notice "$portname is replaced by [dict get $portinfo replaced_by]"
+                    set portname [dict get $portinfo replaced_by]
+                    if {[catch {mportlookup $portname} result]} {
+                        ui_debug $::errorInfo
+                        break_softcontinue "lookup of portname $portname failed: $result" 1 status
+                    } elseif {[llength $result] < 2} {
+                        break_softcontinue "Port $portname not found" 1 status
+                    }
+                    lassign $result portname portinfo
+                    set porturl [dict get $portinfo porturl]
+                }
+                if {[dict exists $portinfo known_fail] && [string is true -strict [dict get $portinfo known_fail]]
+                    && ![dict exists $options ports_install_allow-failing]} {
+                    if {[info exists ui_options(questions_yesno)]} {
+                        set retvalue [$ui_options(questions_yesno) "$portname is known to fail." "KnownFail" {} {n} 0 "Try to install anyway?"]
+                        if {$retvalue != 0} {
+                            break_softcontinue "$portname is known to fail" 1 status
+                        }
+                    } else {
+                        break_softcontinue "$portname is known to fail (use --allow-failing to try to install anyway)" 1 status
+                    }
+                }
+                if {[dict exists $options ports_install_allow-failing]} {
+                    dict set options ignore_known_fail 1
+                }
+                # mark the port as explicitly requested
+                if {![dict exists $options ports_install_unrequested]} {
+                    dict set options ports_requested 1
+                }
+                # signal intent to install
+                dict set options mport_hint_install 1
+                # we actually activate as well by default
+                if {![dict exists $options ports_install_no-activate]} {
+                    set target activate
+                } else {
+                    set target install
+                }
+            } else {
+                set target $action
+            }
+            if {![dict exists $options subport]} {
+                dict set options subport $portname
+            }
+            if {[catch {set mport [mportopen $porturl $options $requested_variations]} result]} {
+                ui_debug $::errorInfo
+                break_softcontinue "Unable to open port $portname: $result" 1 status
+            }
+            macports::target_hint $mport $target
+            lappend ops $mport $portname $target
+            if {[llength $ops] / 3 >= [macports::get_target_batch_size $target]} {
+                break
             }
         }
+        if {$status == 0} {
+            foreach {mport portname target} $ops {
+                if {[catch {mportexec $mport $target} result]} {
+                    ui_debug $::errorInfo
+                    break_softcontinue "Unable to execute port $portname: $result" 1 status
+                }
+                mportclose $mport
+
+                # Process any error that wasn't thrown and handled already
+                if {$result} {
+                    print_tickets_url
+                    break_softcontinue "Processing of port $portname failed" 1 status
+                }
+            }
+        }
+        if {$status != 0} {
+            foreach {mport portname target} $ops {
+                catch {mportclose $mport}
+            }
+            break
+        }
+        set portlist [lrange $portlist $portlist_index end]
     }
 
     if {$status == 0 && $action eq "install" && ![macports::global_option_isset ports_dryrun]} {

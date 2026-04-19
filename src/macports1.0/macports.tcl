@@ -2950,6 +2950,16 @@ proc macports::target_hint {mport target} {
     }
 }
 
+# Return the recommended maximum batch size for the given target, i.e.
+# how many mports it is beneficial to open at once and call target_hint
+# on before executing the target on them.
+proc macports::get_target_batch_size {target} {
+    if {$target eq "livecheck"} {
+        return 100
+    }
+    return 1
+}
+
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
