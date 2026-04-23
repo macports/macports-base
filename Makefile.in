@@ -44,7 +44,7 @@ install::
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
 	./config.status --config > "$(DESTDIR)${datadir}/macports/configure_args"
 	chown "${DSTUSR}:${DSTGRP}" "$(DESTDIR)${datadir}/macports/configure_args"
-	chmod 444 "$(DESTDIR)${datadir}/macports/configure_args"
+	chmod 644 "$(DESTDIR)${datadir}/macports/configure_args"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/keys/base"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/keys/ports"
