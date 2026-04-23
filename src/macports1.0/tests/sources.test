@@ -1,0 +1,588 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+::tcltest::configure {*}$::argv
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../macports_test_autoconf.tcl
+package require macports 1.0
+
+proc extract_tcl_block {lines pattern} {
+    set collecting 0
+    set depth 0
+    set body {}
+
+    foreach line $lines {
+        if {!$collecting} {
+            if {[string match $pattern $line]} {
+                set collecting 1
+            } else {
+                continue
+            }
+        }
+
+        append body $line \n
+        incr depth [expr {[llength [regexp -all -inline {\{} $line]]
+                          - [llength [regexp -all -inline {\}} $line]]}]
+        if {$depth <= 0} {
+            break
+        }
+    }
+
+    if {$body eq {}} {
+        error "Could not extract block matching '$pattern'"
+    }
+    return $body
+}
+
+# Load source-management helpers from local macports.tcl so the tests exercise
+# the rebased implementation even before it is installed.
+set _fd [open ../macports.tcl r]
+set _macports_lines [split [read $_fd] \n]
+close $_fd
+foreach _proc {
+    source_parse_flags
+    source_order_flags
+    source_render_line
+    source_validate_url
+    source_parse_line
+    source_read_conf
+    source_render_record
+    source_write_conf
+    source_normalize_url
+    source_add
+    source_remove
+    source_set_default
+    source_unset_default
+} {
+    eval [extract_tcl_block $_macports_lines "proc macports::${_proc} *"]
+}
+
+# Load the frontend action and option registration from local port.tcl.
+set _fd [open ../../port/port.tcl r]
+set _port_lines [split [read $_fd] \n]
+close $_fd
+eval [extract_tcl_block $_port_lines "proc action_source *"]
+eval [extract_tcl_block $_port_lines "set cmd_opts_array *"]
+
+unset -nocomplain _fd _macports_lines _port_lines _proc
+
+source ./library.tcl
+source ./init_tmp_prefix.tcl
+
+# Clean leftovers from interrupted tests.
+file delete -force $pwd/tmpdir
+init_tmp_prefix $pwd $pwd/tmpdir
+
+# Create real directories for file:// URL tests.
+file mkdir $pwd/tmpdir/source_a
+file mkdir $pwd/tmpdir/source_b
+
+array set ui_options {}
+set ui_options(ports_noninteractive) yes
+mportinit ui_options
+
+set default_source_url "rsync://rsync.macports.org/macports/release/tarballs/ports.tar"
+set encoded_remote_url "https://example.com/path%20with%20space.tar"
+set invalid_remote_url "https://example.com/path with space.tar"
+
+proc conf_text {lines} {
+    return "[join $lines \n]\n"
+}
+
+proc source_line {url {flags {}}} {
+    return [macports::source_render_line $url $flags]
+}
+
+proc default_conf {} {
+    global default_source_url
+    return [conf_text [list \
+        "# MacPorts sources" \
+        "# another comment" \
+        "" \
+        [source_line $default_source_url {default}]]]
+}
+
+proc read_conf {} {
+    set fd [open $macports::sources_conf r]
+    set content [read $fd]
+    close $fd
+    return $content
+}
+
+proc write_conf {content} {
+    set fd [open $macports::sources_conf w]
+    puts -nonewline $fd $content
+    close $fd
+}
+
+proc run_action_source {portlist opts} {
+    array set saved_commands {}
+    foreach name {ui_msg ui_warn ui_error ui_debug} {
+        if {[llength [info commands ::$name]] > 0} {
+            rename ::$name ::__saved_$name
+            set saved_commands($name) 1
+        }
+    }
+
+    set ::captured_ui(msg) {}
+    set ::captured_ui(warn) {}
+    set ::captured_ui(error) {}
+    set ::captured_ui(debug) {}
+    proc ::ui_msg {message} {
+        lappend ::captured_ui(msg) $message
+    }
+    proc ::ui_warn {message} {
+        lappend ::captured_ui(warn) $message
+    }
+    proc ::ui_error {message} {
+        lappend ::captured_ui(error) $message
+    }
+    proc ::ui_debug {message} {
+        lappend ::captured_ui(debug) $message
+    }
+
+    set code [catch {action_source source $portlist $opts} result options]
+    set payload [dict create \
+        code $code \
+        result $result \
+        options $options \
+        msg $::captured_ui(msg) \
+        warn $::captured_ui(warn) \
+        error $::captured_ui(error) \
+        debug $::captured_ui(debug)]
+
+    rename ::ui_msg {}
+    rename ::ui_warn {}
+    rename ::ui_error {}
+    rename ::ui_debug {}
+    catch {unset ::captured_ui}
+
+    foreach name {ui_msg ui_warn ui_error ui_debug} {
+        if {[info exists saved_commands($name)]} {
+            rename ::__saved_$name ::$name
+        }
+    }
+
+    return $payload
+}
+
+set setup_sources {
+    set saved_sources_conf ${macports::sources_conf}
+    set saved_sources ${macports::sources}
+
+    set temp_conf [makeFile [default_conf] sources_test.conf]
+    set macports::sources_conf $temp_conf
+    set macports::sources [list [list $default_source_url default]]
+}
+
+set cleanup_sources {
+    set macports::sources_conf $saved_sources_conf
+    set macports::sources $saved_sources
+    removeFile sources_test.conf
+}
+
+test source_add_append_preserves_structure {
+    source_add appends through the rewrite path while preserving comments, blank
+    lines, and a single trailing newline.
+} -setup $setup_sources -body {
+    macports::source_add $encoded_remote_url
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        "# another comment" \
+        "" \
+        [source_line $default_source_url {default}] \
+        [source_line $encoded_remote_url]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: appended sources.conf did not match expected contents"
+    }
+    return "append rewrite preserved structure."
+} -cleanup $cleanup_sources -result "append rewrite preserved structure."
+
+test source_add_first_preserves_leading_comments {
+    source_add with first=1 inserts before the first source entry, but not above
+    leading comments or blank lines.
+} -setup $setup_sources -body {
+    set local_source "file://[file normalize $pwd/tmpdir/source_a]"
+    macports::source_add $local_source 1 0
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        "# another comment" \
+        "" \
+        [source_line $local_source] \
+        [source_line $default_source_url {default}]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: first insertion did not preserve leading structure"
+    }
+    return "first insertion preserved comments."
+} -cleanup $cleanup_sources -result "first insertion preserved comments."
+
+test source_add_default_and_nosync {
+    source_add writes managed flags in stable order and clears any existing
+    explicit default.
+} -setup $setup_sources -body {
+    set local_source "file://[file normalize $pwd/tmpdir/source_b]"
+    macports::source_add $local_source 0 1 1
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        "# another comment" \
+        "" \
+        [source_line $default_source_url] \
+        [source_line $local_source {nosync default}]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: add with nosync/default produced unexpected contents"
+    }
+    return "managed flags written in stable order."
+} -cleanup $cleanup_sources -result "managed flags written in stable order."
+
+test source_add_local_path_with_spaces {
+    source_add accepts a local path containing spaces and writes it as a file://
+    source without encoding the spaces.
+} -setup $setup_sources -body {
+    set local_dir [file join $pwd/tmpdir "Source With Spaces"]
+    file mkdir $local_dir
+    macports::source_add $local_dir
+    set written_url "file://[file normalize $local_dir]"
+    if {[string first [source_line $written_url] [read_conf]] < 0} {
+        return "FAIL: local path with spaces was not written as a file:// source"
+    }
+    return "local path with spaces added."
+} -cleanup {
+    file delete -force [file join $pwd/tmpdir "Source With Spaces"]
+    eval $cleanup_sources
+} -result "local path with spaces added."
+
+test source_add_tilde_path_tcl9 {
+    source_add expands a tilde path with file tildeexpand before normalize,
+    which is required on Tcl 9.
+} -setup $setup_sources -body {
+    set test_dir [file join $macports::portdbpath home "test ports"]
+    file mkdir $test_dir
+    macports::source_add "~/test ports"
+    set expected_url "file://[file normalize $test_dir]"
+    if {[string first [source_line $expected_url] [read_conf]] < 0} {
+        return "FAIL: tilde path was not normalized as expected"
+    }
+    return "tilde path expanded correctly."
+} -cleanup {
+    file delete -force [file join $macports::portdbpath home "test ports"]
+    eval $cleanup_sources
+} -result "tilde path expanded correctly."
+
+test source_add_rejects_nonfile_spaces {
+    source_add rejects literal spaces in non-file URLs instead of silently
+    auto-encoding them.
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_add $invalid_remote_url} err]
+    if {$rc == 0} {
+        return "FAIL: non-file URL with spaces unexpectedly succeeded"
+    }
+    if {![string match "*Invalid source URL*" $err]} {
+        return "FAIL: unexpected error for invalid remote URL: $err"
+    }
+    return "non-file URL with spaces rejected."
+} -cleanup $cleanup_sources -result "non-file URL with spaces rejected."
+
+test source_add_accepts_encoded_nonfile_url {
+    source_add accepts an already-encoded non-file URL unchanged.
+} -setup $setup_sources -body {
+    macports::source_add $encoded_remote_url
+    if {[string first [source_line $encoded_remote_url] [read_conf]] < 0} {
+        return "FAIL: encoded remote URL was not preserved verbatim"
+    }
+    return "encoded remote URL preserved."
+} -cleanup $cleanup_sources -result "encoded remote URL preserved."
+
+test source_add_duplicate {
+    source_add returns the duplicate sentinel for an already-listed source.
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_add $default_source_url} err]
+    if {$rc == 0} {
+        return "FAIL: duplicate source unexpectedly succeeded"
+    }
+    if {$err ne "duplicate"} {
+        return "FAIL: expected duplicate sentinel, got '$err'"
+    }
+    return "duplicate source rejected."
+} -cleanup $cleanup_sources -result "duplicate source rejected."
+
+test source_remove_deleted_local_path {
+    source_remove accepts a bare local path even after the underlying directory
+    has been deleted.
+} -setup $setup_sources -body {
+    set stale_dir [file join $pwd/tmpdir stale_source]
+    file mkdir $stale_dir
+    set stale_url "file://[file normalize $stale_dir]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default}] \
+        [source_line $stale_url]]]
+    file delete -force $stale_dir
+    macports::source_remove $stale_dir
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default}]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: stale local source was not removed correctly"
+    }
+    return "stale local path removed."
+} -cleanup $cleanup_sources -result "stale local path removed."
+
+test source_remove_default_reports_removed_default {
+    source_remove returns removed_default=1 when removing the only default source
+    and does not auto-promote another source.
+} -setup $setup_sources -body {
+    set local_dir [file join $pwd/tmpdir local_default_source]
+    file mkdir $local_dir
+    set local_url "file://[file normalize $local_dir]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $local_url {default}] \
+        [source_line $encoded_remote_url]]]
+    set result [macports::source_remove $local_dir]
+    if {![dict get $result removed_default]} {
+        return "FAIL: removed_default was not set"
+    }
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $encoded_remote_url]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: remaining source was unexpectedly modified"
+    }
+    return "remove reported removed_default without promotion."
+} -cleanup {
+    file delete -force [file join $pwd/tmpdir local_default_source]
+    eval $cleanup_sources
+} -result "remove reported removed_default without promotion."
+
+test source_remove_default_with_remaining_default {
+    source_remove returns has_remaining_default=1 when another source still
+    carries the default flag.
+} -setup $setup_sources -body {
+    set secondary_url "file://[file normalize $pwd/tmpdir/source_a]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default}] \
+        [source_line $secondary_url {default}]]]
+    set result [macports::source_remove $default_source_url]
+    if {![dict get $result removed_default]} {
+        return "FAIL: removed_default was not set"
+    }
+    if {![dict get $result has_remaining_default]} {
+        return "FAIL: has_remaining_default was not set"
+    }
+    return "remove detected remaining default."
+} -cleanup $cleanup_sources -result "remove detected remaining default."
+
+test source_set_default_preserves_unknown_flags {
+    source_set_default clears the explicit default from other sources while
+    preserving any unknown flags on all rewritten lines.
+} -setup $setup_sources -body {
+    set secondary_url "file://[file normalize $pwd/tmpdir/source_a]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default shadow}] \
+        [source_line $secondary_url {custom}]]]
+    macports::source_set_default $secondary_url
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {shadow}] \
+        [source_line $secondary_url {default custom}]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: set-default did not preserve unknown flags as expected"
+    }
+    return "set-default preserved unknown flags."
+} -cleanup $cleanup_sources -result "set-default preserved unknown flags."
+
+test source_unset_default_preserves_other_flags {
+    source_unset_default removes only the explicit default flag from the target
+    source.
+} -setup $setup_sources -body {
+    set target_url "file://[file normalize $pwd/tmpdir/source_b]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default}] \
+        [source_line $target_url {nosync default shadow}]]]
+    macports::source_unset_default $target_url
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default}] \
+        [source_line $target_url {nosync shadow}]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: unset-default removed more than the default flag"
+    }
+    return "unset-default preserved other flags."
+} -cleanup $cleanup_sources -result "unset-default preserved other flags."
+
+test source_remove_not_found {
+    source_remove returns the not-found sentinel for an unlisted source.
+} -setup $setup_sources -body {
+    set rc [catch {macports::source_remove "rsync://example.org/missing"} err]
+    if {$rc == 0} {
+        return "FAIL: removing a missing source unexpectedly succeeded"
+    }
+    if {$err ne "not-found"} {
+        return "FAIL: expected not-found sentinel, got '$err'"
+    }
+    return "missing source rejected."
+} -cleanup $cleanup_sources -result "missing source rejected."
+
+test port_source_cmd_opts_include_new_flags {
+    The source action accepts the new frontend flags and subcommands.
+} -body {
+    set source_opts [dict get $cmd_opts_array source]
+    foreach opt {list add remove set-default unset-default first no-sync default} {
+        if {[lsearch -exact $source_opts $opt] < 0} {
+            return "FAIL: source option '$opt' missing from cmd_opts_array"
+        }
+    }
+    return "source action options updated."
+} -result "source action options updated."
+
+test action_source_rejects_invalid_invocations {
+    action_source rejects invalid flag combinations and malformed argument
+    counts.
+} -setup $setup_sources -body {
+    set cases [list \
+        [list [list extra] [dict create ports_source_list 1] {Usage: port source [--list]}] \
+        [list [list $default_source_url] [dict create ports_source_first 1] "--first may only be used with --add."] \
+        [list [list $default_source_url] [dict create ports_source_default 1] "--default may only be used with --add."] \
+        [list [list $default_source_url $encoded_remote_url] [dict create ports_source_add 1] {Usage: port source --add [--first] [--no-sync] [--default] <url>}] \
+        [list [list $default_source_url] [dict create ports_source_add 1 ports_source_remove 1] "Only one source operation may be specified at a time."]]
+
+    foreach case $cases {
+        lassign $case portlist opts expected
+        set response [run_action_source $portlist $opts]
+        if {[dict get $response code] != 0 || [dict get $response result] != 1} {
+            return "FAIL: invalid invocation did not return status 1"
+        }
+        if {[string first $expected [join [dict get $response error] \n]] < 0} {
+            return "FAIL: expected error '$expected', got '[join [dict get $response error] { | }]'"
+        }
+    }
+    return "invalid invocations rejected."
+} -cleanup $cleanup_sources -result "invalid invocations rejected."
+
+test action_source_add_remove_path_with_spaces {
+    action_source can add and remove a local path containing spaces, including
+    managed flags written through the backend rewrite helper.
+} -setup $setup_sources -body {
+    set local_dir [file join $pwd/tmpdir "Frontend Source With Spaces"]
+    file mkdir $local_dir
+
+    set add_response [run_action_source [list $local_dir] \
+        [dict create ports_source_add 1 ports_source_first 1 ports_source_no-sync 1 ports_source_default 1]]
+    if {[dict get $add_response code] != 0 || [dict get $add_response result] != 0} {
+        return "FAIL: action_source add did not succeed"
+    }
+
+    set local_url "file://[file normalize $local_dir]"
+    set expected_after_add [conf_text [list \
+        "# MacPorts sources" \
+        "# another comment" \
+        "" \
+        [source_line $local_url {nosync default}] \
+        [source_line $default_source_url]]]
+    if {[read_conf] ne $expected_after_add} {
+        return "FAIL: action_source add wrote unexpected sources.conf contents"
+    }
+
+    set remove_response [run_action_source [list $local_dir] [dict create ports_source_remove 1]]
+    if {[dict get $remove_response code] != 0 || [dict get $remove_response result] != 0} {
+        return "FAIL: action_source remove did not succeed"
+    }
+    if {[string first $local_url [read_conf]] >= 0} {
+        return "FAIL: action_source remove left the local source behind"
+    }
+    return "action_source add/remove handled spaced path."
+} -cleanup {
+    file delete -force [file join $pwd/tmpdir "Frontend Source With Spaces"]
+    eval $cleanup_sources
+} -result "action_source add/remove handled spaced path."
+
+test action_source_remove_warns_on_default_removal {
+    action_source warns when removing the only source marked as default and does
+    not auto-promote another source.
+} -setup $setup_sources -body {
+    set local_dir [file join $pwd/tmpdir "Frontend Default Source"]
+    file mkdir $local_dir
+    set local_url "file://[file normalize $local_dir]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $local_url {default}] \
+        [source_line $encoded_remote_url]]]
+
+    set response [run_action_source [list $local_dir] [dict create ports_source_remove 1]]
+    if {[dict get $response code] != 0 || [dict get $response result] != 0} {
+        return "FAIL: action_source remove did not succeed"
+    }
+    if {[string first "No source is now explicitly marked as the default" \
+            [join [dict get $response warn] \n]] < 0} {
+        return "FAIL: action_source remove did not warn about missing default"
+    }
+
+    set expected [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $encoded_remote_url]]]
+    if {[read_conf] ne $expected} {
+        return "FAIL: remaining source was unexpectedly modified"
+    }
+    return "action_source remove warned about default removal."
+} -cleanup {
+    file delete -force [file join $pwd/tmpdir "Frontend Default Source"]
+    eval $cleanup_sources
+} -result "action_source remove warned about default removal."
+
+test action_source_set_and_unset_default {
+    action_source exposes the new default-management commands and preserves
+    non-managed flags.
+} -setup $setup_sources -body {
+    set secondary_url "file://[file normalize $pwd/tmpdir/source_a]"
+    write_conf [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url {default}] \
+        [source_line $secondary_url {shadow}]]]
+
+    set set_response [run_action_source [list $secondary_url] [dict create ports_source_set-default 1]]
+    if {[dict get $set_response code] != 0 || [dict get $set_response result] != 0} {
+        return "FAIL: action_source set-default did not succeed"
+    }
+    set expected_after_set [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url] \
+        [source_line $secondary_url {default shadow}]]]
+    if {[read_conf] ne $expected_after_set} {
+        return "FAIL: action_source set-default wrote unexpected contents"
+    }
+
+    set unset_response [run_action_source [list $secondary_url] [dict create ports_source_unset-default 1]]
+    if {[dict get $unset_response code] != 0 || [dict get $unset_response result] != 0} {
+        return "FAIL: action_source unset-default did not succeed"
+    }
+    set expected_after_unset [conf_text [list \
+        "# MacPorts sources" \
+        [source_line $default_source_url] \
+        [source_line $secondary_url {shadow}]]]
+    if {[read_conf] ne $expected_after_unset} {
+        return "FAIL: action_source unset-default wrote unexpected contents"
+    }
+    return "action_source set/unset default succeeded."
+} -cleanup $cleanup_sources -result "action_source set/unset default succeeded."
+
+test action_source_rejects_nonfile_url_with_spaces {
+    action_source surfaces backend validation errors for non-file URLs with
+    literal spaces.
+} -setup $setup_sources -body {
+    set response [run_action_source [list $invalid_remote_url] [dict create ports_source_add 1]]
+    if {[dict get $response code] != 0 || [dict get $response result] != 1} {
+        return "FAIL: invalid add invocation did not return status 1"
+    }
+    if {[string first "Invalid source URL" [join [dict get $response error] \n]] < 0} {
+        return "FAIL: expected invalid source URL error, got '[join [dict get $response error] { | }]'"
+    }
+    return "action_source rejected invalid remote URL."
+} -cleanup $cleanup_sources -result "action_source rejected invalid remote URL."
+
+cleanupTests

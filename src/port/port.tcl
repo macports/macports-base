@@ -3914,6 +3914,175 @@ proc action_portcmds { action portlist opts } {
 }
 
 
+proc action_source { action portlist opts } {
+    global macports::sources_conf macports::sources
+
+    set usage_lines {
+        {  port source \[--list\]}
+        {  port source --add \[--first\] \[--no-sync\] \[--default\] <url>}
+        {  port source --remove <url>}
+        {  port source --set-default <url>}
+        {  port source --unset-default <url>}
+    }
+
+    # Determine which subcommand was requested; default to list.
+    set subcmds {}
+    foreach cmd {list add remove set-default unset-default} {
+        if {[dict exists $opts ports_source_$cmd]} {
+            lappend subcmds $cmd
+        }
+    }
+    if {[llength $subcmds] == 0} {
+        set command list
+    } elseif {[llength $subcmds] > 1} {
+        ui_error "Only one source operation may be specified at a time."
+        return 1
+    } else {
+        set command [lindex $subcmds 0]
+    }
+
+    set first [dict exists $opts ports_source_first]
+    set nosync [dict exists $opts ports_source_no-sync]
+    set make_default [dict exists $opts ports_source_default]
+
+    if {$command ne "add"} {
+        if {$first} {
+            ui_error "--first may only be used with --add."
+            return 1
+        }
+        if {$nosync} {
+            ui_error "--no-sync may only be used with --add."
+            return 1
+        }
+        if {$make_default} {
+            ui_error "--default may only be used with --add."
+            return 1
+        }
+    }
+
+    switch -- $command {
+        list {
+            if {[llength $portlist] != 0} {
+                ui_error "Usage: port source \[--list\]"
+                return 1
+            }
+            foreach src ${macports::sources} {
+                set url   [lindex $src 0]
+                set flags [lrange $src 1 end]
+                if {[llength $flags] > 0} {
+                    ui_msg "$url \[[join $flags ,]\]"
+                } else {
+                    ui_msg $url
+                }
+            }
+            return 0
+        }
+
+        add {
+            if {[llength $portlist] != 1} {
+                ui_error "Usage: port source --add \[--first\] \[--no-sync\] \[--default\] <url>"
+                return 1
+            }
+            set url [lindex $portlist 0]
+            if {[catch {macports::source_add $url $first $nosync $make_default} err]} {
+                ui_debug $::errorInfo
+                if {$err eq "duplicate"} {
+                    ui_error "Source '$url' is already listed in ${macports::sources_conf}."
+                } elseif {[string match "Insufficient privileges*" $err]} {
+                    ui_error $err
+                    ui_msg "Try running this command with sudo."
+                } else {
+                    ui_error $err
+                }
+                return 1
+            }
+            ui_msg "Source '$url' added to ${macports::sources_conf}."
+            ui_msg "Changes take effect the next time 'port' is invoked."
+            return 0
+        }
+
+        remove {
+            if {[llength $portlist] != 1} {
+                ui_error "Usage: port source --remove <url>"
+                return 1
+            }
+            set url [lindex $portlist 0]
+            if {[catch {set result [macports::source_remove $url]} err]} {
+                ui_debug $::errorInfo
+                if {$err eq "not-found"} {
+                    ui_error "Source '$url' not found in ${macports::sources_conf}."
+                } elseif {[string match "Insufficient privileges*" $err]} {
+                    ui_error $err
+                    ui_msg "Try running this command with sudo."
+                } else {
+                    ui_error $err
+                }
+                return 1
+            }
+            ui_msg "Source '$url' removed from ${macports::sources_conf}."
+            if {[dict get $result removed_default] && ![dict get $result has_remaining_default]} {
+                ui_warn "The removed source was marked as the default. No source is now explicitly marked as the default in ${macports::sources_conf}."
+            }
+            ui_msg "Changes take effect the next time 'port' is invoked."
+            return 0
+        }
+
+        set-default {
+            if {[llength $portlist] != 1} {
+                ui_error "Usage: port source --set-default <url>"
+                return 1
+            }
+            set url [lindex $portlist 0]
+            if {[catch {macports::source_set_default $url} err]} {
+                ui_debug $::errorInfo
+                if {$err eq "not-found"} {
+                    ui_error "Source '$url' not found in ${macports::sources_conf}."
+                } elseif {[string match "Insufficient privileges*" $err]} {
+                    ui_error $err
+                    ui_msg "Try running this command with sudo."
+                } else {
+                    ui_error $err
+                }
+                return 1
+            }
+            ui_msg "Source '$url' set as the default in ${macports::sources_conf}."
+            ui_msg "Changes take effect the next time 'port' is invoked."
+            return 0
+        }
+
+        unset-default {
+            if {[llength $portlist] != 1} {
+                ui_error "Usage: port source --unset-default <url>"
+                return 1
+            }
+            set url [lindex $portlist 0]
+            if {[catch {macports::source_unset_default $url} err]} {
+                ui_debug $::errorInfo
+                if {$err eq "not-found"} {
+                    ui_error "Source '$url' not found in ${macports::sources_conf}."
+                } elseif {[string match "Insufficient privileges*" $err]} {
+                    ui_error $err
+                    ui_msg "Try running this command with sudo."
+                } else {
+                    ui_error $err
+                }
+                return 1
+            }
+            ui_msg "Explicit default flag removed from source '$url' in ${macports::sources_conf}."
+            ui_msg "Changes take effect the next time 'port' is invoked."
+            return 0
+        }
+
+        default {
+            ui_error "Unknown source command '$command'."
+            foreach line $usage_lines {
+                ui_msg $line
+            }
+            return 1
+        }
+    }
+}
+
 proc action_sync { action portlist opts } {
     global global_options
     set status 0
@@ -4157,6 +4326,7 @@ set action_array [dict create \
     deactivate  [list action_deactivate     [ACTION_ARGS_PORTS]] \
     \
     select      [list action_select         [ACTION_ARGS_STRINGS]] \
+    source      [list action_source         [ACTION_ARGS_STRINGS]] \
     \
     sync        [list action_sync           [ACTION_ARGS_NONE]] \
     selfupdate  [list action_selfupdate     [ACTION_ARGS_NONE]] \
@@ -4319,6 +4489,7 @@ set cmd_opts_array [dict create {*}{
     mirror      {new}
     lint        {nitpick}
     select      {list set show summary}
+    source      {list add remove set-default unset-default first no-sync default}
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}
