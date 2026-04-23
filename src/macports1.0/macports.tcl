@@ -4118,6 +4118,82 @@ proc mportsync {{options {}}} {
 }
 
 ##
+# Compare a single string against a pattern using the given matchstyle.
+# An empty \a pattern is treated as "match anything" and returns 1.
+#
+# @param pattern The pattern to match against. Empty string matches anything.
+# @param str The string to test.
+# @param matchstyle One of \c exact, \c glob, or \c regexp.
+# @param case_sensitive boolean; "yes"/1 for case-sensitive, "no"/0 otherwise.
+# @return 1 on match, 0 otherwise.
+proc macports::_test_pattern {pattern str matchstyle case_sensitive} {
+    if {$pattern eq ""} {
+        return 1
+    }
+    switch -- $matchstyle {
+        exact {
+            if {$case_sensitive} {
+                return [string equal $pattern $str]
+            }
+            return [string equal -nocase $pattern $str]
+        }
+        glob {
+            if {$case_sensitive} {
+                return [string match $pattern $str]
+            }
+            return [string match -nocase $pattern $str]
+        }
+        regexp {
+            if {$case_sensitive} {
+                return [regexp -- $pattern $str]
+            }
+            return [regexp -nocase -- $pattern $str]
+        }
+    }
+    return -code error "_test_pattern: Unsupported matching style: ${matchstyle}."
+}
+
+##
+# Test whether any portgroup entry in \a entries matches \a pattern.
+#
+# Portgroup entries in the PortIndex are stored as {name version} lists. The
+# caller's \a pattern may be split on a \c @ delimiter into an optional name
+# portion and an optional version portion (either half may be empty). A
+# portgroup entry matches when its name matches the name-pattern AND its
+# version matches the version-pattern (the AND is under a single matchstyle;
+# empty halves match unconditionally). The split is on the last \c @ so that
+# patterns like \c foo@1.0 match a name of \c foo and version of \c 1.0.
+#
+# This per-entry matching is what makes \c "port search --portgroup python"
+# find all ports that use the python PortGroup of any version, while
+# \c "--portgroup python@1.0" filters to that specific version.
+#
+# @param pattern The user-supplied pattern, optionally containing an \c @
+#                separator.
+# @param entries The \c portgroups value from a PortIndex entry, a list of
+#                \c {name version} pairs.
+# @param matchstyle One of \c exact, \c glob, or \c regexp.
+# @param case_sensitive boolean.
+# @return 1 if any entry matches, 0 otherwise.
+proc macports::_test_portgroups_match {pattern entries matchstyle case_sensitive} {
+    set at_idx [string last @ $pattern]
+    if {$at_idx >= 0} {
+        set name_pat [string range $pattern 0 $at_idx-1]
+        set version_pat [string range $pattern $at_idx+1 end]
+    } else {
+        set name_pat $pattern
+        set version_pat ""
+    }
+    foreach pg $entries {
+        if {[_test_pattern $name_pat [lindex $pg 0] $matchstyle $case_sensitive]
+                && [_test_pattern $version_pat [lindex $pg 1] $matchstyle $case_sensitive]} {
+            return 1
+        }
+    }
+    return 0
+}
+
+##
 # Searches all configured port sources for a given pattern in a given field
 # using a given matching style and optional case-sensitivity.
 #
@@ -4149,6 +4225,8 @@ proc mportsync {{options {}}} {
 #                \li \c revision
 #                \li \c replaced_by
 #                \li \c installs_libs
+#                \li \c portgroups (matched per-entry; \a pattern may be of
+#                    the form \c NAME@VERSION where either half may be empty)
 # @return a list where each even index (starting with 0) contains the name of
 #         a matching port. Each entry at an odd index is followed by its
 #         corresponding line from the portindex, which can be passed to
@@ -4183,31 +4261,40 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                         set target [dict get $portinfo $field]
                     }
 
-                    switch -- $matchstyle {
-                        exact {
-                            if {$case_sensitive} {
-                                set compres [string compare $pattern $target]
-                            } else {
-                                set compres [string compare -nocase $pattern $target]
+                    if {$field eq "portgroups"} {
+                        # Match per-entry so users can write --portgroup NAME
+                        # to find all ports using any version of that
+                        # PortGroup, or --portgroup NAME@VERSION to filter
+                        # further.
+                        set matchres [macports::_test_portgroups_match \
+                            $pattern $target $matchstyle $case_sensitive]
+                    } else {
+                        switch -- $matchstyle {
+                            exact {
+                                if {$case_sensitive} {
+                                    set compres [string compare $pattern $target]
+                                } else {
+                                    set compres [string compare -nocase $pattern $target]
+                                }
+                                set matchres [expr {0 == $compres}]
                             }
-                            set matchres [expr {0 == $compres}]
-                        }
-                        glob {
-                            if {$case_sensitive} {
-                                set matchres [string match $pattern $target]
-                            } else {
-                                set matchres [string match -nocase $pattern $target]
+                            glob {
+                                if {$case_sensitive} {
+                                    set matchres [string match $pattern $target]
+                                } else {
+                                    set matchres [string match -nocase $pattern $target]
+                                }
                             }
-                        }
-                        regexp {
-                            if {$case_sensitive} {
-                                set matchres [regexp -- $pattern $target]
-                            } else {
-                                set matchres [regexp -nocase -- $pattern $target]
+                            regexp {
+                                if {$case_sensitive} {
+                                    set matchres [regexp -- $pattern $target]
+                                } else {
+                                    set matchres [regexp -nocase -- $pattern $target]
+                                }
                             }
-                        }
-                        default {
-                            return -code error "mportsearch: Unsupported matching style: ${matchstyle}."
+                            default {
+                                return -code error "mportsearch: Unsupported matching style: ${matchstyle}."
+                            }
                         }
                     }
 
@@ -7471,6 +7558,17 @@ proc macports::shellescape {arg} {
 # @return A list of associative arrays in serialized list format
 proc macports::unobscure_maintainers {list} {
     return [macports_util::unobscure_maintainers $list]
+}
+
+# Strip the filepath from live-parsed portgroup entries, keeping only
+# {name version}. The portgroups field from a live Portfile parse has
+# entries of the form {name version groupFile}; only name and version
+# are meaningful for PortIndex storage and user-facing display.
+#
+# @param entries A list of portgroup entries in {name version ?groupFile?} form
+# @return A list of portgroup entries in {name version} form
+proc macports::strip_portgroup_filepath {entries} {
+    return [lmap pg $entries {lrange $pg 0 1}]
 }
 
 # Get actual number of parallel jobs based on buildmakejobs, which may

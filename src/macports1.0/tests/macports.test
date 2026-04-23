@@ -938,7 +938,145 @@ test GetVCSUpdateCmd-none {
 
 # test updatevcs
 # test mportsync
-# test mportsearch
+
+test mportsearch_portgroups {
+    Test mportsearch with portgroups field.
+
+    Exercises both the legacy glob semantics ("*name*" patterns against the
+    portgroups field, which is what action_search auto-wildcards into) and
+    the new per-entry matching (exact name match, NAME@VERSION filtering,
+    version-only filtering) that mportsearch now performs when searching
+    the portgroups field.
+} -setup {
+    # Create a temporary source directory with a crafted PortIndex. Include
+    # multiple ports using different versions of the same PortGroup so that
+    # we can exercise the NAME@VERSION filter.
+    set tmpdir [makeDirectory mportsearch_test_source $pwd/tmpdir]
+    set portinfo1 {description {A test port} portgroups {{python 1.0} {github 1.0}} homepage https://example.com epoch 0 platforms darwin name testport1 maintainers nomaintainer license MIT long_description {A test port} categories devel version 1.0 revision 0 portdir test/testport1}
+    set portinfo2 {description {Another test port} portgroups {{golang 1.0}} homepage https://example.com epoch 0 platforms darwin name testport2 maintainers nomaintainer license BSD long_description {Another test port} categories net version 2.0 revision 0 portdir test/testport2}
+    set portinfo3 {description {Port without portgroups} homepage https://example.com epoch 0 platforms darwin name testport3 maintainers nomaintainer license GPL-2 long_description {Port without portgroups} categories sysutils version 3.0 revision 0 portdir test/testport3}
+    set portinfo4 {description {Newer python port} portgroups {{python 1.1}} homepage https://example.com epoch 0 platforms darwin name testport4 maintainers nomaintainer license MIT long_description {Newer python port} categories devel version 1.0 revision 0 portdir test/testport4}
+    set portinfo5 {description {Newest python port} portgroups {{python 2.0}} homepage https://example.com epoch 0 platforms darwin name testport5 maintainers nomaintainer license MIT long_description {Newest python port} categories devel version 1.0 revision 0 portdir test/testport5}
+
+    set fd [open $tmpdir/PortIndex w]
+    puts $fd "testport1 [expr {[string length $portinfo1] + 1}]"
+    puts $fd $portinfo1
+    puts $fd "testport2 [expr {[string length $portinfo2] + 1}]"
+    puts $fd $portinfo2
+    puts $fd "testport3 [expr {[string length $portinfo3] + 1}]"
+    puts $fd $portinfo3
+    puts $fd "testport4 [expr {[string length $portinfo4] + 1}]"
+    puts $fd $portinfo4
+    puts $fd "testport5 [expr {[string length $portinfo5] + 1}]"
+    puts $fd $portinfo5
+    close $fd
+
+    # Save original sources and set up test source
+    set save_sources $macports::sources
+    set save_prefix_map $macports::porturl_prefix_map
+    set macports::sources [list "file://${tmpdir}"]
+    dict set macports::porturl_prefix_map "file://${tmpdir}" "file://${tmpdir}"
+
+    # Helper: return the sorted list of port names from an mportsearch result.
+    proc _names {results} {
+        set names [list]
+        foreach {name info} $results {
+            lappend names $name
+        }
+        return [lsort $names]
+    }
+} -body {
+    # --- Legacy glob semantics: "*name*" pattern, as produced by auto-
+    # wildcarding in action_search, should still match by portgroup name.
+    set names [_names [mportsearch "*python*" no glob portgroups]]
+    if {$names ne {testport1 testport4 testport5}} {
+        return "FAIL: glob '*python*' expected testport1/4/5, got $names"
+    }
+
+    set names [_names [mportsearch "*golang*" no glob portgroups]]
+    if {$names ne {testport2}} {
+        return "FAIL: glob '*golang*' expected testport2, got $names"
+    }
+
+    set names [_names [mportsearch "*github*" no glob portgroups]]
+    if {$names ne {testport1}} {
+        return "FAIL: glob '*github*' expected testport1, got $names"
+    }
+
+    set names [_names [mportsearch "*nonexistent*" no glob portgroups]]
+    if {$names ne {}} {
+        return "FAIL: glob '*nonexistent*' expected no matches, got $names"
+    }
+
+    # --- New exact name-match semantics: a bare portgroup name should
+    # match every port that uses that portgroup, regardless of version.
+    set names [_names [mportsearch python no exact portgroups]]
+    if {$names ne {testport1 testport4 testport5}} {
+        return "FAIL: exact 'python' expected testport1/4/5, got $names"
+    }
+
+    set names [_names [mportsearch github no exact portgroups]]
+    if {$names ne {testport1}} {
+        return "FAIL: exact 'github' expected testport1, got $names"
+    }
+
+    # --- NAME@VERSION: restrict to a specific portgroup version.
+    set names [_names [mportsearch python@1.0 no exact portgroups]]
+    if {$names ne {testport1}} {
+        return "FAIL: exact 'python@1.0' expected testport1, got $names"
+    }
+
+    set names [_names [mportsearch python@1.1 no exact portgroups]]
+    if {$names ne {testport4}} {
+        return "FAIL: exact 'python@1.1' expected testport4, got $names"
+    }
+
+    set names [_names [mportsearch python@2.0 no exact portgroups]]
+    if {$names ne {testport5}} {
+        return "FAIL: exact 'python@2.0' expected testport5, got $names"
+    }
+
+    set names [_names [mportsearch python@9.9 no exact portgroups]]
+    if {$names ne {}} {
+        return "FAIL: exact 'python@9.9' expected no matches, got $names"
+    }
+
+    # --- @VERSION-only: match any portgroup whose version is given.
+    set names [_names [mportsearch @1.0 no exact portgroups]]
+    if {$names ne {testport1 testport2}} {
+        return "FAIL: exact '@1.0' expected testport1/2, got $names"
+    }
+
+    # --- Regression guard: a bare version number should NOT match every
+    # port as it did under the old serialized-list matching (which would
+    # match '1.0' against 'python 1.0 github 1.0').
+    set names [_names [mportsearch 1.0 no exact portgroups]]
+    if {$names ne {}} {
+        return "FAIL: exact '1.0' should not match any portgroup name, got $names"
+    }
+
+    # --- NAME@VERSION under glob matchstyle with wildcards on each half,
+    # as action_search emits when the user types --portgroup python@1 on
+    # the command line.
+    set names [_names [mportsearch "*python*@*1.0*" no glob portgroups]]
+    if {$names ne {testport1}} {
+        return "FAIL: glob '*python*@*1.0*' expected testport1, got $names"
+    }
+
+    set names [_names [mportsearch "*python*@*1*" no glob portgroups]]
+    if {$names ne {testport1 testport4}} {
+        return "FAIL: glob '*python*@*1*' expected testport1/4, got $names"
+    }
+
+    return "mportsearch portgroups successful."
+} -cleanup {
+    set macports::sources $save_sources
+    set macports::porturl_prefix_map $save_prefix_map
+    rename _names {}
+    file delete -force $tmpdir
+} -result "mportsearch portgroups successful."
+
+
 # test mportlookup
 # test mportlistall
 # test _mports_load_quickindex
