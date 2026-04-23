@@ -9221,7 +9221,7 @@ printf '%s\n' "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 			# Compile a list of keys that have been given to the MP_CONFIG_SUBDIR
 			# macro; we want to skip copying those parameters from the original
 			# configure invocation.
-			for mp_arg in --prefix=${macports_libexec_dir} --enable-threads; do
+			for mp_arg in --prefix=${macports_libexec_dir} --disable-corefoundation; do
 				case $mp_arg in
 					--*=* | -*=*)
 							mp_arg_key=$(printf '%s\n' "$mp_arg" | sed -E 's/^--?([^=]+)=.*$/\1/')

@@ -9524,7 +9524,7 @@ printf "%s\n" "#define HAVE_EVENTFD 1" >>confdefs.h
 fi
 
 done;;
-  xDragonFlyBSD|xFreeBSD|xNetBSD|xOpenBSD)
+  xDragonFlyBSD|xFreeBSD|xNetBSD|xOpenBSD|xDarwin)
 	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: kqueue(2)" >&5
 printf "%s\n" "kqueue(2)" >&6; }
 	# Messy because we want to check if *all* the headers are present, and not
