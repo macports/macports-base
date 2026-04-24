@@ -1,0 +1,664 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+mportinit ui_options
+
+package require portfetch 1.0
+source ./library.tcl
+macports_worker_init
+
+# shellescape is normally aliased into the port worker interpreter; provide it
+# here so gitfetch/hgfetch can build command strings during testing.
+interp alias {} shellescape {} macports::shellescape
+
+# ---------------------------------------------------------------------------
+# Shared setup/cleanup for tests that invoke VCS fetch procs.
+#
+# - system is replaced by a mock that appends each command string to
+#   $_test_system_cmds without executing anything.
+# ---------------------------------------------------------------------------
+
+set vcsfetch_setup {
+    set worksrcpath /nonexistent/test-worksrcpath
+    unset -nocomplain patchfiles
+    set _test_system_cmds {}
+
+    rename system _save_system
+    proc system {cmd} {
+        global _test_system_cmds
+        lappend _test_system_cmds $cmd
+        return 0
+    }
+}
+
+set vcsfetch_cleanup {
+    rename system ""
+    rename _save_system system
+}
+
+# ===========================================================================
+# portfetch::percent_encode
+# ===========================================================================
+
+test percent_encode_alphanumeric {
+    Alphanumeric characters are not encoded
+} -body {
+    set result [portfetch::percent_encode "abc123"]
+    if {$result ne "abc123"} { return "FAIL: got '$result'" }
+    return "percent_encode alphanumeric ok"
+} -result "percent_encode alphanumeric ok"
+
+test percent_encode_unreserved_chars {
+    Unreserved URI characters (-._~) are passed through unchanged
+} -body {
+    set result [portfetch::percent_encode "foo-bar.baz_qux~1"]
+    if {$result ne "foo-bar.baz_qux~1"} { return "FAIL: got '$result'" }
+    return "percent_encode unreserved ok"
+} -result "percent_encode unreserved ok"
+
+test percent_encode_space {
+    Space is percent-encoded as %20
+} -body {
+    set result [portfetch::percent_encode "hello world"]
+    if {$result ne "hello%20world"} { return "FAIL: got '$result'" }
+    return "percent_encode space ok"
+} -result "percent_encode space ok"
+
+test percent_encode_special_chars {
+    Special characters like + and @ are percent-encoded
+} -body {
+    set result [portfetch::percent_encode "foo+bar@baz"]
+    if {$result ne "foo%2Bbar%40baz"} { return "FAIL: got '$result'" }
+    return "percent_encode special ok"
+} -result "percent_encode special ok"
+
+# ===========================================================================
+# portfetch::assemble_url
+# ===========================================================================
+
+test assemble_url_adds_trailing_slash {
+    assemble_url appends a slash when the site URL has none
+} -body {
+    set result [portfetch::assemble_url "https://example.com/dist" "foo-1.0.tar.gz"]
+    if {$result ne "https://example.com/dist/foo-1.0.tar.gz"} {
+        return "FAIL: got '$result'"
+    }
+    return "assemble_url trailing slash ok"
+} -result "assemble_url trailing slash ok"
+
+test assemble_url_keeps_trailing_slash {
+    assemble_url does not double-slash when site URL already has a slash
+} -body {
+    set result [portfetch::assemble_url "https://example.com/dist/" "foo-1.0.tar.gz"]
+    if {$result ne "https://example.com/dist/foo-1.0.tar.gz"} {
+        return "FAIL: got '$result'"
+    }
+    return "assemble_url existing slash ok"
+} -result "assemble_url existing slash ok"
+
+test assemble_url_encodes_distfile {
+    assemble_url percent-encodes special characters in the distfile name
+} -body {
+    set result [portfetch::assemble_url "https://example.com/" "foo bar+1.0.tar.gz"]
+    if {$result ne "https://example.com/foo%20bar%2B1.0.tar.gz"} {
+        return "FAIL: got '$result'"
+    }
+    return "assemble_url encodes distfile ok"
+} -result "assemble_url encodes distfile ok"
+
+# ===========================================================================
+# portfetch::separate_tag
+# ===========================================================================
+
+test separate_tag_plain_url {
+    separate_tag returns the full URL with an empty tag for an untagged URL
+} -body {
+    lassign [portfetch::separate_tag "https://example.com/dist/"] url tag
+    if {$url ne "https://example.com/dist/"} { return "FAIL: url '$url'" }
+    if {$tag ne ""} { return "FAIL: expected empty tag, got '$tag'" }
+    return "separate_tag plain URL ok"
+} -result "separate_tag plain URL ok"
+
+test separate_tag_tagged_url {
+    separate_tag splits a trailing :tag from a URL correctly
+} -body {
+    lassign [portfetch::separate_tag "https://example.com/dist/:mytag"] url tag
+    if {$url ne "https://example.com/dist/"} { return "FAIL: url '$url'" }
+    if {$tag ne "mytag"} { return "FAIL: tag '$tag'" }
+    return "separate_tag tagged URL ok"
+} -result "separate_tag tagged URL ok"
+
+test separate_tag_url_with_port_no_tag {
+    separate_tag does not mistake a port number for a tag
+} -body {
+    lassign [portfetch::separate_tag "https://example.com:8080/dist/"] url tag
+    if {$url ne "https://example.com:8080/dist/"} { return "FAIL: url '$url'" }
+    if {$tag ne ""} { return "FAIL: expected empty tag, got '$tag'" }
+    return "separate_tag port-in-URL ok"
+} -result "separate_tag port-in-URL ok"
+
+# ===========================================================================
+# portfetch::suffix
+# ===========================================================================
+
+test suffix_appends_extract_suffix {
+    suffix appends extract.suffix to the given distname
+} -body {
+    set extract.suffix .tar.gz
+    set result [portfetch::suffix "myport-1.0"]
+    if {$result ne "myport-1.0.tar.gz"} { return "FAIL: got '$result'" }
+    return "suffix ok"
+} -result "suffix ok"
+
+test suffix_with_bz2 {
+    suffix works with a .tar.bz2 extract suffix
+} -body {
+    set extract.suffix .tar.bz2
+    set result [portfetch::suffix "myport-2.3"]
+    if {$result ne "myport-2.3.tar.bz2"} { return "FAIL: got '$result'" }
+    return "suffix bz2 ok"
+} -result "suffix bz2 ok"
+
+# ===========================================================================
+# portfetch::svn_proxy_args
+# ===========================================================================
+
+test svn_proxy_args_no_proxy {
+    svn_proxy_args returns empty string when no proxy env vars are set
+} -body {
+    unset -nocomplain env(http_proxy) env(https_proxy) env(HTTPS_PROXY)
+    set result [portfetch::svn_proxy_args "https://svn.example.com/repo"]
+    if {$result ne ""} { return "FAIL: expected empty, got '$result'" }
+    return "svn_proxy_args no proxy ok"
+} -result "svn_proxy_args no proxy ok"
+
+test svn_proxy_args_http_proxy {
+    svn_proxy_args builds --config-option args from http_proxy for http URLs
+} -body {
+    unset -nocomplain env(http_proxy) env(https_proxy) env(HTTPS_PROXY)
+    set env(http_proxy) "http://proxy.example.com"
+    set result [portfetch::svn_proxy_args "http://svn.example.com/repo"]
+    unset env(http_proxy)
+    if {![string match "*http-proxy-host=proxy.example.com*" $result]} {
+        return "FAIL: got '$result'"
+    }
+    return "svn_proxy_args http proxy ok"
+} -result "svn_proxy_args http proxy ok"
+
+test svn_proxy_args_http_proxy_with_port {
+    svn_proxy_args includes proxy port when present
+} -body {
+    unset -nocomplain env(http_proxy) env(https_proxy) env(HTTPS_PROXY)
+    set env(http_proxy) "http://proxy.example.com:3128"
+    set result [portfetch::svn_proxy_args "http://svn.example.com/repo"]
+    unset env(http_proxy)
+    if {![string match "*http-proxy-host=proxy.example.com*" $result]} {
+        return "FAIL: missing host in '$result'"
+    }
+    if {![string match "*http-proxy-port=3128*" $result]} {
+        return "FAIL: missing port in '$result'"
+    }
+    return "svn_proxy_args http proxy with port ok"
+} -result "svn_proxy_args http proxy with port ok"
+
+test svn_proxy_args_https_proxy {
+    svn_proxy_args uses HTTPS_PROXY for https URLs
+} -body {
+    unset -nocomplain env(http_proxy) env(https_proxy) env(HTTPS_PROXY)
+    set env(HTTPS_PROXY) "http://secproxy.example.com:8443"
+    set result [portfetch::svn_proxy_args "https://svn.example.com/repo"]
+    unset env(HTTPS_PROXY)
+    if {![string match "*http-proxy-host=secproxy.example.com*" $result]} {
+        return "FAIL: got '$result'"
+    }
+    return "svn_proxy_args https proxy ok"
+} -result "svn_proxy_args https proxy ok"
+
+test svn_proxy_args_http_proxy_ignored_for_https {
+    svn_proxy_args does not use http_proxy for https URLs
+} -body {
+    unset -nocomplain env(http_proxy) env(https_proxy) env(HTTPS_PROXY)
+    set env(http_proxy) "http://proxy.example.com"
+    set result [portfetch::svn_proxy_args "https://svn.example.com/repo"]
+    unset env(http_proxy)
+    if {$result ne ""} { return "FAIL: expected empty for https, got '$result'" }
+    return "svn_proxy_args http proxy not used for https ok"
+} -result "svn_proxy_args http proxy not used for https ok"
+
+# ===========================================================================
+# portfetch::checkdistfiles
+# ===========================================================================
+
+test checkdistfiles_no_distfiles {
+    checkdistfiles leaves fetch_urls empty when distfiles is not set
+} -body {
+    unset -nocomplain distfiles
+    set fetch_urls {}
+    portfetch::checkdistfiles fetch_urls
+    if {$fetch_urls ne {}} { return "FAIL: expected empty, got '$fetch_urls'" }
+    return "checkdistfiles no distfiles ok"
+} -result "checkdistfiles no distfiles ok"
+
+test checkdistfiles_file_exists_locally {
+    checkdistfiles skips files that exist under filespath
+} -setup {
+    set filespath [makeDirectory checkdistfiles_local]
+    makeFile {} "foo-1.0.tar.gz" $filespath
+} -body {
+    set distfiles {foo-1.0.tar.gz}
+    set fetch_urls {}
+    set all_dist_files {}
+    portfetch::checkdistfiles fetch_urls
+    if {$fetch_urls ne {}} { return "FAIL: expected empty, got '$fetch_urls'" }
+    return "checkdistfiles local file skipped ok"
+} -cleanup {
+    removeDirectory checkdistfiles_local
+    unset -nocomplain distfiles filespath all_dist_files fetch_urls
+} -result "checkdistfiles local file skipped ok"
+
+test checkdistfiles_remote_file {
+    checkdistfiles adds a non-local file to fetch_urls under master_sites
+} -setup {
+    set filespath [makeDirectory checkdistfiles_remote]
+} -body {
+    set distfiles {bar-2.0.tar.gz}
+    set fetch_urls {}
+    set all_dist_files {}
+    portfetch::checkdistfiles fetch_urls
+    if {[lsearch $fetch_urls master_sites] == -1} {
+        return "FAIL: master_sites not in fetch_urls: $fetch_urls"
+    }
+    if {[lsearch $fetch_urls "bar-2.0.tar.gz"] == -1} {
+        return "FAIL: distfile not in fetch_urls: $fetch_urls"
+    }
+    return "checkdistfiles remote file ok"
+} -cleanup {
+    removeDirectory checkdistfiles_remote
+    unset -nocomplain distfiles filespath all_dist_files fetch_urls
+} -result "checkdistfiles remote file ok"
+
+test checkdistfiles_tagged_file {
+    checkdistfiles places a tagged distfile under its specific tag
+} -setup {
+    set filespath [makeDirectory checkdistfiles_tagged]
+} -body {
+    set distfiles {baz-3.0.tar.gz:sourceforge}
+    set fetch_urls {}
+    set all_dist_files {}
+    portfetch::checkdistfiles fetch_urls
+    # With a tag, fetch_urls should use the tag, not master_sites
+    if {[lsearch $fetch_urls "sourceforge"] == -1} {
+        return "FAIL: tag not in fetch_urls: $fetch_urls"
+    }
+    if {[lsearch $fetch_urls "baz-3.0.tar.gz"] == -1} {
+        return "FAIL: distfile not in fetch_urls: $fetch_urls"
+    }
+    return "checkdistfiles tagged file ok"
+} -cleanup {
+    removeDirectory checkdistfiles_tagged
+    unset -nocomplain distfiles filespath all_dist_files fetch_urls
+} -result "checkdistfiles tagged file ok"
+
+# ===========================================================================
+# portfetch::checkpatchfiles
+# ===========================================================================
+
+test checkpatchfiles_no_patchfiles {
+    checkpatchfiles leaves fetch_urls empty when patchfiles is not set
+} -body {
+    unset -nocomplain patchfiles
+    set fetch_urls {}
+    portfetch::checkpatchfiles fetch_urls
+    if {$fetch_urls ne {}} { return "FAIL: expected empty, got '$fetch_urls'" }
+    return "checkpatchfiles no patchfiles ok"
+} -result "checkpatchfiles no patchfiles ok"
+
+test checkpatchfiles_file_exists_locally {
+    checkpatchfiles skips patch files that exist under filespath
+} -setup {
+    set filespath [makeDirectory checkpatchfiles_local]
+    makeFile {} "fix-crash.patch" $filespath
+} -body {
+    set patchfiles {fix-crash.patch}
+    set fetch_urls {}
+    set all_dist_files {}
+    portfetch::checkpatchfiles fetch_urls
+    if {$fetch_urls ne {}} { return "FAIL: expected empty, got '$fetch_urls'" }
+    return "checkpatchfiles local file skipped ok"
+} -cleanup {
+    removeDirectory checkpatchfiles_local
+    unset -nocomplain patchfiles filespath all_dist_files fetch_urls
+} -result "checkpatchfiles local file skipped ok"
+
+test checkpatchfiles_uses_patch_sites {
+    checkpatchfiles places untagged remote patch files under patch_sites when defined
+} -setup {
+    set filespath [makeDirectory checkpatchfiles_remote]
+} -body {
+    set patchfiles {upstream.patch}
+    set patch_sites {https://example.com/patches/}
+    set fetch_urls {}
+    set all_dist_files {}
+    portfetch::checkpatchfiles fetch_urls
+    if {[lsearch $fetch_urls patch_sites] == -1} {
+        return "FAIL: patch_sites not in fetch_urls: $fetch_urls"
+    }
+    if {[lsearch $fetch_urls "upstream.patch"] == -1} {
+        return "FAIL: patchfile not in fetch_urls: $fetch_urls"
+    }
+    return "checkpatchfiles uses patch_sites ok"
+} -cleanup {
+    removeDirectory checkpatchfiles_remote
+    unset -nocomplain patchfiles patch_sites filespath all_dist_files fetch_urls
+} -result "checkpatchfiles uses patch_sites ok"
+
+test checkpatchfiles_falls_back_to_master_sites {
+    checkpatchfiles falls back to master_sites when patch_sites is not defined
+} -setup {
+    set filespath [makeDirectory checkpatchfiles_fallback]
+} -body {
+    set patchfiles {upstream.patch}
+    unset -nocomplain patch_sites
+    set fetch_urls {}
+    set all_dist_files {}
+    portfetch::checkpatchfiles fetch_urls
+    if {[lsearch $fetch_urls master_sites] == -1} {
+        return "FAIL: master_sites not in fetch_urls: $fetch_urls"
+    }
+    return "checkpatchfiles fallback to master_sites ok"
+} -cleanup {
+    removeDirectory checkpatchfiles_fallback
+    unset -nocomplain patchfiles filespath all_dist_files fetch_urls
+} -result "checkpatchfiles fallback to master_sites ok"
+
+# ===========================================================================
+# portfetch::files_present
+# ===========================================================================
+
+test files_present_empty_fetch_urls {
+    files_present returns 1 when fetch_urls is empty (nothing to fetch)
+} -body {
+    set portfetch::fetch_urls {}
+    set distpath /nonexistent
+    set result [portfetch::files_present]
+    if {$result != 1} { return "FAIL: expected 1, got $result" }
+    return "files_present empty ok"
+} -result "files_present empty ok"
+
+test files_present_all_exist {
+    files_present returns 1 when all files in fetch_urls are on disk
+} -setup {
+    set distpath [makeDirectory files_present_test]
+    makeFile {} "foo-1.0.tar.gz" $distpath
+    makeFile {} "bar-2.0.tar.gz" $distpath
+} -body {
+    set portfetch::fetch_urls [list master_sites "foo-1.0.tar.gz" master_sites "bar-2.0.tar.gz"]
+    set result [portfetch::files_present]
+    if {$result != 1} { return "FAIL: expected 1, got $result" }
+    return "files_present all exist ok"
+} -cleanup {
+    removeDirectory files_present_test
+    set portfetch::fetch_urls {}
+    unset -nocomplain distpath
+} -result "files_present all exist ok"
+
+test files_present_missing_file {
+    files_present returns 0 when any file in fetch_urls is absent from disk
+} -setup {
+    set distpath [makeDirectory files_present_missing]
+    makeFile {} "exists.tar.gz" $distpath
+    # missing.tar.gz is intentionally NOT created
+} -body {
+    set portfetch::fetch_urls [list master_sites "exists.tar.gz" master_sites "missing.tar.gz"]
+    set result [portfetch::files_present]
+    if {$result != 0} { return "FAIL: expected 0, got $result" }
+    return "files_present missing ok"
+} -cleanup {
+    removeDirectory files_present_missing
+    set portfetch::fetch_urls {}
+    unset -nocomplain distpath
+} -result "files_present missing ok"
+
+# ===========================================================================
+# portfetch::hgfetch
+# ===========================================================================
+
+test hgfetch_basic_clone {
+    hgfetch issues an hg clone command with the correct URL and tag
+} -setup $vcsfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set hg.cmd  /usr/bin/hg
+    set hg.url  https://bitbucket.org/example/repo
+    set hg.tag  tip
+    set fetch.ignore_sslcert no
+    portfetch::hgfetch
+
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*hg clone*" $cmd] && [string match "*example/repo*" $cmd]} {
+            set found 1; break
+        }
+    }
+    if {!$found} { return "FAIL: hg clone not found in: $_test_system_cmds" }
+    return "hgfetch basic clone ok"
+} -result "hgfetch basic clone ok"
+
+test hgfetch_no_insecure_flag_by_default {
+    hgfetch does not pass --insecure when fetch.ignore_sslcert is no
+} -setup $vcsfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set hg.cmd  /usr/bin/hg
+    set hg.url  https://bitbucket.org/example/repo
+    set hg.tag  tip
+    set fetch.ignore_sslcert no
+    portfetch::hgfetch
+
+    foreach cmd $_test_system_cmds {
+        if {[string match "*--insecure*" $cmd]} {
+            return "FAIL: unexpected --insecure in: $cmd"
+        }
+    }
+    return "hgfetch no insecure ok"
+} -result "hgfetch no insecure ok"
+
+test hgfetch_insecure_flag_when_requested {
+    hgfetch passes --insecure when fetch.ignore_sslcert is yes
+} -setup $vcsfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set hg.cmd  /usr/bin/hg
+    set hg.url  https://bitbucket.org/example/repo
+    set hg.tag  tip
+    set fetch.ignore_sslcert yes
+    portfetch::hgfetch
+
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*--insecure*" $cmd]} { set found 1; break }
+    }
+    if {!$found} { return "FAIL: --insecure not found in: $_test_system_cmds" }
+    return "hgfetch insecure ok"
+} -result "hgfetch insecure ok"
+
+test hgfetch_uses_rev_tag {
+    hgfetch passes --rev with the value of hg.tag
+} -setup $vcsfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set hg.cmd  /usr/bin/hg
+    set hg.url  https://bitbucket.org/example/repo
+    set hg.tag  v2.5.1
+    set fetch.ignore_sslcert no
+    portfetch::hgfetch
+
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*--rev*v2.5.1*" $cmd]} { set found 1; break }
+    }
+    if {!$found} { return "FAIL: --rev v2.5.1 not found in: $_test_system_cmds" }
+    return "hgfetch rev tag ok"
+} -result "hgfetch rev tag ok"
+
+# ===========================================================================
+# portfetch::gitfetch
+# ===========================================================================
+
+set gitfetch_setup [string map {vcsfetch_setup gitfetch_setup} $vcsfetch_setup]
+set gitfetch_setup "$vcsfetch_setup
+    set git.url                 https://example.com/repo.git
+    set git.branch              {}
+    set git.cmd                 /usr/bin/git
+    set git.submodule_paths     {}
+    set git.shallow_submodules  no
+"
+
+test gitfetch_submodule_paths_default {
+    git.submodule_paths defaults to the empty list
+} -body {
+    if {[llength ${git.submodule_paths}] != 0} {
+        return "FAIL: expected empty list, got \"${git.submodule_paths}\""
+    }
+    return "git.submodule_paths default is empty"
+} -result "git.submodule_paths default is empty"
+
+test gitfetch_shallow_submodules_default {
+    git.shallow_submodules defaults to "no"
+} -body {
+    if {${git.shallow_submodules} ne "no"} {
+        return "FAIL: expected default \"no\", got \"${git.shallow_submodules}\""
+    }
+    return "git.shallow_submodules default is no"
+} -result "git.shallow_submodules default is no"
+
+test gitfetch_shallow_clone_without_branch {
+    gitfetch uses --depth=1 for a shallow clone when git.branch is empty
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.branch {}
+    portfetch::gitfetch
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*clone*--depth=1*" $cmd]} { set found 1; break }
+    }
+    if {!$found} { return "FAIL: --depth=1 not found in: $_test_system_cmds" }
+    return "gitfetch shallow clone ok"
+} -result "gitfetch shallow clone ok"
+
+test gitfetch_no_shallow_clone_with_branch {
+    gitfetch does not use --depth=1 when git.branch is set
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.branch v1.0
+    portfetch::gitfetch
+    foreach cmd $_test_system_cmds {
+        if {[string match "*--depth=1*" $cmd]} {
+            return "FAIL: unexpected --depth=1 in: $cmd"
+        }
+    }
+    return "gitfetch no shallow with branch ok"
+} -result "gitfetch no shallow with branch ok"
+
+test gitfetch_checkout_issued_with_branch {
+    gitfetch issues a git checkout command when git.branch is set
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.branch v1.2.3
+    portfetch::gitfetch
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*checkout*v1.2.3*" $cmd]} { set found 1; break }
+    }
+    if {!$found} { return "FAIL: checkout not found in: $_test_system_cmds" }
+    return "gitfetch checkout with branch ok"
+} -result "gitfetch checkout with branch ok"
+
+test gitfetch_no_checkout_without_branch {
+    gitfetch does not issue a git checkout command when git.branch is empty
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.branch {}
+    portfetch::gitfetch
+    foreach cmd $_test_system_cmds {
+        if {[string match "*checkout*" $cmd]} {
+            return "FAIL: unexpected checkout in: $cmd"
+        }
+    }
+    return "gitfetch no checkout without branch ok"
+} -result "gitfetch no checkout without branch ok"
+
+test gitfetch_recurse_submodules_by_default {
+    gitfetch adds "--recurse-submodules" to clone by default
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    portfetch::gitfetch
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*clone*--recurse-submodules*" $cmd]} {
+            set found 1
+        }
+        if {[string match "*submodule update*" $cmd]} {
+            return "FAIL: unexpected submodule update command: $cmd"
+        }
+    }
+    if {!$found} { return "FAIL: --recurse-submodules not found in: $_test_system_cmds" }
+    return "Clone recurses into submodules by default"
+} -result "Clone recurses into submodules by default"
+
+test gitfetch_submodule_paths {
+    gitfetch adds one "--recurse-submodules=<pathspec>" per git.submodule_paths entry
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.submodule_paths {deps/libfoo plugins/bar}
+    portfetch::gitfetch
+    set clone_cmd ""
+    foreach cmd $_test_system_cmds {
+        if {[string match "*clone*" $cmd]} { set clone_cmd $cmd; break }
+    }
+    if {$clone_cmd eq ""} { return "FAIL: clone command not found" }
+    foreach flag {--recurse-submodules=deps/libfoo --recurse-submodules=plugins/bar} {
+        if {![string match "*$flag*" $clone_cmd]} {
+            return "FAIL: missing $flag in: $clone_cmd"
+        }
+    }
+    if {[string match "* --recurse-submodules *" $clone_cmd]} {
+        return "FAIL: unexpected plain --recurse-submodules in: $clone_cmd"
+    }
+    return "Clone pathspec flags issued"
+} -result "Clone pathspec flags issued"
+
+test gitfetch_shallow_submodules {
+    gitfetch adds "--shallow-submodules" when git.shallow_submodules is yes
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.shallow_submodules yes
+    portfetch::gitfetch
+    set found 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*clone*--shallow-submodules*" $cmd]} {
+            set found 1; break
+        }
+    }
+    if {!$found} { return "FAIL: --shallow-submodules not found in: $_test_system_cmds" }
+    return "Clone shallow submodules flag issued"
+} -result "Clone shallow submodules flag issued"
+
+test gitfetch_branch_with_recursive_checkout_order {
+    gitfetch issues clone and recursive checkout in the correct order
+} -setup $gitfetch_setup -cleanup $vcsfetch_cleanup -body {
+    set git.branch v1.2.3
+    portfetch::gitfetch
+
+    set clone_idx -1; set checkout_idx -1; set i 0
+    foreach cmd $_test_system_cmds {
+        if {[string match "*clone*--recurse-submodules*" $cmd]} { set clone_idx $i }
+        if {[string match "*checkout*--recurse-submodules*v1.2.3*" $cmd]} { set checkout_idx $i }
+        if {[string match "*submodule update*" $cmd]} {
+            return "FAIL: unexpected submodule update command: $cmd"
+        }
+        incr i
+    }
+    if {$clone_idx == -1} { return "FAIL: recursive clone not found" }
+    if {$checkout_idx == -1} { return "FAIL: checkout not found" }
+    if {!($clone_idx < $checkout_idx)} {
+        return "FAIL: wrong order — clone=$clone_idx checkout=$checkout_idx"
+    }
+    return "clone and recursive checkout in correct order"
+} -result "clone and recursive checkout in correct order"
+
+
+cleanupTests
