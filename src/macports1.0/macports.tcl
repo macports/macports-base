@@ -334,7 +334,7 @@ proc macports::pop_log {} {
         variable debuglog; variable debuglogname
         variable current_log_mport
         close $debuglog
-        set logstack [lreplace ${logstack}[set logstack {}] end end]
+        lpop logstack end
         if {[llength $logstack] > 0} {
             lassign [lindex $logstack end] debuglog debuglogname current_log_mport
             log_pending_messages $current_log_mport
@@ -6900,12 +6900,12 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                     lappend topsort_ports $port
                     # remove from unsorted list
                     set index [lsearch -exact $unsorted_ports $port]
-                    set unsorted_ports [lreplace ${unsorted_ports}[set unsorted_ports {}] $index $index]
+                    lpop unsorted_ports $index
 
                     # remove edges
                     foreach target $revadjlist($port) {
                         set index [lsearch -exact $adjlist($target) $port]
-                        set adjlist($target) [lreplace $adjlist($target)[set adjlist($target) {}] $index $index]
+                        lpop adjlist($target) $index
                     }
 
                     break;
@@ -6919,11 +6919,11 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                 lappend topsort_ports $lowest_adj_port
 
                 set index [lsearch -exact $unsorted_ports $lowest_adj_port]
-                set unsorted_ports [lreplace ${unsorted_ports}[set unsorted_ports {}] $index $index]
+                lpop unsorted_ports $index
 
                 foreach target $revadjlist($port) {
                     set index [lsearch -exact $adjlist($target) $lowest_adj_port]
-                    set adjlist($target) [lreplace $adjlist($target)[set adjlist($target) {}] $index $index]
+                    lpop adjlist($target) $index
                 }
             }
         }

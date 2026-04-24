@@ -361,7 +361,7 @@ proc portdestroot::destroot_finish {args} {
 
         set pathsToCheck [list /]
         while {[llength $pathsToCheck] > 0} {
-            set pathToCheck [lshift pathsToCheck]
+            set pathToCheck [lpop pathsToCheck 0]
             foreach file [glob -nocomplain -directory $destroot$pathToCheck .* *] {
                 if {[file tail $file] eq "." || [file tail $file] eq ".."} {
                     continue

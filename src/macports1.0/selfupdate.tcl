@@ -487,7 +487,7 @@ proc selfupdate::install {source} {
         # Remove any saved --enable-readline
         set idx [lsearch -exact $configure_args --enable-readline]
         if {$idx != -1} {
-            set configure_args [lreplace $configure_args $idx $idx]
+            lpop configure_args $idx
         }
     }
 

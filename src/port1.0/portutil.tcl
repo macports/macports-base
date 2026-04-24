@@ -134,7 +134,10 @@ proc handle_option-delete {option args} {
     global user_options $option
     if {![info exists user_options($option)] && [info exists $option]} {
         foreach val $args {
-            set $option [ldelete [set $option][set $option {}] $val]
+            set ix [lsearch -exact [set $option] $val]
+            if {$ix >= 0} {
+                lpop $option $ix
+            }
         }
     }
 }
@@ -696,7 +699,7 @@ proc variant_remove_ditem {vname} {
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
         if {$item_provides eq $vname} {
-            set all_variants [lreplace ${all_variants}[set all_variants {}] $item_index $item_index]
+            lpop all_variants $item_index
             break
         }
 
@@ -940,7 +943,7 @@ proc tbool {_tbool_varname} {
 proc ldelete {list value} {
     set ix [lsearch -exact $list $value]
     if {$ix >= 0} {
-        return [lreplace ${list}[set ilist {}] $ix $ix]
+        lpop list $ix
     }
     return $list
 }
@@ -1203,8 +1206,7 @@ proc copy {args} {
 proc move {args} {
     set options [list]
     while {[string match "-*" [lindex $args 0]]} {
-        set arg [string range [lindex $args 0] 1 end]
-        set args [lreplace ${args}[set args {}] 0 0]
+        set arg [string range [lpop args 0] 1 end]
         switch -- $arg {
             force {lappend options -$arg}
             - break
@@ -1240,7 +1242,7 @@ proc ln {args} {
             set arg [string range $arg 0 0]
             lset args 0 $remainder
         } else {
-            set args [lreplace ${args}[set args {}] 0 0]
+            lpop args 0
         }
         switch -- $arg {
             f -

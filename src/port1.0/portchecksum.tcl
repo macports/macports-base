@@ -369,9 +369,9 @@ proc portchecksum::checksum_main {args} {
                     foreach {type sum} $calculated_checksums {
                         lappend sums [format "%-8s%s" $type $sum]
 
-                        set found [lsearch -exact ${missing_types} ${type}];
+                        set found [lsearch -exact ${missing_types} ${type}]
                         if { ${found} != -1} {
-                            set missing_types [lreplace ${missing_types} ${found} ${found}]
+                            lpop missing_types ${found}
                         }
                     }
                 }

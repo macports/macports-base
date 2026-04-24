@@ -131,24 +131,13 @@ proc ldindex {varName args} {
             set item [ldindex list {*}[lrange $args 1 end]]
             lset var $idx $list
         } else {
-            set item [lindex $var $idx]
-            set var [lreplace ${var}[set var {}] $idx $idx]
+            set item [lpop var $idx]
         }
     } else {
         set item $var
         set var [list]
     }
     return $item
-}
-
-# lpop varName
-# Removes the last list element from a variable
-# If varName is an empty list an empty string is returned
-proc lpop {varName} {
-    upvar 1 $varName var
-    set element [lindex $var end]
-    set var [lrange $var 0 end-1]
-    return $element
 }
 
 # lpush varName ?value ...?
@@ -160,16 +149,6 @@ proc lpush {varName args} {
     lappend var {*}$args
 }
 
-# lshift varName
-# Removes the first list element from a variable
-# If varName is an empty list an empty string is returned
-proc lshift {varName} {
-    upvar 1 $varName var
-    set element [lindex $var 0]
-    # the [set] in the index argument ensures the list is not shared
-    set var [lreplace ${var}[set var {}] 0 0]
-    return $element
-}
 
 # lunshift varName ?value ...?
 # Prepends list elements onto a variable

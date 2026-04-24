@@ -80,20 +80,6 @@ test ldindex {
 } -result "ldindex successful."
 
 
-test lpop {
-    Lpop unit test.
-} -body {
-    set list {0 1 2}
-    if {[lpop list] != 2} {
-        return "FAIL: element not popped"
-    }
-    if {$list != {0 1}} {
-        return "FAIL: wrong element popped"
-    }
-    return "lpop successful."
-} -result "lpop successful."
-
-
 test lpush {
     Lpush unit test.
 } -body {
@@ -109,25 +95,6 @@ test lpush {
     }
     return "lpop successful."
 } -result "lpop successful."
-
-
-test lshift {
-    Lshift unit test.
-} -body {
-    set list {0 1 2}
-    set list1 {}
-
-    if {[lshift list] != 0} {
-        return "FAIL: wrong element popped"
-    }
-    if {$list != {1 2}} {
-        return "FAIL: wrong list remaining"
-    }
-    if {[lshift list1] ne ""} {
-        return "FAIL: empty list not detected"
-    }
-    return "lshift successful."
-} -result "lshift successful."
 
 
 test lunshift {

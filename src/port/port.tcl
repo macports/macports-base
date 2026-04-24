@@ -765,8 +765,7 @@ proc get_rdepends_ports {portname} {
     set results [list]
     set portList [list [string tolower $portname]]
     while {[llength $portList] > 0} {
-        set aPort [lindex $portList end]
-        set portList [lreplace ${portList}[set portList {}] end end]
+        set aPort [lpop portList end]
         if {[dict exists $portDependenciesDict $aPort]} {
             foreach possiblyNewPort [dict get $portDependenciesDict $aPort] {
                 set lcport [string tolower $possiblyNewPort]
@@ -2715,8 +2714,8 @@ proc action_dependents { action portlist opts } {
                     set cur_portlist [lindex $portstack end]
                     set cur_pos [lindex $pos_stack end]
                     if {$cur_pos >= [llength $cur_portlist]} {
-                        set portstack [lreplace ${portstack}[set portstack {}] end end]
-                        set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end]
+                        lpop portstack end
+                        lpop pos_stack end
                         if {[llength $portstack] <= 0} {
                             break
                         } else {
@@ -2951,8 +2950,8 @@ proc action_deps { action portlist opts } {
             set cur_portlist [lindex $portstack end]
             set cur_pos [lindex $pos_stack end]
             if {$cur_pos >= [llength $cur_portlist]} {
-                set portstack [lreplace ${portstack}[set portstack {}] end end]
-                set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end]
+                lpop portstack end
+                lpop pos_stack end
                 if {[llength $portstack] <= 0} {
                     break
                 } else {

@@ -782,8 +782,7 @@ namespace eval diagnose {
             lappend check_paths [file join $::macports::portdbpath $subdir]
         }
         while {[llength $check_paths] > 0} {
-            set path [lindex $check_paths end]
-            set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            set path [lpop check_paths end]
             if {[catch {file type $path}]} {
                 continue
             }
@@ -811,8 +810,7 @@ namespace eval diagnose {
             }
         }
         while {[llength $check_paths] > 0} {
-            set path [lindex $check_paths end]
-            set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            set path [lpop check_paths end]
             set perms [file attributes $path -permissions]
             if {!($perms & 0o001) && $path ni $no_x_dirs} {
                 lappend no_x_dirs $path

@@ -276,9 +276,7 @@ namespace eval mport_fetch_thread {
             global available_threads
             # Look for an idle thread.
             if {[llength $available_threads] > 0} {
-                set free_tid [lindex $available_threads end]
-                set available_threads [lreplace $available_threads end end]
-                return $free_tid
+                return [lpop available_threads end]
             }
             # Create a new thread if possible.
             global max_threads thread_count
@@ -323,7 +321,7 @@ namespace eval mport_fetch_thread {
                 global $request_queue
                 set index [lsearch -exact -dictionary -sorted -index 3 [set $request_queue] $id]
                 if {$index != -1} {
-                    set $request_queue [lreplace [set $request_queue][set request_queue {}] $index $index]
+                    lpop $request_queue $index
                     return 1
                 }
             }
