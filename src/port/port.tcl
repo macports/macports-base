@@ -70,22 +70,6 @@ proc fatal s {
     exit 1
 }
 
-##
-# Helper function to define constants
-#
-# Constants defined with const can simply be accessed in the same way as
-# calling a proc.
-#
-# Example:
-# const FOO 42
-# puts [FOO]
-#
-# @param name variable name
-# @param value constant variable value
-proc const {name args} {
-    proc $name {} [list return [expr $args]]
-}
-
 # Produce an error message, and exit, unless
 # we're handling errors in a soft fashion, in which
 # case we continue
@@ -1508,9 +1492,9 @@ proc action_get_usage { action } {
         }
         set args ""
         set needed [action_needs_portlist $action]
-        if {[ACTION_ARGS_STRINGS] == $needed} {
+        if {$::action_args::STRINGS == $needed} {
             set args " <arguments>"
-        } elseif {[ACTION_ARGS_PORTS] == $needed} {
+        } elseif {$::action_args::PORTS == $needed} {
             set args " <portlist>"
         }
 
@@ -4137,103 +4121,105 @@ proc match {s} {
 #   2 ports       Wants an expanded list of ports as text argument
 
 # Define global constants
-const ACTION_ARGS_NONE 0
-const ACTION_ARGS_STRINGS 1
-const ACTION_ARGS_PORTS 2
+namespace eval action_args {
+    const NONE 0
+    const STRINGS 1
+    const PORTS 2
+}
 
 set action_array [dict create \
-    usage       [list action_usage          [ACTION_ARGS_STRINGS]] \
-    help        [list action_help           [ACTION_ARGS_STRINGS]] \
+    usage       [list action_usage          $action_args::STRINGS] \
+    help        [list action_help           $action_args::STRINGS] \
     \
-    echo        [list action_echo           [ACTION_ARGS_PORTS]] \
+    echo        [list action_echo           $action_args::PORTS] \
     \
-    info        [list action_info           [ACTION_ARGS_PORTS]] \
-    location    [list action_location       [ACTION_ARGS_PORTS]] \
-    notes       [list action_notes          [ACTION_ARGS_PORTS]] \
-    provides    [list action_provides       [ACTION_ARGS_STRINGS]] \
-    log         [list action_log            [ACTION_ARGS_PORTS]] \
+    info        [list action_info           $action_args::PORTS] \
+    location    [list action_location       $action_args::PORTS] \
+    notes       [list action_notes          $action_args::PORTS] \
+    provides    [list action_provides       $action_args::STRINGS] \
+    log         [list action_log            $action_args::PORTS] \
     \
-    activate    [list action_activate       [ACTION_ARGS_PORTS]] \
-    deactivate  [list action_deactivate     [ACTION_ARGS_PORTS]] \
+    activate    [list action_activate       $action_args::PORTS] \
+    deactivate  [list action_deactivate     $action_args::PORTS] \
     \
-    select      [list action_select         [ACTION_ARGS_STRINGS]] \
+    select      [list action_select         $action_args::STRINGS] \
     \
-    sync        [list action_sync           [ACTION_ARGS_NONE]] \
-    selfupdate  [list action_selfupdate     [ACTION_ARGS_NONE]] \
+    sync        [list action_sync           $action_args::NONE] \
+    selfupdate  [list action_selfupdate     $action_args::NONE] \
     \
-    setrequested   [list action_setrequested  [ACTION_ARGS_PORTS]] \
-    unsetrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
-    setunrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
+    setrequested   [list action_setrequested  $action_args::PORTS] \
+    unsetrequested [list action_setrequested  $action_args::PORTS] \
+    setunrequested [list action_setrequested  $action_args::PORTS] \
     \
-    upgrade     [list action_upgrade        [ACTION_ARGS_PORTS]] \
-    rev-upgrade [list action_revupgrade     [ACTION_ARGS_NONE]] \
-    reclaim     [list action_reclaim        [ACTION_ARGS_NONE]] \
-    diagnose    [list action_diagnose       [ACTION_ARGS_NONE]] \
+    upgrade     [list action_upgrade        $action_args::PORTS] \
+    rev-upgrade [list action_revupgrade     $action_args::NONE] \
+    reclaim     [list action_reclaim        $action_args::NONE] \
+    diagnose    [list action_diagnose       $action_args::NONE] \
     \
-    version     [list action_version        [ACTION_ARGS_NONE]] \
-    platform    [list action_platform       [ACTION_ARGS_NONE]] \
-    prefix      [list action_prefix         [ACTION_ARGS_NONE]] \
+    version     [list action_version        $action_args::NONE] \
+    platform    [list action_platform       $action_args::NONE] \
+    prefix      [list action_prefix         $action_args::NONE] \
     \
-    uninstall   [list action_uninstall      [ACTION_ARGS_PORTS]] \
+    uninstall   [list action_uninstall      $action_args::PORTS] \
     \
-    mirror      [list action_mirror         [ACTION_ARGS_PORTS]] \
+    mirror      [list action_mirror         $action_args::PORTS] \
     \
-    installed   [list action_installed      [ACTION_ARGS_PORTS]] \
-    outdated    [list action_outdated       [ACTION_ARGS_PORTS]] \
-    contents    [list action_contents       [ACTION_ARGS_PORTS]] \
-    space       [list action_space          [ACTION_ARGS_PORTS]] \
-    dependents  [list action_dependents     [ACTION_ARGS_PORTS]] \
-    rdependents [list action_dependents     [ACTION_ARGS_PORTS]] \
-    deps        [list action_deps           [ACTION_ARGS_PORTS]] \
-    rdeps       [list action_deps           [ACTION_ARGS_PORTS]] \
-    variants    [list action_variants       [ACTION_ARGS_PORTS]] \
+    installed   [list action_installed      $action_args::PORTS] \
+    outdated    [list action_outdated       $action_args::PORTS] \
+    contents    [list action_contents       $action_args::PORTS] \
+    space       [list action_space          $action_args::PORTS] \
+    dependents  [list action_dependents     $action_args::PORTS] \
+    rdependents [list action_dependents     $action_args::PORTS] \
+    deps        [list action_deps           $action_args::PORTS] \
+    rdeps       [list action_deps           $action_args::PORTS] \
+    variants    [list action_variants       $action_args::PORTS] \
     \
-    search      [list action_search         [ACTION_ARGS_STRINGS]] \
-    list        [list action_list           [ACTION_ARGS_PORTS]] \
+    search      [list action_search         $action_args::STRINGS] \
+    list        [list action_list           $action_args::PORTS] \
     \
-    edit        [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    cat         [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    dir         [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    work        [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    cd          [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    url         [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    file        [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    logfile     [list action_portcmds       [ACTION_ARGS_PORTS]] \
-    gohome      [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    edit        [list action_portcmds       $action_args::PORTS] \
+    cat         [list action_portcmds       $action_args::PORTS] \
+    dir         [list action_portcmds       $action_args::PORTS] \
+    work        [list action_portcmds       $action_args::PORTS] \
+    cd          [list action_portcmds       $action_args::PORTS] \
+    url         [list action_portcmds       $action_args::PORTS] \
+    file        [list action_portcmds       $action_args::PORTS] \
+    logfile     [list action_portcmds       $action_args::PORTS] \
+    gohome      [list action_portcmds       $action_args::PORTS] \
     \
-    fetch       [list action_target         [ACTION_ARGS_PORTS]] \
-    checksum    [list action_target         [ACTION_ARGS_PORTS]] \
-    extract     [list action_target         [ACTION_ARGS_PORTS]] \
-    patch       [list action_target         [ACTION_ARGS_PORTS]] \
-    configure   [list action_target         [ACTION_ARGS_PORTS]] \
-    build       [list action_target         [ACTION_ARGS_PORTS]] \
-    destroot    [list action_target         [ACTION_ARGS_PORTS]] \
-    install     [list action_target         [ACTION_ARGS_PORTS]] \
-    clean       [list action_target         [ACTION_ARGS_PORTS]] \
-    test        [list action_target         [ACTION_ARGS_PORTS]] \
-    lint        [list action_target         [ACTION_ARGS_PORTS]] \
-    livecheck   [list action_target         [ACTION_ARGS_PORTS]] \
-    distcheck   [list action_target         [ACTION_ARGS_PORTS]] \
-    bump        [list action_target         [ACTION_ARGS_PORTS]] \
-    load        [list action_target         [ACTION_ARGS_PORTS]] \
-    unload      [list action_target         [ACTION_ARGS_PORTS]] \
-    reload      [list action_target         [ACTION_ARGS_PORTS]] \
-    distfiles   [list action_target         [ACTION_ARGS_PORTS]] \
+    fetch       [list action_target         $action_args::PORTS] \
+    checksum    [list action_target         $action_args::PORTS] \
+    extract     [list action_target         $action_args::PORTS] \
+    patch       [list action_target         $action_args::PORTS] \
+    configure   [list action_target         $action_args::PORTS] \
+    build       [list action_target         $action_args::PORTS] \
+    destroot    [list action_target         $action_args::PORTS] \
+    install     [list action_target         $action_args::PORTS] \
+    clean       [list action_target         $action_args::PORTS] \
+    test        [list action_target         $action_args::PORTS] \
+    lint        [list action_target         $action_args::PORTS] \
+    livecheck   [list action_target         $action_args::PORTS] \
+    distcheck   [list action_target         $action_args::PORTS] \
+    bump        [list action_target         $action_args::PORTS] \
+    load        [list action_target         $action_args::PORTS] \
+    unload      [list action_target         $action_args::PORTS] \
+    reload      [list action_target         $action_args::PORTS] \
+    distfiles   [list action_target         $action_args::PORTS] \
     \
-    archivefetch [list action_target         [ACTION_ARGS_PORTS]] \
-    archive     [list action_target         [ACTION_ARGS_PORTS]] \
-    unarchive   [list action_target         [ACTION_ARGS_PORTS]] \
-    dmg         [list action_target         [ACTION_ARGS_PORTS]] \
-    mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
-    mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
-    pkg         [list action_target         [ACTION_ARGS_PORTS]] \
+    archivefetch [list action_target         $action_args::PORTS] \
+    archive     [list action_target         $action_args::PORTS] \
+    unarchive   [list action_target         $action_args::PORTS] \
+    dmg         [list action_target         $action_args::PORTS] \
+    mdmg        [list action_target         $action_args::PORTS] \
+    mpkg        [list action_target         $action_args::PORTS] \
+    pkg         [list action_target         $action_args::PORTS] \
     \
-    snapshot    [list action_snapshot       [ACTION_ARGS_STRINGS]] \
-    restore     [list action_restore        [ACTION_ARGS_STRINGS]] \
-    migrate     [list action_migrate        [ACTION_ARGS_STRINGS]] \
+    snapshot    [list action_snapshot       $action_args::STRINGS] \
+    restore     [list action_restore        $action_args::STRINGS] \
+    migrate     [list action_migrate        $action_args::STRINGS] \
     \
-    quit        [list action_exit           [ACTION_ARGS_NONE]] \
-    exit        [list action_exit           [ACTION_ARGS_NONE]] \
+    quit        [list action_exit           $action_args::NONE] \
+    exit        [list action_exit           $action_args::NONE] \
 ]
 
 # Actions which are only valid in shell mode
@@ -4271,9 +4257,9 @@ proc get_action_proc { action } {
 # Returns whether an action expects text arguments at all,
 # expects text arguments or wants an expanded list of ports
 # Return values are constants:
-#   [ACTION_ARGS_NONE]     Does not expect any text argument
-#   [ACTION_ARGS_STRINGS]  Expects some strings as text argument
-#   [ACTION_ARGS_PORTS]    Wants an expanded list of ports as text argument
+#   action_args::NONE     Does not expect any text argument
+#   action_args::STRINGS  Expects some strings as text argument
+#   action_args::PORTS    Wants an expanded list of ports as text argument
 proc action_needs_portlist { action } {
     global action_array
     set ret 0
@@ -4641,16 +4627,16 @@ proc process_cmd { argv } {
                 set private_options(ports_no_args) "yes"
             }
             default {
-                if {[ACTION_ARGS_NONE] == $expand} {
+                if {$::action_args::NONE == $expand} {
                     ui_error "$action does not accept string arguments"
                     set action_status 1
                     break
-                } elseif {[ACTION_ARGS_STRINGS] == $expand} {
+                } elseif {$::action_args::STRINGS == $expand} {
                     while { [moreargs] && ![match ";"] } {
                         lappend portlist [lookahead]
                         advance
                     }
-                } elseif {[ACTION_ARGS_PORTS] == $expand} {
+                } elseif {$::action_args::PORTS == $expand} {
                     # Parse port specifications into portlist
                     if {![portExpr portlist]} {
                         ui_error "Improper expression syntax while processing parameters"
