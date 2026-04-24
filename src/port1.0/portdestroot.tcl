@@ -385,7 +385,7 @@ proc portdestroot::destroot_finish {args} {
                     }
                 } elseif {[string equal -length [expr {[string length $dfile] + 1}] $dfile/ $prefix]} {
                     # we've found a subpath of our prefix
-                    lpush pathsToCheck $dfile
+                    lappend pathsToCheck $dfile
                 } else {
                     set dir_allowed no
                     # these files are (at least potentially) outside of the prefix
@@ -397,7 +397,7 @@ proc portdestroot::destroot_finish {args} {
                         }
                     }
                     if {$dir_allowed} {
-                        lpush pathsToCheck $dfile
+                        lappend pathsToCheck $dfile
                     } else {
                         # not a prefix of an allowed path, so it's either the path itself or a violation
                         switch -- $dfile \

@@ -140,15 +140,6 @@ proc ldindex {varName args} {
     return $item
 }
 
-# lpush varName ?value ...?
-# Appends list elements onto a variable
-# If varName does not exist then it is created
-# really just an alias for lappend
-proc lpush {varName args} {
-    upvar 1 $varName var
-    lappend var {*}$args
-}
-
 
 # lunshift varName ?value ...?
 # Prepends list elements onto a variable

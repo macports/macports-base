@@ -80,23 +80,6 @@ test ldindex {
 } -result "ldindex successful."
 
 
-test lpush {
-    Lpush unit test.
-} -body {
-    set list {0 1}
-    if {[lpush list 2] != {0 1 2}} {
-        return "FAIL: element not appended"
-    }
-    if {[lpush list 3 4] != {0 1 2 3 4}} {
-        return "FAIL: multiple elements not appended"
-    }
-    if {[lpush list1 0] != 0} {
-        return "FAIL: list not created"
-    }
-    return "lpop successful."
-} -result "lpop successful."
-
-
 test lunshift {
     Lunshift unit test.
 } -body {
