@@ -1994,16 +1994,6 @@ match macports.conf.default."
     }
 }
 
-# Call vwait on a variable after setting up a timer to write to it
-# after ms milliseconds.
-proc macports::vwait_with_timeout {var ms} {
-    set timeout_script_template {set %s [set %s]}
-    set timeout_script [string map [list %s $var] $timeout_script_template]
-    set timeout_eventid [after $ms $timeout_script]
-    vwait $var
-    after cancel $timeout_eventid
-}
-
 # call this just before you exit
 proc mportshutdown {} {
     global macports::portdbpath
@@ -2020,9 +2010,7 @@ proc mportshutdown {} {
             # Wait up to 1 second for async pings to finish
             set remaining 1000
             while {$remaining > 0 && [dict size $pending_pings] > 0} {
-                set start [clock milliseconds]
-                macports::vwait_with_timeout ::macports::pending_pings $remaining
-                set remaining [expr {$remaining - ([clock milliseconds] - $start)}]
+                set remaining [vwait -timeout $remaining ::macports::pending_pings]
             }
         }
         # Only save the cache if it was updated

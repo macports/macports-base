@@ -41,7 +41,6 @@ namespace eval mport_fetch_thread {
     variable next_id 0
     variable management_thread
     trace add variable management_thread read mport_fetch_thread::init_management_thread
-    variable timeout_script_template {if {![info exists %s]} {set %s timeout}}
 
     # Management thread code
     variable init_script {
@@ -472,16 +471,7 @@ proc mport_fetch_thread::is_complete {id {timeout 0}} {
         variable $id
         if {![info exists $id]} {
             if {$timeout > 0} {
-                variable timeout_script_template
-                set timeout_script [string map [list %s $id] \
-                    $timeout_script_template]
-                set timeout_eventid [after $timeout $timeout_script]
-                vwait $id
-                if {[set $id] eq "timeout"} {
-                    unset $id
-                } else {
-                    after cancel $timeout_eventid
-                }
+                vwait -timeout $timeout $id
             } else {
                 update
             }
