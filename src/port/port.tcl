@@ -1896,28 +1896,20 @@ proc action_info { action portlist opts } {
                 }
             } elseif {$opt eq "fullname"} {
                 set inf "[dict get $portinfo name] @"
-                append inf [composite_version [dict get $portinfo version] [expr {[dict exists $portinfo active_variants] ? [dict get $portinfo active_variants] : {}}]]
+                append inf [composite_version [dict get $portinfo version] [dict getwithdefault $portinfo active_variants {}]]
                 set ropt "fullname"
             } else {
                 # Map from friendly name
                 set ropt [map_friendly_field_names $opt]
 
                 # If there's no such info, move on
-                if {![dict exists $portinfo $ropt]} {
-                    set inf ""
-                } else {
-                    set inf [dict get $portinfo $ropt]
-                }
+                set inf [dict getwithdefault $portinfo $ropt {}]
             }
 
             # Calculate field label
             set label ""
             if {$pretty_print} {
-                if {[dict exists $pretty_label $ropt]} {
-                    set label [dict get $pretty_label $ropt]
-                } else {
-                    set label $opt
-                }
+                set label [dict getwithdefault $pretty_label $ropt $opt]
             } elseif {$show_label} {
                 set label "$opt: "
             }
@@ -2880,11 +2872,7 @@ proc action_deps { action portlist opts } {
 
         set version [dict get $portinfo version]
         set revision [dict get $portinfo revision]
-        if {[dict exists $portinfo canonical_active_variants]} {
-            set variants [dict get $portinfo canonical_active_variants]
-        } else {
-            set variants {}
-        }
+        set variants [dict getwithdefault $portinfo canonical_active_variants {}]
 
         puts -nonewline $separator
         if {$action eq "deps"} {
@@ -3204,15 +3192,9 @@ proc action_outdated { action portlist opts } {
                 continue
             }
             set latest_version [dict get $portinfo version]
-            set latest_revision 0
-            if {[dict exists $portinfo revision] && [dict get $portinfo revision] > 0} {
-                set latest_revision [dict get $portinfo revision]
-            }
+            set latest_revision [dict getwithdefault $portinfo revision 0]
             set latest_compound "${latest_version}_${latest_revision}"
-            set latest_epoch 0
-            if {[dict exists $portinfo epoch]} {
-                set latest_epoch [dict get $portinfo epoch]
-            }
+            set latest_epoch [dict getwithdefault $portinfo epoch 0]
 
             # Compare versions, first checking epoch, then version, then revision
             set epoch_comp_result [expr {$installed_epoch - $latest_epoch}]
@@ -3689,14 +3671,9 @@ proc action_list { action portlist opts } {
         }
 
         foreach {name portinfo} $res {
-            set outdir ""
-            if {[dict exists $portinfo portdir]} {
-                set outdir [dict get $portinfo portdir]
-            }
-            if {[dict exists $portinfo version]} {
-                set version [dict get $portinfo version]
-            } else {
-                set version {}
+            set outdir [dict getwithdefault $portinfo portdir {}]
+            set version [dict getwithdefault $portinfo version {}]
+            if {$version eq {}} {
                 ui_warn "required option 'version' is missing for $name"
             }
             puts [format "%-30s @%-14s %s" $name $version $outdir]
@@ -3862,12 +3839,8 @@ proc action_portcmds { action portlist opts } {
                 }
 
                 gohome {
-                    set homepage ""
-
                     # Get the homepage as read from PortIndex
-                    if {[dict exists $portinfo homepage]} {
-                        set homepage [dict get $portinfo homepage]
-                    }
+                    set homepage [dict getwithdefault $portinfo homepage {}]
 
                     # If not available, get the homepage for the port by opening the Portfile
                     if {$homepage eq "" && ![catch {set ctx [mportopen $porturl]} result]} {

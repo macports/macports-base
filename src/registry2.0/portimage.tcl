@@ -86,10 +86,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     if {[dict exists $options ports_activate_no-exec]} {
         set noexec [dict get $options ports_activate_no-exec]
     }
-    set rename_list [list]
-    if {[dict exists $options portactivate_rename_files]} {
-        set rename_list [dict get $options portactivate_rename_files]
-    }
+    set rename_list [dict getwithdefault $options portactivate_rename_files [list]]
     set todeactivate [list]
 
     registry::read {
@@ -767,11 +764,7 @@ proc _activate_contents {port {rename_list {}}} {
                             throw registry::image-error $msg
                         }
                     }
-                    if {[dict exists $conflicts_path_to_port $file]} {
-                        set owner [dict get $conflicts_path_to_port $file]
-                    } else {
-                        set owner {}
-                    }
+                    set owner [dict getwithdefault $conflicts_path_to_port $file {}]
                     if {$owner eq {} || ![dict exists $todeactivate $owner]} {
                         if {$force} {
                             # If we're forcing the activation, then we move any existing

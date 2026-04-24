@@ -7192,8 +7192,8 @@ proc macports::compare_pingtimes {a b} {
     set a_parts [::uri::split $a]
     set b_parts [::uri::split $b]
 
-    set a_scheme [expr {[dict exists $a_parts scheme] ? [dict get $a_parts scheme] : {}}]
-    set b_scheme [expr {[dict exists $b_parts scheme] ? [dict get $b_parts scheme] : {}}]
+    set a_scheme [dict getwithdefault $a_parts scheme {}]
+    set b_scheme [dict getwithdefault $b_parts scheme {}]
     # file:// can't be pinged and is assumed to be faster
     if {$a_scheme eq "file"} {
         return [expr {$b_scheme eq "file" ? 0 : -1}]

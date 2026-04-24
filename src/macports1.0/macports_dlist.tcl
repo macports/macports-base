@@ -397,11 +397,7 @@ proc ditem_key {ditem args} {
 		return $val
 	} elseif {$nbargs == 1} {
 		set key [lindex $args 0]
-		if {[dict exists [set $ditem] $key]} {
-		    return [dict get [set $ditem] $key]
-		} else {
-		    return {}
-		}
+		return [dict getwithdefault [set $ditem] $key {}]
 	} elseif {[info exists $ditem]} {
 		return [set $ditem]
 	} else {

@@ -138,11 +138,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
         # don't want this set when calling registry::run_target
         dict unset options subport
     }
-    if {[dict exists $options ports_force]} {
-         set force [dict get $options ports_force]
-    } else {
-        set force no
-    }
+    set force [dict getwithdefault $options ports_force no]
     # if no-exec is set for uninstall, set for deactivate too
     if {[dict exists $options ports_uninstall_no-exec]} {
         dict set options ports_deactivate_no-exec [dict get $options ports_uninstall_no-exec]
