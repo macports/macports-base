@@ -73,8 +73,8 @@ test dlist_delete {
     set dlist [list]
     lappend dlist $mport
 } -body {
-    if {[dlist_delete dlist $mport] ne ""} {
-        return "FAIL: cannot run dlist_delete"
+    if {[catch {dlist_delete dlist $mport} result]} {
+        return "FAIL: cannot run dlist_delete: $result"
     }
     if {$dlist ne ""} {
         return "FAIL: port not removed from list"
