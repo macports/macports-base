@@ -337,47 +337,36 @@ namespace eval mport_fetch_thread {
                    available_threads thread_count max_threads
 
             while {1} {
+                set all_busy 0
                 # Fetches have highest priority
-                for {set i 0} {$i < [llength $fetch_request_queue]} {incr i} {
-                    if {$fetch_count >= $max_fetches} {
-                        break
-                    }
+                while {[llength $fetch_request_queue] > 0 && $fetch_count < $max_fetches} {
                     set tid [get_available_thread]
                     if {$tid eq {}} {
+                        set all_busy 1
                         break
                     }
                     incr fetch_count
-                    thread::send -async $tid [list do_curl {*}[lindex $fetch_request_queue $i]] main_wakeup
-                }
-                if {$i > 0} {
-                    set fetch_request_queue [lrange $fetch_request_queue $i end]
+                    thread::send -async $tid [list do_curl {*}[lpop fetch_request_queue 0]] main_wakeup
                 }
                 # Archive existence checks are slightly lower priority,
                 # but more can be in progress at once.
-                for {set i 0} {$i < [llength $exists_request_queue]} {incr i} {
+                while {!$all_busy && [llength $exists_request_queue] > 0} {
                     set tid [get_available_thread]
                     if {$tid eq {}} {
+                        set all_busy 1
                         break
                     }
-                    thread::send -async $tid [list do_curl {*}[lindex $exists_request_queue $i]] main_wakeup
-                }
-                if {$i > 0} {
-                    set exists_request_queue [lrange $exists_request_queue $i end]
+                    thread::send -async $tid [list do_curl {*}[lpop exists_request_queue 0]] main_wakeup
                 }
                 # Pings are lowest priority and must leave one thread free
                 # for higher priority operations.
-                for {set i 0} {$i < [llength $ping_request_queue]} {incr i} {
-                    if {$max_threads - $thread_count + [llength $available_threads] < 2} {
-                        break
-                    }
+                while {!$all_busy && [llength $ping_request_queue] > 0
+                        && $max_threads - $thread_count + [llength $available_threads] >= 2} {
                     set tid [get_available_thread]
                     if {$tid eq {}} {
                         break
                     }
-                    thread::send -async $tid [list do_ping {*}[lindex $ping_request_queue $i]] main_wakeup
-                }
-                if {$i > 0} {
-                    set ping_request_queue [lrange $ping_request_queue $i end]
+                    thread::send -async $tid [list do_ping {*}[lpop ping_request_queue 0]] main_wakeup
                 }
                 # Sleep until something happens
                 vwait main_wakeup
