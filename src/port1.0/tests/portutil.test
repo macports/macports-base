@@ -7,21 +7,7 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../port_test_autoconf.tcl
-package require macports 1.0
-
-source ./library.tcl
-source $macports::autoconf::top_srcdir/src/macports1.0/tests/init_tmp_prefix.tcl
-
-# clean leftovers from interrupted tests
-file delete -force $pwd/tmpdir
-# use a local, temporary prefix for testing
-init_tmp_prefix $pwd $pwd/tmpdir
-
-array set ui_options {}
-#set ui_options(ports_debug)   yes
-#set ui_options(ports_verbose) yes
-set ui_options(ports_noninteractive) yes
-mportinit ui_options
+source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
 
 macports_worker_init
 
@@ -269,7 +255,7 @@ test reinplace {
     set macportsuser macports
     set_ui_prefix
 
-    set root "/tmp/macports-portutil-reinplace"
+    set root "$pwd/work-reinplace"
     file delete -force $root
 
     set workpath $root
@@ -329,7 +315,7 @@ test reinplace {
 test delete {
     Delete unit test.
 } -setup {
-    set root "/tmp/macports-portutil-delete"
+    set root "$pwd/work-delete"
     file delete -force $root
 
     mtree $root {
@@ -374,11 +360,11 @@ test delete {
 test touch {
     Touch unit test.
 } -setup {
-    set dir "/tmp"
-    set file "macports-portutil-touch"
-    set file2 "macports-portutil-touch2"
-    set root "/tmp/macports-portutil-touch"
-    set root2 "/tmp/macports-portutil-touch2"
+    set dir $pwd
+    set file "work-touch"
+    set file2 "work-touch2"
+    set root "$pwd/work-touch"
+    set root2 "$pwd/work-touch2"
     file delete -force $root
     file delete -force $root2
 } -body {
@@ -428,7 +414,7 @@ test ln {
     ln unit test.
 } -setup {
     set oldpwd [pwd]
-    set root "/tmp/macports-portutil-ln"
+    set root "$pwd/work-ln"
     file delete -force $root
     file mkdir $root
 } -body {

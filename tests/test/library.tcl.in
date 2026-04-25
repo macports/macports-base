@@ -13,23 +13,28 @@ set work_dir "work"
 set test_tclsh "@TEST_TCLSH@"
 set top_srcdir "@abs_top_srcdir@"
 
+# Dynamic temporary root for integration tests.  file tempfile generates
+# a unique path under TMPDIR (or the platform default), avoiding
+# collisions even with parallel or repeated runs.
+close [file tempfile test_root]
+file delete $test_root
+
 # Set of procs used for testing.
 
 # Sets variables from autoconf for in-tree testing
 proc load_variables {pwd} {
-    global datadir portsrc cpwd test_tclsh top_srcdir
+    global portsrc cpwd test_tclsh top_srcdir test_root
 
     set cpwd [file dirname [file dirname $pwd]]
 
-    set datadir "@prefix@/share"
-    set portsrc ${cpwd}/test-macports.conf
+    set portsrc ${test_root}/macports.conf
 
 }
 
 proc cleanup {} {
-    global cpwd
+    global cpwd test_root
 
-    file delete -force /tmp/macports-tests
+    file delete -force $test_root
     file delete -force ${cpwd}/PortIndex ${cpwd}/PortIndex.quick
 }
 
@@ -80,32 +85,48 @@ proc with_portsrc {portsrc script} {
 
 # Sets initial directories
 proc set_dir {} {
-    global datadir cpwd top_srcdir
+    global cpwd top_srcdir test_root
 
     cleanup
 
-    file mkdir /tmp/macports-tests/ports \
-               /tmp/macports-tests/opt/local/etc/macports \
-               /tmp/macports-tests/opt/local/share \
-               /tmp/macports-tests/opt/local/var/macports/receipts \
-               /tmp/macports-tests/opt/local/var/macports/registry \
-               /tmp/macports-tests/opt/local/var/macports/build
+    set prefix ${test_root}/opt/local
+
+    file mkdir ${test_root}/ports \
+               ${prefix}/etc/macports \
+               ${prefix}/share \
+               ${prefix}/var/macports/receipts \
+               ${prefix}/var/macports/registry \
+               ${prefix}/var/macports/build
 
     # Populate share/macports from the source tree instead of the prefix
-    file mkdir /tmp/macports-tests/opt/local/share/macports/install
-    file copy $top_srcdir/macports-pubkey.pem /tmp/macports-tests/opt/local/share/macports/
-    file copy $top_srcdir/setupenv.bash /tmp/macports-tests/opt/local/share/macports/
-    file copy $top_srcdir/doc/base.mtree /tmp/macports-tests/opt/local/share/macports/install/
-    file copy $top_srcdir/doc/prefix.mtree /tmp/macports-tests/opt/local/share/macports/install/
-    file copy $top_srcdir/doc/macosx.mtree /tmp/macports-tests/opt/local/share/macports/install/
-    file copy $top_srcdir/keys /tmp/macports-tests/opt/local/share/macports/
-    file copy ${cpwd}/sources.conf /tmp/macports-tests/opt/local/etc/macports/
-    file link -symbolic /tmp/macports-tests/ports/test $cpwd/test
+    file mkdir ${prefix}/share/macports/install
+    file copy $top_srcdir/macports-pubkey.pem ${prefix}/share/macports/
+    file copy $top_srcdir/setupenv.bash ${prefix}/share/macports/
+    file copy $top_srcdir/doc/base.mtree ${prefix}/share/macports/install/
+    file copy $top_srcdir/doc/prefix.mtree ${prefix}/share/macports/install/
+    file copy $top_srcdir/doc/macosx.mtree ${prefix}/share/macports/install/
+    file copy $top_srcdir/keys ${prefix}/share/macports/
+
+    # Copy config files, substituting the dynamic test root
+    foreach {src dst} [list \
+        ${cpwd}/sources.conf        ${prefix}/etc/macports/sources.conf \
+        ${cpwd}/test-macports.conf  ${test_root}/macports.conf \
+    ] {
+        set fd [open $src r]
+        set content [read $fd]
+        close $fd
+        set content [string map [list @TEST_ROOT@ $test_root] $content]
+        set fd [open $dst w]
+        puts -nonewline $fd $content
+        close $fd
+    }
+
+    file link -symbolic ${test_root}/ports/test $cpwd/test
 }
 
 # Run portindex
 proc port_index {} {
-    global cpwd portsrc test_tclsh top_srcdir
+    global cpwd portsrc test_tclsh top_srcdir test_root
 
     # Move up 2 level to run portindex.
     set path [pwd]
@@ -121,7 +142,7 @@ proc port_index {} {
         }
     }
 
-    file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick /tmp/macports-tests/ports/
+    file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick ${test_root}/ports/
 
     cd $path
 }
