@@ -277,4 +277,433 @@ test checksum_main {
 } -result "Checksum main successful."
 
 
+# ============================================================
+# Tests for portchecksum::parse_checksum_block_formats
+# ============================================================
+
+test parse_block_formats_standard {
+    Parse a standard top-level checksums block (vim/gradle style, keyword_width=20)
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "checksums           rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    789" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b [lindex $blocks 0]
+    list [llength $blocks] \
+         [dict get $b keyword] \
+         [dict get $b indent] \
+         [dict get $b keyword_width] \
+         [dict get $b type_width] \
+         [dict get $b start_line] \
+         [dict get $b end_line]
+} -result {1 checksums {} 20 8 2 4}
+
+test parse_block_formats_wide {
+    Parse a wide-format checksums block (curl style, keyword_width=32)
+} -body {
+    set lines [list \
+        "checksums                       rmd160  abc123 \\" \
+        "                                sha256  def456 \\" \
+        "                                size    789" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b [lindex $blocks 0]
+    list [dict get $b keyword_width] [dict get $b start_line] [dict get $b end_line]
+} -result {32 0 2}
+
+test parse_block_formats_indented {
+    Parse an indented checksums block (git subport style, 4-space indent)
+} -body {
+    set lines [list \
+        "subport git-devel \{" \
+        "    checksums       rmd160  abc123 \\" \
+        "                    sha256  def456" \
+        "\}" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b [lindex $blocks 0]
+    list [dict get $b indent] [dict get $b keyword_width] [dict get $b start_line] [dict get $b end_line]
+} -result {{    } 20 1 2}
+
+test parse_block_formats_two_blocks {
+    Parse two blocks: checksums + checksums-append with different indentation
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    789" \
+        "" \
+        "        checksums-append    rmd160  ghi789 \\" \
+        "                            sha256  jkl012 \\" \
+        "                            size    321" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b0 [lindex $blocks 0]
+    set b1 [lindex $blocks 1]
+    list [llength $blocks] \
+         [dict get $b0 keyword] [dict get $b0 indent] [dict get $b0 keyword_width] \
+         [dict get $b1 keyword] [dict get $b1 indent] [dict get $b1 keyword_width]
+} -result {2 checksums {} 20 checksums-append {        } 28}
+
+test parse_block_formats_none {
+    Return empty list when no checksums line exists
+} -body {
+    set lines [list "PortSystem 1.0" "name foo" "version 1.0"]
+    portchecksum::parse_checksum_block_formats $lines
+} -result {}
+
+test parse_block_formats_single_line {
+    Parse a single-line checksums (no continuation)
+} -body {
+    set lines [list \
+        "checksums   rmd160 abc123 sha256 def456 size 789" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b [lindex $blocks 0]
+    list [llength $blocks] [dict get $b start_line] [dict get $b end_line] [dict get $b keyword_width]
+} -result {1 0 0 12}
+
+test parse_block_formats_llvm_style {
+    Parse wide-format checksums (llvm style, keyword_width=24)
+} -body {
+    set lines [list \
+        "checksums               rmd160  abc123 \\" \
+        "                        sha256  def456 \\" \
+        "                        size    789" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b [lindex $blocks 0]
+    dict get $b keyword_width
+} -result 24
+
+# ============================================================
+# Tests for portchecksum::find_block_for_value
+# ============================================================
+
+test find_block_value_first {
+    Find value in the first block
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123def456 \\" \
+        "                    sha256  ghi789jkl012 \\" \
+        "                    size    12345" \
+        "" \
+        "checksums-append    rmd160  mno345pqr678 \\" \
+        "                    sha256  stu901vwx234" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::find_block_for_value $lines $blocks "abc123def456"
+} -result 0
+
+test find_block_value_second {
+    Find value in the second block (checksums-append)
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123def456 \\" \
+        "                    sha256  ghi789jkl012 \\" \
+        "                    size    12345" \
+        "" \
+        "checksums-append    rmd160  mno345pqr678 \\" \
+        "                    sha256  stu901vwx234" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::find_block_for_value $lines $blocks "mno345pqr678"
+} -result 1
+
+test find_block_value_not_found {
+    Return -1 when value not found in any block
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123def456" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::find_block_for_value $lines $blocks "zzz999nonexistent"
+} -result -1
+
+test find_block_value_outside_blocks {
+    Return -1 when value found on a line outside any block range
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123def456" \
+        "" \
+        "# some comment mentioning xyz789mno456" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::find_block_for_value $lines $blocks "xyz789mno456"
+} -result -1
+
+# ============================================================
+# Tests for portchecksum::extract_block_distfile_names
+# ============================================================
+
+test extract_distfiles_variable_names {
+    Extract distfile names with Tcl variable expressions (go pattern)
+} -body {
+    set lines [list \
+        "        checksums   \${go_src_dist} \\" \
+        "                    rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    12345 \\" \
+        "                    \${go_armbin_dist} \\" \
+        "                    rmd160  ghi789 \\" \
+        "                    sha256  jkl012 \\" \
+        "                    size    67890" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::extract_block_distfile_names $lines [lindex $blocks 0]
+} -result [list {${go_src_dist}} {${go_armbin_dist}}]
+
+test extract_distfiles_literal_names {
+    Extract literal distfile names (git pattern)
+} -body {
+    set lines [list \
+        "    checksums       git-2.53.0.tar.xz \\" \
+        "                    rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    7993096 \\" \
+        "                    git-manpages-2.53.0.tar.xz \\" \
+        "                    rmd160  ghi789 \\" \
+        "                    sha256  jkl012 \\" \
+        "                    size    614136" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::extract_block_distfile_names $lines [lindex $blocks 0]
+} -result {git-2.53.0.tar.xz git-manpages-2.53.0.tar.xz}
+
+test extract_distfiles_single_implicit {
+    Return empty list when single distfile has no name in block
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    789" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::extract_block_distfile_names $lines [lindex $blocks 0]
+} -result {}
+
+test extract_distfiles_mixed_expressions {
+    Extract names with mixed variable and literal expressions
+} -body {
+    set lines [list \
+        "checksums           \${distname}\${extract.suffix} \\" \
+        "                    rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    11111 \\" \
+        "                    \${name}-docs-\${version}.tar.gz \\" \
+        "                    rmd160  ghi789 \\" \
+        "                    sha256  jkl012 \\" \
+        "                    size    22222" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    portchecksum::extract_block_distfile_names $lines [lindex $blocks 0]
+} -result [list {${distname}${extract.suffix}} {${name}-docs-${version}.tar.gz}]
+
+# ============================================================
+# Tests for portchecksum::format_checksum_suggestion
+# ============================================================
+
+test format_suggestion_standard {
+    Standard 20-width format matches historical output
+} -body {
+    set sums [list "rmd160  abc123" "sha256  def456" "size    789"]
+    portchecksum::format_checksum_suggestion "checksums" "" 20 $sums
+} -result "checksums           rmd160  abc123 \\\n                    sha256  def456 \\\n                    size    789"
+
+test format_suggestion_indented {
+    With 4-space indent prefix
+} -body {
+    set sums [list "rmd160  abc123" "sha256  def456"]
+    portchecksum::format_checksum_suggestion "checksums" "    " 20 $sums
+} -result "    checksums       rmd160  abc123 \\\n                    sha256  def456"
+
+test format_suggestion_wide {
+    With wider keyword_width (32, curl style)
+} -body {
+    set sums [list "rmd160  abc123" "sha256  def456"]
+    portchecksum::format_checksum_suggestion "checksums" "" 32 $sums
+} -result "checksums                       rmd160  abc123 \\\n                                sha256  def456"
+
+test format_suggestion_append_keyword {
+    With checksums-append keyword and 8-space indent
+} -body {
+    set sums [list "rmd160  abc123" "sha256  def456"]
+    portchecksum::format_checksum_suggestion "checksums-append" "        " 28 $sums
+} -result "        checksums-append    rmd160  abc123 \\\n                            sha256  def456"
+
+test format_suggestion_multi_distfile {
+    Multiple distfiles with names in sums list
+} -body {
+    set sums [list "file1.tar.gz" "rmd160  abc123" "sha256  def456" "file2.tar.gz" "rmd160  ghi789" "sha256  jkl012"]
+    portchecksum::format_checksum_suggestion "checksums" "" 20 $sums
+} -result "checksums           file1.tar.gz \\\n                    rmd160  abc123 \\\n                    sha256  def456 \\\n                    file2.tar.gz \\\n                    rmd160  ghi789 \\\n                    sha256  jkl012"
+
+test format_suggestion_single_entry {
+    Single checksum entry (no continuation needed)
+} -body {
+    set sums [list "sha256  abc123"]
+    portchecksum::format_checksum_suggestion "checksums" "" 20 $sums
+} -result "checksums           sha256  abc123"
+
+test parse_block_formats_prepend {
+    Parse a checksums-prepend block (curl style)
+} -body {
+    set lines [list \
+        "checksums-prepend   rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    789" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set b [lindex $blocks 0]
+    list [llength $blocks] [dict get $b keyword] [dict get $b keyword_width]
+} -result {1 checksums-prepend 20}
+
+test find_block_value_default_fallback {
+    Distfile not in any block falls back correctly (value not in Portfile at all)
+} -body {
+    set lines [list \
+        "checksums           rmd160  abc123def456 \\" \
+        "                    sha256  ghi789jkl012" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    # A completely new checksum that doesn't appear in the Portfile
+    portchecksum::find_block_for_value $lines $blocks "zzzNEWHASH999"
+} -result -1
+
+# ============================================================
+# Integration test combining all three procs
+# ============================================================
+
+test integration_multi_block_portfile {
+    Parse a multi-block Portfile, find values, format suggestions per block
+} -body {
+    set lines [list \
+        "    checksums       git-2.53.0.tar.xz \\" \
+        "                    rmd160  f125aaa111bbb222 \\" \
+        "                    sha256  5818ccc333ddd444 \\" \
+        "                    size    7993096 \\" \
+        "                    git-manpages-2.53.0.tar.xz \\" \
+        "                    rmd160  dbc6eee555fff666 \\" \
+        "                    sha256  957fggg777hhh888 \\" \
+        "                    size    614136" \
+        "" \
+        "        checksums-append    git-htmldocs-2.53.0.tar.xz \\" \
+        "                            rmd160  1ffciii999jjj000 \\" \
+        "                            sha256  994bkkk111lll222 \\" \
+        "                            size    1675212" \
+    ]
+
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+
+    # Find which block each value belongs to
+    set b_git [portchecksum::find_block_for_value $lines $blocks "f125aaa111bbb222"]
+    set b_man [portchecksum::find_block_for_value $lines $blocks "dbc6eee555fff666"]
+    set b_html [portchecksum::find_block_for_value $lines $blocks "1ffciii999jjj000"]
+
+    # Verify block assignments
+    set blk0 [lindex $blocks 0]
+    set blk1 [lindex $blocks 1]
+
+    # Format a suggestion for the first block
+    set sums0 [list "rmd160  new_rmd_git" "sha256  new_sha_git"]
+    set fmt0 [portchecksum::format_checksum_suggestion \
+        [dict get $blk0 keyword] [dict get $blk0 indent] \
+        [dict get $blk0 keyword_width] $sums0]
+
+    # Format a suggestion for the second block
+    set sums1 [list "rmd160  new_rmd_html" "sha256  new_sha_html"]
+    set fmt1 [portchecksum::format_checksum_suggestion \
+        [dict get $blk1 keyword] [dict get $blk1 indent] \
+        [dict get $blk1 keyword_width] $sums1]
+
+    # Verify: git and manpages in block 0, htmldocs in block 1
+    # Block 0: 4-space indent, keyword_width=20, starts at line 0 (1-based: 1)
+    # Block 1: 8-space indent, checksums-append, keyword_width=28, starts at line 9 (1-based: 10)
+    set starts_with_indent [string match "    checksums*" $fmt0]
+    set starts_with_append [string match "        checksums-append*" $fmt1]
+    set lineno0 [expr {[dict get $blk0 start_line] + 1}]
+    set lineno1 [expr {[dict get $blk1 start_line] + 1}]
+    list $b_git $b_man $b_html $starts_with_indent $starts_with_append $lineno0 $lineno1
+} -result {0 0 1 1 1 1 10}
+
+test integration_line_hint {
+    Verify line hint uses 1-based line numbers from block start_line
+} -body {
+    set lines [list \
+        "PortSystem 1.0" \
+        "name foo" \
+        "version 1.0" \
+        "" \
+        "checksums           rmd160  abc123 \\" \
+        "                    sha256  def456 \\" \
+        "                    size    789" \
+        "" \
+        "    checksums-append    rmd160  ghi789 \\" \
+        "                        sha256  jkl012" \
+    ]
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set hints [list]
+    foreach block $blocks {
+        set lineno [expr {[dict get $block start_line] + 1}]
+        lappend hints "[dict get $block keyword] on line $lineno"
+    }
+    join $hints ", "
+} -result "checksums on line 5, checksums-append on line 9"
+
+test integration_variable_distfile_names {
+    Extract original variable expressions for distfile names (go pattern)
+} -body {
+    set lines [list \
+        "        checksums   \${go_src_dist} \\" \
+        "                    rmd160  f0b0aaa111 \\" \
+        "                    sha256  b1ffbbb222 \\" \
+        "                    size    30797581 \\" \
+        "                    \${go_armbin_dist} \\" \
+        "                    rmd160  2d1dccc333 \\" \
+        "                    sha256  0db2ddd444 \\" \
+        "                    size    76429684 \\" \
+        "                    \${go_amdbin_dist} \\" \
+        "                    rmd160  86fdeee555 \\" \
+        "                    sha256  ecb3fff666 \\" \
+        "                    size    80113551" \
+    ]
+
+    set blocks [portchecksum::parse_checksum_block_formats $lines]
+    set block [lindex $blocks 0]
+
+    # Extract original distfile names
+    set orig_names [portchecksum::extract_block_distfile_names $lines $block]
+
+    # Simulate resolved distfile names and map by position
+    set resolved_names [list "go1.26.0.src.tar.gz" "go1.26.0.darwin-arm64.tar.gz" "go1.26.0.darwin-amd64.tar.gz"]
+    set original_map [dict create]
+    for {set n 0} {$n < [llength $resolved_names] && $n < [llength $orig_names]} {incr n} {
+        dict set original_map [lindex $resolved_names $n] [lindex $orig_names $n]
+    }
+
+    # Build sums using original names
+    set sums [list]
+    foreach rname $resolved_names {
+        lappend sums [dict get $original_map $rname]
+        lappend sums "rmd160  newhash1"
+        lappend sums "sha256  newhash2"
+        lappend sums "size    99999"
+    }
+
+    set result [portchecksum::format_checksum_suggestion \
+        [dict get $block keyword] [dict get $block indent] \
+        [dict get $block keyword_width] $sums]
+
+    # Verify original expressions are in the output, not resolved names
+    set has_go_src [expr {[string first {${go_src_dist}} $result] >= 0}]
+    set has_go_arm [expr {[string first {${go_armbin_dist}} $result] >= 0}]
+    set has_go_amd [expr {[string first {${go_amdbin_dist}} $result] >= 0}]
+    set no_resolved [expr {[string first "go1.26.0" $result] < 0}]
+    list $has_go_src $has_go_arm $has_go_amd $no_resolved
+} -result {1 1 1 1}
+
 cleanupTests
