@@ -100,6 +100,10 @@ namespace eval macports {
     variable portinterp_deferred_options [list developer_dir xcodeversion xcodebuildcmd \
                                                xcodecltversion xcode_license_unaccepted]
 
+    # Network proxies to use
+    variable proxies [dict create]
+    variable no_proxy {}
+
     # maps porturls to the list of open mports with each url
     variable open_mports [dict create]
 
@@ -1840,6 +1844,9 @@ match macports.conf.default."
             set env(http_proxy) $sysConfProxies(proxy_http)
         }
     }
+    if {[info exists env(http_proxy)]} {
+        dict set ::macports::proxies http $env(http_proxy)
+    }
     if {(![info exists env(https_proxy)] && ![info exists env(HTTPS_PROXY)]) || $proxy_override_env} {
         unset -nocomplain env(https_proxy)
         if {[info exists proxy_https]} {
@@ -1856,6 +1863,16 @@ match macports.conf.default."
             set env(FTP_PROXY) $sysConfProxies(proxy_ftp)
         }
     }
+    foreach proxytype {https ftp all} {
+        if {[info exists env(${proxytype}_proxy)]} {
+            dict set ::macports::proxies $proxytype $env(${proxytype}_proxy)
+            continue
+        }
+        set proxytype_upper [string toupper $proxytype]
+        if {[info exists env(${proxytype_upper}_PROXY)]} {
+            dict set ::macports::proxies $proxytype $env(${proxytype_upper}_PROXY)
+        }
+    }
     if {![info exists env(RSYNC_PROXY)] || $proxy_override_env} {
         if {[info exists proxy_rsync]} {
             set env(RSYNC_PROXY) $proxy_rsync
@@ -1868,6 +1885,11 @@ match macports.conf.default."
         } elseif {[info exists sysConfProxies(proxy_skip)]} {
             set env(NO_PROXY) $sysConfProxies(proxy_skip)
         }
+    }
+    if {[info exists env(no_proxy)]} {
+        set ::macports::no_proxy $env(no_proxy)
+    } elseif {[info exists env(NO_PROXY)]} {
+        set ::macports::no_proxy $env(NO_PROXY)
     }
 
     # add ccache to environment

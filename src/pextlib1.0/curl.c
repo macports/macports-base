@@ -276,6 +276,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 		const int MAXHTTPHEADERS = 100;
 		int numHTTPHeaders = 0;
 		const char* httpHeaders[MAXHTTPHEADERS];
+		char *proxy = NULL;
+		char *no_proxy = NULL;
 		int optioncrsr;
 		int lastoption;
 		const char* theURL;
@@ -384,6 +386,30 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				}
 			} else if (strcmp(theOption, "--enable-compression") == 0) {
 				acceptEncoding = "";
+		    } else if (strcmp(theOption, "--proxy") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					proxy = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl fetch: --proxy option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;
+				}
+			} else if (strcmp(theOption, "--no-proxy") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					no_proxy = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl fetch: --no-proxy option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;
+				}
 			} else {
 				Tcl_ResetResult(interp);
 				Tcl_AppendResult(interp, "curl fetch: unknown option ", theOption, NULL);
@@ -469,17 +495,24 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
 #if LIBCURL_VERSION_NUM >= 0x071304 && LIBCURL_VERSION_NUM <= 0x071307
 		/* FTP_PROXY workaround for Snow Leopard */
-		if (strncmp(theURL, "ftp:", 4) == 0) {
-			char *ftp_proxy = getenv("FTP_PROXY");
-			if (ftp_proxy) {
-				theCurlCode = curl_easy_setopt(theHandle, CURLOPT_PROXY, ftp_proxy);
-				if (theCurlCode != CURLE_OK) {
-					theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-					break;
-				}
-			}
+		if (proxy == NULL && strncmp(theURL, "ftp:", 4) == 0) {
+			proxy = getenv("FTP_PROXY");
 		}
 #endif
+        if (proxy) {
+            theCurlCode = curl_easy_setopt(theHandle, CURLOPT_PROXY, proxy);
+            if (theCurlCode != CURLE_OK) {
+                theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+                break;
+            }
+        }
+        if (no_proxy) {
+            theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROXY, no_proxy);
+            if (theCurlCode != CURLE_OK) {
+                theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+                break;
+            }
+        }
 
 		/* -L option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);
@@ -1106,6 +1139,8 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 	do {
 		int ignoresslcert = 0;
 		const char* theUserPassString = NULL;
+		char *proxy = NULL;
+		char *no_proxy = NULL;
 		int optioncrsr;
 		int lastoption;
 		const char* theURL;
@@ -1142,6 +1177,30 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				} else {
 					Tcl_SetResult(interp,
 						"curl getsize: -u option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;
+				}
+			} else if (strcmp(theOption, "--proxy") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					proxy = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl getsize: --proxy option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;
+				}
+			} else if (strcmp(theOption, "--no-proxy") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					no_proxy = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl getsize: --no-proxy option requires a parameter",
 						TCL_STATIC);
 					theResult = TCL_ERROR;
 					break;
@@ -1221,6 +1280,27 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
 		}
+
+#if LIBCURL_VERSION_NUM >= 0x071304 && LIBCURL_VERSION_NUM <= 0x071307
+		/* FTP_PROXY workaround for Snow Leopard */
+		if (proxy == NULL && strncmp(theURL, "ftp:", 4) == 0) {
+			proxy = getenv("FTP_PROXY");
+		}
+#endif
+        if (proxy) {
+            theCurlCode = curl_easy_setopt(theHandle, CURLOPT_PROXY, proxy);
+            if (theCurlCode != CURLE_OK) {
+                theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+                break;
+            }
+        }
+        if (no_proxy) {
+            theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROXY, no_proxy);
+            if (theCurlCode != CURLE_OK) {
+                theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+                break;
+            }
+        }
 
 		/* -L option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);

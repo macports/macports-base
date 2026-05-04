@@ -76,6 +76,26 @@ namespace eval mport_fetch_thread {
                 }
             }
 
+            proc get_proxy_args {url} {
+                global proxies no_proxy
+                set ret [list]
+                if {[dict size $proxies] > 0} {
+                    set colon [string first : $url]
+                    if {$colon > 0} {
+                        set scheme [string tolower [string range $url 0 ${colon}-1]]
+                        if {[dict exists $proxies $scheme]} {
+                            lappend ret --proxy [dict get $proxies $scheme]
+                        } elseif {[dict exists $proxies all]} {
+                            lappend ret --proxy [dict get $proxies all]
+                        }
+                    }
+                }
+                if {[info exists no_proxy]} {
+                    lappend ret --no-proxy $no_proxy
+                }
+                return $ret
+            }
+
             # Perform a curl-based operation and return the result.
             # Result format: 2 element list: status, body
             # status = 0: success, body is the actual result
@@ -96,10 +116,11 @@ namespace eval mport_fetch_thread {
                             set result [list 0 0]
                             lassign $opargs fixed_args credential_args urls
                             foreach {url sigurl} $urls {creds sigcreds} $credential_args {
+                                set proxy_args [get_proxy_args $url]
                                 # curl getsize can return -1 instead of throwing an error for
                                 # nonexistent files on FTP sites.
-                                if {![catch {curl getsize {*}$creds {*}$fixed_args $url} size] && $size > 0
-                                      && ![catch {curl getsize {*}$sigcreds {*}$fixed_args $sigurl} sigsize] && $sigsize > 0} {
+                                if {![catch {curl getsize {*}$proxy_args {*}$creds {*}$fixed_args $url} size] && $size > 0
+                                      && ![catch {curl getsize {*}$proxy_args {*}$sigcreds {*}$fixed_args $sigurl} sigsize] && $sigsize > 0} {
                                     set result [list 0 1]
                                     break
                                 }
@@ -121,6 +142,7 @@ namespace eval mport_fetch_thread {
                             set sig_fetched 0
                             set failed_sites 0
                             foreach url $urls creds $credential_args {
+                                set proxy_args [get_proxy_args $url]
                                 if {!$archive_fetched} {
                                     try {
                                         if {$show_progress} {
@@ -128,7 +150,7 @@ namespace eval mport_fetch_thread {
                                         } else {
                                             set current_url $url
                                         }
-                                        curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
+                                        curl fetch --progress progress_handler {*}$proxy_args {*}$creds {*}$fixed_args $url ${outpath}.TMP
                                         set archive_fetched 1
                                     } on error {eMessage} {
                                         progress_handler debug "Fetching $url failed: $eMessage"
@@ -150,7 +172,7 @@ namespace eval mport_fetch_thread {
                                             } else {
                                                 set current_url $sigurl
                                             }
-                                            curl fetch --progress progress_handler {*}$creds {*}$fixed_args $sigurl $signature
+                                            curl fetch --progress progress_handler {*}$proxy_args {*}$creds {*}$fixed_args $sigurl $signature
                                             set sig_fetched 1
                                             set fetched_sigtype $sigtype
                                             set result [list 0 1]
@@ -189,7 +211,7 @@ namespace eval mport_fetch_thread {
                                     } else {
                                         set current_url $url
                                     }
-                                    curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
+                                    curl fetch --progress progress_handler {*}[get_proxy_args $url] {*}$creds {*}$fixed_args $url ${outpath}.TMP
                                     set fetched 1
                                     set result [list 0 1]
                                     break
@@ -221,8 +243,8 @@ namespace eval mport_fetch_thread {
         }
         # End worker_init_script
 
-        proc init_max_threads {fetch_threads} {
-            global max_threads max_fetches
+        proc init_globals {fetch_threads proxies_in no_proxy_in} {
+            global max_threads max_fetches proxies no_proxy
             if {![catch {sysctl hw.activecpu} ncpus] && $ncpus > $fetch_threads} {
                 set max_threads [expr {$ncpus * 2}]
             } else {
@@ -232,6 +254,10 @@ namespace eval mport_fetch_thread {
                 set max_threads 8
             }
             set max_fetches $fetch_threads
+            set proxies $proxies_in
+            if {$no_proxy_in ne {}} {
+                set no_proxy $no_proxy_in
+            }
         }
         set available_threads [list]
         set thread_count 0
@@ -261,9 +287,13 @@ namespace eval mport_fetch_thread {
             # Create a new thread if possible.
             global max_threads thread_count
             if {$thread_count < $max_threads} {
-                global worker_init_script
+                global worker_init_script proxies no_proxy
                 set free_tid [thread::create -preserved $worker_init_script]
                 thread::send -async $free_tid [list set management_tid [thread::id]]
+                thread::send -async $free_tid [list set proxies $proxies]
+                if {[info exists no_proxy]} {
+                    thread::send -async $free_tid [list set no_proxy $no_proxy]
+                }
                 incr thread_count
                 return $free_tid
             }
@@ -334,9 +364,9 @@ proc mport_fetch_thread::init_management_thread {args} {
     trace remove variable management_thread read mport_fetch_thread::init_management_thread
     variable init_script
     set management_thread [thread::create -preserved $init_script]
-    global macports::fetch_threads
+    global macports::fetch_threads macports::proxies macports::no_proxy
     set max_fetches [expr {[info exists fetch_threads] && $fetch_threads > 1 ? $fetch_threads : 1}]
-    thread::send -async $management_thread [list init_max_threads $max_fetches]
+    thread::send -async $management_thread [list init_globals $max_fetches $proxies $no_proxy]
 }
 
 proc mport_fetch_thread::record_request {op opargs id} {
