@@ -73,7 +73,7 @@ proc portlivecheck::_async_cleanup {} {
     }
     variable tempfilename
     if {[info exists tempfilename]} {
-        file delete -force $tempfilename
+        file delete $tempfilename
         unset tempfilename
     }
 }
@@ -111,13 +111,10 @@ proc portlivecheck::_livecheck_main {{async no}} {
         unset async_job
         if {$status != 0} {
             ui_error "cannot check if $subport was updated ($result)"
-            file delete -force $tempfilename ${tempfilename}.TMP
+            file delete $tempfilename
             unset tempfilename
             return 0
         }
-        # Async fetch code appends .TMP for in-progress files. No real
-        # need to rename it here when it's done.
-        append tempfilename .TMP
         set async_done 1
     } else {
         set async_done 0
@@ -129,14 +126,6 @@ proc portlivecheck::_livecheck_main {{async no}} {
     set has_homepage [info exists homepage]
     if {!$has_homepage} {
         set livecheck.url {}
-    }
-
-    if {![info exists tempfilename]} {
-        set tempfd [file tempfile tempfilename mports.livecheck]
-        if {$async} {
-            close $tempfd
-            unset tempfd
-        }
     }
 
     if {!$async} {
@@ -215,6 +204,17 @@ proc portlivecheck::_livecheck_main {{async no}} {
         return 0
     }
 
+    if {![info exists tempfilename]} {
+        set tempfd [file tempfile tempfilename mports.livecheck]
+        if {$async} {
+            close $tempfd
+            unset tempfd
+            # Async fetch code appends .TMP for in-progress files. No real
+            # need to rename it here when it's done.
+            file rename $tempfilename ${tempfilename}.TMP
+        }
+    }
+
     # de-escape livecheck.url
     set livecheck.url_str [join ${livecheck.url}]
 
@@ -229,6 +229,7 @@ proc portlivecheck::_livecheck_main {{async no}} {
             if {$async} {
                 set async_job [curlwrap_async fetch_file {} $curl_options {} \
                         [list ${livecheck.url_str}] $tempfilename]
+                append tempfilename .TMP
                 return 0
             }
             set updated -1
@@ -296,6 +297,7 @@ proc portlivecheck::_livecheck_main {{async no}} {
             if {$async} {
                 set async_job [curlwrap_async fetch_file {} $curl_options {} \
                         [list ${livecheck.url_str}] $tempfilename]
+                append tempfilename .TMP
                 return 0
             }
             if {!$async_done && [catch {curl fetch {*}$curl_options ${livecheck.url_str} $tempfilename} error]} {
@@ -348,7 +350,8 @@ proc portlivecheck::_livecheck_main {{async no}} {
     if {[info exists tempfd]} {
         close $tempfd
     }
-    file delete -force $tempfilename
+    file delete $tempfilename
+    unset tempfilename
 
     if {${livecheck.type} ne "none"} {
         if {$updated > 0} {
