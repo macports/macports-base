@@ -37,9 +37,9 @@ namespace eval portdepends {
 }
 
 # define options
-options depends_fetch depends_extract depends_patch depends_build depends_run depends_lib depends_test depends
+options depends_fetch depends_extract depends_patch depends_build depends_run depends_lib depends_test depends_bump depends
 # Export options via PortInfo
-options_export depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test
+options_export depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test depends_bump
 
 option_proc depends_fetch portdepends::validate_depends_options
 option_proc depends_extract portdepends::validate_depends_options
@@ -48,6 +48,7 @@ option_proc depends_build portdepends::validate_depends_options
 option_proc depends_run portdepends::validate_depends_options
 option_proc depends_lib portdepends::validate_depends_options
 option_proc depends_test portdepends::validate_depends_options
+option_proc depends_bump portdepends::validate_depends_options
 
 # New option for the new dependency. We generate a warning because we don't handle this yet.
 option_proc depends portdepends::validate_depends_options_new

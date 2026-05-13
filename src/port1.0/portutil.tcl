@@ -1460,6 +1460,7 @@ proc target_run {ditem} {
                     switch $target {
                         fetch       -
                         checksum    { set deptypes [list depends_fetch] }
+                        bump        { set deptypes [list depends_bump] }
                         extract     { set deptypes [list depends_fetch depends_extract] }
                         patch       { set deptypes [list depends_fetch depends_extract depends_patch] }
                         configure   -
