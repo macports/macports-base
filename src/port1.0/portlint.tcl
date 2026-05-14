@@ -477,7 +477,11 @@ proc portlint::lint_main {args} {
             ui_warn "Line $lineno using macosx_version; switch to macos_version or macos_version_major"
             incr warnings
         }
-
+        
+        if {[regexp {\yport:pkgconfig\y} $line]} {
+            ui_warn "Line $lineno: 'port:pkgconfig' found; please use path-style dependency."
+            incr warnings
+        }
         ### TODO: more checks to Portfile syntax
 
         incr lineno
