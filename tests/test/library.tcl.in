@@ -9,6 +9,9 @@ set work_dir "work"
 # constraint indicating whether the platform supports trace mode
 ::tcltest::testConstraint tracemode_support [expr {@TRACEMODE_SUPPORT@ != 0}]
 
+# constraint indicating whether tests are running as a non-root user
+::tcltest::testConstraint nonRoot [expr {[exec id -u] != 0}]
+
 # In-tree test interpreter and source paths
 set test_tclsh "@TEST_TCLSH@"
 set top_srcdir "@abs_top_srcdir@"

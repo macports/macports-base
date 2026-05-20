@@ -99,7 +99,12 @@ proc portmain::get_subbuildpath {} {
     set subdir [expr {$subport ne "" ? $subport : [file tail $portpath]}]
     return [getportbuildpath $portpath $subdir]
 }
-default workpath {[getportworkpath_from_buildpath $subbuildpath]}
+proc portmain::get_workpath {} {
+    global portpath subport
+    set subdir [expr {$subport ne "" ? $subport : [file tail $portpath]}]
+    return [getportworkpath_from_portdir $portpath $subdir]
+}
+default workpath {[portmain::get_workpath]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
@@ -162,7 +167,14 @@ set euid [geteuid]
 set egid [getegid]
 
 default worksymlink {[file normalize [file join $portpath work]]}
-default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
+proc portmain::get_distpath {} {
+    global ports_local workpath portdbpath dist_subdir
+    if {[tbool ports_local]} {
+        return [file normalize [file join $workpath distfiles ${dist_subdir}]]
+    }
+    return [file normalize [file join $portdbpath distfiles ${dist_subdir}]]
+}
+default distpath {[portmain::get_distpath]}
 
 default use_xcode {[expr {${build.type} eq "xcode" || !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20) || ![file executable /Library/Developer/CommandLineTools/usr/bin/make]}]}
 

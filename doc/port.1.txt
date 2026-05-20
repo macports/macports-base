@@ -9,7 +9,7 @@ port - Command line interface for MacPorts
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-bcdfknNopqRstuvy*] [*-D* 'portdir'|'portname'] [*-F* 'cmdfile'] ['action'] ['actionflags']
+*port* [*-bcdfkLnNopqRstTuvy*] [*-D* 'portdir'|'portname'] [*-F* 'cmdfile'] ['action'] ['actionflags']
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
      [['@version'] [+/-variant ...] ... [option=value ...]]
 
@@ -176,6 +176,15 @@ The port command recognizes several global flags and options.
     commands.
 
 .Development
+-L, --local::
+    Run developer local build mode from a Portfile directory. This mode is
+    intended for non-root testing of edited Portfiles. It stores mutable build
+    state, fetched distfiles, and logs under $\{portpath\}/work, uses the
+    registry only to verify that dependencies are already installed and active,
+    and does not install missing dependencies or modify the MacPorts
+    installation. Supported actions are *fetch*, *checksum*, *extract*, *patch*,
+    *configure*, *build*, *test*, *destroot*, and *clean*.
+
 -o::
     Honor state files even if the Portfile was modified. This flag is called -o
     because it used to mean "older".

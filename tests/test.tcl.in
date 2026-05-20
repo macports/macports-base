@@ -7,6 +7,7 @@ set test_suite {
     dependencies-d
     dependencies-e
     envvariables
+    local-mode
     setuid
     site-tags
     statefile-unknown-version
