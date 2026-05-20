@@ -3772,8 +3772,9 @@ proc mportsync {{options {}}} {
                 set destdir [file dirname $indexfile]
                 set is_tarball [_source_is_snapshot $source filename extension rooturl]
                 file mkdir $destdir
-                if {[file attributes $destdir -owner] ne $macportsuser} {
-                    macports::chown $destdir $macportsuser
+                set cur_uid [getuid]
+                if {[file attributes $destdir -owner] eq $macportsuser} {
+                    macports::chown $destdir $cur_uid
                 }
 
                 if {$is_tarball} {
@@ -3784,6 +3785,9 @@ proc mportsync {{options {}}} {
                     set include_option "--include=/${filename} --include=/${filename}.rmd160 --include=/${filename}.sig"
                     # need to do a few things before replacing the ports tree in this case
                     set extractdir [file dirname $destdir]
+                    if {$cur_uid == 0 && [file attributes $extractdir -owner] eq $macportsuser} {
+                        lchown $extractdir $cur_uid
+                    }
                     set destdir [file join $extractdir remote]
                     file mkdir $destdir
                     macports::chown $destdir $macportsuser
@@ -3795,6 +3799,7 @@ proc mportsync {{options {}}} {
                     set old_PortIndex_path [file join $extractdir PortIndex]
                     file delete -force {*}[glob -nocomplain -directory $extractdir [file rootname $filename]*] \
                         ${old_PortIndex_path} ${old_PortIndex_path}.rmd160
+                    set cmdwrapper [list macports::run_unprivileged]
                 } else {
                     # Keep rsync happy with a trailing slash
                     if {[string index $source end] ne "/"} {
@@ -3804,11 +3809,12 @@ proc mportsync {{options {}}} {
                     set exclude_option '--exclude=/PortIndex*'
                     set include_option {}
                     set srcstr $source
+                    set cmdwrapper [list if {1}]
                 }
                 # Do rsync fetch
                 set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                 macports_try -pass_signal {
-                    macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
+                    {*}$cmdwrapper {system -W $destdir $rsync_commandline}
                 } on error {} {
                     ui_error "Synchronization of the local ports tree failed doing rsync"
                     incr numfailed
@@ -3824,7 +3830,7 @@ proc mportsync {{options {}}} {
                         set include_option "--include=/${filename} --include=/${filename}.rmd160 --include=/${filename}.sig"
                         set rsync_commandline "$rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                         macports_try -pass_signal {
-                            macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
+                            macports::run_unprivileged {system -W $destdir $rsync_commandline}
                         } on error {} {
                             ui_error "Synchronization of the local ports tree failed doing rsync"
                             incr numfailed
@@ -3862,12 +3868,9 @@ proc mportsync {{options {}}} {
                         # Extract only updated files, and delete ones not in the tarball.
                         # First move the PortIndex to avoid deleting it.
                         if {[file isfile $indexfile]} {
-                            macports::chown $indexfile $macportsuser
                             file mkdir ${extractdir}/tmp
-                            macports::chown ${extractdir}/tmp $macportsuser
                             file rename -force $indexfile ${extractdir}/tmp/
                             if {[file isfile ${indexfile}.quick]} {
-                                macports::chown ${indexfile}.quick $macportsuser
                                 file rename -force ${indexfile}.quick ${extractdir}/tmp/
                             }
                         }
@@ -3893,8 +3896,10 @@ proc mportsync {{options {}}} {
                         # Put PortIndex back
                         if {[file isfile ${extractdir}/tmp/PortIndex]} {
                             file rename -force ${extractdir}/tmp/PortIndex $indexfile
+                            macports::chown $indexfile $cur_uid
                             if {[file isfile ${extractdir}/tmp/PortIndex.quick]} {
                                 file rename -force ${extractdir}/tmp/PortIndex.quick ${indexfile}.quick
+                                macports::chown ${indexfile}.quick $cur_uid
                             }
                         }
                         file delete -force ${extractdir}/tmp
@@ -3903,13 +3908,13 @@ proc mportsync {{options {}}} {
                         if {[string match ${prefix_frozen}/bin/* $tar]} {
                             set kflag k
                         } else {
-                            set kflag $macports::autoconf::tar_k
+                            set kflag $::macports::autoconf::tar_k
                         }
                     }
 
-                    set tar_cmd "$tar -C ${extractdir} -x${zflag}${kflag}f $tarball"
+                    set tar_cmd "$tar -x${zflag}${kflag}f $tarball"
                     macports_try -pass_signal {
-                        macports::run_unprivileged {system -W ${portdbpath}/home $tar_cmd}
+                        system -W ${extractdir} $tar_cmd
                     } on error {eMessage} {
                         ui_error "Failed to extract ports tree from tarball: $eMessage"
                         incr numfailed
@@ -3918,6 +3923,7 @@ proc mportsync {{options {}}} {
                     # keep a copy of the local PortIndex in case syncing fails
                     if {[file isfile $indexfile]} {
                         file copy -force $indexfile ${destdir}/
+                        macports::chown ${destdir}/PortIndex $macportsuser
                     }
                     # delete any old uncompressed tarball
                     if {[file extension $tarball] eq ".gz"} {
@@ -3940,7 +3946,7 @@ proc mportsync {{options {}}} {
                     set remote_indexdir "${index_source}PortIndex_${os_platform}_${os_major}_${os_arch}/"
                     set rsync_commandline "$rsync_path $rsync_options $include_option $remote_indexdir $destdir"
                     macports_try -pass_signal {
-                        macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
+                        macports::run_unprivileged {system -W $destdir $rsync_commandline}
                         
                         set ok 1
                         set needs_portindex false
@@ -3951,6 +3957,7 @@ proc mportsync {{options {}}} {
                             if {![catch {macports::verify_ports_signature ${destdir}/PortIndex}]} {
                                 # move PortIndex into place
                                 file rename -force ${destdir}/PortIndex ${extractdir}/ports/
+                                macports::chown $indexfile $cur_uid
                                 set ok 1
                                 set needs_portindex false
                             } else {
@@ -3998,7 +4005,9 @@ proc mportsync {{options {}}} {
                 }
 
                 file mkdir $destdir
-                macports::chown $destdir $macportsuser
+                if {[file attributes $destdir -owner] eq $macportsuser} {
+                    macports::chown $destdir $cur_uid
+                }
 
                 global macports::portverbose macports::ui_options
                 set progressflag {}
@@ -4047,9 +4056,7 @@ proc mportsync {{options {}}} {
 
                 set tar [macports::findBinary tar $tar_path]
                 if {[catch {
-                        macports::run_unprivileged {
-                            system -W ${destdir} "$tar $verboseflag $striparg $extflag -xf [macports::shellescape $tarpath]"
-                        }
+                        system -W ${destdir} "$tar $verboseflag $striparg $extflag -xf [macports::shellescape $tarpath]"
                 } error]} {
                     ui_error "Extracting $source failed ($error)"
                     incr numfailed
