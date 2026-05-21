@@ -2668,6 +2668,64 @@ Behaves identically to
 .Ic file delete -force .
 .It Ic touch
 Built-in command mimicking the BSD touch command.
+.It Xo
+.Ic file_extract
+.Op Fl dirname Ar dir
+.Op Fl type Ar type
+.Op Fl -
+.Ar file ...
+.Xc
+Extract one or more archive files, automatically detecting the archive type
+from the file name suffix.
+Absolute paths are used as-is.
+Relative file names are resolved in
+.Va filespath
+and then
+.Va distpath .
+Distfile tags (e.g.\&
+.Dq :sourceforge )
+are stripped before lookup and type detection.
+.Pp
+If
+.Fl dirname
+is not given, files are extracted into
+.Va workpath .
+The destination directory is created if it does not already exist.
+.Pp
+Use
+.Fl type
+to override the auto-detected type.
+Valid type names are
+.Cm gzip , bzip2 , xz , lzma , lzip , zstd , compress , tar , zip , 7z ,
+and
+.Cm dmg .
+The type applies to all files in the same invocation.
+.Pp
+DMG extraction mounts the image, copies its contents into a
+.Va ${distname}
+subdirectory of the destination, and unmounts.
+This requires root privileges.
+.Pp
+Recognised suffixes (case-insensitive):
+.Bl -column ".Pa .tar.lzma" ".Pa .tzst" -offset indent
+.It Pa .tar.gz  Ta Pa .tgz
+.It Pa .tar.bz2 Ta Pa .tbz Ta Pa .tbz2
+.It Pa .tar.xz  Ta Pa .txz
+.It Pa .tar.lzma Ta Pa .tlz
+.It Pa .tar.lz
+.It Pa .tar.zst Ta Pa .tzst
+.It Pa .tar.Z   Ta Pa .tZ Ta Pa .taZ
+.It Pa .tar
+.It Pa .zip
+.It Pa .7z
+.It Pa .dmg
+.El
+.br
+.Sy Examples:
+.Dl file_extract foo.tar.xz
+.Dl file_extract -dirname ${worksrcpath}/extra extra-data.tar.gz
+.Dl file_extract -type gzip renamed-archive.bin
+.Dl file_extract a.tar.gz b.zip c.tar.xz
 .It Ic ln
 .br
 Built-in command mimicking the BSD ln command.
