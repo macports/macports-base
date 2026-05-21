@@ -3699,6 +3699,49 @@ proc macports::verify_ports_signature {path} {
     error "No known key verified signature for $path"
 }
 
+# Helper to delete files in the given ports tree dir that are not in
+# the given tarball or are updated in the tarball.
+proc macports::delete_ports_not_in_tarball {extractdir tarball} {
+    # First move the PortIndex to avoid deleting it.
+    set indexfile ${extractdir}/ports/PortIndex
+    if {[file isfile $indexfile]} {
+        file mkdir ${extractdir}/tmp
+        file rename -force $indexfile ${extractdir}/tmp/
+        if {[file isfile ${indexfile}.quick]} {
+            file rename -force ${indexfile}.quick ${extractdir}/tmp/
+        }
+    }
+    package require tar
+    set tarfiles [::tar::stat $tarball]
+    set subpath_start [expr {[string length $extractdir] + 1}]
+    fs-traverse -depth f [list ${extractdir}/ports] {
+        set subpath [string range $f $subpath_start end]
+        file lstat $f statinfo
+        if {$statinfo(type) eq "directory"} {
+            append subpath /
+        }
+        if {![dict exists $tarfiles $subpath]
+            || [dict get $tarfiles $subpath type] ne $statinfo(type)
+            || ($statinfo(type) ne "directory" && [dict get $tarfiles $subpath mtime] != $statinfo(mtime))
+            || ($statinfo(type) eq "file" && [dict get $tarfiles $subpath size] != $statinfo(size))
+            || ($statinfo(type) eq "link" && [dict get $tarfiles $subpath linkname] ne [file readlink $f])
+        } then {
+            file delete -force $f
+        }
+    }
+    # Put PortIndex back
+    if {[file isfile ${extractdir}/tmp/PortIndex]} {
+        set cur_uid [getuid]
+        file rename -force ${extractdir}/tmp/PortIndex $indexfile
+        chown $indexfile $cur_uid
+        if {[file isfile ${extractdir}/tmp/PortIndex.quick]} {
+            file rename -force ${extractdir}/tmp/PortIndex.quick ${indexfile}.quick
+            chown ${indexfile}.quick $cur_uid
+        }
+    }
+    file delete -force ${extractdir}/tmp
+}
+
 proc mportsync {{options {}}} {
     global macports::sources macports::ui_prefix \
            macports::os_platform macports::os_major \
@@ -3866,43 +3909,7 @@ proc mportsync {{options {}}} {
                         set kflag {}
                     } else {
                         # Extract only updated files, and delete ones not in the tarball.
-                        # First move the PortIndex to avoid deleting it.
-                        if {[file isfile $indexfile]} {
-                            file mkdir ${extractdir}/tmp
-                            file rename -force $indexfile ${extractdir}/tmp/
-                            if {[file isfile ${indexfile}.quick]} {
-                                file rename -force ${indexfile}.quick ${extractdir}/tmp/
-                            }
-                        }
-                        package require tar
-                        set tarfiles [::tar::stat $tarball]
-                        set subpath_start [expr {[string length $extractdir] + 1}]
-                        fs-traverse -depth f [list ${extractdir}/ports] {
-                            set subpath [string range $f $subpath_start end]
-                            file lstat $f statinfo
-                            if {$statinfo(type) eq "directory"} {
-                                append subpath /
-                            }
-                            if {![dict exists $tarfiles $subpath]
-                                || [dict get $tarfiles $subpath type] ne $statinfo(type)
-                                || ($statinfo(type) ne "directory" && [dict get $tarfiles $subpath mtime] != $statinfo(mtime))
-                                || ($statinfo(type) eq "file" && [dict get $tarfiles $subpath size] != $statinfo(size))
-                                || ($statinfo(type) eq "link" && [dict get $tarfiles $subpath linkname] ne [file readlink $f])
-                            } then {
-                                file delete -force $f
-                            }
-                        }
-                        unset tarfiles
-                        # Put PortIndex back
-                        if {[file isfile ${extractdir}/tmp/PortIndex]} {
-                            file rename -force ${extractdir}/tmp/PortIndex $indexfile
-                            macports::chown $indexfile $cur_uid
-                            if {[file isfile ${extractdir}/tmp/PortIndex.quick]} {
-                                file rename -force ${extractdir}/tmp/PortIndex.quick ${indexfile}.quick
-                                macports::chown ${indexfile}.quick $cur_uid
-                            }
-                        }
-                        file delete -force ${extractdir}/tmp
+                        macports::delete_ports_not_in_tarball $extractdir $tarball
                         # use -k if supported to skip extracting files that exist
                         global macports::prefix_frozen
                         if {[string match ${prefix_frozen}/bin/* $tar]} {
@@ -3989,7 +3996,8 @@ proc mportsync {{options {}}} {
                 # sync a port snapshot tarball
                 set indexfile [macports::getindex $source]
                 set destdir [file dirname $indexfile]
-                set tarpath [file join [file normalize [file join $destdir ..]] $filename]
+                set tardir [file dirname $destdir]
+                set tarpath [file join $tardir $filename]
 
                 set updated 1
                 if {[file isdirectory $destdir]} {
@@ -4013,7 +4021,7 @@ proc mportsync {{options {}}} {
                 set progressflag {}
                 if {$portverbose} {
                     set progressflag [list --progress builtin]
-                    set verboseflag "-v"
+                    set verboseflag v
                 } elseif {[info exists ui_options(progress_download)]} {
                     set progressflag [list --progress $ui_options(progress_download)]
                     set verboseflag ""
@@ -4039,13 +4047,39 @@ proc mportsync {{options {}}} {
                     continue
                 }
 
+                set tar {}
+                global macports::hfscompression
+                if {${hfscompression} && [getuid] == 0} {
+                    ui_debug "Using bsdtar with HFS+ compression (if valid)"
+                    set tar [macports::find_tar_with_hfscompression]
+                }
+                if {$tar ne {}} {
+                    set tar "$tar --hfsCompression"
+                } else {
+                    set tar [macports::findBinary tar $tar_path]
+                }
+                # Simply extract if there is no existing ports tree
+                if {[llength [glob -nocomplain -directory $destdir *]] == 0} {
+                    set kflag {}
+                } else {
+                    # Extract only updated files, and delete ones not in the tarball.
+                    macports::delete_ports_not_in_tarball $tardir $tarpath
+                    # use -k if supported to skip extracting files that exist
+                    global macports::prefix_frozen
+                    if {[string match ${prefix_frozen}/bin/* $tar]} {
+                        set kflag k
+                    } else {
+                        set kflag $::macports::autoconf::tar_k
+                    }
+                }
+
                 set extflag {}
                 switch -- $extension {
                     {tar.gz} {
-                        set extflag -z
+                        set extflag z
                     }
                     {tar.bz2} {
-                        set extflag -j
+                        set extflag j
                     }
                 }
 
@@ -4054,9 +4088,8 @@ proc mportsync {{options {}}} {
                 # as top-level directory name.
                 set striparg "--strip-components=1"
 
-                set tar [macports::findBinary tar $tar_path]
                 if {[catch {
-                        system -W ${destdir} "$tar $verboseflag $striparg $extflag -xf [macports::shellescape $tarpath]"
+                        system -W $destdir "$tar $striparg -x${extflag}${kflag}${verboseflag}f [macports::shellescape $tarpath]"
                 } error]} {
                     ui_error "Extracting $source failed ($error)"
                     incr numfailed
