@@ -4107,7 +4107,7 @@ proc mportsync {{options {}}} {
                     set needs_portindex true
                 }
 
-                file delete $tarpath
+                file delete $tarpath ${tarpath}.sig
             }
             {^mports$} {
                 ui_error "Synchronization using the mports protocol no longer supported."
