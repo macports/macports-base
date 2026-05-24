@@ -3,17 +3,21 @@
 ###
 
 Release 2.13.0 (unreleased)
+    - Added a --purge option for 'port clean' that quickly and
+      unconditionally deletes all files of the chosen type(s).
+      (jmr in 22e1abd)
+
     - Added a -T flag to prepend ISO 8601 timestamps to each line of
       output, and elapsed time logging for each phase.
       (#2020, herbygillot in 037d168)
-
-    - Update the bundled copy of Tcl to version 9.0.3. (jmr in d875700)
 
     - Add blake3 as new supported checksum type.
       (#63885, herbygillot in 1dadbbf8b)
 
     - Add livecheck.user_agent option.
       (#64369, herbygillot in 0d4b57b05)
+
+    - Update the bundled copy of Tcl to version 9.0.3. (jmr in d875700)
 
     - Fix trace mode on arm64 for macOS > 14.
       (#66358, cal in aacd364)
