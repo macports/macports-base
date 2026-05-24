@@ -92,6 +92,9 @@ namespace eval macports {
     # Options set in the portfile interpreter but only in system_options
     variable portinterp_private_options [list clonebin_path macosx_sdk_path]
 
+    # Directories in portdbpath that are publicly known
+    variable wellknown_dirs [dict create build 1 distfiles 1 incoming 1 logs 1 registry 1 software 1 sources 1]
+
     # Only used via override_vars
     variable macosx_sdk_path
 
@@ -3427,6 +3430,16 @@ proc _source_is_obsolete_svn_repo {source_dir} {
         }
     }
     return 0
+}
+
+# Get path to a well-known directory used by MacPorts
+proc macports::get_dir_path {dir} {
+    variable wellknown_dirs
+    if {![dict exists $wellknown_dirs $dir]} {
+        error "Unknown directory: $dir"
+    }
+    variable portdbpath
+    return [file join $portdbpath $dir]
 }
 
 proc macports::getportbuildpath {id {portname {}}} {
