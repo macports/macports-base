@@ -73,8 +73,19 @@ matches the given regular expression. Usage is: selector:regex
     - 'description'
     - 'long_description'
     - 'homepage'
+    - 'depends_lib'
+    - 'depends_build'
+    - 'depends_run'
+    - 'depends_fetch'
+    - 'depends_extract'
+    - 'depends_patch'
+    - 'depends_test'
+    - 'depends' (shorthand for all depends_* selectors)
     - 'license'
+    - 'replaced_by'
     - 'portdir'
+    - 'portgroup' or 'portgroups'
+    - 'subport' or 'subports'
 
 Other pseudo-portname selectors match ports which have a particular
 relationship to another port. These will match ports that are direct or
@@ -86,6 +97,7 @@ recursive dependencies or dependents of the given portname:
     - 'rdepends'
     - 'dependentof'
     - 'rdependentof'
+    - 'subportof'
 
 Search strings that will expand to a set of matching ports can be constructed
 based on the "'pseudo-portname selector'":regex combination used. 'portnames'
