@@ -11,6 +11,17 @@ Release 2.13.0 (unreleased)
       output, and elapsed time logging for each phase.
       (#2020, herbygillot in 037d168)
 
+    - The extract commands for distfiles are now auto-detected based on
+      the file suffix, including for multiple distfiles with different
+      archive formats. Setting the use_* options (use_bzip2, use_xz,
+      etc) now just sets extract.suffix appropriately. If the correct
+      extract command is not discovered based on the file name, the new
+      extract.methods option can be set to override it for one or more
+      distfiles. (jmr in 14fdd90)
+
+    - Extracting zstd distfiles is now supported. The suffixes .tzst
+      and .tar.zst are detected. (#72713, jmr in 884d777)
+
     - Add blake3 as new supported checksum type.
       (#63885, herbygillot in 1dadbbf8b)
 
