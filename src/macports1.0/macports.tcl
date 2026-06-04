@@ -359,7 +359,12 @@ proc set_phase {phase} {
 
     if {$phase_start_ms ne {} && $current_phase ne "main"} {
         set elapsed_ms [expr {$now_ms - $phase_start_ms}]
-        ui_debug "Phase $current_phase completed in [format "%.3f" [expr {$elapsed_ms / 1000.0}]] seconds"
+        set duration_msg "Phase $current_phase completed in [format "%.3f" [expr {$elapsed_ms / 1000.0}]] seconds"
+        if {[macports::ui_isset ports_timestamps]} {
+            ui_info $duration_msg
+        } else {
+            ui_debug $duration_msg
+        }
     }
 
     set current_phase $phase
