@@ -950,7 +950,7 @@ Use bzip2.
 Sets
 .Ic extract.suffix
 to
-.Dq .bz2 .
+.Dq .tar.bz2 .
 .br
 Sets
 .Ic extract.cmd
@@ -986,7 +986,7 @@ Use lzma.
 Sets
 .Ic extract.suffix
 to
-.Dq .lzma .
+.Dq .tar.lzma .
 .br
 Sets
 .Ic extract.cmd
@@ -1027,7 +1027,7 @@ Use xz.
 Sets
 .Ic extract.suffix
 to
-.Dq .xz .
+.Dq .tar.xz .
 .br
 Sets
 .Ic extract.cmd
@@ -1304,6 +1304,31 @@ Command to perform the extraction.
 .br
 .Sy Example:
 .Dl extract.cmd bzip2
+.It Xo
+.Ic extract.methods Ar filename Ar method
+.Op Ar filename Ar method ...
+.Xc
+.It Ic
+Override extract method for some distfiles. By default, the extract
+command and arguments are chosen based on the filename suffix. This
+option can override that choice in case of unusually named files.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Method values:
+.Em 7z bzip2 dmg gzip lzip lzma tar xz zip zstd
+.br
+If a method not in the above list is specified, it is assumed to refer
+to a procedure defined in the Portfile which takes a single argument
+containing the path to a distfile, which will extract it when called.
+.br
+.Sy Default:
+.Em none (empty)
+.br
+.Sy Example:
+.Dl extract.methods worksrc-1.4.4.tar.gz lzma \e
+                    extrafile-1.0.unusualsuffix gzip
 .It Ic extract.mkdir
 Create the
 .Ic worksrcdir
