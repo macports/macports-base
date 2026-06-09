@@ -420,8 +420,12 @@ proc portconfigure::configure_start {args} {
         }
         dropPrivileges
 
-        # Initialize ccache directory with the given maximum size
+        # Initialize ccache directory with the given maximum size.
+        # Sync env(CCACHE_DIR) to the (possibly port-overridden) ccache_dir so
+        # that the ccache binary targets the same directory that was just created
+        # above rather than the process-level default set in macports.tcl.
         if {${configure.ccache}} {
+            set env(CCACHE_DIR) ${ccache_dir}
             if {[catch {
                 exec ccache -M ${ccache_size} >/dev/null
             } result]} {
