@@ -61,7 +61,7 @@ namespace eval restore {
         #           0 if success
 
         global macports::ui_options
-        set ui_prefix [string map {--- ===} $::macports::ui_prefix]
+        variable ui_prefix [string map {--- ===} $::macports::ui_prefix]
 
         if {[migrate::needs_migration]} {
             ui_error "You need to run 'sudo port migrate' before running restore"
