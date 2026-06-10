@@ -3941,6 +3941,44 @@ proc action_sync { action portlist opts } {
 }
 
 
+proc action_clean {action portlist opts} {
+    if {![dict exists $opts ports_clean_purge]} {
+        return [action_target $action $portlist $opts]
+    }
+    # handle --purge (delete all files in the relevant dirs)
+    if {[dict exists $opts ports_clean_archive] || [dict exists $opts ports_clean_all]} {
+        set archives_dir [macports::get_dir_path incoming]
+        set to_delete [glob -directory $archives_dir -types f *]
+        set verified_dir [file join $archives_dir verified]
+        lappend to_delete {*}[glob -directory $verified_dir -types f *]
+        foreach f $to_delete {
+            ui_info "Deleting $f"
+            file delete $f
+        }
+    }
+    set delete_dirs [list]
+    if {[dict exists $opts ports_clean_dist] || [dict exists $opts ports_clean_all]} {
+        lappend delete_dirs [macports::get_dir_path distfiles]
+    }
+    if {[dict exists $opts ports_clean_logs] || [dict exists $opts ports_clean_all]} {
+        lappend delete_dirs [macports::get_dir_path logs]
+    }
+    # Match logic in portclean: work dir is cleaned unless only --logs was requested
+    if {[dict exists $opts ports_clean_work] || [dict exists $opts ports_clean_all]
+            || [dict exists $opts ports_clean_archive] || [dict exists $opts ports_clean_dist]
+            || ![dict exists $opts ports_clean_logs]} {
+        lappend delete_dirs [macports::get_dir_path build]
+    }
+    foreach dir $delete_dirs {
+        foreach direntry [glob -directory $dir *] {
+            ui_info "Deleting $direntry"
+            file delete -force $direntry
+        }
+    }
+    return 0
+}
+
+
 proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
@@ -4181,6 +4219,7 @@ set action_array [dict create \
     unsetrequested [list action_setrequested  $action_args::PORTS] \
     setunrequested [list action_setrequested  $action_args::PORTS] \
     \
+    clean       [list action_clean          $action_args::PORTS] \
     upgrade     [list action_upgrade        $action_args::PORTS] \
     rev-upgrade [list action_revupgrade     $action_args::NONE] \
     reclaim     [list action_reclaim        $action_args::NONE] \
@@ -4225,7 +4264,6 @@ set action_array [dict create \
     build       [list action_target         $action_args::PORTS] \
     destroot    [list action_target         $action_args::PORTS] \
     install     [list action_target         $action_args::PORTS] \
-    clean       [list action_target         $action_args::PORTS] \
     test        [list action_target         $action_args::PORTS] \
     lint        [list action_target         $action_args::PORTS] \
     livecheck   [list action_target         $action_args::PORTS] \
@@ -4331,7 +4369,7 @@ set cmd_opts_array [dict create {*}{
     install     {allow-failing no-activate no-replace no-rev-upgrade unrequested}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
-    clean       {all archive dist work logs}
+    clean       {all archive dist work logs purge}
     mirror      {new}
     lint        {nitpick}
     select      {list set show summary}
