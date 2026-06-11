@@ -51,7 +51,7 @@ package require portlist
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfknNopqRstTuvy] [-D portdir|portname] [-F cmdfile] action [actionflags]
+        [-bcdfkLnNopqRstTuvy] [-D portdir|portname] [-F cmdfile] action [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -80,6 +80,64 @@ proc fatal_softcontinue s {
     } else {
         fatal $s
     }
+}
+
+set local_allowed_actions [list fetch checksum extract patch configure build test destroot clean]
+
+proc local_mode_enabled {} {
+    global global_options
+    return [expr {[info exists global_options(ports_local)] && [string is true -strict $global_options(ports_local)]}]
+}
+
+proc local_mode_error {msg} {
+    if {[llength [info commands ui_error]] > 0} {
+        ui_error $msg
+    } else {
+        puts stderr "Error: $msg"
+    }
+}
+
+proc local_mode_refuse_root {} {
+    if {[geteuid] == 0} {
+        local_mode_error "--local may not be used as root."
+        local_mode_error "Run this command as the user who owns the checkout."
+        exit 1
+    }
+}
+
+proc validate_local_mode_action {action} {
+    global local_allowed_actions
+    if {$action ni $local_allowed_actions} {
+        local_mode_error "--local does not support '$action' because it may modify the MacPorts installation."
+        local_mode_error "Supported --local actions are: [join $local_allowed_actions {, }]."
+        return 1
+    }
+    return 0
+}
+
+proc validate_local_mode_command_list {args} {
+    set argc [llength $args]
+    set argn 0
+    while {$argn < $argc} {
+        set action [lindex $args $argn]
+        incr argn
+        if {$action eq ";"} {
+            continue
+        }
+        if {[string index $action 0] eq "#"} {
+            break
+        }
+        set actions [find_action $action]
+        if {[llength $actions] == 1} {
+            if {[validate_local_mode_action [lindex $actions 0]]} {
+                return 1
+            }
+        }
+        while {$argn < $argc && [lindex $args $argn] ne ";"} {
+            incr argn
+        }
+    }
+    return 0
 }
 
 
@@ -4391,6 +4449,14 @@ proc parse_options { action ui_options_name global_options_name } {
                 }
                 default {
                     set key [string range $arg 2 end]
+                    if {$key eq "local"} {
+                        if {$action ne "global"} {
+                            return -code error "${action} does not accept --local; specify --local before the action"
+                        }
+                        set global_options(ports_local) yes
+                        advance
+                        continue
+                    }
                     set kopts [cmd_option_matches $action $key]
                     if {[llength $kopts] == 0} {
                         return -code error "${action} does not accept --${key}"
@@ -4475,6 +4541,12 @@ proc parse_options { action ui_options_name global_options_name } {
                     k {
                         set global_options(ports_autoclean) no
                     }
+                    L {
+                        if {$action ne "global"} {
+                            return -code error "${action} does not accept -L; specify -L before the action"
+                        }
+                        set global_options(ports_local) yes
+                    }
                     t {
                         set global_options(ports_trace) yes
                     }
@@ -4522,6 +4594,9 @@ proc lock_reg_if_needed {action} {
         upgrade -
         uninstall -
         install {
+            if {[local_mode_enabled]} {
+                return -code error "Internal error: --local attempted to take the registry write lock for '$action'."
+            }
             registry::exclusive_lock
             return 1
         }
@@ -4557,15 +4632,7 @@ proc process_cmd { argv } {
             break
         }
 
-        try {
-            set locked [lock_reg_if_needed $action]
-        } trap {POSIX SIG SIGINT} {} {
-            set action_status 1
-            break
-        } trap {POSIX SIG SIGTERM} {} {
-            set action_status 1
-            break
-        }
+        set locked 0
         # Always start out processing an action in current_portdir
         cd $current_portdir
 
@@ -4600,6 +4667,14 @@ proc process_cmd { argv } {
             break
         }
 
+        if {[local_mode_enabled]} {
+            local_mode_refuse_root
+            if {[validate_local_mode_action $action]} {
+                set action_status 1
+                break
+            }
+        }
+
         # Merge new options into the macports API options
         array unset mp_global_options
         array set mp_global_options $mp_global_options_base
@@ -4613,6 +4688,20 @@ proc process_cmd { argv } {
 
         # Some options could change verbosity, so re-init ui channels
         macports::ui_init_all
+
+        try {
+            set locked [lock_reg_if_needed $action]
+        } trap {POSIX SIG SIGINT} {} {
+            set action_status 1
+            break
+        } trap {POSIX SIG SIGTERM} {} {
+            set action_status 1
+            break
+        } on error {result} {
+            ui_error $result
+            set action_status 1
+            break
+        }
 
         # What kind of arguments does the command expect?
         set expand [action_needs_portlist $action]
@@ -5637,6 +5726,9 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
     print_usage
     exit 1
 }
+if {[local_mode_enabled]} {
+    local_mode_refuse_root
+}
 
 if {[isatty stderr]
     && $portclient::progress::hasTermAnsiSend eq "yes"
@@ -5660,6 +5752,10 @@ set ui_options(notifications_system) portclient::notifications::system_append
 
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
+
+if {[local_mode_enabled] && [validate_local_mode_command_list $remaining_args]} {
+    exit 1
+}
 
 # If we have no arguments remaining after option processing then force
 # shell mode

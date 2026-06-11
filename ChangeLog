@@ -3,6 +3,11 @@
 ###
 
 Release 2.13.0 (unreleased)
+    - Added --local (-L) developer build mode, which runs non-installing
+      phases as a regular user using work, distfiles, and logs under the
+      Portfile directory without modifying the MacPorts installation.
+      (perry)
+      
     - Added a --purge option for 'port clean' that quickly and
       unconditionally deletes all files of the chosen type(s).
       (jmr in 22e1abd)

@@ -49,18 +49,24 @@ namespace eval portclean {
 set_ui_prefix
 
 proc portclean::clean_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX ports_local
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option subport]]"
 
-    if {[getuid] == 0 && [geteuid] != 0} {
+    if {![tbool ports_local] && [getuid] == 0 && [geteuid] != 0} {
         elevateToRoot "clean"
     }
 }
 
 proc portclean::clean_main {args} {
     global UI_PREFIX ports_clean_dist ports_clean_work ports_clean_logs \
-           ports_clean_archive ports_clean_all keeplogs
+           ports_clean_archive ports_clean_all keeplogs ports_local
+
+    if {[tbool ports_local]} {
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing local work directory for %s"] [option subport]]"
+        clean_work
+        return 0
+    }
 
     if {[info exists ports_clean_all] && $ports_clean_all eq "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist eq "yes"} {
@@ -175,7 +181,22 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath subbuildpath worksymlink subport
+    global portbuildpath subbuildpath worksymlink subport ports_local workpath
+
+    if {[tbool ports_local]} {
+        if {[file isdirectory $workpath]} {
+            ui_debug "Removing local work directory: ${workpath}"
+            macports_try -pass_signal {
+                delete $workpath
+            } on error {eMessage} {
+                ui_debug "$::errorInfo"
+                ui_error "$eMessage"
+            }
+        } else {
+            ui_debug "No local work directory found at ${workpath}"
+        }
+        return 0
+    }
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"

@@ -1,0 +1,37 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem      1.0
+
+name            local-mode
+version         1
+categories      test
+maintainers     nomaintainer
+description     Test port for --local mode
+long_description ${description}
+homepage        https://www.macports.org/
+platforms       any
+supported_archs noarch
+
+distfiles
+use_configure   no
+
+variant missingdep {
+    depends_build-append port:local-mode-missingdep
+}
+
+variant bindep {
+    depends_build-append bin:sh:local-mode-missingdep
+}
+
+build {
+    set fd [open ${workpath}/build.marker w]
+    puts $fd ${workpath}
+    close $fd
+}
+
+destroot {
+    xinstall -d ${destroot}${prefix}/share/${name}
+    set fd [open ${destroot}${prefix}/share/${name}/result w]
+    puts $fd local
+    close $fd
+}

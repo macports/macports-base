@@ -1742,7 +1742,12 @@ proc portutil::get_oldbuildpath {} {
 }
 
 proc portutil::create_workpath {} {
-    global workpath subbuildpath subport
+    global workpath subbuildpath subport ports_local
+    if {[tbool ports_local]} {
+        file mkdir $workpath/.home $workpath/.tmp
+        file attributes $workpath -permissions 0755
+        return
+    }
     if {[getuid] == 0 && [geteuid] != 0} {
         elevateToRoot create_workpath
     }
@@ -1860,7 +1865,9 @@ proc open_statefile {args} {
             if {[tbool portfile_changed]} {
                 if {![tbool ports_dryrun]} {
                     ui_notice "Portfile for $subport changed since last build; discarding previous state."
-                    chownAsRoot $subbuildpath
+                    if {![tbool ports_local]} {
+                        chownAsRoot $subbuildpath
+                    }
                     delete $workpath
                     file mkdir $workpath
                     set fresh_build yes
