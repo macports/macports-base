@@ -80,6 +80,7 @@
 #endif
 
 #ifdef __MACH__
+#include <ar.h>
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
 #endif
@@ -558,6 +559,16 @@ static int fileIsBinaryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int
         /* this is a mach-o file */
         Tcl_SetObjResult(interp, Tcl_NewBooleanObj(true));
         return TCL_OK;
+    }
+    if (memcmp(&magic, ARMAG, sizeof(magic)) == 0) {
+        /* static archive ("!<arch>\n", e.g. *.a); holds mach-o objects */
+        char rest[SARMAG - sizeof(magic)];
+        if (sizeof(rest) == fread(rest, 1, sizeof(rest), file)
+                && memcmp(rest, &ARMAG[sizeof(magic)], sizeof(rest)) == 0) {
+            fclose(file);
+            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(true));
+            return TCL_OK;
+        }
     }
     if (magic == htonl(FAT_MAGIC)) {
         uint32_t archcount;
