@@ -33,7 +33,7 @@ proc porttest::get_file_archs {handle fpath} {
     set returncode [lindex $resultlist 0]
     set result     [lindex $resultlist 1]
     if {$returncode != $::machista::SUCCESS} {
-        # fails on static libs, ignore
+        # EMAGIC means not Mach-O (nor an archive of Mach-O objects); ignore
         if {$returncode != $::machista::EMAGIC} {
             ui_warn "Error parsing file ${fpath}: [machista::strerror $returncode]"
         }
