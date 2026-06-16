@@ -3770,11 +3770,13 @@ proc mportsync {{options {}}} {
         upvar [dict get $options needed_portindex_var] any_needed_portindex
     }
 
+    set cur_uid [getuid]
+
     # We cd here for some commands, so make sure it exists.
     if {![file isdirectory ${portdbpath}/home]} {
         if {[catch {
             file mkdir ${portdbpath}/home
-            if {[getuid] == 0} {
+            if {$cur_uid == 0} {
                 file attributes ${portdbpath}/home -owner $macportsuser -group $macportsuser
             }
         } result]} {
@@ -3833,7 +3835,6 @@ proc mportsync {{options {}}} {
                 set destdir [file dirname $indexfile]
                 set is_tarball [_source_is_snapshot $source filename extension rooturl]
                 file mkdir $destdir
-                set cur_uid [getuid]
                 if {[file attributes $destdir -owner] eq $macportsuser} {
                     macports::chown $destdir $cur_uid
                 }
@@ -3912,7 +3913,7 @@ proc mportsync {{options {}}} {
                     }
 
                     set tar {}
-                    if {${hfscompression} && [getuid] == 0} {
+                    if {${hfscompression} && $cur_uid == 0} {
                         ui_debug "Using bsdtar with HFS+ compression (if valid)"
                         set tar [macports::find_tar_with_hfscompression]
                     }
@@ -4067,7 +4068,7 @@ proc mportsync {{options {}}} {
 
                 set tar {}
                 global macports::hfscompression
-                if {${hfscompression} && [getuid] == 0} {
+                if {${hfscompression} && $cur_uid == 0} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
                     set tar [macports::find_tar_with_hfscompression]
                 }
@@ -4147,7 +4148,7 @@ proc mportsync {{options {}}} {
                 set indexdir [file dirname $indexfile]
                 set owner [file attributes $indexdir -owner]
                 set group [file attributes $indexdir -group]
-                if {[getuid] == 0} {
+                if {$cur_uid == 0} {
                     # Ensure any existing index can be read and written
                     foreach f [list $indexfile ${indexfile}.quick] {
                         if {[file isfile $f] && [file attributes $f -owner] ne $owner} {
