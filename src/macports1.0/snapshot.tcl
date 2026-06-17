@@ -32,8 +32,6 @@ package provide snapshot 1.0
 
 package require macports 1.0
 package require registry 1.0
-package require json
-package require json::write
 
 namespace eval snapshot {
     proc print_usage {} {
@@ -259,6 +257,8 @@ namespace eval snapshot {
         # Returns:
         #           string representation of the snapshot object
 
+        package require json::write
+
         # The conversion can take quite a while because we're querying all
         # files installed by the various ports, so display a progress bar
         global macports::ui_options
@@ -344,6 +344,7 @@ namespace eval snapshot {
         # Returns:
         #           The imported snapshot as a snapshot object
 
+        package require json
         set data [json::json2dict $contents]
 
         try {

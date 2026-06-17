@@ -33,7 +33,6 @@
 
 package provide portdestroot 1.0
 package require portutil 1.0
-package require fileutil
 
 set org.macports.destroot [target_new org.macports.destroot portdestroot::destroot_main]
 target_provides ${org.macports.destroot} destroot
@@ -225,6 +224,7 @@ proc portdestroot::destroot_finish {args} {
     }
 
     # Prune empty directories in ${destroot}
+    package require fileutil
     foreach path ${destroot.keepdirs} {
         # Prepend $destroot if $path isn't already inside it
         set path [::fileutil::jail $destroot $path]

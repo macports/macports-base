@@ -33,7 +33,6 @@
 
 package provide portinstall 1.0
 package require portutil 1.0
-package require machista 1.0
 
 set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_provides ${org.macports.install} install

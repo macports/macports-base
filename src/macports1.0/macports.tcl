@@ -35,15 +35,7 @@
 package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
-package require mport_fetch_thread
-package require diagnose 1.0
-package require reclaim 1.0
-package require selfupdate 1.0
-package require snapshot 1.0
-package require restore 1.0
-package require migrate 1.0
 package require Tclx
-package require uri
 
 # catch wrapper shared with port1.0
 package require mpcommon 1.0
@@ -1154,6 +1146,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     package require registry 1.0
     package require registry2 2.0
     package require machista 1.0
+    package require mport_fetch_thread
+    package require uri
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -1737,10 +1731,13 @@ match macports.conf.default."
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
     set skip_migration_check [expr {[info exists macports::global_options(ports_no_migration_check)] && $macports::global_options(ports_no_migration_check)}]
-    if {!$skip_migration_check && [migrate::needs_migration migrate_reason]} {
-        ui_error $migrate_reason
-        ui_error "Please run 'sudo port migrate' or follow the migration instructions: https://trac.macports.org/wiki/Migration"
-        return -code error "OS platform mismatch"
+    if {!$skip_migration_check} {
+        package require migrate 1.0
+        if {[migrate::needs_migration migrate_reason]} {
+            ui_error $migrate_reason
+            ui_error "Please run 'sudo port migrate' or follow the migration instructions: https://trac.macports.org/wiki/Migration"
+            return -code error "OS platform mismatch"
+        }
     }
 
     if {![info exists macosx_deployment_target]} {
@@ -5079,6 +5076,7 @@ proc macports::_variants_to_variations {variants} {
 
 # selfupdate procedure
 proc macports::selfupdate {{options {}} {updatestatusvar {}}} {
+    package require selfupdate 1.0
     return [uplevel [list selfupdate::main $options $updatestatusvar]]
 }
 
@@ -6269,7 +6267,7 @@ proc macports::diagnose_main {opts} {
     #           None
     # Returns:
     #           0 on successful execution.
-
+    package require diagnose 1.0
     diagnose::main $opts
     return 0
 }
@@ -6284,6 +6282,7 @@ proc macports::reclaim_check_and_run {} {
         return 0
     }
 
+    package require reclaim 1.0
     try {
         return [reclaim::check_last_run]
     } trap {POSIX SIG SIGINT} {} {
@@ -6311,6 +6310,7 @@ proc macports::snapshot_main {opts} {
     # Returns:
     #           0 on successful execution.
 
+    package require snapshot 1.0
     return [snapshot::main $opts]
 }
 
@@ -6324,6 +6324,7 @@ proc macports::restore_main {opts} {
     # Returns:
     #           0 on successful execution.
 
+    package require restore 1.0
     return [restore::main $opts]
 }
 
@@ -6334,6 +6335,7 @@ proc macports::restore_main {opts} {
 #          caller should re-run itself and invoke migration with the --continue
 #          flag set.
 proc macports::migrate_main {opts} {
+    package require migrate 1.0
     return [migrate::main $opts]
 }
 
@@ -6345,6 +6347,7 @@ proc macports::reclaim_main {opts} {
     # Returns:
     #           None
 
+    package require reclaim 1.0
     try {
         reclaim::main $opts
     } trap {POSIX SIG SIGINT} {} {

@@ -33,7 +33,6 @@
 package provide registry_util 2.0
 
 package require registry2 2.0
-package require tdbc::sqlite3
 
 namespace eval registry {
 
@@ -177,6 +176,7 @@ proc run_target {port target options} {
 
 ## Create and configure a tdbc connection to the registry
 proc tdbc_connect {args} {
+    package require tdbc::sqlite3
     variable tdbc_connection
     set reg_path [::file join ${::macports::registry.path} registry registry.db]
     set tdbc_connection [tdbc::sqlite3::connection new $reg_path]
