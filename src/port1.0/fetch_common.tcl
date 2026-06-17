@@ -35,7 +35,6 @@ package require Pextlib 1.0
 namespace eval portfetch {
     variable urlmap
     array set urlmap {}
-    variable hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 }
 
 # Name space for internal site lists storage
