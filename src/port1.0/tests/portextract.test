@@ -1,0 +1,711 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+package require portextract 1.0
+source ./library.tcl
+macports_worker_init
+
+# shellescape is aliased in the real worker interpreter but not in the
+# test helper; provide it here so build_extract_command can use it.
+if {[llength [info commands shellescape]] == 0} {
+    interp alias {} shellescape {} macports::shellescape
+}
+
+proc extract_testdir {name} {
+    global pwd
+    return [file join $pwd $name]
+}
+
+set has_zstd [expr {![catch {binaryInPath zstd}]}]
+set has_lzma [expr {![catch {binaryInPath lzma}]}]
+testConstraint zstd $has_zstd
+testConstraint lzma $has_lzma
+
+
+# ---------------------------------------------------------------------------
+# detect_type tests
+# ---------------------------------------------------------------------------
+
+test detect_type_tar_gz {
+    detect_type returns gzip for .tar.gz
+} -body {
+    portextract::detect_type "foo.tar.gz"
+} -result "gzip"
+
+test detect_type_tgz {
+    detect_type returns gzip for .tgz
+} -body {
+    portextract::detect_type "foo.tgz"
+} -result "gzip"
+
+test detect_type_tar_bz2 {
+    detect_type returns bzip2 for .tar.bz2
+} -body {
+    portextract::detect_type "foo.tar.bz2"
+} -result "bzip2"
+
+test detect_type_tbz2 {
+    detect_type returns bzip2 for .tbz2
+} -body {
+    portextract::detect_type "foo.tbz2"
+} -result "bzip2"
+
+test detect_type_tbz {
+    detect_type returns bzip2 for .tbz
+} -body {
+    portextract::detect_type "foo.tbz"
+} -result "bzip2"
+
+test detect_type_tar_xz {
+    detect_type returns xz for .tar.xz
+} -body {
+    portextract::detect_type "foo.tar.xz"
+} -result "xz"
+
+test detect_type_txz {
+    detect_type returns xz for .txz
+} -body {
+    portextract::detect_type "foo.txz"
+} -result "xz"
+
+test detect_type_tar_lzma {
+    detect_type returns lzma for .tar.lzma
+} -body {
+    portextract::detect_type "foo.tar.lzma"
+} -result "lzma"
+
+test detect_type_tlz {
+    detect_type returns lzma for .tlz
+} -body {
+    portextract::detect_type "foo.tlz"
+} -result "lzma"
+
+test detect_type_tar_lz {
+    detect_type returns lzip for .tar.lz
+} -body {
+    portextract::detect_type "foo.tar.lz"
+} -result "lzip"
+
+test detect_type_tar_zst {
+    detect_type returns zstd for .tar.zst
+} -body {
+    portextract::detect_type "foo.tar.zst"
+} -result "zstd"
+
+test detect_type_tzst {
+    detect_type returns zstd for .tzst
+} -body {
+    portextract::detect_type "foo.tzst"
+} -result "zstd"
+
+test detect_type_tar_Z {
+    detect_type returns compress for .tar.Z
+} -body {
+    portextract::detect_type "foo.tar.Z"
+} -result "compress"
+
+test detect_type_tZ {
+    detect_type returns compress for .tZ
+} -body {
+    portextract::detect_type "foo.tZ"
+} -result "compress"
+
+test detect_type_taZ {
+    detect_type returns compress for .taZ
+} -body {
+    portextract::detect_type "foo.taZ"
+} -result "compress"
+
+test detect_type_tar {
+    detect_type returns tar for .tar
+} -body {
+    portextract::detect_type "foo.tar"
+} -result "tar"
+
+test detect_type_zip {
+    detect_type returns zip for .zip
+} -body {
+    portextract::detect_type "foo.zip"
+} -result "zip"
+
+test detect_type_7z {
+    detect_type returns 7z for .7z
+} -body {
+    portextract::detect_type "foo.7z"
+} -result "7z"
+
+test detect_type_dmg {
+    detect_type returns dmg for .dmg
+} -body {
+    portextract::detect_type "foo.dmg"
+} -result "dmg"
+
+test detect_type_case_insensitive {
+    detect_type is case-insensitive
+} -body {
+    portextract::detect_type "Foo.TAR.GZ"
+} -result "gzip"
+
+test detect_type_unsupported {
+    detect_type errors on unsupported extension
+} -body {
+    catch {portextract::detect_type "foo.rar"} result
+    set result
+} -result "file_extract: unsupported file type: foo.rar"
+
+
+# ---------------------------------------------------------------------------
+# find_archive tests
+# ---------------------------------------------------------------------------
+
+test find_archive_absolute_exists {
+    find_archive returns absolute path when file exists
+} -setup {
+    set testdir [extract_testdir work_find_archive_abs]
+    file mkdir $testdir
+    close [open [file join $testdir archive.tar.gz] w]
+} -body {
+    portextract::find_archive [file join $testdir archive.tar.gz]
+} -cleanup {
+    file delete -force $testdir
+} -result "[extract_testdir work_find_archive_abs]/archive.tar.gz"
+
+test find_archive_absolute_missing {
+    find_archive returns empty string for missing absolute path
+} -body {
+    portextract::find_archive "/nonexistent/path/archive.tar.gz"
+} -result ""
+
+test find_archive_relative_filespath {
+    find_archive finds relative name in filespath
+} -setup {
+    set testdir [extract_testdir work_find_archive_fp]
+    set ::filespath [file join $testdir files]
+    file mkdir $::filespath
+    close [open [file join $::filespath myfile.tar.gz] w]
+} -body {
+    portextract::find_archive "myfile.tar.gz"
+} -cleanup {
+    unset -nocomplain ::filespath
+    file delete -force $testdir
+} -result "[extract_testdir work_find_archive_fp]/files/myfile.tar.gz"
+
+test find_archive_relative_distpath {
+    find_archive finds relative name in distpath when not in filespath
+} -setup {
+    set testdir [extract_testdir work_find_archive_dp]
+    set ::filespath [file join $testdir files]
+    set ::distpath [file join $testdir dist]
+    file mkdir $::filespath
+    file mkdir $::distpath
+    close [open [file join $::distpath myfile.tar.gz] w]
+} -body {
+    portextract::find_archive "myfile.tar.gz"
+} -cleanup {
+    unset -nocomplain ::filespath ::distpath
+    file delete -force $testdir
+} -result "[extract_testdir work_find_archive_dp]/dist/myfile.tar.gz"
+
+test find_archive_relative_not_found {
+    find_archive returns empty string for unfound relative name
+} -setup {
+    set ::filespath "/nonexistent/filespath"
+    set ::distpath "/nonexistent/distpath"
+} -body {
+    portextract::find_archive "nosuchfile.tar.gz"
+} -cleanup {
+    unset -nocomplain ::filespath ::distpath
+} -result ""
+
+
+# ---------------------------------------------------------------------------
+# add_dep_for_type tests
+# ---------------------------------------------------------------------------
+
+test add_dep_for_type_xz {
+    add_dep_for_type appends correct dependency for xz
+} -setup {
+    set saved_depends [expr {[info exists ::depends_extract] ? $::depends_extract : "__UNSET__"}]
+    set ::depends_extract {}
+} -body {
+    portextract::add_dep_for_type xz
+    set ::depends_extract
+} -cleanup {
+    if {$saved_depends eq "__UNSET__"} {
+        unset -nocomplain ::depends_extract
+    } else {
+        set ::depends_extract $saved_depends
+    }
+} -match glob -result "*bin:xz:xz*"
+
+test add_dep_for_type_gzip {
+    add_dep_for_type does nothing for types not in type_to_dep
+} -setup {
+    set saved_depends [expr {[info exists ::depends_extract] ? $::depends_extract : "__UNSET__"}]
+    set ::depends_extract {}
+} -body {
+    portextract::add_dep_for_type gzip
+    set ::depends_extract
+} -cleanup {
+    if {$saved_depends eq "__UNSET__"} {
+        unset -nocomplain ::depends_extract
+    } else {
+        set ::depends_extract $saved_depends
+    }
+} -result ""
+
+test add_dep_for_type_tar {
+    add_dep_for_type does nothing for tar type
+} -setup {
+    set saved_depends [expr {[info exists ::depends_extract] ? $::depends_extract : "__UNSET__"}]
+    set ::depends_extract {}
+} -body {
+    portextract::add_dep_for_type tar
+    set ::depends_extract
+} -cleanup {
+    if {$saved_depends eq "__UNSET__"} {
+        unset -nocomplain ::depends_extract
+    } else {
+        set ::depends_extract $saved_depends
+    }
+} -result ""
+
+
+# ---------------------------------------------------------------------------
+# build_extract_command tests
+# ---------------------------------------------------------------------------
+
+test build_extract_command_gzip {
+    build_extract_command returns correct command for gzip type
+} -body {
+    set result [portextract::build_extract_command gzip /tmp/foo.tar.gz /tmp/out]
+    # Should contain gzip -dc, pipe to tar, and correct paths
+    expr {[string match "*gzip*-dc*/tmp/foo.tar.gz*|*tar*-xf*-*" $result]
+          && [string match "cd /tmp/out*" $result]}
+} -result 1
+
+test build_extract_command_tar {
+    build_extract_command returns correct command for tar type
+} -body {
+    set result [portextract::build_extract_command tar /tmp/foo.tar /tmp/out]
+    expr {[string match "cd /tmp/out*tar*-xf*/tmp/foo.tar" $result]}
+} -result 1
+
+test build_extract_command_zip {
+    build_extract_command returns correct command for zip type
+} -body {
+    set result [portextract::build_extract_command zip /tmp/foo.zip /tmp/out]
+    expr {[string match "*unzip*-q*/tmp/foo.zip*-d*/tmp/out*" $result]}
+} -result 1
+
+test build_extract_command_zstd {
+    build_extract_command returns correct command for zstd type
+} -constraints zstd -body {
+    set result [portextract::build_extract_command zstd /tmp/foo.tar.zst /tmp/out]
+    expr {[string match "*zstd*-dc*/tmp/foo.tar.zst*|*tar*-xf*-*" $result]
+          && [string match "cd /tmp/out*" $result]}
+} -result 1
+
+test build_extract_command_unknown {
+    build_extract_command errors on unknown type
+} -body {
+    catch {portextract::build_extract_command bogus /tmp/foo /tmp/out} result
+    set result
+} -result "file_extract: unknown type: bogus"
+
+
+# ---------------------------------------------------------------------------
+# file_extract integration tests
+# ---------------------------------------------------------------------------
+
+test file_extract_no_args {
+    file_extract errors with no arguments
+} -body {
+    catch {file_extract} result
+    set result
+} -result "file_extract: no filename specified"
+
+test file_extract_bad_option {
+    file_extract errors on unknown option
+} -body {
+    catch {file_extract -bogus foo.tar.gz} result
+    set result
+} -result "file_extract: illegal option -- bogus"
+
+test file_extract_dirname_missing_arg {
+    file_extract errors when -dirname has no argument
+} -body {
+    catch {file_extract -dirname} result
+    set result
+} -result "file_extract: option requires an argument -- dirname"
+
+test file_extract_type_missing_arg {
+    file_extract errors when -type has no argument
+} -body {
+    catch {file_extract -type} result
+    set result
+} -result "file_extract: option requires an argument -- type"
+
+test file_extract_file_not_found {
+    file_extract_execute errors when file does not exist
+} -body {
+    file_extract /nonexistent/path/foo.tar.gz
+    catch {portextract::file_extract_execute} result
+    set result
+} -cleanup {
+    set portextract::file_extract_queue {}
+} -result "file_extract: could not find /nonexistent/path/foo.tar.gz"
+
+test file_extract_queue {
+    file_extract queues entries for later execution
+} -body {
+    set portextract::file_extract_queue {}
+    file_extract -dirname /tmp -type gzip foo.tar.gz bar.tar.gz
+    file_extract baz.tar.xz
+    llength $portextract::file_extract_queue
+} -cleanup {
+    set portextract::file_extract_queue {}
+} -result 2
+
+test file_extract_tar_gz {
+    file_extract successfully extracts a .tar.gz file
+} -setup {
+    set testdir [extract_testdir work_extract_tar_gz]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    # Create a test file and archive it
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "hello from file_extract test"
+    close $fd
+    exec tar czf [file join $testdir test.tar.gz] -C $srcdir testfile.txt
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir test.tar.gz]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "hello from file_extract test"
+
+test file_extract_tar {
+    file_extract successfully extracts a .tar file
+} -setup {
+    set testdir [extract_testdir work_extract_tar]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "plain tar test"
+    close $fd
+    exec tar cf [file join $testdir test.tar] -C $srcdir testfile.txt
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir test.tar]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "plain tar test"
+
+test file_extract_zip {
+    file_extract successfully extracts a .zip file
+} -setup {
+    set testdir [extract_testdir work_extract_zip]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "zip test"
+    close $fd
+    exec zip -j -q [file join $testdir test.zip] [file join $srcdir testfile.txt]
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir test.zip]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "zip test"
+
+test file_extract_type_override {
+    file_extract -type overrides extension-based detection
+} -setup {
+    set testdir [extract_testdir work_extract_type_override]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    # Create a .tar.gz but name it .bin
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "type override test"
+    close $fd
+    exec tar czf [file join $testdir test.bin] -C $srcdir testfile.txt
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -type gzip -dirname $extractdir [file join $testdir test.bin]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "type override test"
+
+test file_extract_multiple_files {
+    file_extract handles multiple files in one call
+} -setup {
+    set testdir [extract_testdir work_extract_multiple_files]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir file1.txt] w]
+    puts $fd "first"
+    close $fd
+    exec tar czf [file join $testdir a.tar.gz] -C $srcdir file1.txt
+
+    set fd [open [file join $srcdir file2.txt] w]
+    puts $fd "second"
+    close $fd
+    exec tar czf [file join $testdir b.tar.gz] -C $srcdir file2.txt
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir \
+        [file join $testdir a.tar.gz] \
+        [file join $testdir b.tar.gz]
+    portextract::file_extract_execute
+    expr {[file exists [file join $extractdir file1.txt]]
+          && [file exists [file join $extractdir file2.txt]]}
+} -cleanup {
+    file delete -force $testdir
+} -result 1
+
+test file_extract_default_dirname {
+    file_extract defaults to workpath and creates it if absent
+} -setup {
+    set testdir [extract_testdir work_extract_default_dirname]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "default dir test"
+    close $fd
+    exec tar czf [file join $testdir test.tar.gz] -C $srcdir testfile.txt
+
+    # Intentionally do not pre-create workpath_dir to verify file_extract
+    # creates it on its own.
+    set ::workpath [file join $testdir workpath_dir]
+} -body {
+    file_extract [file join $testdir test.tar.gz]
+    portextract::file_extract_execute
+    if {![file exists [file join $::workpath testfile.txt]]} {
+        return "FAIL: file not extracted to workpath"
+    }
+    return "ok"
+} -cleanup {
+    unset -nocomplain ::workpath
+    file delete -force $testdir
+} -result "ok"
+
+test file_extract_distfile_tag {
+    file_extract strips distfile tags before lookup and type detection
+} -setup {
+    set testdir [extract_testdir work_extract_distfile_tag]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    set ::distpath [file join $testdir distfiles]
+    file mkdir $srcdir
+    file mkdir $::distpath
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "tagged distfile test"
+    close $fd
+    exec tar czf [file join $::distpath test.tar.gz] -C $srcdir testfile.txt
+
+    set extractdir [file join $testdir nested out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir test.tar.gz:sourceforge
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    unset -nocomplain ::distpath
+    file delete -force $testdir
+} -result "tagged distfile test"
+
+test file_extract_tbz {
+    file_extract successfully extracts a .tbz file
+} -setup {
+    set testdir [extract_testdir work_extract_tbz]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "tbz test"
+    close $fd
+    exec tar cjf [file join $testdir test.tbz] -C $srcdir testfile.txt
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir test.tbz]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "tbz test"
+
+test file_extract_tlz {
+    file_extract successfully extracts a .tlz file
+} -constraints lzma -setup {
+    set testdir [extract_testdir work_extract_tlz]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "tlz test"
+    close $fd
+    exec tar cf [file join $testdir test.tar] -C $srcdir testfile.txt
+    exec sh -c "lzma -zc [file join $testdir test.tar] > [file join $testdir test.tlz]"
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir test.tlz]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "tlz test"
+
+test file_extract_tar_zst {
+    file_extract successfully extracts a .tar.zst file
+} -constraints zstd -setup {
+    set testdir [extract_testdir work_extract_tar_zst]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir testfile.txt] w]
+    puts $fd "tar zst test"
+    close $fd
+    exec tar cf [file join $testdir test.tar] -C $srcdir testfile.txt
+    exec zstd -q -f [file join $testdir test.tar] -o [file join $testdir test.tar.zst]
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir test.tar.zst]
+    portextract::file_extract_execute
+    if {![file exists [file join $extractdir testfile.txt]]} {
+        return "FAIL: extracted file not found"
+    }
+    set fd [open [file join $extractdir testfile.txt] r]
+    set content [read $fd]
+    close $fd
+    string trim $content
+} -cleanup {
+    file delete -force $testdir
+} -result "tar zst test"
+
+test file_extract_multiple_calls {
+    multiple file_extract calls queue independently and all execute
+} -setup {
+    set testdir [extract_testdir work_extract_multiple_calls]
+    file delete -force $testdir
+    set srcdir [file join $testdir src]
+    file mkdir $srcdir
+
+    set fd [open [file join $srcdir file1.txt] w]
+    puts $fd "call one"
+    close $fd
+    exec tar czf [file join $testdir a.tar.gz] -C $srcdir file1.txt
+
+    set fd [open [file join $srcdir file2.txt] w]
+    puts $fd "call two"
+    close $fd
+    exec tar czf [file join $testdir b.tar.gz] -C $srcdir file2.txt
+
+    set extractdir [file join $testdir out]
+    file mkdir $extractdir
+} -body {
+    file_extract -dirname $extractdir [file join $testdir a.tar.gz]
+    file_extract -dirname $extractdir [file join $testdir b.tar.gz]
+    portextract::file_extract_execute
+    expr {[file exists [file join $extractdir file1.txt]]
+          && [file exists [file join $extractdir file2.txt]]}
+} -cleanup {
+    file delete -force $testdir
+} -result 1
+
+
+cleanupTests
