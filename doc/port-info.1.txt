@@ -11,10 +11,12 @@ SYNOPSIS
 [cmdsynopsis]
 *port* [*-q*] [*-D* 'portdir'] *info*
      [--categories|--category] [--conflicts] [--depends] [--depends_fetch]
-     [--depends_extract] [--depends_build] [--depends_lib] [--depends_run]
+     [--depends_extract] [--depends_patch] [--depends_build] [--depends_lib]
+     [--depends_run] [--depends_test]
      [--description] [--epoch] [--fullname] [--heading] [--homepage] [--index]
      [--license] [--line] [--long_description] [--maintainer|--maintainers]
-     [--name] [--patchfiles] [--platform|--platforms] [--portdir] [--pretty]
+     [--name] [--patchfiles] [--platform|--platforms] [--portdir]
+     [--portgroup|--portgroups] [--pretty]
      [--replaced_by] [--revision] [--subports] [--variant|--variants]
      [--version]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
@@ -25,7 +27,7 @@ DESCRIPTION
 the options limits the output to the corresponding field. If no fields are
 specified, a useful default set consisting of name, epoch, version, revision,
 categories, replaced_by, variants, description, homepage, dependencies,
-platforms, license, and maintainers is shown.
+portgroups, platforms, license, and maintainers is shown.
 
 OPTIONS
 -------
@@ -52,7 +54,7 @@ The rest of the options affect which fields will be given in the output:
 *--conflicts*::
     List other ports that cannot be active at the same time as the given port.
 
-*--depends*, *--depends_fetch*, *--depends_extract*, *--depends_build*, *--depends_lib*, *--depends_run*::
+*--depends*, *--depends_fetch*, *--depends_extract*, *--depends_patch*, *--depends_build*, *--depends_lib*, *--depends_run*, *--depends_test*::
     List the specified dependencies of a port. *--depends* is a shorthand option
     for all other *--depends_** options.
 
@@ -92,6 +94,9 @@ The rest of the options affect which fields will be given in the output:
 
 *--portdir*::
     Print the path to a port's directory relative to the port tree root.
+
+*--portgroup*, *--portgroups*::
+    List the PortGroups used by a port, including their versions.
 
 *--replaced_by*::
     List the name of the port that replaces a port, if any.
