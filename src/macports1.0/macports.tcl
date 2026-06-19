@@ -1147,6 +1147,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     package require registry2 2.0
     package require machista 1.0
     package require mport_fetch_thread
+    package require msgcat
     package require uri
 
     # Set the system encoding to utf-8
