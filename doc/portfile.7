@@ -1308,7 +1308,6 @@ Command to perform the extraction.
 .Ic extract.methods Ar filename Ar method
 .Op Ar filename Ar method ...
 .Xc
-.It Ic
 Override extract method for some distfiles. By default, the extract
 command and arguments are chosen based on the filename suffix. This
 option can override that choice in case of unusually named files.
@@ -1327,8 +1326,10 @@ containing the path to a distfile, which will extract it when called.
 .Em none (empty)
 .br
 .Sy Example:
-.Dl extract.methods worksrc-1.4.4.tar.gz lzma \e
-                    extrafile-1.0.unusualsuffix gzip
+.Bd -literal -offset indent -compact
+extract.methods worksrc-1.4.4.tar.gz lzma \e
+                extrafile-1.0.unusualsuffix gzip
+.Ed
 .It Ic extract.mkdir
 Create the
 .Ic worksrcdir
