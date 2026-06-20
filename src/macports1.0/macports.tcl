@@ -231,6 +231,10 @@ proc macports::set_global_options {opts} {
     }
 }
 
+proc macports::local_mode_registry_write {args} {
+    return -code error "--local does not permit registry writes"
+}
+
 
 proc macports::init_logging {mport} {
     if {[getuid] == 0 && [geteuid] != 0} {
@@ -2007,6 +2011,9 @@ match macports.conf.default."
     # init registry
     set db_path [file join ${registry.path} registry registry.db]
     set db_exists [file exists $db_path]
+    if {[macports::global_option_isset ports_local] && !$db_exists} {
+        error "--local could not read installed dependency state because the registry does not exist."
+    }
     registry::open $db_path
 
     # convert any flat receipts if we just created a new db
@@ -2171,6 +2178,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias macports_create_thread macports::create_thread
     $workername alias getportbuildpath macports::getportbuildpath
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
+    $workername alias getportworkpath_from_portdir macports::getportworkpath_from_portdir
     $workername alias getportresourcepath macports::getportresourcepath
     $workername alias getportlogpath macports::getportlogpath
     $workername alias getdefaultportresourcepath macports::getdefaultportresourcepath
@@ -2190,22 +2198,36 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias _mport_supports_archs macports::_mport_supports_archs
 
     # New Registry/Receipts stuff
-    $workername alias registry_new registry::new_entry
+    set local_mode [expr {[dict exists $options ports_local] && [string is true -strict [dict get $options ports_local]]}]
+    if {$local_mode} {
+        $workername alias registry_new macports::local_mode_registry_write
+        $workername alias registry_write macports::local_mode_registry_write
+        $workername alias registry_prop_store macports::local_mode_registry_write
+        $workername alias registry_activate macports::local_mode_registry_write
+        $workername alias registry_deactivate macports::local_mode_registry_write
+        $workername alias registry_deactivate_composite macports::local_mode_registry_write
+        $workername alias registry_install macports::local_mode_registry_write
+        $workername alias registry_uninstall macports::local_mode_registry_write
+        $workername alias registry_register_deps macports::local_mode_registry_write
+        $workername alias registry_bulk_register_files macports::local_mode_registry_write
+    } else {
+        $workername alias registry_new registry::new_entry
+        $workername alias registry_write registry::write_entry
+        $workername alias registry_prop_store registry::property_store
+        $workername alias registry_activate portimage::activate
+        $workername alias registry_deactivate portimage::deactivate
+        $workername alias registry_deactivate_composite portimage::deactivate_composite
+        $workername alias registry_install portimage::install
+        $workername alias registry_uninstall registry_uninstall::uninstall
+        $workername alias registry_register_deps registry::register_dependencies
+        $workername alias registry_bulk_register_files registry::register_bulk_files
+    }
     $workername alias registry_open registry::open_entry
-    $workername alias registry_write registry::write_entry
-    $workername alias registry_prop_store registry::property_store
     $workername alias registry_prop_retr registry::property_retrieve
     $workername alias registry_exists registry::entry_exists
     $workername alias registry_exists_for_name registry::entry_exists_for_name
-    $workername alias registry_activate portimage::activate
-    $workername alias registry_deactivate portimage::deactivate
-    $workername alias registry_deactivate_composite portimage::deactivate_composite
-    $workername alias registry_install portimage::install
-    $workername alias registry_uninstall registry_uninstall::uninstall
-    $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
     $workername alias registry_fileinfo_for_file registry::fileinfo_for_file
-    $workername alias registry_bulk_register_files registry::register_bulk_files
     $workername alias registry_active registry::active
     $workername alias registry_file_registered registry::file_registered
     $workername alias registry_port_registered registry::port_registered
@@ -3042,10 +3064,167 @@ proc macports::async_fetch_mport {target mport} {
     }
 }
 
+proc macports::_local_check_dependencies {mport target} {
+    set workername [ditem_key $mport workername]
+    set portinfo [mportinfo $mport]
+    set required_archs [$workername eval [list get_canonical_archs]]
+    set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
+
+    foreach deptype [macports::_deptypes_for_target $target $workername] {
+        if {![dict exists $portinfo $deptype]} {
+            continue
+        }
+        foreach depspec [dict get $portinfo $deptype] {
+            set present [_mportispresent $mport $depspec]
+            set dep_portname [$workername eval [list _get_dep_port $depspec]]
+            if {$dep_portname eq ""} {
+                set dep_portname [lindex [split $depspec :] end]
+            }
+            if {!$present} {
+                ui_error "Dependency $dep_portname is not installed and active."
+                ui_error "--local does not install missing dependencies."
+                ui_error "Install the dependency separately, then rerun the --local build."
+                return 1
+            }
+            if {$dep_portname ne ""
+                && [_portnameactive $dep_portname]
+                && [macports::_deptype_needs_archcheck $deptype]
+                && [lsearch -exact -nocase $depends_skip_archcheck $dep_portname] == -1
+                && ![macports::_active_supports_archs $dep_portname $required_archs]} {
+                ui_error "Dependency $dep_portname is installed and active, but does not support the required archs '$required_archs'."
+                ui_error "--local does not reinstall dependencies with different variants or archs."
+                return 1
+            }
+        }
+    }
+    return 0
+}
+
+proc macports::_mportexec_install_dependencies {mport target} {
+    variable ui_prefix
+    variable no_build_targets
+
+    set workername [ditem_key $mport workername]
+    set dlist [list]
+    set locked no
+    set result {}
+
+    try {
+        registry::exclusive_lock
+        set locked yes
+
+        # see if we actually need to build this port
+        if {![dict exists $no_build_targets $target] ||
+            ![$workername eval {registry_exists $subport $version $revision $portvariants}]} {
+
+            # upgrade dependencies that are already installed
+            if {![macports::global_option_isset ports_nodeps]} {
+                macports::_upgrade_mport_deps $mport $target
+            }
+        }
+
+        ui_msg -nonewline "$ui_prefix Computing dependencies for [_mportkey $mport subport]"
+        if {[macports::ui_isset ports_debug]} {
+            # play nice with debug messages
+            ui_msg {}
+        }
+        if {[mportdepends $mport $target 1 1 0 dlist] != 0} {
+            foreach ditem $dlist {
+                catch {mportclose $ditem}
+            }
+            return failed
+        }
+        if {![macports::ui_isset ports_debug]} {
+            ui_msg {}
+        }
+
+        # print the dep list
+        if {[llength $dlist] > 0} {
+            ##
+            # User Interaction Question
+            # Asking before installing dependencies
+            variable ui_options
+            if {[info exists ui_options(questions_yesno)]} {
+                set deplist [list]
+                foreach ditem $dlist {
+                    set depstring [ditem_key $ditem provides]
+                    set portinfo [mportinfo $ditem]
+                    if {[dict exists $portinfo canonical_active_variants]} {
+                        append depstring " [dict get $portinfo canonical_active_variants]"
+                    }
+                    lappend deplist $depstring
+                }
+                set retvalue [$ui_options(questions_yesno) "The following dependencies will be installed: " "TestCase#2" [lsort $deplist] {y} 0]
+                if {$retvalue == 1} {
+                    foreach ditem $dlist {
+                        mportclose $ditem
+                    }
+                    return declined
+                }
+            } else {
+                set depstring "$ui_prefix Dependencies to be installed:"
+                foreach ditem $dlist {
+                    append depstring " [ditem_key $ditem provides]"
+                }
+                ui_msg $depstring
+            }
+        }
+
+        # Start background fetch of files
+        set result [dlist_eval $dlist _mportinstalled [list macports::async_fetch_mport activate]]
+        if {$result ne ""} {
+            ui_debug "Error starting asynchronous file fetch: $dlist_eval_reason"
+        }
+        macports::async_fetch_mport $target $mport
+
+        # install them
+        set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
+    } finally {
+        if {$locked} {
+            if {[getuid] == 0 && [geteuid] != 0} {
+                seteuid 0; setegid 0
+            }
+
+            registry::exclusive_unlock
+        }
+    }
+
+    if {$result ne ""} {
+        ##
+        # When this happens, the failing port usually already printed an error
+        # message. Don't print another here to avoid cluttering the output and
+        # hiding the *real* problem, unless the problem appears to be a
+        # circular dependency, which won't have produced an error message yet.
+
+        if {$dlist_eval_reason eq "unmet_deps"} {
+            set errstring "The following dependencies were not installed\
+                because all of them have unmet dependencies (likely due\
+                to a dependency cycle):"
+            foreach ditem $result {
+                append errstring " [ditem_key $ditem provides]"
+            }
+            ui_error $errstring
+            foreach ditem $result {
+                ui_debug "[ditem_key $ditem provides] requires: [ditem_key $ditem requires]"
+            }
+        }
+        foreach ditem $dlist {
+            catch {mportclose $ditem}
+        }
+        return failed
+    }
+
+    # Close the dependencies; we're done installing them.
+    foreach ditem $dlist {
+        mportclose $ditem
+    }
+    return ok
+}
+
 # mportexec
 # Execute the specified target of the given mport.
 proc mportexec {mport target} {
-    global macports::ui_prefix macports::portautoclean
+    global macports::portautoclean
     set workername [ditem_key $mport workername]
 
     # check for existence of macportsuser and use fallback if necessary
@@ -3081,121 +3260,35 @@ proc mportexec {mport target} {
     }
 
     # Before we build the port, we must build its dependencies.
-    set dlist [list]
     if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target $workername]]} {
-        registry::exclusive_lock
-        global macports::no_build_targets
-        # see if we actually need to build this port
-        if {![dict exists $no_build_targets $target] ||
-            ![$workername eval {registry_exists $subport $version $revision $portvariants}]} {
-
-            # upgrade dependencies that are already installed
-            if {![macports::global_option_isset ports_nodeps]} {
-                macports::_upgrade_mport_deps $mport $target
-            }
-        }
-
-        ui_msg -nonewline "$ui_prefix Computing dependencies for [_mportkey $mport subport]"
-        if {[macports::ui_isset ports_debug]} {
-            # play nice with debug messages
-            ui_msg {}
-        }
-        if {[mportdepends $mport $target 1 1 0 dlist] != 0} {
-            if {$log_needs_pop} {
-                macports::pop_log
-            }
-            foreach ditem $dlist {
-                catch {mportclose $ditem}
-            }
-            return 1
-        }
-        if {![macports::ui_isset ports_debug]} {
-            ui_msg {}
-        }
-
-        # print the dep list
-        if {[llength $dlist] > 0} {
-            ##
-            # User Interaction Question
-            # Asking before installing dependencies
-            global macports::ui_options
-            if {[info exists ui_options(questions_yesno)]} {
-                set deplist [list]
-                foreach ditem $dlist {
-                    set depstring [ditem_key $ditem provides]
-                    set portinfo [mportinfo $ditem]
-                    if {[dict exists $portinfo canonical_active_variants]} {
-                        append depstring " [dict get $portinfo canonical_active_variants]"
-                    }
-                    lappend deplist $depstring
+        if {[macports::global_option_isset ports_local]} {
+            if {[macports::_local_check_dependencies $mport $target]} {
+                if {$log_needs_pop} {
+                    macports::pop_log
                 }
-                set retvalue [$ui_options(questions_yesno) "The following dependencies will be installed: " "TestCase#2" [lsort $deplist] {y} 0]
-                if {$retvalue == 1} {
+                return 1
+            }
+            macports::async_fetch_mport $target $mport
+        } else {
+            set dep_status [macports::_mportexec_install_dependencies $mport $target]
+            switch -- $dep_status {
+                ok {}
+                failed {
                     if {$log_needs_pop} {
                         macports::pop_log
                     }
-                    foreach ditem $dlist {
-                        mportclose $ditem
+                    return 1
+                }
+                declined {
+                    if {$log_needs_pop} {
+                        macports::pop_log
                     }
                     return 0
                 }
-            } else {
-                set depstring "$ui_prefix Dependencies to be installed:"
-                foreach ditem $dlist {
-                    append depstring " [ditem_key $ditem provides]"
-                }
-                ui_msg $depstring
-            }
-        }
-
-        # Start background fetch of files
-        set result [dlist_eval $dlist _mportinstalled [list macports::async_fetch_mport activate]]
-        if {$result ne ""} {
-            ui_debug "Error starting asynchronous file fetch: $dlist_eval_reason"
-        }
-        macports::async_fetch_mport $target $mport
-
-        # install them
-        set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
-
-        if {[getuid] == 0 && [geteuid] != 0} {
-            seteuid 0; setegid 0
-        }
-
-        registry::exclusive_unlock
-
-        if {$result ne ""} {
-            ##
-            # When this happens, the failing port usually already printed an
-            # error message. Don't print another here to avoid cluttering the
-            # output and hiding the *real* problem, unless the problem
-            # appears to be a circular dependency, which won't have produced
-            # an error message yet.
-
-            if {$dlist_eval_reason eq "unmet_deps"} {
-                set errstring "The following dependencies were not installed\
-                    because all of them have unmet dependencies (likely due\
-                    to a dependency cycle):"
-                foreach ditem $result {
-                    append errstring " [ditem_key $ditem provides]"
-                }
-                ui_error $errstring
-                foreach ditem $result {
-                    ui_debug "[ditem_key $ditem provides] requires: [ditem_key $ditem requires]"
+                default {
+                    error "Internal error: unexpected dependency install result '$dep_status'"
                 }
             }
-            foreach ditem $dlist {
-                catch {mportclose $ditem}
-            }
-            if {$log_needs_pop} {
-                macports::pop_log
-            }
-            return 1
-        }
-
-        # Close the dependencies; we're done installing them.
-        foreach ditem $dlist {
-            mportclose $ditem
         }
     } else {
         # No dependencies, but we still need to check for conflicts.
@@ -3452,8 +3545,15 @@ proc macports::getportbuildpath {id {portname {}}} {
     return [file normalize [file join $portdbpath build ${portname}-${path_hash}]]
 }
 
+proc macports::getportlocalworkpath_from_portdir {portpath} {
+    return [file normalize [file join $portpath work]]
+}
+
 proc macports::getportlogpath {id {portname {}}} {
     variable portdbpath
+    if {[macports::global_option_isset ports_local]} {
+        return [file join [macports::getportlocalworkpath_from_portdir $id] logs $portname]
+    }
     set port_path [string map {:// . / _} $id]
     return [file join $portdbpath logs $port_path $portname]
 }
@@ -3463,6 +3563,9 @@ proc macports::getportworkpath_from_buildpath {portbuildpath} {
 }
 
 proc macports::getportworkpath_from_portdir {portpath {portname {}}} {
+    if {[macports::global_option_isset ports_local]} {
+        return [macports::getportlocalworkpath_from_portdir $portpath]
+    }
     return [macports::getportworkpath_from_buildpath [macports::getportbuildpath $portpath $portname]]
 }
 

@@ -24,7 +24,7 @@ port \- Command line interface for MacPorts
 .SH "SYNOPSIS"
 .sp
 .nf
-\fBport\fR [\fB\-bcdfknNopqRstuvy\fR] [\fB\-D\fR \fIportdir\fR|\fIportname\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
+\fBport\fR [\fB\-bcdfkLnNopqRstTuvy\fR] [\fB\-D\fR \fIportdir\fR|\fIportname\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [[\fI@version\fR] [+/\-variant \&...] \&... [option=value \&...]]
 .fi
@@ -524,6 +524,20 @@ Despite any errors encountered, proceed to process multiple ports and commands\&
 .RE
 .PP
 \fBDevelopment\fR
+.PP
+\-L, \-\-local
+.RS 4
+Run developer local build mode from a Portfile directory\&. This mode is intended for non\-root testing of edited Portfiles\&. It stores mutable build state, fetched distfiles, and logs under ${portpath}/work, uses the registry only to verify that dependencies are already installed and active, and does not install missing dependencies or modify the MacPorts installation\&. Supported actions are
+\fBfetch\fR,
+\fBchecksum\fR,
+\fBextract\fR,
+\fBpatch\fR,
+\fBconfigure\fR,
+\fBbuild\fR,
+\fBtest\fR,
+\fBdestroot\fR, and
+\fBclean\fR\&.
+.RE
 .PP
 \-o
 .RS 4
