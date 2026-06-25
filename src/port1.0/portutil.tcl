@@ -1358,6 +1358,14 @@ proc lipo {} {
 ########### Internal Dependency Manipulation Procedures ###########
 set ports_dry_last_skipped ""
 
+# Load any extra code needed to run the given target
+proc portutil::target_load {ditem} {
+    set runpkg [ditem_key $ditem runpkg]
+    if {$runpkg ne {}} {
+        package require $runpkg
+    }
+}
+
 proc target_run {ditem} {
     global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
            ports_dry_last_skipped worksrcpath subport env portdbpath \
@@ -1377,6 +1385,7 @@ proc target_run {ditem} {
     }
 
     if {$procedure ne ""} {
+        portutil::target_load $ditem
         set targetname [ditem_key $ditem name]
         set target [ditem_key $ditem provides]
         portsandbox::set_profile $target
@@ -2339,6 +2348,10 @@ proc target_state {ditem args} {
 
 proc target_init {ditem args} {
     ditem_append $ditem init {*}$args
+}
+
+proc target_runpkg {ditem pkg} {
+    ditem_key $ditem runpkg $pkg
 }
 
 ##### variant class #####
@@ -3596,6 +3609,7 @@ proc portutil::_eval_archive_available {{async no}} {
     }
     lappend sites_entries $primary_mirror
     # Build list of URLs to check for the archive and its signature.
+    package require fetch_common
     set sites [list]
     set urls [list]
     foreach sites_entry $sites_entries {

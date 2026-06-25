@@ -50,6 +50,26 @@ namespace eval portmirror {
 # if the checksum isn't correct.
 # It also records the path in a database.
 
+# Utility function to delete fetched files.
+proc portmirror::fetch_deletefiles {args} {
+    global distpath portfetch::fetch_urls
+    foreach {url_var distfile} $fetch_urls {
+        if {[file isfile $distpath/$distfile]} {
+            file delete ${distpath}/${distfile}
+        }
+    }
+}
+
+# Utility function to add files to a list of fetched files.
+proc portmirror::fetch_addfilestomap {filemapname} {
+    global distpath $filemapname portfetch::fetch_urls
+    foreach {url_var distfile} $fetch_urls {
+        if {[file isfile $distpath/$distfile]} {
+            filemap set $filemapname $distpath/$distfile 1
+        }
+    }
+}
+
 proc portmirror::mirror_main {args} {
     global fetch.type mirror_filemap portdbpath subport license
 
@@ -73,7 +93,7 @@ proc portmirror::mirror_main {args} {
         # checksum the files.
         if {[catch {portchecksum::checksum_main $args} result]} {
             # delete the files.
-            portfetch::fetch_deletefiles $args
+            fetch_deletefiles $args
             exec_with_available_privileges {
                 filemap close mirror_filemap
             }
@@ -81,7 +101,7 @@ proc portmirror::mirror_main {args} {
         }
 
         # add the list of files.
-        portfetch::fetch_addfilestomap mirror_filemap
+        fetch_addfilestomap mirror_filemap
     }
 
     # close the filemap.

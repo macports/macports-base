@@ -476,7 +476,7 @@ proc portarchivefetch::fetchfiles {{async no} args} {
             write_statefile target "org.macports.${target}" $target_state_fd
         }
         # Cancel any async distfile fetch that may be in progress
-        portfetch::_async_cleanup
+        catch {portfetch::_async_cleanup}
         return 0
     }
     if {[tbool ports_binary_only] || [_archive_available]} {
