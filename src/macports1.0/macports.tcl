@@ -3828,7 +3828,10 @@ proc mportsync {{options {}}} {
                         set index_source $source
                     }
                     set remote_indexdir "${index_source}PortIndex_${os_platform}_${os_major}_${os_arch}/"
-                    set rsync_commandline "$rsync_path $rsync_options $include_option $remote_indexdir $destdir"
+                    # Under some circumstances, there may be a preexisting PortIndex with the correct length
+                    # and mtime, but incorrect content.  So we add the -I option to suppress skipping
+                    # based on length and time.  Comparison based on content alone isn't very expensive here.
+                    set rsync_commandline "$rsync_path $rsync_options -I $include_option $remote_indexdir $destdir"
                     macports_try -pass_signal {
                         macports::run_unprivileged {system -W ${portdbpath}/home $rsync_commandline}
                         
