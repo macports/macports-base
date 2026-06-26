@@ -31,13 +31,12 @@
 #
 
 package provide portbuild 1.0
-package require portutil 1.0
-package require portprogress 1.0
 
 set org.macports.build [target_new org.macports.build portbuild::build_main]
 target_provides ${org.macports.build} build
 target_requires ${org.macports.build} main fetch checksum extract patch configure
 target_prerun ${org.macports.build} portbuild::build_start
+target_runpkg ${org.macports.build} portbuild_run
 
 namespace eval portbuild {
 }
@@ -62,8 +61,6 @@ default build.pre_args {[portbuild::build_getargs]}
 default build.target all
 default build.type default
 default use_parallel_build yes
-
-set_ui_prefix
 
 # Automatically called from macports1.0 after evaluating the Portfile. If
 # ${build.type} == bsd, ensures bsdmake is present by adding a bin:-style
@@ -199,29 +196,4 @@ proc portbuild::build_getjobsarg {args} {
         return ""
     }
     return " -j$jobs"
-}
-
-proc portbuild::build_start {args} {
-    global UI_PREFIX subport
-
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Building %s"] ${subport}]"
-
-    global portconfigure::no_default_compiler_allowed
-    if {$no_default_compiler_allowed} {
-        ui_warn_once no_default_compiler_allowed "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
-    }
-}
-
-proc portbuild::build_main {args} {
-    global build.cmd build.jobs_arg
-
-    if {${build.cmd} eq ""} {
-        error "No build command found"
-    }
-
-    set realcmd ${build.cmd}
-    append build.cmd ${build.jobs_arg}
-    command_exec -callback portprogress::target_progress_callback build
-    set build.cmd ${realcmd}
-    return 0
 }

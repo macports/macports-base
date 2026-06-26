@@ -82,8 +82,6 @@ namespace eval portlint {
         ]
 }
 
-set_ui_prefix
-
 # lint_checksum_types
 #
 # Given a list of checksum types, return a list of strings which are warnings
@@ -113,6 +111,36 @@ proc portlint::lint_checksum_type_list {types} {
     }
 
     return $issues
+}
+
+# verify_checksum_format
+#
+# Given a checksum type as string and the actual checksum:
+#
+# - return 1  if the value has the expected format
+# - return 0  if the value does not look as expected
+# - return -1 if the checksum type is unrecognized
+proc portlint::verify_checksum_format {type value} {
+    switch [string tolower $type] {
+        sha256 -
+        blake3 {
+          return [regexp {^[0-9a-f]{64}$} $value]
+        }
+        rmd160 -
+        sha1 {
+          return [regexp {^[0-9a-f]{40}$} $value]
+        }
+        md5 {
+          return [regexp {^[0-9a-f]{32}$} $value]
+        }
+        size {
+          return [regexp {^\d+$} $value]
+        }
+        default {
+          # unrecognized checksum type
+          return -1
+        }
+    }
 }
 
 # lint_checksum
@@ -152,7 +180,7 @@ proc portlint::lint_checksum {checksum_string} {
             set c_type  $current
             set c_value [lindex $checksum_tokens $ctr+1]
 
-            switch [portchecksum::verify_checksum_format $c_type $c_value] {
+            switch [portlint::verify_checksum_format $c_type $c_value] {
                 1 {
                     # checksum type recognized, and checksum looks good
                     incr ctr 2
@@ -183,7 +211,7 @@ proc portlint::lint_checksum {checksum_string} {
             if {$ctr == $ctr_start} {
                 set has_filenames true
             } elseif {($ctr == ([llength $checksum_tokens] - 1)) || \
-                         ([portchecksum::verify_checksum_format \
+                         ([portlint::verify_checksum_format \
                             [lindex $checksum_tokens $ctr-2] \
                             [lindex $checksum_tokens $ctr-1] \
                           ] != 1)} {

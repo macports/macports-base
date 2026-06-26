@@ -14,7 +14,9 @@ namespace eval port {
     proc run_callbacks {args} {}
 }
 
+package require portutil 1.0
 package require portbump 1.0
+package require portbump_run 1.0
 
 # ============================================================
 # Tests for portbump::replace_checksums

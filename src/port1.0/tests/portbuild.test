@@ -14,6 +14,7 @@ namespace eval port {
     proc run_callbacks {args} {}
 }
 
+package require portutil 1.0
 package require portbuild 1.0
 
 set build_getjobs_fixture_setup {

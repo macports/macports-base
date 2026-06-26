@@ -8,8 +8,8 @@ set pwd [file dirname [file normalize $argv0]]
 source ../port_test_autoconf.tcl
 source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
 
+package require portutil 1.0
 package require portdepends 1.0
-
 
 test validate_depends_options {
     Validate depends unit test.
