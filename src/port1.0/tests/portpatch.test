@@ -8,6 +8,7 @@ set pwd [file dirname [file normalize $argv0]]
 source ../port_test_autoconf.tcl
 source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
 
+package require portutil
 package require portpatch
 source ../port_autoconf.tcl
 macports_worker_init

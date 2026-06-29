@@ -1,5 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
+# License: see portchecksum_run.tcl
+
 package provide portchecksum 1.0
 
 set org.macports.checksum [target_new org.macports.checksum portchecksum::checksum_main]

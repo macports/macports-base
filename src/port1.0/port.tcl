@@ -79,7 +79,6 @@ package require portdeactivate 1.0
 package require portclean 1.0
 package require porttest 1.0
 package require portlint 1.0
-package require porttrace 1.0
 package require portdistcheck 1.0
 package require portlivecheck 1.0
 package require portmirror 1.0
@@ -91,4 +90,3 @@ package require portunload 1.0
 package require portreload 1.0
 
 package require portdistfiles 1.0
-package require portsandbox 1.0

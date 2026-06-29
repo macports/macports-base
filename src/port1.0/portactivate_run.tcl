@@ -31,7 +31,6 @@
 
 package provide portactivate_run 1.0
 package require portstartupitem 1.0
-package require portutil 1.0
 
 namespace eval portactivate {
 

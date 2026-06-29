@@ -1,5 +1,4 @@
-# et:ts=4
-# portextract.tcl
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 #
 # Copyright (c) 2005, 2007-2011, 2013-2014, 2016, 2018 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
@@ -29,16 +28,14 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#
 
 package provide portextract 1.0
-package require portutil 1.0
-package require port 1.0
 
 set org.macports.extract [target_new org.macports.extract portextract::extract_main]
 target_provides ${org.macports.extract} extract
 target_requires ${org.macports.extract} main fetch checksum
 target_prerun ${org.macports.extract} portextract::extract_start
+target_runpkg ${org.macports.extract} portextract_run
 
 namespace eval portextract {
     variable all_use_options [list use_7z use_bzip2 use_dmg use_lzip use_lzma use_tar use_xz use_zip]
@@ -54,7 +51,6 @@ commands extract
 
 # Set up defaults
 default extract.asroot no
-# XXX call out to code in portutil.tcl XXX
 # This cleans the distfiles list of all site tags
 default extract.only {[portextract::disttagclean $distfiles]}
 
@@ -72,8 +68,6 @@ foreach _extract_use_option ${portextract::all_use_options} {
     option_proc ${_extract_use_option} portextract::set_extract_type
 }
 unset _extract_use_option
-
-set_ui_prefix
 
 # Map a given file name to a canonical extract method name
 proc portextract::method_for_suffix {filename} {
@@ -314,123 +308,8 @@ proc portextract::add_extract_deps {} {
 }
 port::register_callback portextract::add_extract_deps
 
-# XXX
-# Helper function for portextract.tcl that strips all tag names from a list
+# Helper function that strips all tag names from a list
 # Used to clean ${distfiles} for setting the ${extract.only} default
 proc portextract::disttagclean {list} {
     return [lmap fname $list {getdistname $fname}]
-}
-
-proc portextract::extract_start {args} {
-    global UI_PREFIX extract.dir extract.mkdir
-
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
-
-    # create any users and groups needed by the port
-    handle_add_users
-
-    # should the distfiles be extracted to worksrcpath instead?
-    if {[tbool extract.mkdir]} {
-        global worksrcpath
-        ui_debug "Extracting to subdirectory worksrcdir"
-        file mkdir ${worksrcpath}
-        set extract.dir ${worksrcpath}
-    }
-
-    variable methods_used
-    if {[dict exists $methods_used dmg]} {
-        variable dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
-    }
-}
-
-proc portextract::extract_main {args} {
-    global UI_PREFIX distpath filespath extract.dir extract.only extract.methods \
-           extract.cmd extract.pre_args extract.post_args extract.suffix
-
-    if {![exists distfiles] && ![exists extract.only]} {
-        # nothing to do
-        return 0
-    }
-
-    # extract.{cmd,pre_args,post_args} options are used for distfiles
-    # using the method matching extract.suffix. This keeps the
-    # behaviour the same as it used to be for the case where all
-    # distfiles in extract.only use that method, which was formerly the
-    # only supported case.
-    # For files with different methods, the args are set up as per the
-    # defaults for the method. If custom args are needed in this case,
-    # a custom method should be used.
-    set main_method [method_for_suffix ${extract.suffix}]
-    foreach distfile ${extract.only} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
-        if {[file exists $filespath/$distfile]} {
-            option extract.args "'$filespath/$distfile'"
-        } else {
-            option extract.args "'[file join $distpath $distfile]'"
-        }
-
-        if {[dict exists ${extract.methods} $distfile]} {
-            set method [dict get ${extract.methods} $distfile]
-        } else {
-            set method [method_for_suffix $distfile]
-        }
-        ui_debug "Using extract method: $method"
-
-        if {$method ne $main_method} {
-            if {![info exists saved_options]} {
-                set saved_options [list ${extract.cmd} ${extract.pre_args} ${extract.post_args}]
-            }
-            # set up the args for this method
-            set extract.cmd [get_extract_cmd $method]
-            set extract.pre_args [get_extract_pre_args $method]
-            set extract.post_args [get_extract_post_args $method]
-        }
-        # If the MacPorts user does not have the privileges to mount a
-        # DMG then hdiutil will fail with this error:
-        #   hdiutil: attach failed - Device not configured
-        # So elevate back to root.
-        if {$method eq "dmg"} {
-            elevateToRoot {extract dmg}
-        }
-
-        if {${extract.cmd} ne {}} {
-            # built-in method
-            set code [catch {command_exec extract} result]
-        } else {
-            # custom method, call it as a command
-            set code [catch {$method [file join $distpath $distfile]} result]
-        }
-
-        if {$method eq "dmg"} {
-            dropPrivileges
-        }
-        if {$method ne $main_method} {
-            lassign $saved_options extract.cmd extract.pre_args extract.post_args
-        }
-        if {$code} {
-            return -code error "$result"
-        }
-
-        chownAsRoot ${extract.dir}
-    }
-
-    if {[option extract.rename] && ![file exists [option worksrcpath]]} {
-        global workpath distname
-        # rename whatever directory exists in $workpath to $distname
-        set worksubdirs [glob -nocomplain -types d -directory $workpath *]
-        if {[llength $worksubdirs] == 1} {
-            set origpath [lindex $worksubdirs 0]
-            set newpath [file join $workpath $distname]
-            if {$newpath ne $origpath} {
-                ui_debug [format [msgcat::mc "extract.rename: Renaming %s -> %s"] [file tail $origpath] $distname]
-                move $origpath $newpath
-            }
-        } elseif {[llength $worksubdirs] == 0} {
-            return -code error "extract.rename: no directories exist in $workpath"
-        } else {
-            return -code error "extract.rename: multiple directories exist in ${workpath}: $worksubdirs"
-        }
-    }
-
-    return 0
 }

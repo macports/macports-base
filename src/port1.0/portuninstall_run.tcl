@@ -27,34 +27,26 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-package provide portdeactivate_run 1.0
-package require portstartupitem_run 1.0
+package provide portuninstall_run 1.0
 
-namespace eval portdeactivate {
+namespace eval portuninstall {
 
-proc deactivate_start {args} {
-    global prefix
-    if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
+proc uninstall_start {args} {
+    global prefix ports_dryrun
+    if {(![file writable $prefix] && ![tbool ports_dryrun]) || ([getuid] == 0 && [geteuid] != 0)} {
         # if install location is not writable, need root privileges
-        elevateToRoot "deactivate"
+        elevateToRoot "uninstall"
     }
 }
 
-proc deactivate_main {args} {
+proc uninstall_main {args} {
     global subport _inregistry_version _inregistry_revision _inregistry_variants user_options
     foreach {var backup} {_inregistry_version version _inregistry_revision revision _inregistry_variants portvariants} {
         if {![info exists $var]} {
             set $var [option $backup]
         }
     }
-
-    if {[portstartupitem::loaded] ne ""} {
-        if {[eval_targets "unload"]} {
-            ui_warn [format [msgcat::mc "Failed to unload startupitem(s) for %s (continuing anyway)"] $subport]
-        }
-    }
-
-    registry_deactivate $subport $_inregistry_version $_inregistry_revision $_inregistry_variants [array get user_options]
+    registry_uninstall $subport $_inregistry_version $_inregistry_revision $_inregistry_variants [array get user_options]
     return 0
 }
 

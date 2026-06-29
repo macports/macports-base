@@ -30,7 +30,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 package provide portdestroot_run 1.0
-package require portutil 1.0
+package require portprogress 1.0
+package require portstartupitem_run 1.0
 
 namespace eval portdestroot {
 
@@ -45,7 +46,6 @@ proc destroot_start {args} {
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${subport}]"
 
-    # start gsoc08-privileges
     if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
         ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
@@ -59,8 +59,6 @@ proc destroot_start {args} {
     if { [tbool destroot.asroot] && [getuid] != 0 } {
         return -code error "You cannot run this port without root privileges. You need to re-run with 'sudo port'.";
     }
-
-    # end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
     set mtree [findBinary mtree ${::portutil::autoconf::mtree_path}]

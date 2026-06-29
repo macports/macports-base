@@ -1,5 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
+# License: see portactivate_run.tcl
+
 # the 'activate' target is provided by this package
 
 package provide portactivate 1.0
