@@ -9,8 +9,10 @@ source ../package_test_autoconf.tcl
 source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
 source ./library.tcl
 
+package require portutil 1.0
 package require portmpkg 1.0
-package require portpkg 1.0
+package require portmpkg_run
+package require portpkg_run
 macports_worker_init
 
 # mock getportresourcepath, tests should be able to operate without a ports tree

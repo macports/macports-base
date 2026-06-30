@@ -11,7 +11,9 @@ source ./library.tcl
 
 macports_worker_init
 
+package require portutil 1.0
 package require portmdmg
+package require portmdmg_run
 package require portmpkg
 package require portpkg
 source ../../port1.0/port_autoconf.tcl

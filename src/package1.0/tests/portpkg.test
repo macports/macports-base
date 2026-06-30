@@ -9,7 +9,7 @@ source ../package_test_autoconf.tcl
 source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
 source ./library.tcl
 
-package require portmpkg 1.0
+package require portutil 1.0
 package require portpkg 1.0
 macports_worker_init
 

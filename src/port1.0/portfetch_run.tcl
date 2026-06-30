@@ -492,18 +492,6 @@ proc _fetch_async_start {logid} {
     fetchfiles yes
 }
 
-proc _async_cleanup {} {
-    variable async_jobs
-    if {[info exists async_jobs]} {
-        global distpath
-        foreach {distfile jobid} $async_jobs {
-            curlwrap_async_cancel $jobid
-            file delete ${distpath}/${distfile}.TMP
-        }
-        unset async_jobs
-    }
-}
-
 proc start_pings {} {
     variable fetch_urls
     variable urlmap

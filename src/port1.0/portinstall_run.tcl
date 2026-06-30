@@ -94,6 +94,7 @@ proc create_archive {location archive.type} {
            depends_lib depends_run xcodeversion xcodecltversion use_xcode \
            os.subplatform os.version macos_version source_date_epoch
 
+    package require portarchive_run
     portarchive::archive_command_setup ${location} ${archive.type}
     set archive.dir ${destpath}
 

@@ -38,11 +38,7 @@ namespace eval portfetch {
 }
 
 # Name space for internal site lists storage
-namespace eval portfetch::mirror_sites {
-    variable sites
-
-    array set sites {}
-}
+namespace eval portfetch::mirror_sites {}
 
 # percent-encode all characters in str that are not unreserved in URIs
 proc portfetch::percent_encode {str} {

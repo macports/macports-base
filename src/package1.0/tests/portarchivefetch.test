@@ -11,7 +11,9 @@ source ./library.tcl
 
 macports_worker_init
 
+package require portutil 1.0
 package require portarchivefetch 1.0
+package require portarchivefetch_run
 namespace eval portutil {
     namespace eval autoconf {
         variable openssl_path "/usr/bin/openssl"

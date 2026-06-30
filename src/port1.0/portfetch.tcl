@@ -142,3 +142,15 @@ proc portfetch::fetch_async_start {logid} {
     portutil::target_load ${org.macports.fetch}
     _fetch_async_start $logid
 }
+
+proc portfetch::_async_cleanup {} {
+    variable async_jobs
+    if {[info exists async_jobs]} {
+        global distpath
+        foreach {distfile jobid} $async_jobs {
+            curlwrap_async_cancel $jobid
+            file delete ${distpath}/${distfile}.TMP
+        }
+        unset async_jobs
+    }
+}
