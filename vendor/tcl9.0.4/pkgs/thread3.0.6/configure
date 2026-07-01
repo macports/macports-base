@@ -1393,7 +1393,7 @@ Optional Features:
   --enable-64bit-vis      enable 64bit Sparc VIS support (default: off)
   --disable-rpath         disable rpath support (default: on)
   --enable-symbols        build with debugging symbols (default: off)
-  --enable-zipfs          build with Zipfs support (default: on)
+  --enable-zipfs          build with Zipfs support (default: off)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -9690,7 +9690,7 @@ if test ${enable_zipfs+y}
 then :
   enableval=$enable_zipfs; tcl_ok=$enableval
 else case e in #(
-  e) tcl_ok=yes ;;
+  e) tcl_ok=no ;;
 esac
 fi
 
@@ -9701,6 +9701,9 @@ fi
 	ZIPFS_BUILD=0
 	THREAD_ZIP_FILE=
     fi
+else
+    ZIPFS_BUILD=0
+    THREAD_ZIP_FILE=
 fi
 
 # Do checking message here to not mess up interleaved configure output
