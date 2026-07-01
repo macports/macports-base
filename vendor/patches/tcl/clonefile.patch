@@ -1,34 +1,29 @@
---- vendor/tcl/unix/configure.orig	2025-11-12 03:28:25
-+++ vendor/tcl/unix/configure	2026-04-10 10:07:16
-@@ -10442,16 +10442,32 @@
+--- vendor/tcl/unix/configure.orig	2026-07-01 15:55:27
++++ vendor/tcl/unix/configure	2026-07-01 16:02:14
+@@ -10660,6 +10660,13 @@
  if test "x$ac_cv_header_copyfile_h" = xyes
  then :
-   printf "%s\n" "#define HAVE_COPYFILE_H 1" >>confdefs.h
+   printf '%s\n' "#define HAVE_COPYFILE_H 1" >>confdefs.h
 +
 +fi
 +
 +    ac_fn_c_check_header_compile "$LINENO" "sys/clonefile.h" "ac_cv_header_sys_clonefile_h" "$ac_includes_default"
 +if test "x$ac_cv_header_sys_clonefile_h" = xyes
 +then :
-+  printf "%s\n" "#define HAVE_SYS_CLONEFILE_H 1" >>confdefs.h
++  printf '%s\n' "#define HAVE_SYS_CLONEFILE_H 1" >>confdefs.h
  
  fi
-+
  
-     ac_fn_c_check_func "$LINENO" "copyfile" "ac_cv_func_copyfile"
- if test "x$ac_cv_func_copyfile" = xyes
- then :
-   printf "%s\n" "#define HAVE_COPYFILE 1" >>confdefs.h
-+
-+fi
-+
+@@ -10670,6 +10677,13 @@
+ 
+ fi
+ 
 +    ac_fn_c_check_func "$LINENO" "clonefile" "ac_cv_func_clonefile"
 +if test "x$ac_cv_func_clonefile" = xyes
 +then :
-+  printf "%s\n" "#define HAVE_CLONEFILE 1" >>confdefs.h
- 
- fi
- 
++  printf '%s\n' "#define HAVE_CLONEFILE 1" >>confdefs.h
++
++fi
 +
      if test $tcl_corefoundation = yes; then
  	ac_fn_c_check_header_compile "$LINENO" "libkern/OSAtomic.h" "ac_cv_header_libkern_OSAtomic_h" "$ac_includes_default"

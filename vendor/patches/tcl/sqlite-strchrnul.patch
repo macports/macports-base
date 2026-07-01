@@ -1,7 +1,7 @@
 Don't use strchrnul on macOS < 15.4.
 
---- vendor/tcl/pkgs/sqlite3.51.0/compat/sqlite3/sqlite3.c.orig	2026-04-10 09:47:22
-+++ vendor/tcl/pkgs/sqlite3.51.0/compat/sqlite3/sqlite3.c	2026-04-10 09:55:38
+--- vendor/tcl/pkgs/sqlite3.53.0/compat/sqlite3/sqlite3.c.orig	2026-04-10 09:47:22
++++ vendor/tcl/pkgs/sqlite3.53.0/compat/sqlite3/sqlite3.c	2026-04-10 09:55:38
 @@ -32269,13 +32269,21 @@ SQLITE_API void sqlite3_str_vappendf(
      if( c!='%' ){
        bufpt = (char *)fmt;
