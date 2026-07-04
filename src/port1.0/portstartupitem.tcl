@@ -5,6 +5,10 @@
 package provide portstartupitem 1.0
 
 namespace eval portstartupitem {
+    proc loaded {} {
+        package require portstartupitem_run
+        return [_loaded]
+    }
 }
 
 #   Newly added keys:
