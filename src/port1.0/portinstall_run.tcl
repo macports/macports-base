@@ -42,32 +42,11 @@ proc get_path_commit {path} {
             set path [file dirname $path]
         }
         # Recent git refuses to run if the current user doesn't own
-        # the checkout.
-        if {[getuid] == 0} {
-            macports_try -pass_signal {
-                set prev_euid [geteuid]
-                set prev_egid [getegid]
-                if {[geteuid] != 0} {
-                    seteuid 0
-                }
-                # Must change egid before dropping root euid.
-                setegid [name_to_gid [file attributes $path -group]]
-                seteuid [name_to_uid [file attributes $path -owner]]
-            } on error {err} {
-                ui_debug "get_path_commit: dropping privileges failed: $err"
-            }
-        }
-        if {[catch {exec -ignorestderr $git -C $path rev-parse HEAD 2> /dev/null} result]} {
+        # the checkout, unless safe.directory is set.
+        if {[catch {exec -ignorestderr $git -c safe.directory=* -C $path rev-parse HEAD 2> /dev/null} result]} {
             ui_debug "get_path_commit: git rev-parse failed: $result"
             set result ""
         }
-    }
-    if {[info exists prev_euid]} {
-        seteuid 0
-        if {[info exists prev_egid]} {
-            setegid $prev_egid
-        }
-        seteuid $prev_euid
     }
     return $result
 }
