@@ -4038,13 +4038,16 @@ proc mportsync {{options {}}} {
                 }
 
                 global macports::portverbose macports::ui_options
-                set progressflag {}
                 if {$portverbose} {
                     set progressflag [list --progress builtin]
                     set verboseflag v
-                } elseif {[info exists ui_options(progress_download)]} {
-                    set progressflag [list --progress $ui_options(progress_download)]
-                    set verboseflag ""
+                } else {
+                    set verboseflag {}
+                    if {[info exists ui_options(progress_download)]} {
+                        set progressflag [list --progress $ui_options(progress_download)]
+                    } else {
+                        set progressflag {}
+                    }
                 }
                 macports_try -pass_signal {
                     curl fetch {*}$progressflag $source $tarpath
