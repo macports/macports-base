@@ -4039,6 +4039,7 @@ proc mportsync {{options {}}} {
 
                 global macports::portverbose macports::ui_options
                 set progressflag {}
+                set verboseflag ""
                 if {$portverbose} {
                     set progressflag [list --progress builtin]
                     set verboseflag v
