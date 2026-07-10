@@ -468,7 +468,14 @@ static int resign(const char *filepath) {
         goto resign_out;
     }
 
-    if (pid != waitpid(pid, &exitstatus, 0)) {
+    while (pid != waitpid(pid, &exitstatus, 0)) {
+        if (errno == EINTR) {
+            /* We cannot assume SA_RESTART since we don't know whether the
+             * binary that this is loaded into has it enabled, and we also
+             * can't touch the setting; so we have to expect EINTR and
+             * handle it by re-starting the system call. */
+            continue;
+        }
         if (errno == ECHILD) {
             /* The child vanished before we could waitpid(2) it. This shouldn't
              * happen, but apparently occasionally does in practice, and we
