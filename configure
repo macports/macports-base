@@ -10253,7 +10253,7 @@ printf '%s\n' "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/compat/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port/port-tclsh.c src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/portlist1.0/Makefile src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl vendor/Makefile vendor/critcl/lib/critcl/Config vendor/signify-osx/autoconf.mk"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/compat/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port/port-tclsh.c src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/portlib1.0/Makefile src/portlib1.0/portlib_autoconf.tcl src/portlist1.0/Makefile src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl vendor/Makefile vendor/critcl/lib/critcl/Config vendor/signify-osx/autoconf.mk"
 
 
 ac_config_files="$ac_config_files vendor/tclsh"
@@ -10944,6 +10944,8 @@ do
     "src/port1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/port1.0/Makefile" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/port1.0/port_test_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_test_autoconf.tcl" ;;
+    "src/portlib1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/portlib1.0/Makefile" ;;
+    "src/portlib1.0/portlib_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/portlib1.0/portlib_autoconf.tcl" ;;
     "src/portlist1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/portlist1.0/Makefile" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
     "src/registry2.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/registry2.0/Makefile" ;;

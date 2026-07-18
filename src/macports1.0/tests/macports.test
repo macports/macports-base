@@ -1103,39 +1103,6 @@ test set_pingtime {
 } -result "Set ping time successful."
 
 
-test get_archive_sites_conf_values {
-    Get archive sites conf values unit test.
-} -setup {
-    file mkdir $pwd/archive_sites
-    set fd [open $pwd/archive_sites/archive_sites.conf w+]
-    puts $fd "name fondu"
-    puts $fd "urls macports.org"
-    puts $fd "type tgz"
-    close $fd
-
-    set macports::archive_sites_conf $pwd/archive_sites/archive_sites.conf
-    unset -nocomplain macports::archive_sites_conf_values
-} -body {
-    set res [macports::get_archive_sites_conf_values]
-    puts $res
-    if {[lindex [split $res " "] 1] ne "macports.org:nosubdir"} {
-        return "FAIL: name not set"
-    }
-    if {[lindex [split $res " "] 3] ne "tgz"} {
-        return "FAIL: wrong type set"
-    }
-
-    set macports::archive_sites_conf_values {a b c}
-    if {[macports::get_archive_sites_conf_values] ne {a b c}} {
-        return "FAIL: wrong  result for bad conf file"
-    }
-    return "Get archive sites conf values successful."
-
-} -cleanup {
-    file delete -force $pwd/archive_sites
-} -result "Get archive sites conf values successful."
-
-
 set shellescapeTests [list \
     "using \\backslashes" \
     " spaces " \

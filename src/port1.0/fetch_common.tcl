@@ -37,73 +37,13 @@ namespace eval portfetch {
     array set urlmap {}
 }
 
-# Name space for internal site lists storage
-namespace eval portfetch::mirror_sites {}
-
-# percent-encode all characters in str that are not unreserved in URIs
-proc portfetch::percent_encode {str} {
-    set outstr ""
-    set len [string length $str]
-    for {set i 0} {$i < $len} {incr i} {
-        set char [string index $str $i]
-        switch -- $char {
-            {-} -
-            {.} -
-            {_} -
-            {~} {
-                append outstr $char
-            }
-            default {
-                if {[string is ascii -strict $char] && [string is alnum -strict $char]} {
-                    append outstr $char
-                } else {
-                    foreach {a b} [split [format %02X [scan $char %c]] {}] {
-                        append outstr "%${a}${b}"
-                    }
-                }
-            }
-        }
-    }
-    return $outstr
-}
-
-# Given a site url and the name of the distfile, assemble url and
-# return it.
-proc portfetch::assemble_url {site distfile} {
-    if {[string index $site end] ne "/"} {
-        append site /
-    }
-    return "${site}[percent_encode ${distfile}]"
-}
-
-# Given a *_sites entry that possibly has a tag on the end, return a
-# list consisting of the part of the entry preceding the tag, and the
-# tag itself.
-proc portfetch::separate_tag {element} {
-    # tag will be after the last colon after the
-    # first slash after the ://
-    set lastcolon [string last : $element]
-    set aftersep [expr {[string first : $element] + 3}]
-    set firstslash [string first / $element $aftersep]
-    if {$firstslash != -1 && $firstslash < $lastcolon} {
-        set tag [string range $element ${lastcolon}+1 end]
-        set element [string range $element 0 ${lastcolon}-1]
-    } else {
-        set tag ""
-    }
-    return [list $element $tag]
-}
-
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
-proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
+proc portfetch::mirror_sites {mirrors tag subdir mirrorscmd} {
     global name dist_subdir global_mirror_site
 
-    if {[file exists $mirrorfile]} {
-        source $mirrorfile
-    }
-
-    if {![info exists mirror_sites::sites($mirrors)]} {
+    set sites_entry [{*}$mirrorscmd $mirrors]
+    if {$sites_entry eq {}} {
         if {$mirrors ne $global_mirror_site} {
             ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         }
@@ -112,7 +52,7 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
 
     set ret [list]
     set name_re {\$(?:name\y|\{name\})}
-    foreach element $mirror_sites::sites($mirrors) {
+    foreach element $sites_entry {
 
         # here we have the chance to take a look at tags, that possibly
         # have been assigned in mirror_sites.tcl
@@ -154,7 +94,7 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
 # within that tag distfiles are added in $site $distfile format, where $site is
 # the name of a variable in the portfetch:: namespace containing a list of fetch
 # sites
-proc portfetch::checksites {sitelists mirrorfile} {
+proc portfetch::checksites {sitelists mirrorscmd} {
     global env
     variable urlmap
     set url_re {([a-zA-Z]+://.+)}
@@ -182,7 +122,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
             }
             if {$sglobal ne ""} {
                 set full_list [list $sglobal {*}$full_list]
-                set global_sites [mirror_sites $sglobal "" "" $mirrorfile]
+                set global_sites [mirror_sites $sglobal "" "" $mirrorscmd]
             }
         }
 
@@ -199,7 +139,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
                 if {[info exists ${listname}.mirror_subdir]} {
                     append subdir [set ${listname}.mirror_subdir]
                 }
-                lappend site_list {*}[mirror_sites $mirrors $tag $subdir $mirrorfile]
+                lappend site_list {*}[mirror_sites $mirrors $tag $subdir $mirrorscmd]
             }
         }
 

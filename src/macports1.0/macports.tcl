@@ -1143,6 +1143,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     macports::ui_init_all
 
     package require Pextlib 1.0
+    package require portlib 1.0
     package require registry 1.0
     package require registry2 2.0
     package require machista 1.0
@@ -2189,6 +2190,14 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias _mport_archs macports::_mport_archs
     $workername alias _mport_supports_archs macports::_mport_supports_archs
 
+    $workername alias archiveTypeIsSupported portlib::util::archiveTypeIsSupported
+    $workername alias supportedArchiveTypes portlib::util::supportedArchiveTypes
+
+    $workername alias portfetch::percent_encode portlib::fetch::percent_encode
+    $workername alias portfetch::assemble_url portlib::fetch::assemble_url
+    $workername alias portfetch::separate_tag portlib::fetch::separate_tag
+    $workername alias portfetch::get_mirror_site_urls portlib::fetch::get_mirror_site_urls
+
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
     $workername alias registry_open registry::open_entry
@@ -2220,8 +2229,12 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias wait_for_pingtime macports::wait_for_pingtime
     $workername alias compare_pingtimes macports::compare_pingtimes
 
-    # archive_sites.conf handling
-    $workername alias get_archive_sites_conf_values macports::get_archive_sites_conf_values
+    # archive sites
+    $workername alias portarchivefetch::get_default_archive_sites portlib::archive_sites::get_default_archive_sites
+    $workername alias portarchivefetch::get_archive_site_urls portlib::archive_sites::get_archive_site_urls
+    $workername alias portarchivefetch::get_archive_site_archivetype portlib::archive_sites::get_archive_site_archivetype
+    $workername alias portarchivefetch::get_archive_site_sigtype portlib::archive_sites::get_archive_site_sigtype
+    $workername alias portarchivefetch::get_archive_site_pubkey portlib::archive_sites::get_archive_site_pubkey
     # variant_descriptions.conf
     $workername alias get_variant_description macports::get_variant_description
 
@@ -7452,77 +7465,6 @@ proc macports::get_variant_description {variant resourcepath} {
         return [dict get $variant_descriptions $resourcepath $variant]
     }
     return {}
-}
-
-# read and cache archive_sites.conf (called from port1.0 code)
-proc macports::get_archive_sites_conf_values {} {
-    variable archive_sites_conf_values
-    if {![info exists archive_sites_conf_values]} {
-        variable archive_sites_conf
-        variable os_platform; variable os_major
-        set archive_sites_conf_values [list]
-        set all_names [list]
-        set defaults_list [list applications_dir /Applications/MacPorts prefix /opt/local type tbz2 sigtype rmd160]
-        if {$os_platform eq "darwin" && $os_major <= 12} {
-            lappend defaults_list cxx_stdlib libstdc++ delete_la_files no
-        } else {
-            lappend defaults_list cxx_stdlib libc++ delete_la_files yes
-        }
-        array set defaults $defaults_list
-        set conf_options [list applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix type urls]
-        set line_re {^(\w+)([ \t]+(.*))?$}
-        if {[file isfile $archive_sites_conf]} {
-            set fd [open $archive_sites_conf r]
-            while {[gets $fd line] >= 0} {
-                if {[regexp $line_re $line match option ignore val] == 1} {
-                    if {$option in $conf_options} {
-                        if {$option eq "name"} {
-                            set cur_name $val
-                            lappend all_names $val
-                        } elseif {[info exists cur_name]} {
-                            set trimmedval [string trim $val]
-                            if {$option eq "urls"} {
-                                set processed_urls [list]
-                                foreach url $trimmedval {
-                                    lappend processed_urls ${url}:nosubdir
-                                }
-                                lappend archive_sites_conf_values ::portfetch::mirror_sites::sites($cur_name) $processed_urls
-                                set sites($cur_name) $processed_urls
-                            } else {
-                                lappend archive_sites_conf_values ::portfetch::mirror_sites::archive_${option}($cur_name) $trimmedval
-                                set archive_${option}($cur_name) $trimmedval
-                            }
-                        } else {
-                            ui_warn "archive_sites.conf: ignoring '$option' occurring before name"
-                        }
-                    } else {
-                        ui_warn "archive_sites.conf: ignoring unknown key '$option'"
-                    }
-                }
-            }
-            close $fd
-
-            # check for unspecified values and set to defaults
-            foreach cur_name $all_names {
-                foreach key [array names defaults] {
-                    if {![info exists archive_${key}($cur_name)]} {
-                        set archive_${key}($cur_name) $defaults($key)
-                        lappend archive_sites_conf_values ::portfetch::mirror_sites::archive_${key}($cur_name) $defaults($key)
-                    }
-                }
-                if {![info exists archive_frameworks_dir($cur_name)]} {
-                    set archive_frameworks_dir($cur_name) $archive_prefix($cur_name)/Library/Frameworks
-                    lappend archive_sites_conf_values ::portfetch::mirror_sites::archive_frameworks_dir($cur_name) $archive_frameworks_dir($cur_name)
-                }
-                if {![info exists sites($cur_name)]} {
-                    ui_warn "archive_sites.conf: no urls set for $cur_name"
-                    set sites($cur_name) {}
-                    lappend archive_sites_conf_values ::portfetch::mirror_sites::sites($cur_name) {}
-                }
-            }
-        }
-    }
-    return $archive_sites_conf_values
 }
 
 ##

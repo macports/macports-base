@@ -832,28 +832,7 @@ test get_portimage_path {
 } -result "Get portimage_path successful."
 
 
-test supportedArchiveTypes {
-    Supported archive types unit test.
-    Only tests xar, zip, cpio.
-} -body {
-    set archives [supportedArchiveTypes]
-
-    foreach archive $archives {
-        if {$archive == "xar" && ![file exists ${portutil::autoconf::xar_path}]} {
-            return "FAIL: xar detected but inexistent"
-        }
-        if {$archive == "zip" && ![file exists ${portutil::autoconf::zip_path}]} {
-            return "FAIL: zip detected but inexistent"
-        }
-        if {$archive == "cpio" && ![file exists ${portutil::autoconf::cpio_path}]} {
-            return "FAIL: cpio detected but inexistent"
-        }
-    }
-    return "Supported archives successful."
-} -result "Supported archives successful."
-
-
-# test find_portarchie_path
+# test find_portarchive_path
 # test archiveTypeIsSupported
 # test extract_archive_metadata
 

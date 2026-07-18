@@ -2728,20 +2728,6 @@ proc get_portimage_path {} {
     return [file normalize [file join ${portdbpath} software ${subport} [get_portimage_name]]]
 }
 
-# return list of archive types that we can extract
-proc supportedArchiveTypes {} {
-    global supported_archive_types
-    if {![info exists supported_archive_types]} {
-        set supported_archive_types [list]
-        foreach type [list tbz2 tbz tgz tar txz tlz xar zip cpgz cpio aar] {
-            if {[catch {archiveTypeIsSupported $type}] == 0} {
-                lappend supported_archive_types $type
-            }
-        }
-    }
-    return $supported_archive_types
-}
-
 # return path to a downloaded or installed archive for this port
 proc find_portarchive_path {{include_installed 1}} {
     global portdbpath subport version revision portvariants
@@ -2759,78 +2745,6 @@ proc find_portarchive_path {{include_installed 1}} {
         }
     }
     return ""
-}
-
-# check if archive type is supported by current system
-# returns an error code if it is not
-proc archiveTypeIsSupported {type} {
-    set errmsg ""
-    switch -regex $type {
-        aar {
-            set aa "aa"
-            if {[catch {set aa [findBinary $aa ${::portutil::autoconf::aa_path}]} errmsg] == 0} {
-                return 0
-            }
-        }
-        cp(io|gz) {
-            set pax "pax"
-            if {[catch {set pax [findBinary $pax ${::portutil::autoconf::pax_path}]} errmsg] == 0} {
-                if {[regexp {z$} $type]} {
-                    set gzip "gzip"
-                    if {[catch {set gzip [findBinary $gzip ${::portutil::autoconf::gzip_path}]} errmsg] == 0} {
-                        return 0
-                    }
-                } else {
-                    return 0
-                }
-            }
-        }
-        t(ar|bz|lz|xz|gz) {
-            set tar "tar"
-            if {[catch {set tar [findBinary $tar ${::portutil::autoconf::tar_path}]} errmsg] == 0} {
-                if {[regexp {z2?$} $type]} {
-                    if {[regexp {bz2?$} $type]} {
-                        set gzip "bzip2"
-                    } elseif {[regexp {lz$} $type]} {
-                        set gzip "lzma"
-                    } elseif {[regexp {xz$} $type]} {
-                        set gzip "xz"
-                    } else {
-                        set gzip "gzip"
-                    }
-                    if {[info exists ::portutil::autoconf::${gzip}_path]} {
-                        set hint [set ::portutil::autoconf::${gzip}_path]
-                    } else {
-                        set hint ""
-                    }
-                    if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
-                        return 0
-                    }
-                } else {
-                    return 0
-                }
-            }
-        }
-        xar {
-            set xar "xar"
-            if {[catch {set xar [findBinary $xar ${::portutil::autoconf::xar_path}]} errmsg] == 0} {
-                return 0
-            }
-        }
-        zip {
-            set zip "zip"
-            if {[catch {set zip [findBinary $zip ${::portutil::autoconf::zip_path}]} errmsg] == 0} {
-                set unzip "unzip"
-                if {[catch {set unzip [findBinary $unzip ${::portutil::autoconf::unzip_path}]} errmsg] == 0} {
-                    return 0
-                }
-            }
-        }
-        default {
-            return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
-        }
-    }
-    return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
 # return the specified pieces of metadata from the +CONTENTS file in the given archive
@@ -3565,10 +3479,9 @@ proc portutil::_eval_archive_available {{async no}} {
         return
     }
     package require uri
-    set archivetype $::portfetch::mirror_sites::archive_type($mirrors)
-    if {[info exists ::portfetch::mirror_sites::archive_sigtype($mirrors)]} {
-        set sigtype $::portfetch::mirror_sites::archive_sigtype($mirrors)
-    } else {
+    set archivetype [portarchivefetch::get_archive_site_archivetype [portarchivefetch::get_full_archive_sites_path] $mirrors]
+    set sigtype [portarchivefetch::get_archive_site_sigtype [portarchivefetch::get_full_archive_sites_path] $mirrors]
+    if {$sigtype eq {}} {
         set sigtype rmd160
     }
     set archivename ${archiverootname}.${archivetype}
@@ -3577,7 +3490,8 @@ proc portutil::_eval_archive_available {{async no}} {
         lappend sites_entries {*}$env(ARCHIVE_SITE_LOCAL)
     }
     # grab first site, should conventionally be the master mirror
-    set primary_mirror [lindex $::portfetch::mirror_sites::sites($mirrors) 0]
+    set mirror_urls [portarchivefetch::get_archive_site_urls [portarchivefetch::get_full_archive_sites_path] $mirrors]
+    set primary_mirror [lindex $mirror_urls 0]
     # Find mirror with fastest cached ping time
     set primary_mirror_parts [::uri::split $primary_mirror]
     set best_ping 10000
@@ -3591,7 +3505,7 @@ proc portutil::_eval_archive_available {{async no}} {
     }
     if {$best_ping >= 0} {
         set fastest_mirror $primary_mirror
-        foreach mirror [lrange $::portfetch::mirror_sites::sites($mirrors) 1 end] {
+        foreach mirror [lrange $mirror_urls 1 end] {
             if {[compare_pingtimes $mirror $fastest_mirror] < 0} {
                 set fastest_mirror $mirror
                 set mirror_parts [::uri::split $mirror]

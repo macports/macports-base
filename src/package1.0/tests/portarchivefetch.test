@@ -23,8 +23,8 @@ namespace eval portutil {
 proc ui_progress_download {args} {
 }
 
-test filter_sites {
-    Filter sites unit test.
+test get_sites {
+    get_sites unit test.
 } -setup {
     global os.platform os.subplatform os.major os.version os.arch destpath package.destpath \
         configure.build_arch subport version revision package.flat maintainers description \
@@ -36,13 +36,13 @@ test filter_sites {
     set porturl http://www.fondu.sourceforge.net/fondu-060102_1var1.darwin_9.noarch.tgz
 
 } -body {
-    set result [portarchivefetch::filter_sites]
+    set result [portarchivefetch::get_sites]
     if {$result ne "http://www.fondu.sourceforge.net/:tgz"} {
-        return "FAIL: portarchivefetch::filter_sites returned '$result'"
+        return "FAIL: portarchivefetch::get_sites returned '$result'"
     }
 
-    return "Filter sites successful."
-} -result "Filter sites successful."
+    return "get_sites successful."
+} -result "get_sites successful."
 
 
 test checkarchivefiles {

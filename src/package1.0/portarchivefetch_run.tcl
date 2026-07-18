@@ -59,21 +59,22 @@ proc checkfiles {urls} {
     upvar $urls fetch_urls
 
     portfetch::checksites [list archive_sites [list {} ARCHIVE_SITE_LOCAL]] \
-                          [get_full_archive_sites_path]
+                          [list ::portarchivefetch::get_archive_site_urls [get_full_archive_sites_path]]
     checkarchivefiles fetch_urls
 }
 
 # Return all signature types that may be used with the configured sites
 proc get_all_sigtypes {} {
-    global archive_sites portfetch::mirror_sites::archive_sigtype
+    global archive_sites
     set sigtypes [dict create]
     foreach site $archive_sites {
         # If the entry is a URL rather than a mirror site name then
         # this will actually extract the URL scheme, but that's OK
         # since it won't exist in the array and will be skipped.
         set site [lindex [split $site :] 0]
-        if {[info exists archive_sigtype($site)]} {
-            dict set sigtypes $archive_sigtype($site) 1
+        set sigtype [get_archive_site_sigtype [get_full_archive_sites_path] $site]
+        if {$sigtype ne {}} {
+            dict set sigtypes $sigtype 1
         }
     }
     if {[dict size $sigtypes] > 0} {
@@ -87,9 +88,7 @@ proc get_all_sigtypes {} {
 # Verify signature for a fetched archive using any of the public keys
 # set for each archive site or in pubkeys.conf.
 proc verify_signature {archive_path sig_path} {
-    global archive_sites archivefetch.pubkeys \
-           portfetch::mirror_sites::archive_sigtype \
-           portfetch::mirror_sites::archive_pubkey
+    global archive_sites archivefetch.pubkeys
 
     # Chop off the .TMP before getting extension
     set archivetype [file extension [file rootname $archive_path]]
@@ -99,13 +98,15 @@ proc verify_signature {archive_path sig_path} {
         set site_split [split $site :]
         set site [lindex $site_split 0]
         set tag [lindex $site_split end]
-        if {".$tag" eq $archivetype && [info exists archive_sigtype($site)]
-            && [info exists archive_pubkey($site)]
-            && ".$archive_sigtype($site)" eq $sigtype
+        set site_sigtype [get_archive_site_sigtype [get_full_archive_sites_path] $site]
+        set site_pubkey [get_archive_site_pubkey [get_full_archive_sites_path] $site]
+        if {".$tag" eq $archivetype && $site_sigtype ne {}
+            && $site_pubkey ne {}
+            && ".$site_sigtype" eq $sigtype
         } then {
             # Use dict to avoid duplicates if a key is added in both
             # the archive site definition and pubkeys.conf.
-            dict set pubkeys $archive_pubkey($site) 1
+            dict set pubkeys $site_pubkey 1
         }
     }
     foreach pubkey ${archivefetch.pubkeys} {
@@ -421,11 +422,9 @@ proc start_pings {} {
     } else {
         set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
     }
-    if {[info exists ::portfetch::mirror_sites::sites($mirrors)]} {
-        set primary_mirror [lindex $::portfetch::mirror_sites::sites($mirrors) 0]
-        if {$primary_mirror ne {}} {
-            wait_for_pingtime $primary_mirror
-        }
+    set primary_mirror [lindex [get_archive_site_urls [get_full_archive_sites_path] $mirrors] 0]
+    if {$primary_mirror ne {}} {
+        wait_for_pingtime $primary_mirror
     }
 }
 

@@ -100,7 +100,7 @@ proc checkfiles {urls} {
                         master_sites [list $global_mirror_site MASTER_SITE_LOCAL]]
     }
 
-    checksites $sites [get_full_mirror_sites_path]
+    checksites $sites [list get_mirror_site_urls [get_full_mirror_sites_path]]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
 }
@@ -503,11 +503,10 @@ proc start_pings {} {
     }
     # wait until we have a result for at least the main mirror
     global global_mirror_site
-    if {[info exists mirror_sites::sites($global_mirror_site)]} {
-        set primary_mirror [lindex $mirror_sites::sites($global_mirror_site) 0]
-        if {$primary_mirror ne {}} {
-            wait_for_pingtime $primary_mirror
-        }
+
+    set primary_mirror [lindex [get_mirror_site_urls [get_full_mirror_sites_path] $global_mirror_site] 0]
+    if {$primary_mirror ne {}} {
+        wait_for_pingtime $primary_mirror
     }
 }
 

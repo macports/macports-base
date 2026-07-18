@@ -51,6 +51,9 @@ proc macports_worker_init {} {
     interp alias {} findBinary                      {} macports::findBinary
     interp alias {} binaryInPath                    {} macports::binaryInPath
     interp alias {} shellescape                     {} macports::shellescape
+    # portlib functions
+    interp alias {} portfetch::get_mirror_site_urls {} portlib::fetch::get_mirror_site_urls
+    interp alias {} portfetch::assemble_url         {} portlib::fetch::assemble_url
     # New Registry/Receipts stuff
     interp alias {} registry_new                    {} registry::new_entry
     interp alias {} registry_open                   {} registry::open_entry

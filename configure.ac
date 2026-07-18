@@ -607,6 +607,8 @@ AC_CONFIG_FILES([
 	src/port1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/port1.0/port_test_autoconf.tcl
+	src/portlib1.0/Makefile
+	src/portlib1.0/portlib_autoconf.tcl
 	src/portlist1.0/Makefile
 	src/programs/Makefile
 	src/registry2.0/Makefile

@@ -34,7 +34,7 @@ default archivefetch.use_epsv no
 default archivefetch.ignore_sslcert no
 default archivefetch.pubkeys {$archivefetch_pubkeys}
 
-default archive_sites {[portarchivefetch::filter_sites]}
+default archive_sites {[portarchivefetch::get_sites]}
 default archive_sites.listfile archive_sites.tcl
 default archive_sites.listpath port1.0/fetch
 default archive.subdir {${subport}}
@@ -47,65 +47,15 @@ proc portarchivefetch::get_full_archive_sites_path {} {
     return [getportresourcepath $porturl [file join ${archive_sites.listpath} ${archive_sites.listfile}] no]
 }
 
-proc portarchivefetch::filter_sites {} {
-    global prefix_frozen frameworks_dir_frozen applications_dir_frozen porturl \
-        cxx_stdlib delete_la_files \
-        portfetch::mirror_sites::sites portfetch::mirror_sites::archive_type \
-        portfetch::mirror_sites::archive_prefix \
-        portfetch::mirror_sites::archive_frameworks_dir \
-        portfetch::mirror_sites::archive_applications_dir \
-        portfetch::mirror_sites::archive_cxx_stdlib \
-        portfetch::mirror_sites::archive_delete_la_files  \
-        portfetch::mirror_sites::archive_sigtype \
-        portfetch::mirror_sites::archive_pubkey
-
-    # get defaults from ports tree resources
-    set mirrorfile [get_full_archive_sites_path]
-    if {[file exists $mirrorfile]} {
-        source $mirrorfile
-    }
-    # get archive_sites.conf values
-    foreach {key val} [get_archive_sites_conf_values] {
-        set $key $val
-    }
-
-    set ret [list]
-    foreach site [array names archive_prefix] {
-        set missing 0
-        foreach var {archive_frameworks_dir archive_applications_dir archive_type archive_cxx_stdlib archive_delete_la_files} {
-            if {![info exists ${var}($site)]} {
-                ui_warn "no $var configured for site '$site'"
-                set missing 1
-            }
-        }
-        if {$missing} {
-            continue
-        }
-        # The paths in the portfile vars are fully resolved, so resolve
-        # these too before comparing them.
-        foreach var {archive_prefix archive_frameworks_dir archive_applications_dir} {
-            if {[catch {set ${var}_norm [realpath [set ${var}($site)]]}]} {
-                set ${var}_norm [file normalize [set ${var}($site)]]
-            }
-        }
-        if {$sites($site) ne {} &&
-            $archive_prefix_norm eq $prefix_frozen &&
-            $archive_frameworks_dir_norm eq $frameworks_dir_frozen &&
-            $archive_applications_dir_norm eq $applications_dir_frozen &&
-            $archive_cxx_stdlib($site) eq $cxx_stdlib &&
-            $archive_delete_la_files($site) eq $delete_la_files &&
-            ![catch {archiveTypeIsSupported $archive_type($site)}]} {
-            # using the archive type as a tag
-            lappend ret ${site}::$archive_type($site)
-        }
-    }
-
+proc portarchivefetch::get_sites {} {
+    global porturl
     # check if porturl itself points to an archive
-    if {![catch {get_portimage_name} portimage_name] && [file rootname [file tail $porturl]] eq [file rootname $portimage_name] && [file extension $porturl] ne ""} {
-        lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]:[string range [file extension $porturl] 1 end]
+    if {[file extension $porturl] ne {} && ![catch {get_portimage_name} portimage_name] && [file rootname [file tail $porturl]] eq [file rootname $portimage_name]} {
         archive.subdir
+        return [list [string range $porturl 0 end-[string length [file tail $porturl]]]:[string range [file extension $porturl] 1 end]]
     }
-    return $ret
+    global archive_sites.listpath archive_sites.listfile
+    return [portarchivefetch::get_default_archive_sites [get_full_archive_sites_path]]
 }
 
 # Start asynchronous fetch of archive
