@@ -447,7 +447,7 @@ proc command_exec {args} {
     }
 
     # Debug that.
-    ui_debug "Environment: [environment_array_to_string ${varprefix}.env_array]"
+    ui_info "Environment: [environment_array_to_string ${varprefix}.env_array]"
 
     # Prepare nice value change
     set nice ""
