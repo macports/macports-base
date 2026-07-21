@@ -37,6 +37,7 @@ package require receipt_flat 1.0
 package require receipt_sqlite 1.0
 package require portimage 2.0
 package require registry_uninstall 2.0
+package require msgcat
 package require Pextlib 1.0
 
 namespace eval registry {

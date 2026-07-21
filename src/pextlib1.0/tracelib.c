@@ -85,7 +85,7 @@ static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *
 #endif /* defined(HAVE_PEERPID_LIST) */
 
 
-static char *name = NULL;
+static char *name;
 static char *sandbox;
 static size_t sandboxLength;
 static char **depends = NULL;
@@ -685,11 +685,6 @@ static void dep_check(int sock, char *path) {
 static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     struct sockaddr_un sun;
 
-    if (name == NULL) {
-        Tcl_SetResult(in, "tracelib opensocket called without first calling tracelib setname", TCL_STATIC);
-        return TCL_ERROR;
-    }
-
     if (-1 == (sock = socket(PF_LOCAL, SOCK_STREAM, 0))) {
         return error2tcl("socket: ", errno, in);
     }
@@ -702,12 +697,6 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
         close(sock);
         sock = -1;
         return error2tcl("bind: ", err, in);
-    }
-
-    if (-1 == chmod(name, 0777)) {
-        /* We create this socket as root, but want non-root users to be able to
-         * connect. */
-        return error2tcl("chmod: ", errno, in);
     }
 
     if (-1 == listen(sock, SOMAXCONN)) {
@@ -1053,7 +1042,7 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
 
 static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Tcl_Obj **objects;
-    Tcl_Size length;
+    int length;
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
         return TCL_ERROR;
@@ -1080,10 +1069,10 @@ static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) 
             return TCL_ERROR;
         }
         /* Copy all objects over */
-        for (Tcl_Size i = 0; i < length; ++i) {
+        for (int i = 0; i < length; ++i) {
             if (NULL == (depends[i] = strdup(Tcl_GetString(objects[i])))) {
                 /* Allocation failed, clean up what we have so far */
-                for (Tcl_Size j = 0; j < i; ++j) {
+                for (int j = 0; j < i; ++j) {
                     free(depends[j]);
                 }
                 free(depends);

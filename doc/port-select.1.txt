@@ -20,9 +20,6 @@ SYNOPSIS
 [cmdsynopsis]
 *port* [*-dv*] *select* [--set] 'group' 'option'
 
-[cmdsynopsis]
-*port* [*-dv*] *select* [--set] 'group' none
-
 DESCRIPTION
 -----------
 *port select* provides a mechanism to choose from different implementations of
@@ -45,9 +42,6 @@ when you simply run 'mysql' or other commands from the MySQL suite.
 the current primary implementation and list all available implementations given
 a group name, and change the primary implementation. See *OPTIONS* below for
 details.
-
-The special value *none* undoes a previous *port select* invocation by removing
-the relevant symbolic links again.
 
 OPTIONS
 -------
@@ -77,11 +71,6 @@ $> sudo port select --set mysql $option
 ----
 where '$option' is 'mysql56' if you want the version from MySQL, or 'percona',
 if you want the version from Percona.
-
-If you now want to do undo this selection, you can do so by running
-----
-$> sudo port select --set mysql none
-----
 
 SEE ALSO
 --------

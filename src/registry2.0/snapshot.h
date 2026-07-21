@@ -38,6 +38,6 @@
 void delete_snapshot(ClientData clientData);
 
 int snapshot_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* const objv[]);
+        Tcl_Obj* CONST objv[]);
 
 #endif /* _SNAPSHOT_H */

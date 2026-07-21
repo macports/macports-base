@@ -39,6 +39,6 @@
 extern const char* snapshot_props[];
 
 int snapshot_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* const objv[]);
+        Tcl_Obj* CONST objv[]);
 
 #endif /* _SNAPSHOT_OBJ_CMD_H */

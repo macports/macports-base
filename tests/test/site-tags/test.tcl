@@ -17,7 +17,7 @@ proc sitetag {} {
     if {$line == -1} {
         return "No errors found."
     } else {
-        return "Errors found in the output file: $line"
+        return "Errors found in the output file."
     }
 }
 

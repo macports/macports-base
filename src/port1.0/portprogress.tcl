@@ -28,6 +28,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 package provide portprogress 1.0
+package require portutil 1.0
+package require Pextlib 1.0
 
 namespace eval portprogress {
     # The time in milliseconds to wait before we switch our progress bar from

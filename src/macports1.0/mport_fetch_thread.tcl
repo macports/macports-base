@@ -37,10 +37,10 @@ package require Thread
 
 namespace eval mport_fetch_thread {
     variable active_requests [dict create]
-    variable active_files [dict create]
     variable next_id 0
     variable management_thread
     trace add variable management_thread read mport_fetch_thread::init_management_thread
+    variable timeout_script_template {if {![info exists %s]} {set %s timeout}}
 
     # Management thread code
     variable init_script {
@@ -57,8 +57,7 @@ namespace eval mport_fetch_thread {
                 switch -- $action {
                     debug -
                     notice {
-                        global progress_logid
-                        thread::send -async $progress_tid [list macports::ui_message_async $progress_logid $action {*}$args]
+                        thread::send -async $progress_tid [list ui_${action} {*}$args]
                     }
                     default {
                         global show_progress
@@ -76,32 +75,11 @@ namespace eval mport_fetch_thread {
                 }
             }
 
-            proc get_proxy_args {url} {
-                global proxies no_proxy
-                set ret [list]
-                if {[dict size $proxies] > 0} {
-                    set colon [string first : $url]
-                    if {$colon > 0} {
-                        set scheme [string tolower [string range $url 0 ${colon}-1]]
-                        if {[dict exists $proxies $scheme]} {
-                            lappend ret --proxy [dict get $proxies $scheme]
-                        } elseif {[dict exists $proxies all]} {
-                            lappend ret --proxy [dict get $proxies all]
-                        }
-                    }
-                }
-                if {[info exists no_proxy]} {
-                    lappend ret --no-proxy $no_proxy
-                }
-                return $ret
-            }
-
             # Perform a curl-based operation and return the result.
             # Result format: 2 element list: status, body
             # status = 0: success, body is the actual result
             # status = 1: error, body is error message
             proc do_curl {op opargs result_tid result_var} {
-                global management_tid
                 set result {}
                 try {
                     global ::pextlib::curl::cancelled
@@ -116,11 +94,10 @@ namespace eval mport_fetch_thread {
                             set result [list 0 0]
                             lassign $opargs fixed_args credential_args urls
                             foreach {url sigurl} $urls {creds sigcreds} $credential_args {
-                                set proxy_args [get_proxy_args $url]
                                 # curl getsize can return -1 instead of throwing an error for
                                 # nonexistent files on FTP sites.
-                                if {![catch {curl getsize {*}$proxy_args {*}$creds {*}$fixed_args $url} size] && $size > 0
-                                      && ![catch {curl getsize {*}$proxy_args {*}$sigcreds {*}$fixed_args $sigurl} sigsize] && $sigsize > 0} {
+                                if {![catch {curl getsize {*}$creds {*}$fixed_args $url} size] && $size > 0
+                                      && ![catch {curl getsize {*}$sigcreds {*}$fixed_args $sigurl} sigsize] && $sigsize > 0} {
                                     set result [list 0 1]
                                     break
                                 }
@@ -132,31 +109,27 @@ namespace eval mport_fetch_thread {
                         fetch_archive {
                             # Try fetching an archive and signature from the given URLs,
                             # saving the results to outpath, until one of them succeeds.
-                            global show_progress progress_tid progress_inited progress_logid current_url
+                            global show_progress progress_tid progress_inited current_url
                             # Start silent, may be changed during the transfer.
                             set show_progress 0
                             set progress_inited 0
                             set progress_tid $result_tid
-                            lassign $opargs fixed_args credential_args urls outpath sigtypes maxfails progress_logid
+                            lassign $opargs fixed_args credential_args urls outpath sigtypes maxfails
                             set archive_fetched 0
                             set sig_fetched 0
                             set failed_sites 0
-                            set logphase archivefetch
                             foreach url $urls creds $credential_args {
-                                set proxy_args [get_proxy_args $url]
                                 if {!$archive_fetched} {
                                     try {
                                         if {$show_progress} {
-                                            set msg_priority notice
+                                            progress_handler notice "Attempting to fetch $url"
                                         } else {
-                                            set msg_priority debug
                                             set current_url $url
                                         }
-                                        progress_handler $msg_priority $logphase "Attempting to fetch $url"
-                                        curl fetch --progress progress_handler {*}$proxy_args {*}$creds {*}$fixed_args $url ${outpath}.TMP
+                                        curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
                                         set archive_fetched 1
                                     } on error {eMessage} {
-                                        progress_handler debug $logphase "Fetching $url failed: $eMessage"
+                                        progress_handler debug "Fetching $url failed: $eMessage"
                                         set result [list 1 $eMessage]
                                         incr failed_sites
                                         if {$cancelled || ($maxfails > 0 && $failed_sites >= $maxfails)} {
@@ -171,19 +144,17 @@ namespace eval mport_fetch_thread {
                                         set signature ${outpath}.${sigtype}
                                         try {
                                             if {$show_progress} {
-                                                set msg_priority notice
+                                                progress_handler notice "Attempting to fetch $sigurl"
                                             } else {
-                                                set msg_priority debug
                                                 set current_url $sigurl
                                             }
-                                            progress_handler $msg_priority $logphase "Attempting to fetch $sigurl"
-                                            curl fetch --progress progress_handler {*}$proxy_args {*}$creds {*}$fixed_args $sigurl $signature
+                                            curl fetch --progress progress_handler {*}$creds {*}$fixed_args $sigurl $signature
                                             set sig_fetched 1
                                             set fetched_sigtype $sigtype
                                             set result [list 0 1]
                                             break
                                         } on error {eMessage} {
-                                            progress_handler debug $logphase "Fetching $sigurl failed: $eMessage"
+                                            progress_handler debug "Fetching $sigurl failed: $eMessage"
                                             set result [list 1 $eMessage]
                                             if {$cancelled} {
                                                 break
@@ -198,38 +169,46 @@ namespace eval mport_fetch_thread {
                                     break
                                 }
                             }
+                            foreach sigtype $sigtypes {
+                                if {!$sig_fetched || $sigtype ne $fetched_sigtype} {
+                                    catch {file delete ${outpath}.${sigtype}}
+                                }
+                            }
+                            if {!$archive_fetched} {
+                                catch {file delete ${outpath}.TMP}
+                            }
                         }
                         fetch_file {
                             # Try fetching the given URLs, saving the result to outpath, until
                             # one of them succeeds.
-                            global show_progress progress_tid progress_inited progress_logid current_url
+                            global show_progress progress_tid progress_inited current_url
                             # Start silent, may be changed during the transfer.
                             set show_progress 0
                             set progress_inited 0
                             set progress_tid $result_tid
-                            lassign $opargs fixed_args credential_args urls outpath progress_logid
+                            lassign $opargs fixed_args credential_args urls outpath
                             set fetched 0
-                            set logphase fetch
                             foreach url $urls creds $credential_args {
                                 try {
                                     if {$show_progress} {
-                                        set msg_priority notice
+                                        progress_handler notice "Attempting to fetch $url"
                                     } else {
-                                        set msg_priority debug
                                         set current_url $url
                                     }
-                                    progress_handler $msg_priority $logphase "Attempting to fetch $url"
-                                    curl fetch --progress progress_handler {*}[get_proxy_args $url] {*}$creds {*}$fixed_args $url ${outpath}.TMP
+                                    curl fetch --progress progress_handler {*}$creds {*}$fixed_args $url ${outpath}.TMP
                                     set fetched 1
                                     set result [list 0 1]
                                     break
                                 } on error {eMessage} {
-                                    progress_handler debug $logphase "Fetching $url failed: $eMessage"
+                                    progress_handler debug "Fetching $url failed: $eMessage"
                                     set result [list 1 $eMessage]
                                     if {$cancelled} {
                                         break
                                     }
                                 }
+                            }
+                            if {!$fetched} {
+                                catch {file delete ${outpath}.TMP}
                             }
                         }
                         default {
@@ -239,121 +218,79 @@ namespace eval mport_fetch_thread {
                 } on error {err} {
                     set result [list 1 $err]
                 } finally {
+                    if {$op in {fetch_archive fetch_file}} {
+                        tsv::incr mport_fetch_thread::fetch cur_count -1
+                    }
+                    tsv::set mport_fetch_thread::thread_busy [thread::id] 0
                     # Set the result in the thread that wants it
                     thread::send -async $result_tid [list set $result_var $result]
-                    # Tell the management thread we're done
-                    set was_fetch [expr {$op in {fetch_archive fetch_file}}]
-                    thread::send -async $management_tid [list thread_done [thread::id] $was_fetch]
                 }
-            }
-
-            # Perform a ping operation and return the result by calling a proc.
-            # Result format: 2 args: host, pingtime
-            proc do_ping {op opargs result_tid result_proc} {
-                global management_tid
-                lassign $opargs host scheme
-                if {[catch {time_connect $host $scheme} pingtime]} {
-                    set pingtime 10000
-                }
-                # Set the result in the thread that wants it
-                thread::send -async $result_tid [list $result_proc $host $pingtime]
-                # Tell the management thread we're done
-                thread::send -async $management_tid [list thread_done [thread::id] 0]
             }
 
             thread::wait
         }
         # End worker_init_script
 
-        proc init_globals {fetch_threads proxies_in no_proxy_in} {
-            global max_threads max_fetches proxies no_proxy
-            if {![catch {sysctl hw.activecpu} ncpus] && $ncpus > $fetch_threads} {
-                set max_threads [expr {$ncpus * 2}]
-            } else {
-                set max_threads [expr {$fetch_threads * 2}]
-            }
-            if {$max_threads < 8} {
-                set max_threads 8
-            }
-            set max_fetches $fetch_threads
-            set proxies $proxies_in
-            if {$no_proxy_in ne {}} {
-                set no_proxy $no_proxy_in
-            }
+        if {![catch {sysctl hw.activecpu} ncpus]} {
+            set max_threads [expr {$ncpus * 2}]
+        } else {
+            set max_threads 8
         }
-        set available_threads [list]
-        set thread_count 0
-        set fetch_count 0
-
-        # Worker threads call this when they have completed a job
-        proc thread_done {tid was_fetch} {
-            global available_threads
-            lappend available_threads $tid
-            if {$was_fetch} {
-                global fetch_count
-                incr fetch_count -1
-            }
-        }
+        set active_threads [dict create]
+        tsv::set mport_fetch_thread::fetch cur_count 0
 
         # Return the ID of a thread that is available for use, or an empty
         # string if no threads are available. Creates new threads up to the
         # maximum if needed.
         proc get_available_thread {} {
-            global available_threads
-            # Look for an idle thread.
-            if {[llength $available_threads] > 0} {
-                return [lpop available_threads end]
-            }
-            # Create a new thread if possible.
-            global max_threads thread_count
-            if {$thread_count < $max_threads} {
-                global worker_init_script proxies no_proxy
-                set free_tid [thread::create -preserved $worker_init_script]
-                thread::send -async $free_tid [list set management_tid [thread::id]]
-                thread::send -async $free_tid [list set proxies $proxies]
-                if {[info exists no_proxy]} {
-                    thread::send -async $free_tid [list set no_proxy $no_proxy]
+            global active_threads
+            set free_tid {}
+            # See if any threads in the list have completed - those nearer the
+            # start were started first and so more likely to be free.
+            foreach tid [dict keys $active_threads] {
+                if {[tsv::get mport_fetch_thread::thread_busy $tid] != 1} {
+                    # Unset so it goes to the end of the list
+                    dict unset active_threads $tid
+                    set free_tid $tid
+                    break
                 }
-                incr thread_count
-                return $free_tid
             }
-            return {}
+            if {$free_tid eq {}} {
+                # Create a new thread if possible.
+                global max_threads
+                if {[dict size $active_threads] < $max_threads} {
+                    global worker_init_script
+                    set free_tid [thread::create -preserved $worker_init_script]
+                }
+            }
+
+            if {$free_tid ne {}} {
+                # Add thread to the active list and mark as busy.
+                dict set active_threads $free_tid 1
+                tsv::set mport_fetch_thread::thread_busy $free_tid 1
+            }
+            return $free_tid
         }
 
-        # Queues of incoming requests. These have different priorities,
-        # fetch being highest and ping lowest.
-        set fetch_request_queue [list]
-        set exists_request_queue [list]
-        set ping_request_queue [list]
-        # Map ops to their queue
-        set queue_for_op [dict create fetch_archive fetch_request_queue \
-                                      fetch_file fetch_request_queue \
-                                      archive_exists exists_request_queue \
-                                      ping ping_request_queue]
-        # Variable waited on for events by the management thread.
+        set request_queue [list]
         set main_wakeup {}
 
-        # Add a request to the appropriate queue and arrange for the
-        # main loop to wake up and process it.
+        # Add a request to the queue and arrange for the main loop to
+        # wake up and process it.
         proc queue_request {op opargs result_tid result_var} {
-            global queue_for_op main_wakeup
-            set request_queue [dict get $queue_for_op $op]
-            global $request_queue
-            lappend $request_queue [list $op $opargs $result_tid $result_var]
+            global request_queue main_wakeup
+            lappend request_queue [list $op $opargs $result_tid $result_var]
             set main_wakeup 1
         }
 
         # Remove a request from the queue.
         # Returns 1 if the request was in the queue, 0 otherwise.
         proc unqueue_request {id} {
-            foreach qtype {fetch exists ping} {
-                set request_queue ${qtype}_request_queue
-                global $request_queue
-                set index [lsearch -exact -dictionary -sorted -index 3 [set $request_queue] $id]
-                if {$index != -1} {
-                    lpop $request_queue $index
-                    return 1
-                }
+            global request_queue
+            set index [lsearch -exact -dictionary -sorted -index 3 $request_queue $id]
+            if {$index != -1} {
+                set request_queue [lreplace ${request_queue}[set request_queue {}] $index $index]
+                return 1
             }
             return 0
         }
@@ -362,43 +299,28 @@ namespace eval mport_fetch_thread {
         # and handles results of completed ones. Wakes up whenever a thread
         # completes its task or a new request is queued.
         proc main {} {
-            global fetch_request_queue exists_request_queue ping_request_queue \
-                   main_wakeup max_fetches fetch_count \
-                   available_threads thread_count max_threads
-
+            global request_queue main_wakeup max_fetches
             while {1} {
-                set all_busy 0
-                # Fetches have highest priority
-                while {[llength $fetch_request_queue] > 0 && $fetch_count < $max_fetches} {
-                    set tid [get_available_thread]
-                    if {$tid eq {}} {
-                        set all_busy 1
+                for {set i 0} {$i < [llength $request_queue]} {incr i} {
+                    lassign [lindex $request_queue $i] op opargs result_tid result_var
+                    set limit_concurrency [expr {$op in {fetch_archive fetch_file}}]
+                    if {$limit_concurrency && [tsv::get mport_fetch_thread::fetch cur_count] >= $max_fetches} {
+                        # Theoretically there could be other op types further back in the queue that we could
+                        # still dispatch, but that's unlikely in practice since fetching happens last.
                         break
                     }
-                    incr fetch_count
-                    thread::send -async $tid [list do_curl {*}[lpop fetch_request_queue 0]] main_wakeup
-                }
-                # Archive existence checks are slightly lower priority,
-                # but more can be in progress at once.
-                while {!$all_busy && [llength $exists_request_queue] > 0} {
-                    set tid [get_available_thread]
-                    if {$tid eq {}} {
-                        set all_busy 1
-                        break
-                    }
-                    thread::send -async $tid [list do_curl {*}[lpop exists_request_queue 0]] main_wakeup
-                }
-                # Pings are lowest priority and must leave one thread free
-                # for higher priority operations.
-                while {!$all_busy && [llength $ping_request_queue] > 0
-                        && $max_threads - $thread_count + [llength $available_threads] >= 2} {
                     set tid [get_available_thread]
                     if {$tid eq {}} {
                         break
                     }
-                    thread::send -async $tid [list do_ping {*}[lpop ping_request_queue 0]] main_wakeup
+                    if {$limit_concurrency} {
+                        tsv::incr mport_fetch_thread::fetch cur_count
+                    }
+                    thread::send -async $tid [list do_curl $op $opargs $result_tid $result_var] main_wakeup
                 }
-                # Sleep until something happens
+                if {$i > 0} {
+                    set request_queue [lrange $request_queue $i end]
+                }
                 vwait main_wakeup
             }
         }
@@ -414,22 +336,9 @@ proc mport_fetch_thread::init_management_thread {args} {
     trace remove variable management_thread read mport_fetch_thread::init_management_thread
     variable init_script
     set management_thread [thread::create -preserved $init_script]
-    global macports::fetch_threads macports::proxies macports::no_proxy
+    global macports::fetch_threads
     set max_fetches [expr {[info exists fetch_threads] && $fetch_threads > 1 ? $fetch_threads : 1}]
-    thread::send -async $management_thread [list init_globals $max_fetches $proxies $no_proxy]
-}
-
-proc mport_fetch_thread::record_request {op opargs id} {
-    variable active_requests
-    if {$op in {fetch_archive fetch_file}} {
-        # record the file path
-        set val [lindex $opargs 3]
-        variable active_files
-        dict set active_files $val 1
-    } else {
-        set val {}
-    }
-    dict set active_requests $id $val
+    thread::send -async $management_thread [list set max_fetches $max_fetches]
 }
 
 # Queue a fetch operation to be performed on a thread in the background.
@@ -442,17 +351,9 @@ proc mport_fetch_thread::queue {op opargs} {
     set id [namespace which -variable $result_name]
     variable management_thread
     thread::send -async $management_thread [list queue_request $op $opargs [thread::id] $id]
-    record_request $op $opargs $id
+    variable active_requests
+    dict set active_requests $id 1
     return $id
-}
-
-# Queue a fetch operation to be performed on a thread in the background.
-# Does not return a result id, so the job's completion cannot be waited
-# on with get_result, nor can it be cancelled. The supplied proc is
-# called upon completion.
-proc mport_fetch_thread::queue_procresult {op opargs completion_proc} {
-    variable management_thread
-    thread::send -async $management_thread [list queue_request $op $opargs [thread::id] $completion_proc]
 }
 
 # Get the result of the operation identified by id, waiting until it
@@ -460,11 +361,6 @@ proc mport_fetch_thread::queue_procresult {op opargs completion_proc} {
 proc mport_fetch_thread::get_result {id} {
     variable active_requests
     if {[dict exists $active_requests $id]} {
-        set filepath [dict get $active_requests $id]
-        if {$filepath ne {}} {
-            variable active_files
-            dict unset active_files $filepath
-        }
         dict unset active_requests $id
         variable $id
         if {![info exists $id]} {
@@ -488,7 +384,16 @@ proc mport_fetch_thread::is_complete {id {timeout 0}} {
         variable $id
         if {![info exists $id]} {
             if {$timeout > 0} {
-                vwait -timeout $timeout $id
+                variable timeout_script_template
+                set timeout_script [string map [list %s $id] \
+                    $timeout_script_template]
+                set timeout_eventid [after $timeout $timeout_script]
+                vwait $id
+                if {[set $id] eq "timeout"} {
+                    unset $id
+                } else {
+                    after cancel $timeout_eventid
+                }
             } else {
                 update
             }
@@ -498,12 +403,6 @@ proc mport_fetch_thread::is_complete {id {timeout 0}} {
     } else {
         error "No pending request with id $id"
     }
-}
-
-# Check if a fetch is in progress for the given file path
-proc mport_fetch_thread::file_is_in_progress {path} {
-    variable active_files
-    return [dict exists $active_files $path]
 }
 
 # Start displaying progress for the operation identified by id.
@@ -527,11 +426,6 @@ proc mport_fetch_thread::cancel {id} {
     if {![dict exists $active_requests $id]} {
         # Not in progress, guess it's fine?
         return
-    }
-    set filepath [dict get $active_requests $id]
-    if {$filepath ne {}} {
-        variable active_files
-        dict unset active_files $filepath
     }
     dict unset active_requests $id
     variable $id

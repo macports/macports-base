@@ -6,8 +6,14 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../port_test_autoconf.tcl
-source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
+package require macports 1.0
 
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
 macports_worker_init
 package require portmain 1.0
 
@@ -20,10 +26,6 @@ set os_arch i386
 set portpath .
 set portbuildpath ./build
 set macports::portdbpath .
-
-set test_tclsh $macports::autoconf::test_tclsh
-set port_script [file normalize [file join $pwd .. .. port port.tcl]]
-testConstraint portClientAvailable [expr {[file executable $test_tclsh] && [file readable $port_script]}]
 
 
 test get_default_subport {
@@ -48,14 +50,6 @@ test get_subbuildpath {
     }
     return "Get subbuild path successful."
 } -result "Get subbuild path successful."
-
-test action_prefix {
-    `port prefix` prints the configured prefix and nothing else.
-} -constraints {
-    portClientAvailable
-} -body {
-    exec -ignorestderr $test_tclsh $port_script prefix
-} -result $pwd/tmpdir
 
 
 cleanupTests

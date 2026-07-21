@@ -132,13 +132,16 @@ proc uninstall_composite {portname {v ""} {options ""}} {
 
 proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
     variable UI_PREFIX
-    global macports::ui_options
 
     if {[dict exists $options subport]} {
         # don't want this set when calling registry::run_target
         dict unset options subport
     }
-    set force [dict getwithdefault $options ports_force no]
+    if {[dict exists $options ports_force]} {
+         set force [dict get $options ports_force]
+    } else {
+        set force no
+    }
     # if no-exec is set for uninstall, set for deactivate too
     if {[dict exists $options ports_uninstall_no-exec]} {
         dict set options ports_deactivate_no-exec [dict get $options ports_uninstall_no-exec]
@@ -171,14 +174,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
                 append portstr [msgcat::mc " (active)"]
             }
 
-            if {[info exists ui_options(questions_multichoice)]} {
+            if {[info exists macports::ui_options(questions_multichoice)]} {
                 lappend portilist "$portstr"
             } else {
                 ui_msg "$UI_PREFIX     $portstr"
             }
         }
-        if {[info exists ui_options(questions_multichoice)]} {
-            set retstring [$ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
+        if {[info exists macports::ui_options(questions_multichoice)]} {
+            set retstring [$macports::ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
             foreach index $retstring {
                 set uport [lindex $sortedlist $index]
                 uninstall [$uport name] [$uport version] [$uport revision] [$uport variants] $options
@@ -384,8 +387,8 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
         }
         ## User Interaction Question
         # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
-        if {[info exists ui_options(questions_yesno)] && [llength $uports] > 0 && !([dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]])} {
-            $ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
+        if {[info exists macports::ui_options(questions_yesno)] && [llength $uports] > 0 && !([dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]])} {
+            $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
         }
         dict unset options ports_uninstall_follow-dependencies
     }

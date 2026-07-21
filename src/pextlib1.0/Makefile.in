@@ -6,7 +6,6 @@ include ../../Mk/macports.autoconf.mk
 OBJS= \
 	Pextlib.o \
 	adv-flock.o \
-	blake3cmd.o \
 	curl.o \
 	filemap.o \
 	fs-traverse.o \
@@ -22,13 +21,11 @@ OBJS= \
 	sha256cmd.o \
 	strsed.o \
 	system.o \
-	time_connect.o \
 	tracelib.o \
 	tty.o \
 	uid.o \
 	vercomp.o \
-	xinstall.o \
-	@BLAKE3_OBJS@
+	xinstall.o
 ifeq (@TRACEMODE_SUPPORT@,1)
 OBJS+=sip_copy_proc.o
 endif
@@ -43,7 +40,7 @@ ifneq ($(HAVE_STRLCAT),yes)
 COMPAT_OBJS+= ../compat/strlcat.o
 endif
 
-CPPFLAGS+= -I$(srcdir)/../compat -I$(srcdir)
+CPPFLAGS+= -I$(srcdir)/../compat
 LIBS+= $(COMPAT_OBJS)
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
@@ -51,56 +48,11 @@ INSTALLDIR= ${TCL_PACKAGE_PATH}/pextlib1.0
 
 include $(srcdir)/../../Mk/macports.tea.mk
 
-# BLAKE3 vendored sources live in blake3/src/; patches in blake3/patches/.
-# Files that need patching are copied to the build tree and patched there.
-# Unpatched files are compiled directly from the source tree.
-BLAKE3_CFLAGS = -include config.h -I$(srcdir)/blake3/src ${CFLAGS} ${CPPFLAGS} ${SHLIB_CFLAGS}
-
-blake3/blake3_dispatch.c: $(srcdir)/blake3/src/blake3_dispatch.c \
-                           $(srcdir)/blake3/patches/blake3_dispatch.c.patch
-	@mkdir -p blake3
-	cp $< $@
-	patch -s $@ $(srcdir)/blake3/patches/blake3_dispatch.c.patch
-
-blake3/blake3.o: $(srcdir)/blake3/src/blake3.c
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_dispatch.o: blake3/blake3_dispatch.c
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_portable.o: $(srcdir)/blake3/src/blake3_portable.c
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_neon.o: $(srcdir)/blake3/src/blake3_neon.c
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_sse2_x86-64_unix.o: $(srcdir)/blake3/src/blake3_sse2_x86-64_unix.S
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_sse41_x86-64_unix.o: $(srcdir)/blake3/src/blake3_sse41_x86-64_unix.S
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_avx2_x86-64_unix.o: $(srcdir)/blake3/src/blake3_avx2_x86-64_unix.S
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
-blake3/blake3_avx512_x86-64_unix.o: $(srcdir)/blake3/src/blake3_avx512_x86-64_unix.S
-	@mkdir -p blake3
-	${CC} -c $(BLAKE3_CFLAGS) $< -o $@
-
 # tracelib.o has an additional dependency
 tracelib.o: ../darwintracelib1.0/sandbox_actions.h
 
 CPPFLAGS := ${SQLITE3_CPPFLAGS} ${CPPFLAGS}
-curl.o: CFLAGS+= ${CURL_CFLAGS}
-md5cmd.o: CFLAGS+= ${MD5_CFLAGS}
-readline.o: CFLAGS+= ${READLINE_CFLAGS}
+CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
 ifeq (darwin,@OS_PLATFORM@)
 LIBS+= ../registry2.0/registry${SHLIB_SUFFIX}
@@ -111,17 +63,14 @@ endif
 .PHONY: test codesign
 
 test:: ${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/checksums.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/curl.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/filemap.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/fs-traverse.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/symlink.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/system.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/unsetenv.tcl ./${SHLIB_NAME}
-	${TEST_TCLSH} $(srcdir)/tests/vercomp.tcl ./${SHLIB_NAME}
-
-clean::
-	rm -f blake3/*.o blake3/*.c
+	${TCLSH} $(srcdir)/tests/checksums.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/curl.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/filemap.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/fs-traverse.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/symlink.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/system.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/unsetenv.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/vercomp.tcl ./${SHLIB_NAME}
 
 distclean::
 	rm -f Makefile

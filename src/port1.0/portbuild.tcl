@@ -1,4 +1,5 @@
-# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# portbuild.tcl
 #
 # Copyright (c) 2007 - 2013 The MacPorts Project
 # Copyright (c) 2002 - 2004 Apple Inc.
@@ -27,14 +28,16 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+#
 
 package provide portbuild 1.0
+package require portutil 1.0
+package require portprogress 1.0
 
 set org.macports.build [target_new org.macports.build portbuild::build_main]
 target_provides ${org.macports.build} build
 target_requires ${org.macports.build} main fetch checksum extract patch configure
 target_prerun ${org.macports.build} portbuild::build_start
-target_runpkg ${org.macports.build} portbuild_run
 
 namespace eval portbuild {
 }
@@ -59,6 +62,8 @@ default build.pre_args {[portbuild::build_getargs]}
 default build.target all
 default build.type default
 default use_parallel_build yes
+
+set_ui_prefix
 
 # Automatically called from macports1.0 after evaluating the Portfile. If
 # ${build.type} == bsd, ensures bsdmake is present by adding a bin:-style
@@ -88,25 +93,25 @@ proc portbuild::build_getmaketype {args} {
     global build.type os.platform
     macports_try -pass_signal {
         if {${build.type} eq "default"} {
-            return [findBinary make $::portutil::autoconf::make_path]
+            return [findBinary make $portutil::autoconf::make_path]
         }
         switch -exact -- ${build.type} {
             bsd {
                 if {${os.platform} eq "darwin"} {
-                    return [findBinary bsdmake $::portutil::autoconf::bsdmake_path]
+                    return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
                 } elseif {${os.platform} eq "freebsd"} {
-                    return [findBinary make $::portutil::autoconf::make_path]
+                    return [findBinary make $portutil::autoconf::make_path]
                 } else {
-                    return [findBinary pmake $::portutil::autoconf::bsdmake_path]
+                    return [findBinary pmake $portutil::autoconf::bsdmake_path]
                 }
             }
             gnu {
                 if {${os.platform} eq "darwin"} {
-                    return [findBinary gnumake $::portutil::autoconf::gnumake_path]
+                    return [findBinary gnumake $portutil::autoconf::gnumake_path]
                 } elseif {${os.platform} eq "linux"} {
-                    return [findBinary make $::portutil::autoconf::make_path]
+                    return [findBinary make $portutil::autoconf::make_path]
                 } else {
-                    return [findBinary gmake $::portutil::autoconf::gnumake_path]
+                    return [findBinary gmake $portutil::autoconf::gnumake_path]
                 }
             }
             pbx -
@@ -124,7 +129,7 @@ proc portbuild::build_getmaketype {args} {
             }
             default {
                 ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] ${build.type}]"
-                return [findBinary gnumake $::portutil::autoconf::gnumake_path]
+                return [findBinary gnumake $portutil::autoconf::gnumake_path]
             }
         }
     } on error {eMessage} {
@@ -194,4 +199,24 @@ proc portbuild::build_getjobsarg {args} {
         return ""
     }
     return " -j$jobs"
+}
+
+proc portbuild::build_start {args} {
+    global UI_PREFIX subport
+
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Building %s"] ${subport}]"
+}
+
+proc portbuild::build_main {args} {
+    global build.cmd build.jobs_arg
+
+    if {${build.cmd} eq ""} {
+        error "No build command found"
+    }
+
+    set realcmd ${build.cmd}
+    append build.cmd ${build.jobs_arg}
+    command_exec -callback portprogress::target_progress_callback build
+    set build.cmd ${realcmd}
+    return 0
 }

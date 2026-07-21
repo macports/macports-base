@@ -6,7 +6,12 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../port_test_autoconf.tcl
-source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
 
 # Provide a stub for the port callback mechanism
 namespace eval port {
@@ -14,7 +19,6 @@ namespace eval port {
     proc run_callbacks {args} {}
 }
 
-package require portutil 1.0
 package require portbuild 1.0
 
 set build_getjobs_fixture_setup {

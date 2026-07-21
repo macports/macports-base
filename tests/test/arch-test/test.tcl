@@ -14,41 +14,53 @@ set_dir
 port_index
 
 proc noarch_good_test {} {
-    global output_file path portsrc test_tclsh top_srcdir
+    global output_file path portsrc bindir
 
     port_clean $path
 
-    exec -ignorestderr env PORTSRC=${portsrc} ${test_tclsh} ${top_srcdir}/src/port/port.tcl -q test +declare_noarch +be_noarch > /dev/null 2> $output_file
+    set string "export PORTSRC=${portsrc}; "
+    append string "${bindir}/port -q test +declare_noarch +be_noarch"
+
+    exec -ignorestderr sh -c $string > /dev/null 2> $output_file
     set line [get_line $path/$output_file "*Mach-O files*"]
     return $line
 }
 
 proc noarch_bad_test {} {
-    global output_file path portsrc test_tclsh top_srcdir
+    global output_file path portsrc bindir
 
     port_clean $path
 
-    exec -ignorestderr env PORTSRC=${portsrc} ${test_tclsh} ${top_srcdir}/src/port/port.tcl -q test +declare_noarch > /dev/null 2> $output_file
+    set string "export PORTSRC=${portsrc}; "
+    append string "${bindir}/port -q test +declare_noarch"
+
+    exec -ignorestderr sh -c $string  > /dev/null 2> $output_file
     set line [get_line $path/$output_file "*Mach-O files*"]
     return $line
 }
 
 proc arch_good_test {} {
-    global output_file path portsrc test_tclsh top_srcdir
+    global output_file path portsrc bindir
 
     port_clean $path
 
-    exec -ignorestderr env PORTSRC=${portsrc} ${test_tclsh} ${top_srcdir}/src/port/port.tcl -q test > /dev/null 2> $output_file
+    set string "export PORTSRC=${portsrc}; "
+    append string "${bindir}/port -q test"
+
+    exec -ignorestderr sh -c $string  > /dev/null 2> $output_file
     set line [get_line $path/$output_file "*Mach-O files*"]
     return $line
 }
 
 proc arch_bad_test {} {
-    global output_file path portsrc test_tclsh top_srcdir
+    global output_file path portsrc bindir
 
     port_clean $path
 
-    exec -ignorestderr env PORTSRC=${portsrc} ${test_tclsh} ${top_srcdir}/src/port/port.tcl -q test +be_noarch > /dev/null 2> $output_file
+    set string "export PORTSRC=${portsrc}; "
+    append string "${bindir}/port -q test +be_noarch"
+
+    exec -ignorestderr sh -c $string  > /dev/null 2> $output_file
     set line [get_line $path/$output_file "*Mach-O files*"]
     return $line
 }

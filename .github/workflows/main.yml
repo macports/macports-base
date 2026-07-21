@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Cleanup /usr/local
@@ -27,7 +27,9 @@ jobs:
         if: startsWith(matrix.os,'macos')
         run: |
           case "`uname -r`" in
-            23.*) sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
+            22.*) sudo xcode-select --switch /Applications/Xcode_14.3.1.app/Contents/Developer
+                ;;
+            23.*) sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer
                 ;;
           esac
       - name: Install Linux Dependencies
@@ -56,15 +58,15 @@ jobs:
             Linux) make -j$(nproc)
             ;;
           esac
+      - name: Install MacPorts Base
+        run: |
+          set -eu
+          sudo make install
       - name: Test MacPorts Base
         if: startsWith(matrix.os,'macos')
         run: |
           set -eu
           make test
-      - name: Install MacPorts Base
-        run: |
-          set -eu
-          sudo make install
       - name: Deploy man pages to web
         if: vars.MP_RELEASE_BRANCH == github.ref_name && startsWith(matrix.os,'ubuntu')
         env:

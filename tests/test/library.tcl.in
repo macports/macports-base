@@ -9,258 +9,132 @@ set work_dir "work"
 # constraint indicating whether the platform supports trace mode
 ::tcltest::testConstraint tracemode_support [expr {@TRACEMODE_SUPPORT@ != 0}]
 
-# In-tree test interpreter and source paths
-set test_tclsh "@TEST_TCLSH@"
-set top_srcdir "@abs_top_srcdir@"
-
-# Dynamic temporary root for integration tests.  file tempfile generates
-# a unique path under TMPDIR (or the platform default), avoiding
-# collisions even with parallel or repeated runs.
-close [file tempfile test_root]
-file delete $test_root
-
 # Set of procs used for testing.
 
-# Sets variables from autoconf for in-tree testing
+# Sets $bindir variable from autoconf
 proc load_variables {pwd} {
-    global portsrc cpwd test_tclsh top_srcdir test_root
+    global bindir datadir portsrc cpwd
 
     set cpwd [file dirname [file dirname $pwd]]
 
-    set portsrc ${test_root}/macports.conf
+    set prefix "@prefix@"
+    set exec_prefix "@exec_prefix@"
+    set bindir "@bindir@"
+    set datadir "@datarootdir@"
+    set portsrc ${cpwd}/test-macports.conf
 
 }
 
 proc cleanup {} {
-    global cpwd test_root
+    global cpwd
 
-    file delete -force $test_root
+    file delete -force /tmp/macports-tests
     file delete -force ${cpwd}/PortIndex ${cpwd}/PortIndex.quick
-}
-
-# Always run cleanup at the end of cleanupTests, so $test_root is
-# removed even if a test forgets the trailing `cleanup` call.
-proc ::tcltest::cleanupTestsHook {} {
-    cleanup
-}
-
-proc without_darwintrace_env {script} {
-    set darwintrace_env_vars {
-        DYLD_INSERT_LIBRARIES
-        DARWINTRACE_LOG
-        DARWINTRACE_DEBUG
-        DARWINTRACE_UNINITIALIZE
-        DARWINTRACE_SPAWN_SETEXEC
-        DARWINTRACE_SIP_WORKAROUND_PATH
-    }
-    set saved_env {}
-
-    foreach var $darwintrace_env_vars {
-        if {[info exists ::env($var)]} {
-            lappend saved_env $var $::env($var)
-            unset ::env($var)
-        }
-    }
-
-    catch {uplevel 1 $script} result options
-
-    foreach {var value} $saved_env {
-        set ::env($var) $value
-    }
-
-    return -options $options $result
-}
-
-proc with_portsrc {portsrc script} {
-    set had_portsrc [info exists ::env(PORTSRC)]
-    if {$had_portsrc} {
-        set saved_portsrc $::env(PORTSRC)
-    }
-    set ::env(PORTSRC) $portsrc
-
-    catch {uplevel 1 $script} result options
-
-    if {$had_portsrc} {
-        set ::env(PORTSRC) $saved_portsrc
-    } else {
-        catch {unset ::env(PORTSRC)}
-    }
-
-    return -options $options $result
 }
 
 # Sets initial directories
 proc set_dir {} {
-    global cpwd top_srcdir test_root
+    global datadir cpwd
 
     cleanup
 
-    set prefix ${test_root}/opt/local
+    file mkdir /tmp/macports-tests/ports \
+               /tmp/macports-tests/opt/local/etc/macports \
+               /tmp/macports-tests/opt/local/share \
+               /tmp/macports-tests/opt/local/var/macports/receipts \
+               /tmp/macports-tests/opt/local/var/macports/registry \
+               /tmp/macports-tests/opt/local/var/macports/build
 
-    file mkdir ${test_root}/ports \
-               ${prefix}/etc/macports \
-               ${prefix}/share \
-               ${prefix}/var/macports/receipts \
-               ${prefix}/var/macports/registry \
-               ${prefix}/var/macports/build
-
-    # Populate share/macports from the source tree instead of the prefix
-    file mkdir ${prefix}/share/macports/install
-    file copy $top_srcdir/macports-pubkey.pem ${prefix}/share/macports/
-    file copy $top_srcdir/setupenv.bash ${prefix}/share/macports/
-    file copy $top_srcdir/doc/base.mtree ${prefix}/share/macports/install/
-    file copy $top_srcdir/doc/prefix.mtree ${prefix}/share/macports/install/
-    file copy $top_srcdir/doc/macosx.mtree ${prefix}/share/macports/install/
-    file copy $top_srcdir/keys ${prefix}/share/macports/
-
-    # Copy config files, substituting the dynamic test root
-    foreach {src dst} [list \
-        ${cpwd}/sources.conf        ${prefix}/etc/macports/sources.conf \
-        ${cpwd}/test-macports.conf  ${test_root}/macports.conf \
-    ] {
-        set fd [open $src r]
-        set content [read $fd]
-        close $fd
-        set content [string map [list @TEST_ROOT@ $test_root] $content]
-        set fd [open $dst w]
-        puts -nonewline $fd $content
-        close $fd
-    }
-
-    file link -symbolic ${test_root}/ports/test $cpwd/test
+    file link -symbolic /tmp/macports-tests/opt/local/share/macports $datadir/macports
+    file link -symbolic /tmp/macports-tests/ports/test $cpwd/test
 }
 
 # Run portindex
 proc port_index {} {
-    global cpwd portsrc test_tclsh top_srcdir test_root
+    global bindir cpwd
 
     # Move up 2 level to run portindex.
     set path [pwd]
     cd ../..
     # Avoid warning about ports tree being old
-    foreach portfile [glob -nocomplain */*/Portfile] {
-        file mtime $portfile [clock seconds]
-    }
+    exec -ignorestderr sh -c {touch */*/Portfile}
 
-    without_darwintrace_env {
-        with_portsrc $portsrc {
-            exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/portindex.tcl 2>@1
-        }
-    }
+    exec -ignorestderr ${bindir}/portindex 2>@1
 
-    file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick ${test_root}/ports/
+    file copy ${cpwd}/sources.conf /tmp/macports-tests/opt/local/etc/macports/
+    file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick /tmp/macports-tests/ports/
 
     cd $path
 }
 
 # Executes port clean.
 proc port_clean {pwd} {
-    global portsrc test_tclsh top_srcdir
+    global bindir portsrc
 
     set back [pwd]
     cd $pwd
 
-    catch {
-        without_darwintrace_env {
-            with_portsrc $portsrc {
-                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl clean 2>@1
-            }
-        }
-    }
+    catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port clean 2>@1}
     cd $back
 }
 
 # Runs the portfile.
 proc port_run {pwd} {
-    global portsrc test_tclsh top_srcdir
+    global bindir portsrc
 
     set back [pwd]
     cd $pwd
 
-    set result [catch {
-        without_darwintrace_env {
-            with_portsrc $portsrc {
-                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl -d -N test >&output
-            }
-        }
-    }]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port -d -N test >&output} ]
     cd $back
     return $result
 }
 
 # Runs port trace.
 proc port_trace {pwd} {
-    global portsrc test_tclsh top_srcdir
+    global bindir portsrc
 
     set back [pwd]
     cd $pwd
 
-    set result [catch {
-        with_portsrc $portsrc {
-            exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl -d -N -t test >&output 2>@1
-        }
-    }]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port -d -N -t test >&output 2>@1} ]
     cd $back
     return $result
 }
 
 # Installs new portfile.
 proc port_install {{name "current"}} {
-    global portsrc test_tclsh top_srcdir
+    global bindir portsrc
 
-    set result [catch {
-        without_darwintrace_env {
-            with_portsrc $portsrc {
-                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl install $name > output 2>@1
-            }
-        }
-    }]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install $name > output 2>@1} ]
     return $result
 }
 
 # Run configure command.
 proc port_config {pwd} {
-    global portsrc test_tclsh top_srcdir
+    global bindir portsrc
 
-    set result [catch {
-        without_darwintrace_env {
-            with_portsrc $portsrc {
-                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl configure 2>@1
-            }
-        }
-    }]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
     return $result
 }
 
 # Run destroot command.
 proc port_destroot {pwd} {
-    global path portsrc work_dir output_file test_tclsh top_srcdir
+    global path bindir portsrc work_dir output_file
 
     file copy -force ${path}/statefile ${work_dir}/.macports.statefile-unknown-version.state
     if { [exec -ignorestderr id -u] == 0 } {
         exec -ignorestderr chown macports ${work_dir}/.macports.statefile-unknown-version.state
     }
-    set result [catch {
-        without_darwintrace_env {
-            with_portsrc $portsrc {
-                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl destroot >$output_file 2>@1
-            }
-        }
-    }]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port destroot >$output_file 2>@1} ]
     return $result
 }
 
 # Uninstalls portfile.
 proc port_uninstall {{name "current"}} {
-    global portsrc test_tclsh top_srcdir
+    global bindir portsrc
 
-    set result [catch {
-        without_darwintrace_env {
-            with_portsrc $portsrc {
-                exec -ignorestderr ${test_tclsh} ${top_srcdir}/src/port/port.tcl uninstall $name > output 2>@1
-            }
-        }
-    }]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall $name > output 2>@1} ]
     return $result
 }
 

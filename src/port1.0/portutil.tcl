@@ -36,6 +36,7 @@ package require Pextlib 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
 package require msgcat
+package require porttrace 1.0
 
 namespace eval portutil {
     variable targets [list]
@@ -133,10 +134,7 @@ proc handle_option-delete {option args} {
     global user_options $option
     if {![info exists user_options($option)] && [info exists $option]} {
         foreach val $args {
-            set ix [lsearch -exact [set $option] $val]
-            if {$ix >= 0} {
-                lpop $option $ix
-            }
+            set $option [ldelete [set $option][set $option {}] $val]
         }
     }
 }
@@ -698,7 +696,7 @@ proc variant_remove_ditem {vname} {
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
         if {$item_provides eq $vname} {
-            lpop all_variants $item_index
+            set all_variants [lreplace ${all_variants}[set all_variants {}] $item_index $item_index]
             break
         }
 
@@ -942,7 +940,7 @@ proc tbool {_tbool_varname} {
 proc ldelete {list value} {
     set ix [lsearch -exact $list $value]
     if {$ix >= 0} {
-        lpop list $ix
+        return [lreplace ${list}[set ilist {}] $ix $ix]
     }
     return $list
 }
@@ -1012,14 +1010,14 @@ proc reinplace {args}  {
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
 
-        if {[catch {set tmpfd [file tempfile tmpfile ${tempdir}/[file tail $file].sed]} error]} {
+        if {[catch {set tmpfd [file tempfile tmpfile "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
             ui_debug $::errorInfo
             ui_error "reinplace: $error"
             return -code error "reinplace failed"
         }
 
         set cmdline [list]
-        lappend cmdline $::portutil::autoconf::sed_command
+        lappend cmdline $portutil::autoconf::sed_command
         if {$extended} {
             lappend cmdline -E
         }
@@ -1205,7 +1203,8 @@ proc copy {args} {
 proc move {args} {
     set options [list]
     while {[string match "-*" [lindex $args 0]]} {
-        set arg [string range [lpop args 0] 1 end]
+        set arg [string range [lindex $args 0] 1 end]
+        set args [lreplace ${args}[set args {}] 0 0]
         switch -- $arg {
             force {lappend options -$arg}
             - break
@@ -1241,7 +1240,7 @@ proc ln {args} {
             set arg [string range $arg 0 0]
             lset args 0 $remainder
         } else {
-            lpop args 0
+            set args [lreplace ${args}[set args {}] 0 0]
         }
         switch -- $arg {
             f -
@@ -1350,20 +1349,12 @@ proc lipo {} {
         foreach arch $universal_archlist {
             append lipoSources "-arch ${arch} [shellescape ${workpath}/${arch}/${file}] "
         }
-        system "[findBinary lipo $::portutil::autoconf::lipo_path] ${lipoSources}-create -output [shellescape ${file}]"
+        system "[findBinary lipo $portutil::autoconf::lipo_path] ${lipoSources}-create -output [shellescape ${file}]"
     }
 }
 
 ########### Internal Dependency Manipulation Procedures ###########
 set ports_dry_last_skipped ""
-
-# Load any extra code needed to run the given target
-proc portutil::target_load {ditem} {
-    set runpkg [ditem_key $ditem runpkg]
-    if {$runpkg ne {}} {
-        package require $runpkg
-    }
-}
 
 proc target_run {ditem} {
     global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
@@ -1384,7 +1375,6 @@ proc target_run {ditem} {
     }
 
     if {$procedure ne ""} {
-        portutil::target_load $ditem
         set targetname [ditem_key $ditem name]
         set target [ditem_key $ditem provides]
         portsandbox::set_profile $target
@@ -1627,7 +1617,6 @@ proc target_run {ditem} {
 
     if {[ditem_key $ditem state] ne "no"} {
         close $target_state_fd
-        unset target_state_fd
     }
 
     set env(HOME) $savedhome
@@ -1668,8 +1657,6 @@ proc recursive_collect_deps {portname {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    package require portsandbox
-    package require porttrace
     global portutil::targets subport version revision portvariants
     set dlist $targets
 
@@ -2351,10 +2338,6 @@ proc target_init {ditem args} {
     ditem_append $ditem init {*}$args
 }
 
-proc target_runpkg {ditem pkg} {
-    ditem_key $ditem runpkg $pkg
-}
-
 ##### variant class #####
 
 # constructor for variant objects
@@ -2444,7 +2427,7 @@ proc adduser {username args} {
     }
 
     if {${os.platform} eq "darwin"} {
-        set dscl [findBinary dscl $::portutil::autoconf::dscl_path]
+        set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         macports_try {
             exec -ignorestderr $dscl . -create /Users/${username} UniqueID ${uid}
@@ -2560,7 +2543,7 @@ proc addgroup {groupname args} {
     }
 
     if {${os.platform} eq "darwin"} {
-        set dscl [findBinary dscl $::portutil::autoconf::dscl_path]
+        set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         macports_try {
             exec -ignorestderr $dscl . -create /Groups/${groupname} Password ${passwd}
@@ -2728,14 +2711,31 @@ proc get_portimage_path {} {
     return [file normalize [file join ${portdbpath} software ${subport} [get_portimage_name]]]
 }
 
+# return list of archive types that we can extract
+proc supportedArchiveTypes {} {
+    global supported_archive_types
+    if {![info exists supported_archive_types]} {
+        set supported_archive_types [list]
+        foreach type [list tbz2 tbz tgz tar txz tlz xar zip cpgz cpio aar] {
+            if {[catch {archiveTypeIsSupported $type}] == 0} {
+                lappend supported_archive_types $type
+            }
+        }
+    }
+    return $supported_archive_types
+}
+
 # return path to a downloaded or installed archive for this port
-proc find_portarchive_path {{include_installed 1}} {
-    global portdbpath subport version revision portvariants
-    set installed [expr {$include_installed && [registry_exists $subport $version $revision $portvariants]}]
+proc find_portarchive_path {} {
+    global portdbpath subport version revision portvariants force_archive_refresh
+    set installed 0
+    if {[registry_exists $subport $version $revision $portvariants]} {
+        set installed 1
+    }
     set archiverootname [file rootname [get_portimage_name]]
     foreach unarchive.type [supportedArchiveTypes] {
         set fullarchivename "${archiverootname}.${unarchive.type}"
-        if {$installed} {
+        if {$installed && ![tbool force_archive_refresh]} {
             set fullarchivepath [file join $portdbpath software $subport $fullarchivename]
         } else {
             set fullarchivepath [file join $portdbpath incoming/verified $fullarchivename]
@@ -2747,9 +2747,81 @@ proc find_portarchive_path {{include_installed 1}} {
     return ""
 }
 
+# check if archive type is supported by current system
+# returns an error code if it is not
+proc archiveTypeIsSupported {type} {
+    set errmsg ""
+    switch -regex $type {
+        aar {
+            set aa "aa"
+            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
+                return 0
+            }
+        }
+        cp(io|gz) {
+            set pax "pax"
+            if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
+                if {[regexp {z$} $type]} {
+                    set gzip "gzip"
+                    if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
+                        return 0
+                    }
+                } else {
+                    return 0
+                }
+            }
+        }
+        t(ar|bz|lz|xz|gz) {
+            set tar "tar"
+            if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
+                if {[regexp {z2?$} $type]} {
+                    if {[regexp {bz2?$} $type]} {
+                        set gzip "bzip2"
+                    } elseif {[regexp {lz$} $type]} {
+                        set gzip "lzma"
+                    } elseif {[regexp {xz$} $type]} {
+                        set gzip "xz"
+                    } else {
+                        set gzip "gzip"
+                    }
+                    if {[info exists portutil::autoconf::${gzip}_path]} {
+                        set hint [set portutil::autoconf::${gzip}_path]
+                    } else {
+                        set hint ""
+                    }
+                    if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
+                        return 0
+                    }
+                } else {
+                    return 0
+                }
+            }
+        }
+        xar {
+            set xar "xar"
+            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
+                return 0
+            }
+        }
+        zip {
+            set zip "zip"
+            if {[catch {set zip [findBinary $zip ${portutil::autoconf::zip_path}]} errmsg] == 0} {
+                set unzip "unzip"
+                if {[catch {set unzip [findBinary $unzip ${portutil::autoconf::unzip_path}]} errmsg] == 0} {
+                    return 0
+                }
+            }
+        }
+        default {
+            return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
+        }
+    }
+    return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
+}
+
 # return the specified pieces of metadata from the +CONTENTS file in the given archive
 proc extract_archive_metadata {archive_location archive_type metadata_types} {
-    set qflag ${::portutil::autoconf::tar_q}
+    set qflag ${portutil::autoconf::tar_q}
     set raw_contents ""
 
     switch -- $archive_type {
@@ -2770,34 +2842,34 @@ proc extract_archive_metadata {archive_location archive_type metadata_types} {
     switch -- $archive_type {
         tbz -
         tbz2 {
-            set raw_contents [exec -ignorestderr [findBinary tar ${::portutil::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
+            set raw_contents [exec -ignorestderr [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
         }
         tgz {
-            set raw_contents [exec -ignorestderr [findBinary tar ${::portutil::autoconf::tar_path}] -xOz${qflag}f $archive_location ./+CONTENTS]
+            set raw_contents [exec -ignorestderr [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $archive_location ./+CONTENTS]
         }
         tar {
-            set raw_contents [exec -ignorestderr [findBinary tar ${::portutil::autoconf::tar_path}] -xO${qflag}f $archive_location ./+CONTENTS]
+            set raw_contents [exec -ignorestderr [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location ./+CONTENTS]
         }
         txz {
-            set raw_contents [exec -ignorestderr [findBinary tar ${::portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary xz ""] ./+CONTENTS]
+            set raw_contents [exec -ignorestderr [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary xz ""] ./+CONTENTS]
         }
         tlz {
-            set raw_contents [exec -ignorestderr [findBinary tar ${::portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
+            set raw_contents [exec -ignorestderr [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
         }
         xar {
-            system -W ${tempdir} "[findBinary xar ${::portutil::autoconf::xar_path}] -xf [shellescape $archive_location] +CONTENTS"
+            system -W ${tempdir} "[findBinary xar ${portutil::autoconf::xar_path}] -xf [shellescape $archive_location] +CONTENTS"
         }
         zip {
-            set raw_contents [exec -ignorestderr [findBinary unzip ${::portutil::autoconf::unzip_path}] -p $archive_location +CONTENTS]
+            set raw_contents [exec -ignorestderr [findBinary unzip ${portutil::autoconf::unzip_path}] -p $archive_location +CONTENTS]
         }
         cpgz {
-            system -W ${tempdir} "[findBinary pax ${::portutil::autoconf::pax_path}] -rzf [shellescape $archive_location] +CONTENTS"
+            system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rzf [shellescape $archive_location] +CONTENTS"
         }
         cpio {
-            system -W ${tempdir} "[findBinary pax ${::portutil::autoconf::pax_path}] -rf [shellescape $archive_location] +CONTENTS"
+            system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rf [shellescape $archive_location] +CONTENTS"
         }
         aar {
-            system -W ${tempdir} "[findBinary aa ${::portutil::autoconf::aa_path}] extract -i [shellescape $archive_location] -include-path +CONTENTS"
+            system -W ${tempdir} "[findBinary aa ${portutil::autoconf::aa_path}] extract -i [shellescape $archive_location] -include-path +CONTENTS"
         }
     }
     if {[info exists twostep]} {
@@ -2874,7 +2946,7 @@ proc extract_archive_metadata {archive_location archive_type metadata_types} {
 # e.g. 'merge_lipo ${workpath}/pre-dest ${destroot} ${prefix}/bin/pstree i386 ppc
 # will merge binary files with lipo which have to be in the same (relative) path
 proc merge_lipo {base target file archs} {
-    set exec-lipo [list [findBinary lipo $::portutil::autoconf::lipo_path]]
+    set exec-lipo [list [findBinary lipo $portutil::autoconf::lipo_path]]
     foreach arch ${archs} {
         lappend exec-lipo -arch ${arch} ${base}/${arch}${file}
     }
@@ -2902,7 +2974,7 @@ proc merge_file {base target file archs} {
     ui_debug "ba: '${basearch}' ('${archs}')"
     foreach arch [lrange ${archs} 1 end] {
         # checking for differences; TODO: error more gracefully on non-equal files
-        exec [findBinary diff $::portutil::autoconf::diff_path] "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
+        exec [findBinary diff $portutil::autoconf::diff_path] "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
     }
     ui_debug "ba: '${basearch}'"
     file copy "${base}/${basearch}${file}" "${target}${file}"
@@ -2946,7 +3018,7 @@ proc merge {base} {
                     file copy "${basepath}${fpath}" "${destroot}${fpath}"
                 }
                 default {
-                    set filetype [exec [findBinary file $::portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
+                    set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
                     switch -regexp ${filetype} {
                         Mach-O.* {
                             merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
@@ -3412,7 +3484,6 @@ proc portutil::_async_cleanup {} {
     }
     portfetch::_async_cleanup
     portarchivefetch::_async_cleanup
-    portlivecheck::_async_cleanup
 }
 
 proc portutil::_archive_available_ready {} {
@@ -3456,7 +3527,7 @@ proc portutil::_eval_archive_available {{async no}} {
         return
     }
 
-    if {[find_portarchive_path 0] ne ""} {
+    if {[find_portarchive_path] ne ""} {
         set archive_available_result 1
         return
     }
@@ -3478,10 +3549,10 @@ proc portutil::_eval_archive_available {{async no}} {
         set archive_available_result 0
         return
     }
-    package require uri
-    set archivetype [portarchivefetch::get_archive_site_archivetype [portarchivefetch::get_full_archive_sites_path] $mirrors]
-    set sigtype [portarchivefetch::get_archive_site_sigtype [portarchivefetch::get_full_archive_sites_path] $mirrors]
-    if {$sigtype eq {}} {
+    set archivetype $portfetch::mirror_sites::archive_type($mirrors)
+    if {[info exists portfetch::mirror_sites::archive_sigtype($mirrors)]} {
+        set sigtype $portfetch::mirror_sites::archive_sigtype($mirrors)
+    } else {
         set sigtype rmd160
     }
     set archivename ${archiverootname}.${archivetype}
@@ -3490,41 +3561,31 @@ proc portutil::_eval_archive_available {{async no}} {
         lappend sites_entries {*}$env(ARCHIVE_SITE_LOCAL)
     }
     # grab first site, should conventionally be the master mirror
-    set mirror_urls [portarchivefetch::get_archive_site_urls [portarchivefetch::get_full_archive_sites_path] $mirrors]
-    set primary_mirror [lindex $mirror_urls 0]
+    set primary_mirror [lindex $portfetch::mirror_sites::sites($mirrors) 0]
     # Find mirror with fastest cached ping time
-    set primary_mirror_parts [::uri::split $primary_mirror]
-    set best_ping 10000
-    if {[dict exists $primary_mirror_parts scheme] && [dict get $primary_mirror_parts scheme] eq "file"} {
-        set best_ping -1
-    } elseif {[dict exists $primary_mirror_parts host]} {
-        lassign [get_pingtime [dict get $primary_mirror_parts host]] status best_ping
-        if {$status == 2} {
-            set best_ping 0
-        }
-    }
-    if {$best_ping >= 0} {
-        set fastest_mirror $primary_mirror
-        foreach mirror [lrange $mirror_urls 1 end] {
-            if {[compare_pingtimes $mirror $fastest_mirror] < 0} {
+    global portfetch::hostregex
+    regexp $hostregex $primary_mirror -> primary_host
+    set fastest_mirror {}
+    set best_ping [get_pingtime $primary_host]
+    set best_ping [expr {$best_ping ne {} && $best_ping != -1 ? $best_ping : 10000}]
+    if {$best_ping > 0} {
+        foreach mirror [lrange $portfetch::mirror_sites::sites($mirrors) 1 end] {
+            regexp $hostregex $mirror -> cur_host
+            set cur_ping [get_pingtime $cur_host]
+            if {$cur_ping ne {} && $cur_ping >= 0 && $cur_ping < $best_ping} {
+                set best_ping $cur_ping
                 set fastest_mirror $mirror
-                set mirror_parts [::uri::split $mirror]
-                if {[dict exists $mirror_parts scheme] && [dict get $mirror_parts scheme] eq "file"} {
-                    break
-                }
-                lassign [get_pingtime [dict get $mirror_parts host]] status cur_ping
-                if {$status == 2} {
+                if {$cur_ping == 0} {
                     break
                 }
             }
         }
-        if {$fastest_mirror ne $primary_mirror} {
-            lappend sites_entries $fastest_mirror
-        }
+    }
+    if {$fastest_mirror ne {}} {
+        lappend sites_entries $fastest_mirror
     }
     lappend sites_entries $primary_mirror
     # Build list of URLs to check for the archive and its signature.
-    package require fetch_common
     set sites [list]
     set urls [list]
     foreach sites_entry $sites_entries {

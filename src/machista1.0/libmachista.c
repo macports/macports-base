@@ -52,8 +52,6 @@
 #include <strings.h>
 
 #ifdef __MACH__
-#include <ar.h>
-
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
@@ -232,18 +230,11 @@ static macho_loadcmd_t *macho_loadcmdlist_append (macho_arch_t *mat) {
 
 /* Parse a Mach-O header */
 #ifdef __MACH__
-static int parse_ar (macho_t *mt, macho_input_t *input);
-
 static int parse_macho (macho_t *mt, macho_input_t *input) {
     /* Read the file type. */
     const uint32_t *magic = macho_read(input, input->data, sizeof(uint32_t));
     if (magic == NULL)
         return MACHO_ERANGE;
-
-    /* A static archive (e.g. *.a) is a container of Mach-O objects */
-    if (input->length >= SARMAG && memcmp(input->data, ARMAG, SARMAG) == 0) {
-        return parse_ar(mt, input);
-    }
 
     /* Parse the Mach-O header */
     bool universal = false;
@@ -434,79 +425,6 @@ static int parse_macho (macho_t *mt, macho_input_t *input) {
                 break;
         }
     }
-
-    return MACHO_SUCCESS;
-}
-#endif
-
-/* Parse a static archive, collecting the architectures of its Mach-O members */
-#ifdef __MACH__
-static int parse_ar (macho_t *mt, macho_input_t *input) {
-    /* Skip over the "!<arch>\n" magic */
-    size_t offset = SARMAG;
-
-    while (offset + sizeof(struct ar_hdr) <= input->length) {
-        const struct ar_hdr *hdr = macho_offset(input, input->data, offset, sizeof(struct ar_hdr));
-        if (hdr == NULL)
-            return MACHO_ERANGE;
-
-        if (memcmp(hdr->ar_fmag, ARFMAG, sizeof(hdr->ar_fmag)) != 0)
-            return MACHO_EMAGIC;
-
-        /* ar_size counts the extended name (if any) plus the member data */
-        char sizebuf[sizeof(hdr->ar_size) + 1];
-        memcpy(sizebuf, hdr->ar_size, sizeof(hdr->ar_size));
-        sizebuf[sizeof(hdr->ar_size)] = '\0';
-        long member_size = strtol(sizebuf, NULL, 10);
-        if (member_size <= 0)
-            return MACHO_ERANGE;
-
-        size_t data_offset = offset + sizeof(struct ar_hdr);
-        size_t data_size = (size_t) member_size;
-
-        /* BSD ar stores a long name as "#1/<length>" followed by the name */
-        size_t name_len = 0;
-        if (strncmp(hdr->ar_name, AR_EFMT1, sizeof(AR_EFMT1) - 1) == 0) {
-            name_len = (size_t) strtol(hdr->ar_name + sizeof(AR_EFMT1) - 1, NULL, 10);
-            if (name_len > data_size)
-                return MACHO_ERANGE;
-        }
-
-        macho_input_t member;
-        member.length = data_size - name_len;
-        member.data = macho_offset(input, input->data, data_offset + name_len, member.length);
-        if (member.data == NULL)
-            return MACHO_ERANGE;
-
-        /* non-Mach-O members (e.g. the symbol table) report EMAGIC; ignore them */
-        int res = parse_macho(mt, &member);
-        if (res != MACHO_SUCCESS && res != MACHO_EMAGIC)
-            return res;
-
-        /* members are padded to a two-byte boundary */
-        offset = data_offset + data_size;
-        if ((offset & 1) != 0)
-            offset++;
-    }
-
-    /* collapse the duplicate archs of the many same-arch objects in an archive */
-    for (macho_arch_t *a = mt->mt_archs; a != NULL; a = a->next) {
-        macho_arch_t *prev = a;
-        macho_arch_t *cur = a->next;
-        while (cur != NULL) {
-            if (cur->mat_arch == a->mat_arch) {
-                prev->next = cur->next;
-                free_macho_arch_t(cur);
-                cur = prev->next;
-            } else {
-                prev = cur;
-                cur = cur->next;
-            }
-        }
-    }
-
-    if (mt->mt_archs == NULL)
-        return MACHO_EMAGIC;
 
     return MACHO_SUCCESS;
 }

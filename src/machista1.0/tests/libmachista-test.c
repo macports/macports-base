@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #define TEST_LIB_PATH "tests/libmachista-test-lib.dylib"
-#define TEST_ARCHIVE_PATH "tests/libmachista-test-archive.a"
 #define OTOOL_PATH "/usr/bin/otool"
 
 // check helper
@@ -307,47 +306,6 @@ static bool test_libsystem(void) {
 }
 
 /**
- * Test reading a static archive (e.g. a *.a library). The fixture holds two
- * objects of the same arch, so parsing must succeed and report exactly one
- * (deduplicated), valid architecture.
- */
-static void forked_test_archive(void) {
-	macho_handle_t *handle = macho_create_handle();
-	const macho_t *result;
-	int ret;
-	bool ok = true;
-
-	if ((ret = macho_parse_file(handle, TEST_ARCHIVE_PATH, &result)) != MACHO_SUCCESS) {
-		printf("\tError parsing `%s': %s\n", TEST_ARCHIVE_PATH, macho_strerror(ret));
-		macho_destroy_handle(handle);
-		exit(EXIT_FAILURE);
-	}
-
-	if (result->mt_archs == NULL) {
-		printf("\tNo architecture reported for `%s'\n", TEST_ARCHIVE_PATH);
-		ok = false;
-	} else if (result->mt_archs->next != NULL) {
-		printf("\tExpected a single (deduplicated) architecture for `%s'\n", TEST_ARCHIVE_PATH);
-		ok = false;
-	} else if (macho_get_arch_name(result->mt_archs->mat_arch) == NULL) {
-		printf("\tUnknown architecture reported for `%s'\n", TEST_ARCHIVE_PATH);
-		ok = false;
-	}
-
-	macho_destroy_handle(handle);
-	exit(!ok);
-}
-static bool test_archive(void) {
-	puts("Testing parsing " TEST_ARCHIVE_PATH);
-	if (fork_test(forked_test_archive, "Error parsing " TEST_ARCHIVE_PATH)) {
-		puts("\tOK");
-		return true;
-	}
-	puts("\tError");
-	return false;
-}
-
-/**
  * Test macho_format_dylib_version
  */
 static bool test_format_dylib_version(void) {
@@ -393,7 +351,6 @@ int main(void) {
 	result &= test_handle();
 	result &= test_format_dylib_version();
 	result &= test_libsystem();
-	result &= test_archive();
 	return !result;
 #else
 	return 0;

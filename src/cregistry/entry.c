@@ -611,11 +611,7 @@ int reg_entry_propget(reg_entry* entry, char* key, char** value,
                         *value = strdup(text);
                         result = 1;
                     } else {
-                        errPtr->code = REG_NOT_FOUND;
-                        errPtr->description = sqlite3_mprintf("property '%s' not set for " \
-                            "ports entry with id '%lld'", \
-                            key, entry->id);
-                        errPtr->free = (reg_error_destructor*) sqlite3_free;
+                        reg_sqlite_error(reg->db, errPtr, query);
                     }
                     break;
                 case SQLITE_DONE:

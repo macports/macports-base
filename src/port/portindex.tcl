@@ -29,7 +29,6 @@ proc print_usage {} {
     puts "-f:\tDo a full re-index instead of updating"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
-    puts "-q:\tQuiet mode - only output errors and summary"
     puts "-x:\tInclude extra (optional) information in the PortIndex, like variant description and port notes."
 }
 
@@ -48,10 +47,17 @@ package require Thread
 proc _read_index {idx} {
     global qindex oldfd
     set offset [dict get $qindex $idx]
-    seek $oldfd $offset
-    gets $oldfd in_line
-    lassign $in_line name len
-    set out_line [read $oldfd [expr {$len - 1}]]
+    thread::mutex lock [tsv::get mutexes PortIndex]
+    try {
+        seek $oldfd $offset
+        gets $oldfd in_line
+
+        set len [lindex $in_line 1]
+        set out_line [read $oldfd [expr {$len - 1}]]
+    } finally {
+        thread::mutex unlock [tsv::get mutexes PortIndex]
+    }
+    set name [lindex $in_line 0]
 
     return [list $name $len $out_line]
 }
@@ -77,7 +83,7 @@ proc _open_port {portdir absportdir {subport {}}} {
     # portable across prefixes, see https://trac.macports.org/ticket/53169 and
     # https://trac.macports.org/ticket/17182.
     set save_prefix $prefix
-    try {
+    macports_try -pass_signal {
         set prefix {${prefix}}
         if {$subport ne {}} {
             set port_options [dict create subport $subport]
@@ -97,10 +103,10 @@ proc _open_port {portdir absportdir {subport {}}} {
     return $portinfo
 }
 
-proc pindex {portdir {subport {}}} {
+proc pindex {portdir jobnum {subport {}}} {
+    global directory full_reindex qindex oldmtime ui_options
     try {
-        global directory full_reindex oldmtime qindex
-
+        tsv::set status $jobnum 1
         set absportdir [file join $directory $portdir]
         set portfile [file join $absportdir Portfile]
         if {$subport ne ""} {
@@ -110,33 +116,31 @@ proc pindex {portdir {subport {}}} {
             set qname [string tolower [file tail $portdir]]
             set is_subport 0
         }
-
-        # Return values
-        set subports {}
-        set mtime [file mtime $portfile]
-
         # try to reuse the existing entry if it's still valid
-        if {$full_reindex != 1 && [dict exists $qindex $qname] && $oldmtime >= $mtime} {
-            global ui_options
-            try {
-                lassign [_read_index $qname] name len portinfo
+        if {$full_reindex != 1 && [dict exists $qindex $qname]} {
+            macports_try -pass_signal {
+                set mtime [file mtime $portfile]
+                if {$oldmtime >= $mtime} {
+                    lassign [_read_index $qname] name len portinfo
 
-                # reuse entry if it was made from the same portdir
-                if {[dict exists $portinfo portdir] && [dict get $portinfo portdir] eq $portdir} {
-                    set output [list $name $len $portinfo]
+                    # reuse entry if it was made from the same portdir
+                    if {[dict exists $portinfo portdir] && [dict get $portinfo portdir] eq $portdir} {
+                        tsv::set output $jobnum [list $name $len $portinfo]
 
-                    if {!$is_subport} {
-                        if {[info exists ui_options(ports_debug)]} {
-                            puts "Reusing existing entry for $portdir"
+                        if {!$is_subport} {
+                            if {[info exists ui_options(ports_debug)]} {
+                                puts "Reusing existing entry for $portdir"
+                            }
+
+                            # report any subports
+                            if {[dict exists $portinfo subports]} {
+                                tsv::set subports $jobnum [dict get $portinfo subports]
+                            }
                         }
 
-                        # report any subports
-                        if {[dict exists $portinfo subports]} {
-                            set subports [dict get $portinfo subports]
-                        }
+                        tsv::set status $jobnum -1
+                        return
                     }
-
-                    return [list -1 $output $subports $mtime]
                 }
             } on error {} {
                 ui_warn "Failed to open old entry for ${portdir}, making a new one"
@@ -146,25 +150,38 @@ proc pindex {portdir {subport {}}} {
             }
         }
 
-        try {
+        macports_try -pass_signal {
             set portinfo [_open_port $portdir $absportdir $subport]
-            set output [_index_from_portinfo $portinfo $is_subport]
+            if {$is_subport} {
+                puts "Adding subport $subport"
+            } else {
+                puts "Adding port $portdir"
+            }
+
+            tsv::set output $jobnum [_index_from_portinfo $portinfo $is_subport]
+            tsv::set mtime $jobnum [file mtime $portfile]
 
             # report this portfile's subports (if any)
             if {!$is_subport && [dict exists $portinfo subports]} {
-                set subports [dict get $portinfo subports]
+                tsv::set subports $jobnum [dict get $portinfo subports]
             }
         } on error {eMessage} {
-            set subportmsg [expr {$is_subport ? " with subport '${subport}'" : {}}]
-            set output "Failed to parse file $portdir/Portfile${subportmsg}: $eMessage"
-            return [list 1 $output {} 0]
+            if {$is_subport} {
+                puts stderr "Failed to parse file $portdir/Portfile with subport '${subport}': $eMessage"
+            } else {
+                puts stderr "Failed to parse file $portdir/Portfile: $eMessage"
+            }
+            return
         }
 
-        return [list 0 $output $subports $mtime]
-    } on error {eMessage} {
-        set subportmsg [expr {$subport ne {} ? " with subport '${subport}'" : {}}]
-        set output "Failed to parse file $portdir/Portfile${subportmsg}: $eMessage"
-        return [list 1 $output {} 0]
+        tsv::set status $jobnum 0
+        return
+    } trap {POSIX SIG SIGINT} {} {
+        puts stderr "SIGINT received, terminating."
+        tsv::set status $jobnum 99
+    } trap {POSIX SIG SIGTERM} {} {
+        puts stderr "SIGTERM received, terminating."
+        tsv::set status $jobnum 99
     }
 }
 
@@ -173,8 +190,9 @@ proc pindex {portdir {subport {}}} {
 
 proc init_threads {} {
     global worker_init_script qindex keepkeys ui_options \
-           global_options var_overrides directory full_reindex oldfd \
-           oldmtime maxjobs poolid pending_jobs subports_todo
+           global_options var_overrides directory \
+           full_reindex oldfd oldmtime maxjobs poolid pending_jobs \
+           nextjobnum
     append worker_init_script \
         [list set qindex $qindex] \n \
         [list set keepkeys $keepkeys] \n \
@@ -182,7 +200,8 @@ proc init_threads {} {
         [list array set global_options [array get global_options]] \n \
         [list set directory $directory] \n \
         [list set full_reindex $full_reindex] \n \
-        [list mportinit ui_options global_options]
+        [list mportinit ui_options global_options] \n \
+        [list signal default {TERM INT}]
     if {[info exists oldfd]} {
         global outpath
         append worker_init_script \n \
@@ -200,74 +219,64 @@ proc init_threads {} {
     set maxjobs [macports::get_parallel_jobs no]
     set poolid [tpool::create -minworkers 1 -maxworkers $maxjobs -initcmd $worker_init_script]
     set pending_jobs [dict create]
-    set subports_todo [list]
+    set nextjobnum 0
+    tsv::set mutexes PortIndex [thread::mutex create]
 }
 
 proc handle_completed_jobs {} {
-    global poolid pending_jobs maxjobs subports_todo stats ui_options
+    global poolid pending_jobs stats
     set completed_jobs [tpool::wait $poolid [dict keys $pending_jobs]]
-    macports::check_signals
-    set subports_done 0
     foreach completed_job $completed_jobs {
-        lassign [dict get $pending_jobs $completed_job] portdir subport
+        lassign [dict get $pending_jobs $completed_job] jobnum portdir subport
         dict unset pending_jobs $completed_job
-        if {[catch {tpool::get $poolid $completed_job} result]} {
-            set status 1
-            set subportmsg [expr {$subport ne {} ? " with subport '${subport}'" : {}}]
-            set output "Failed to parse file ${portdir}/Portfile${subportmsg}: $result"
-        } else {
-            lassign $result status output subports mtime
-        }
-        # -1 = skipped, 0 = success, 1 = fail
-        if {$status == 1} {
+        tsv::get status $jobnum status
+        # -1 = skipped, 0 = success, 1 = fail, 99 = exit
+        if {$status == 99} {
+            global exit_fail
+            set exit_fail 1
+            set pending_jobs ""
+            return -code break "Interrupt"
+        } elseif {$status == 1} {
             dict incr stats failed
             dict incr stats total
-            puts stderr $output
+            if {[tsv::exists output $jobnum]} {
+                tsv::unset output $jobnum
+            }
         } elseif {$status == 0 || $status == -1} {
+            global nextjobnum
             # queue jobs for subports
-            if {$subport eq {}} {
-                foreach nextsubport $subports {
-                    lappend subports_todo [list $portdir $nextsubport]
+            if {$subport eq "" && [tsv::exists subports $jobnum]} {
+                foreach nextsubport [tsv::get subports $jobnum] {
+                    tsv::set status $nextjobnum 99
+                    set jobid [tpool::post $poolid [list pindex $portdir $nextjobnum $nextsubport]]
+                    dict set pending_jobs $jobid [list $nextjobnum $portdir $nextsubport]
+                    incr nextjobnum
                 }
+                tsv::unset subports $jobnum
             }
             if {$status == -1} {
                 dict incr stats skipped
             } else {
-                if {![info exists ui_options(ports_quiet)]} {
-                    set port_term [expr {$subport ne {} ? "subport $subport" : "port $portdir"}]
-                    puts "Adding $port_term"
-                }
                 global newest
                 dict incr stats total
+                tsv::get mtime $jobnum mtime
                 if {$mtime > $newest} {
                     set newest $mtime
                 }
+                tsv::unset mtime $jobnum
             }
-            _write_index {*}$output
+            _write_index {*}[tsv::get output $jobnum]
+            tsv::unset output $jobnum
         } else {
-            error "Unknown status for job $completed_job (${portdir} $subport): $status"
+            error "Unknown status for job $jobnum (${portdir} $subport): $status"
         }
-        if {[llength $subports_todo] > $subports_done} {
-            set next_subport_info [lindex $subports_todo $subports_done]
-            set jobid [tpool::post $poolid [list pindex {*}$next_subport_info]]
-            dict set pending_jobs $jobid $next_subport_info
-            incr subports_done
-        }
-    }
-    while {[llength $subports_todo] > $subports_done && [dict size $pending_jobs] < $maxjobs} {
-        set next_subport_info [lindex $subports_todo $subports_done]
-        set jobid [tpool::post $poolid [list pindex {*}$next_subport_info]]
-        dict set pending_jobs $jobid $next_subport_info
-        incr subports_done
-    }
-    if {$subports_done > 0} {
-        set subports_todo [lrange $subports_todo $subports_done end]
+        tsv::unset status $jobnum
     }
 }
 
 # post new job to the pool
 proc pindex_queue {portdir} {
-    global pending_jobs maxjobs poolid exit_fail
+    global pending_jobs maxjobs nextjobnum poolid exit_fail
     # Wait for a free thread
     while {[dict size $pending_jobs] >= $maxjobs} {
         handle_completed_jobs
@@ -277,8 +286,12 @@ proc pindex_queue {portdir} {
     }
 
     # Now queue the new job.
-    set jobid [tpool::post $poolid [list pindex $portdir {}]]
-    dict set pending_jobs $jobid [list $portdir {}]
+    # Start with worst status so we get it when the thread
+    # returns due to ctrl-c etc.
+    tsv::set status $nextjobnum 99
+    set jobid [tpool::post $poolid [list pindex $portdir $nextjobnum {}]]
+    dict set pending_jobs $jobid [list $nextjobnum $portdir {}]
+    incr nextjobnum
 }
 
 proc process_remaining {} {
@@ -288,6 +301,7 @@ proc process_remaining {} {
         handle_completed_jobs
     }
     tpool::release $poolid
+    thread::mutex destroy [tsv::get mutexes PortIndex]
 }
 
 if {$argc > 8} {
@@ -353,10 +367,6 @@ proc parse_args {} {
                                           os_version ${os_major}.0.0 \
                                           os_arch $os_arch
                 }
-            }
-            -q { # Enable quiet mode
-                global ui_options
-                set ui_options(ports_quiet) yes
             }
             -x { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
                 global extended_mode
@@ -435,7 +445,7 @@ if {[file isfile $outpath]} {
     set oldattrs [list -permissions 00644]
 }
 
-set fd [file tempfile tempportindex mports.portindex]
+set fd [file tempfile tempportindex mports.portindex.XXXXXXXX]
 
 # keys for a normal portindex
 set keepkeys [dict create]

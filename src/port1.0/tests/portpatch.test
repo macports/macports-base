@@ -6,11 +6,16 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../port_test_autoconf.tcl
-source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
+package require macports 1.0
 
-package require portutil
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
 package require portpatch
 source ../port_autoconf.tcl
+source ./library.tcl
 macports_worker_init
 
 

@@ -11,11 +11,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [macos-15]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Cleanup /usr/local
@@ -33,14 +33,14 @@ jobs:
         run: |
           set -eu
           make -j$(sysctl -n hw.activecpu)
-      - name: Test MacPorts Base
-        run: |
-          set -eu
-          LLVM_PROFILE_FILE="$PWD/cov-%p.profraw" make test
       - name: Install MacPorts Base
         run: |
           set -eu
           sudo make install
+      - name: Test MacPorts Base
+        run: |
+          set -eu
+          LLVM_PROFILE_FILE="$PWD/cov-%p.profraw" make test
       - name: Report Coverage
         run: |
           set -eu
@@ -50,7 +50,7 @@ jobs:
           xcrun llvm-cov show --format=html --output-dir=covreport --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
           xcrun llvm-cov report --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
           path: covreport/

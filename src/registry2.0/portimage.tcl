@@ -86,7 +86,10 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     if {[dict exists $options ports_activate_no-exec]} {
         set noexec [dict get $options ports_activate_no-exec]
     }
-    set rename_list [dict getwithdefault $options portactivate_rename_files [list]]
+    set rename_list [list]
+    if {[dict exists $options portactivate_rename_files]} {
+        set rename_list [dict get $options portactivate_rename_files]
+    }
     set todeactivate [list]
 
     registry::read {
@@ -273,7 +276,6 @@ proc _check_registry {name version revision variants {return_all 0}} {
 
     if { [llength $ilist] > 1 } {
         variable UI_PREFIX
-        global macports::ui_options
         set portilist [list]
         set msg "The following versions of $name are currently installed:"
         if {[macports::ui_isset ports_noninteractive]} {
@@ -285,14 +287,14 @@ proc _check_registry {name version revision variants {return_all 0}} {
                 append portstr [msgcat::mc " (active)"]
             }
 
-            if {[info exists ui_options(questions_singlechoice)]} {
+            if {[info exists macports::ui_options(questions_singlechoice)]} {
                 lappend portilist "$portstr"
             } else {
                 ui_msg "$UI_PREFIX     $portstr"
             }
         }
-        if {[info exists ui_options(questions_singlechoice)]} {
-            set retindex [$ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
+        if {[info exists macports::ui_options(questions_singlechoice)]} {
+            set retindex [$macports::ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
             set retvalue [lindex $ilist $retindex]
             #foreach i $ilist {
             #    if {$i ne $retvalue} {
@@ -445,7 +447,7 @@ proc extract_archive_to_imagedir {location} {
         switch -regex ${unarchive.type} {
             aar {
                 set aa "aa"
-                if {[catch {set aa [macports::findBinary $aa ${::macports::autoconf::aa_path}]} errmsg] == 0} {
+                if {[catch {set aa [macports::findBinary $aa ${macports::autoconf::aa_path}]} errmsg] == 0} {
                     ui_debug "Using $aa"
                     set unarchive.cmd "$aa"
                     set unarchive.pre_args {extract -afsc-all -enable-dedup -enable-holes -v}
@@ -457,7 +459,7 @@ proc extract_archive_to_imagedir {location} {
             }
             cp(io|gz) {
                 set pax "pax"
-                if {[catch {set pax [macports::findBinary $pax ${::macports::autoconf::pax_path}]} errmsg] == 0} {
+                if {[catch {set pax [macports::findBinary $pax ${macports::autoconf::pax_path}]} errmsg] == 0} {
                     ui_debug "Using $pax"
                     set unarchive.cmd "$pax"
                     if {[geteuid] == 0} {
@@ -468,7 +470,7 @@ proc extract_archive_to_imagedir {location} {
                     if {[regexp {z$} ${unarchive.type}]} {
                         set unarchive.args {.}
                         set gzip "gzip"
-                        if {[catch {set gzip [macports::findBinary $gzip ${::macports::autoconf::gzip_path}]} errmsg] == 0} {
+                        if {[catch {set gzip [macports::findBinary $gzip ${macports::autoconf::gzip_path}]} errmsg] == 0} {
                             ui_debug "Using $gzip"
                             set unarchive.pipe_cmd "$gzip -d -c [macports::shellescape ${location}] |"
                         } else {
@@ -502,7 +504,7 @@ proc extract_archive_to_imagedir {location} {
                     set unarchive.pre_args {-xvp --hfsCompression -f}
                 } else {
                     set tar "tar"
-                    if {[catch {set tar [macports::findBinary $tar ${::macports::autoconf::tar_path}]} errmsg]} {
+                    if {[catch {set tar [macports::findBinary $tar ${macports::autoconf::tar_path}]} errmsg]} {
                         ui_debug $errmsg
                         throw MACPORTS "No '$tar' was found on this system!"
                     }
@@ -528,8 +530,8 @@ proc extract_archive_to_imagedir {location} {
                     } else {
                         set gzip "gzip"
                     }
-                    if {[info exists ::macports::autoconf::${gzip}_path]} {
-                        set hint [set ::macports::autoconf::${gzip}_path]
+                    if {[info exists macports::autoconf::${gzip}_path]} {
+                        set hint [set macports::autoconf::${gzip}_path]
                     } else {
                         set hint ""
                     }
@@ -546,7 +548,7 @@ proc extract_archive_to_imagedir {location} {
             }
             xar {
                 set xar "xar"
-                if {[catch {set xar [macports::findBinary $xar ${::macports::autoconf::xar_path}]} errmsg] == 0} {
+                if {[catch {set xar [macports::findBinary $xar ${macports::autoconf::xar_path}]} errmsg] == 0} {
                     ui_debug "Using $xar"
                     set unarchive.cmd "$xar"
                     set unarchive.pre_args {-xvpf}
@@ -558,7 +560,7 @@ proc extract_archive_to_imagedir {location} {
             }
             zip {
                 set unzip "unzip"
-                if {[catch {set unzip [macports::findBinary $unzip ${::macports::autoconf::unzip_path}]} errmsg] == 0} {
+                if {[catch {set unzip [macports::findBinary $unzip ${macports::autoconf::unzip_path}]} errmsg] == 0} {
                     ui_debug "Using $unzip"
                     set unarchive.cmd "$unzip"
                     if {[geteuid] == 0} {
@@ -764,7 +766,11 @@ proc _activate_contents {port {rename_list {}}} {
                             throw registry::image-error $msg
                         }
                     }
-                    set owner [dict getwithdefault $conflicts_path_to_port $file {}]
+                    if {[dict exists $conflicts_path_to_port $file]} {
+                        set owner [dict get $conflicts_path_to_port $file]
+                    } else {
+                        set owner {}
+                    }
                     if {$owner eq {} || ![dict exists $todeactivate $owner]} {
                         if {$force} {
                             # If we're forcing the activation, then we move any existing

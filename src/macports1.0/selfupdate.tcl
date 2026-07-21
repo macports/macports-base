@@ -85,7 +85,7 @@ proc selfupdate::get_current_version {mp_source_path} {
     }
 
     set progressflag {}
-    if {$::macports::portverbose} {
+    if {$macports::portverbose} {
         set progressflag "--progress builtin"
     }
     array set selfupdate_errors {}
@@ -205,11 +205,11 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
 
     set progressflag {}
     set quietprogressflag {}
-    if {$::macports::portverbose} {
+    if {$macports::portverbose} {
         set progressflag "--progress builtin"
         set quietprogressflag $progressflag
-    } elseif {[info exists ui_options(progress_download)]} {
-        set progressflag "--progress ${ui_options(progress_download)}"
+    } elseif {[info exists macports::ui_options(progress_download)]} {
+        set progressflag "--progress ${macports::ui_options(progress_download)}"
     }
     array set selfupdate_errors {}
 
@@ -270,7 +270,7 @@ proc selfupdate::download_source {mp_source_path macports_version_new} {
     # extract tarball and move into place
     ui_msg "$ui_prefix Extracting MacPorts $macports_version_new"
 
-    set tar [macports::findBinary tar $::macports::autoconf::tar_path]
+    set tar [macports::findBinary tar $macports::autoconf::tar_path]
     file mkdir ${mp_source_path}/tmp
     set tarflags [macports::get_tar_flags [file extension $tarball]]
     set tar_cmd "$tar -C [macports::shellescape ${mp_source_path}/tmp] ${tarflags}xf [macports::shellescape $tarball]"
@@ -364,14 +364,12 @@ proc selfupdate::download_source_rsync {} {
 # @param signature_path The path of the detached signature file
 # @return nothing on success, an error if the signature could not be verified
 proc selfupdate::verify_signature {path signature_path} {
-    global macports::autoconf::macports_keys_base \
-           macports::autoconf::signify_path
     set verified 0
-    foreach pubkey [glob -nocomplain -tails -directory $macports_keys_base *.pub] {
+    foreach pubkey [glob -nocomplain -tails -directory $macports::autoconf::macports_keys_base *.pub] {
         macports_try -pass_signal {
             set command [list \
-                $signify_path -V \
-                -p [file join $macports_keys_base $pubkey] \
+                $macports::autoconf::signify_path -V \
+                -p [file join $macports::autoconf::macports_keys_base $pubkey] \
                 -x $signature_path \
                 -m $path]
             ui_debug "Invoking ${command} to verify signature"
@@ -436,59 +434,22 @@ proc selfupdate::install {source} {
     }
     ui_debug "Permissions OK"
 
-    # Read previously saved configure arguments if available
-    set saved_args_file [file join $prefix share macports configure_args]
-    if {[file isfile $saved_args_file]} {
-        set fd [open $saved_args_file r]
-        set saved_args_string [string trim [read $fd]]
-        close $fd
-        ui_debug "Using saved configure arguments: $saved_args_string"
-        # Parse the saved arguments, handling shell quoting
-        set configure_args [list]
-        set in_quote 0
-        set current_arg {}
-        foreach char [split $saved_args_string {}] {
-            if {$char eq "'"} {
-                set in_quote [expr {!$in_quote}]
-            } elseif {$char eq " " && !$in_quote} {
-                if {$current_arg ne {}} {
-                    lappend configure_args $current_arg
-                    set current_arg {}
-                }
-            } else {
-                append current_arg $char
-            }
-        }
-        if {$current_arg ne {}} {
-            lappend configure_args $current_arg
-        }
-    } else {
-        ui_debug "No saved configure arguments found, reconstructing"
-        set configure_args [list \
-                            --prefix=$prefix \
-                            --with-install-user=$owner \
-                            --with-install-group=$group \
-                            --with-directory-mode=$perms]
-
-        if {$prefix eq "/usr/local" || $prefix eq "/usr"} {
-            lappend configure_args --with-unsupported-prefix
-        }
-    }
+    set configure_args [list \
+                        --prefix=$prefix \
+                        --with-install-user=$owner \
+                        --with-install-group=$group \
+                        --with-directory-mode=$perms]
 
     # too many users have an incompatible readline in /usr/local, see ticket #10651
     if {$os_platform ne "darwin" || $prefix eq "/usr/local"
         || ([glob -nocomplain /usr/local/lib/lib{readline,history}*] eq "" && [glob -nocomplain /usr/local/include/readline/*.h] eq "")} {
-        # Add --enable-readline if not already present
-        if {"--enable-readline" ni $configure_args} {
-            lappend configure_args --enable-readline
-        }
+        lappend configure_args --enable-readline
     } else {
         ui_warn "Disabling readline support due to readline in /usr/local"
-        # Remove any saved --enable-readline
-        set idx [lsearch -exact $configure_args --enable-readline]
-        if {$idx != -1} {
-            lpop configure_args $idx
-        }
+    }
+
+    if {$prefix eq "/usr/local" || $prefix eq "/usr"} {
+        lappend configure_args --with-unsupported-prefix
     }
 
     set configure_args_string [join [lmap arg $configure_args {macports::shellescape $arg}]]

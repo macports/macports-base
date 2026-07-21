@@ -1,4 +1,5 @@
-# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# et:ts=4
+# portdepends.tcl
 #
 # Copyright (c) 2005, 2007-2009 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
@@ -27,8 +28,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+#
 
 package provide portdepends 1.0
+package require portutil 1.0
+
+namespace eval portdepends {
+}
 
 # define options
 options depends_fetch depends_extract depends_patch depends_build depends_run depends_lib depends_test depends
@@ -46,9 +52,9 @@ option_proc depends_test portdepends::validate_depends_options
 # New option for the new dependency. We generate a warning because we don't handle this yet.
 option_proc depends portdepends::validate_depends_options_new
 
-namespace eval portdepends {
+set_ui_prefix
 
-proc validate_depends_options {option action {value ""}} {
+proc portdepends::validate_depends_options {option action {value ""}} {
     switch $action {
         set {
             foreach depspec $value {
@@ -63,8 +69,6 @@ proc validate_depends_options {option action {value ""}} {
     }
 }
 
-proc validate_depends_options_new {option action {value ""}} {
+proc portdepends::validate_depends_options_new {option action {value ""}} {
     ui_warn [msgcat::mc "depends option is not handled yet"]
-}
-
 }

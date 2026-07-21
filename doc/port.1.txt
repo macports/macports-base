@@ -127,10 +127,6 @@ The port command recognizes several global flags and options.
 -d::
     Debug mode, generate debugging messages, implies -v
 
--T::
-    Timestamp mode, prepend an ISO 8601 timestamp (e.g.
-    '2026-03-18T09:42:01-0400') to every line of output.
-
 -q::
     Quiet mode, suppress informational messages to a minimum, implies -N
 
@@ -539,9 +535,6 @@ mirror::
 version::
     Display the release number of the installed MacPorts infrastructure.
 
-prefix::
-    Display the prefix for which MacPorts was configured.
-
 selfupdate::
     Updates the MacPorts system, ports tree(s) and base tools if needed, from
     the MacPorts rsync server, installing the newest infrastructure available.
@@ -735,7 +728,7 @@ man:portstyle[7], man:porthier[7]
 AUTHORS
 -------
  (C) 2002-2003 Apple Inc.
- (C) 2004-2026 The MacPorts Project
+ (C) 2004-2018 The MacPorts Project
  Landon Fuller <landonf@macports.org>
  James Berry <jberry@macports.org>
  Jordan K. Hubbard <jkh@macports.org>

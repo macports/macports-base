@@ -1,0 +1,76 @@
+package require tcltest 2
+
+# need pextlib to drop privs
+package require Pextlib 1.0
+
+namespace import tcltest::*
+
+source [file dirname $argv0]/../library.tcl
+
+makeFile "" $output_file
+makeDirectory $work_dir
+set path [file dirname [file normalize $argv0]]
+
+load_variables $path
+
+proc test_trace {} {
+    global path output_file
+
+    set user "@RUNUSR@"
+
+    set_dir
+    port_index
+    port_clean $path
+
+    file delete -force /tmp/hello-trace
+    file delete -force /tmp/link-trace2
+    file link -symbolic /tmp/link-trace2 /usr/share/man/man1/awk.1
+
+    makeDirectory ../tracetesttmp
+    if {[getuid] == 0} {
+        file attributes ../tracetesttmp -owner $user
+        exec -ignorestderr chown -h $user /tmp/link-trace2
+    }
+
+    if {[getuid] == 0} {
+        seteuid [name_to_uid $user]
+    }
+    exec -ignorestderr touch  ../tracetesttmp/delete-trace
+    exec -ignorestderr touch ../tracetesttmp/rename-trace
+    exec -ignorestderr mkdir ../tracetesttmp/rmdir-trace
+    if {[getuid] == 0} {
+        seteuid 0
+    }
+
+    port_trace $path
+
+    file delete -force /tmp/link-trace2
+    file delete -force /tmp/hello-trace
+
+    set err "error*"
+    set line [get_line $path/$output_file $err]
+    set unsupported [get_line $path/$output_file "*tracelib not supported on this platform*"]
+    if {$unsupported != -1 || $line == -1} {
+        return "No errors found."
+    } else {
+        return $line
+    }
+}
+
+set trace_constraints [list tracemode_support]
+if {$::tcl_platform(machine) eq "arm64"} {
+    # Trace mode (specifically SIP workaround) is broken on arm64
+    # https://trac.macports.org/ticket/66358
+    lappend trace_constraints knownBug
+}
+
+test trace {
+    Regression test for trace.
+} -constraints $trace_constraints \
+-body {
+    test_trace
+} -result "No errors found."
+
+
+cleanup
+cleanupTests

@@ -6,91 +6,14 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../port_test_autoconf.tcl
-source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
+package require macports 1.0
 
-package require portutil
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
 package require portlint 1.0
-package require portlint_run
-
-test verify_checksum_format_md5 {
-    Test that we properly verify an MD5 checksum
-} -body {
-    set checksum "9f70ecc1095ff10df81be6b5f218328d"
-    if {[portlint::verify_checksum_format "md5" $checksum] != 1} {
-        return "FAIL: did not verify $checksum as MD5"
-    }
-    return "Verify MD5 successful"
-} -result "Verify MD5 successful"
-
-test verify_checksum_format_sha1 {
-    Test that we properly verify an SHA1 checksum
-} -body {
-    set checksum "5560df60ff202ca8b8c3dcf51ad650b78e859261"
-    if {[portlint::verify_checksum_format "sha1" $checksum] != 1} {
-        return "FAIL: did not verify $checksum as SHA1"
-    }
-    return "Verify SHA1 successful"
-} -result "Verify SHA1 successful"
-
-test verify_checksum_format_rmd160 {
-    Test that we properly verify an rmd160 checksum
-} -body {
-    set checksum "5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6"
-    if {[portlint::verify_checksum_format "rmd160" $checksum] != 1} {
-        return "FAIL: did not verify $checksum as rmd160"
-    }
-    return "Verify rmd160 successful"
-} -result "Verify rmd160 successful"
-
-test verify_checksum_format_sha256 {
-    Test that we properly verify an SHA256 checksum
-} -body {
-    set checksum "2f686816f2a80e8efcc4ef40ac4e898d27ce4205a61ee422d56f8c5e8b46612e"
-    if {[portlint::verify_checksum_format "sha256" $checksum] != 1} {
-        return "FAIL: did not verify $checksum as sha256"
-    }
-    return "Verify sha256 successful"
-} -result "Verify sha256 successful"
-
-test verify_checksum_format_blake3 {
-    Test that we properly verify a BLAKE3 checksum
-} -body {
-    set checksum "bb25f9a3571c6a1580e33ea64b34124c93fed104092497a91450c21a66ee57e3"
-    if {[portlint::verify_checksum_format "blake3" $checksum] != 1} {
-        return "FAIL: did not verify $checksum as blake3"
-    }
-    return "Verify blake3 successful"
-} -result "Verify blake3 successful"
-
-test verify_checksum_format_blake3_too_short {
-    Test that we reject a BLAKE3 checksum that is too short
-} -body {
-    set checksum "bb25f9a3571c6a1580e33ea64b34124c93fed104092497a91450c21a66ee57"
-    if {[portlint::verify_checksum_format "blake3" $checksum] != 0} {
-        return "FAIL: did not reject short blake3 checksum"
-    }
-    return "Reject short blake3 successful"
-} -result "Reject short blake3 successful"
-
-test verify_checksum_format_blake3_non_hex {
-    Test that we reject a BLAKE3 checksum containing non-hex characters
-} -body {
-    set checksum "bb25f9a3571c6a1580e33ea64b34124c93fed104092497a91450c21a66ee57zz"
-    if {[portlint::verify_checksum_format "blake3" $checksum] != 0} {
-        return "FAIL: did not reject non-hex blake3 checksum"
-    }
-    return "Reject non-hex blake3 successful"
-} -result "Reject non-hex blake3 successful"
-
-test verify_unknown_checksum_format {
-    Test that we respond as expected to an unknown checksum format
-} -body {
-    set checksum "thisisnotread"
-    if {[portlint::verify_checksum_format "lol22" $checksum] != -1} {
-        return "FAIL: did not respond as expected to an unknown checksum"
-    }
-    return "Verify unknown successful"
-} -result "Verify unknown successful"
 
 test test_lint_checksum_type_list {
     Verify that we get no warnings if we pass in the list of recommended
@@ -414,7 +337,7 @@ test test_lint_checksum_multi_normal_w_filename {
                     rmd160  880690684f35730351dac2cdfd928a7610f69cce
                     size    34554
                   file2.tar
-                    sha256  2f686816f2a80e31fa23bcaf23bca98d27ce4205a61ee422d56f8c5e8b4609e4
+                    sha256  2f686816f2a80e3lfn23jknf23jknp8d27ce4205a61ee422d56f8c5e8b4609e4
                     rmd160  5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6
                     size    25644
                   file3.tar
@@ -491,31 +414,6 @@ test test_lint_checksum_malformed_rmd160 {
 
     return "lint_checksum_malformed_rmd160 passed"
 } -result "lint_checksum_malformed_rmd160 passed"
-
-test test_lint_checksum_malformed_blake3 {
-    Verify that we catch malformed BLAKE3 checksums
-} -body {
-    set checksum "checksum blake3 thisisnotcorrect"
-
-    set results [portlint::lint_checksum $checksum]
-
-    if {[llength $results] == 0} {
-        return "FAIL: invalid results returned: empty list"
-    }
-
-    set errors [lindex $results 0]
-    set warnings [lindex $results 1]
-
-    if {[llength $errors] == 0} {
-        return "FAIL: unexpectedly encountered no errors"
-    }
-
-    if {[lsearch -glob $errors *checksum*blake3*invalid*] == -1} {
-        return "FAIL: missing error about invalid checksum: $errors"
-    }
-
-    return "lint_checksum_malformed_blake3 passed"
-} -result "lint_checksum_malformed_blake3 passed"
 
 test test_lint_checksum_malformed_size {
     Verify that we catch malformed size checksum fields

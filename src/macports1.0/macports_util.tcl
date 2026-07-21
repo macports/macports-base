@@ -106,7 +106,7 @@ proc ldindex {varName args} {
         set idx [lindex $args 0]
         set size [llength $var]
         set badrange? 0
-        if {[string is integer -strict $idx]} {
+        if {[string is wideinteger -strict $idx]} {
             if {$idx < 0 || $idx >= $size} {
                 set badrange? 1
             }
@@ -114,7 +114,7 @@ proc ldindex {varName args} {
             if {$size == 0} {
                 set badrange? 1
             }
-        } elseif {[string match "end-*" $idx] && [string is integer -strict [string range $idx 4 end]]} {
+        } elseif {[string match "end-*" $idx] && [string is wideinteger -strict [string range $idx 4 end]]} {
             set i [expr {$size - 1 - [string range $idx 4 end]}]
             if {$i < 0 || $i >= $size} {
                 set badrange? 1
@@ -131,7 +131,8 @@ proc ldindex {varName args} {
             set item [ldindex list {*}[lrange $args 1 end]]
             lset var $idx $list
         } else {
-            set item [lpop var $idx]
+            set item [lindex $var $idx]
+            set var [lreplace ${var}[set var {}] $idx $idx]
         }
     } else {
         set item $var
@@ -140,6 +141,35 @@ proc ldindex {varName args} {
     return $item
 }
 
+# lpop varName
+# Removes the last list element from a variable
+# If varName is an empty list an empty string is returned
+proc lpop {varName} {
+    upvar 1 $varName var
+    set element [lindex $var end]
+    set var [lrange $var 0 end-1]
+    return $element
+}
+
+# lpush varName ?value ...?
+# Appends list elements onto a variable
+# If varName does not exist then it is created
+# really just an alias for lappend
+proc lpush {varName args} {
+    upvar 1 $varName var
+    lappend var {*}$args
+}
+
+# lshift varName
+# Removes the first list element from a variable
+# If varName is an empty list an empty string is returned
+proc lshift {varName} {
+    upvar 1 $varName var
+    set element [lindex $var 0]
+    # the [set] in the index argument ensures the list is not shared
+    set var [lreplace ${var}[set var {}] 0 0]
+    return $element
+}
 
 # lunshift varName ?value ...?
 # Prepends list elements onto a variable

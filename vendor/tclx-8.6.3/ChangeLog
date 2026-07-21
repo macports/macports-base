@@ -1,0 +1,580 @@
+2012-11-07  Andreas Kupries  <andreask@activestate.com>
+
+	**** TCLX 8.4.1 RELEASE ****
+
+2008-12-15  Andreas Kupries  <andreask@activestate.com>
+
+	* generic/tclExtdInt.h:  Handle TIP#336 addition of API to access
+	* generic/tclXgeneral.c: interp->errorLine.
+	* generic/tclXlib.c:
+
+2008-06-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* win/makefile.vc:  Updated the NMAKE build files to the
+	* win/rules.vc:     current standard set for extensions.
+	* win/nmakehlp.c:
+	* win/common.vc:    removed
+	* win/tclx.rc:      Added new version resource.
+
+2007-02-27  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* unix/tclXunixPort.h: h_errno is a macro on AIX
+
+2006-01-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* configure.in, configure, tclconfig/tcl.m4: update to TEA 3.5
+
+2005-12-02  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tclconfig/tcl.m4, configure: update to TEA 3.4
+	* configure.in: remove 'rename' check (no longer used)
+
+2005-11-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* library/pushd.tcl (pushd): correct dirs arg [Bug 1156134] and
+	clean up some other code.
+
+2005-11-21  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	**** TCLX 8.4.0 RELEASE ****
+
+	* generic/tclXstring.c (TclX_CrangeObjCmd): 64-bit cast fix
+
+	* generic/tclXmath.c (TclX_MathInit): restrict to only add min/max
+	expr funcs in <= 8.4
+
+	* generic/tclXkeylist.c: 64-bit cast warning squash
+
+	* library/tclx.tcl: protect scope of variables in init
+
+2005-11-20  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in: correct dist target
+
+	* README:       updated readme and install notes to TclX 8.4 std.
+	* unix/INSTALL: Windows nmake makefile still needs fixing, but
+	* unix/INSTALL.generic (removed):    TEA-based system works across
+	* win/INSTALL.txt, win/makefile.vc:  the board.
+	* win/common.bc, win/makefile.bc, win/makefile.vc.sub (removed):
+
+2005-11-17  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* library/tclx.tcl: unused sample pure Tcl readdir
+
+	* tests/cmdtrace.test (cmdtrace-3.2): remove errorInfo, as that
+	varies between Tcl versions, but main error is correct.
+
+	* tests/keylist.test:
+	* generic/tclXkeylist.c (DeleteKeyedListEntry): keep hash entries
+	in sync even if the deleted item was not in the hash.
+
+	* generic/tclXlist.c (TclX_LemptyObjCmd): simplify to force list
+	conversion, but ignore errors on bad lists.
+
+	* tests/fmath.test (fmath-1.21): adjust for bignum math in 8.5
+
+2005-10-07  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* unix/tclXunixPort.h: Correct INADDR_NONE define. [Bug 1242825]
+
+	* configure, configure.in, tclconfig/tcl.m4: updated to 3.3,
+	support for Solaris 5.10 and amd64 64-bit builds.
+
+2005-07-27  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXselect.c: use unsigned int on Windows for fd type,
+	as that is what Windows expects.  Not strictly correct, but select
+	usage on Windows is iffy anyways.
+
+2005-07-12  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclExtdInt.h (TclXOSGetSelectFnum): use int for fd
+	* unix/tclXunixOS.c (TclXOSGetSelectFnum):    (reverses change from
+	* win/tclXwinOS.c (TclXOSGetSelectFnum):      2005-04-26) as TclX
+	* generic/tclXselect.c: 	              uses -1 in handles
+	to indicate unused fd for select.
+
+2005-07-07  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* unix/tclXunixOS.c (TclXOSWalkDir): undef readdir as Tcl 8.4 did
+	ifdef'ery that was unnecessary and screwed up threaded builds.
+
+2005-04-26  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXbsearch.c (ReadAndCompare): Fix Tcl_Tell return casts
+	* generic/tclXdup.c (DupFileChannel):     as it take Tcl_WideInt,
+	* generic/tclXfilescan.c (ScanFile):      but off_t is long on Win.
+	* generic/tclXselect.c (ParseSelectFileList): 
+
+	* generic/tclExtdInt.h (TclXOSGetSelectFnum): take unsigned int
+	* unix/tclXunixOS.c (TclXOSGetSelectFnum):    for fd
+	* win/tclXwinOS.c (TclXOSGetSelectFnum):
+	(TclXOSftruncate): fix cast from Tcl_Tell
+
+2005-03-28  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* configure, configure.in:
+	* Makefile.in (PKG_OBJECTS): add @LIBOBJS@ to needed objects.
+
+2005-03-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* configure, configure.in: AC_PROG_LN_S no longer needed
+	* tests/help.test: correct help tests to use correct help dir
+	* Makefile.in: doc target cleanup (das)
+	Add helpclean target and make help not rebuild always.
+	Add TCLX_HELP_DIR to TCLSH_ENV.
+
+	* license.terms (new): minimal license terms file
+
+	* library/buildhelp.tcl (buildhelp): redir 2>/dev/null for exec
+	col check. (das)
+
+	* unix/tclXunixPort.h: undef panic for __APPLE__ (das)
+
+2005-03-24  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in, tclconfig/tcl.m4: Get AIX wide int type right.
+	* configure, configure.in:       Use 'tclx' PACKAGE_NAME, but load
+	'Tclx'.
+
+2005-03-23  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in, tclconfig/tcl.m4: Update to TEA 3.2, refactoring
+	* configure, configure.in:       some #defines.  Still needs to
+	have header usage on AIX checked, where 'kill' in tclXsignal is
+	crashing the test suite.
+	* pkgIndex.tcl.in, tclconfig/ChangeLog (removed):
+	* generic/tclXinit.c: use TEA3 define names (PACKAGE_*)
+	* generic/tclXselect.c: remove NO_SYS_SELECT_H, rely on
+	HAVE_SYS_SELECT_H from tcl's tclUnixPort.h
+	* win/tclXwinPort.h: remove NO_SYS_SELECT_H define
+	* unix/tclXunixPort.h: remove NO_FLOOR_PROTO_ check
+
+	* generic/tclXkeylist.c (DeleteKeyedListEntry): fix hash
+	consistency checks when missing cached entry.
+
+	* generic/tclXlib.c: remove trailing , in enum typdef
+
+2005-03-18  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in (AR): use @AR@
+
+2005-03-16  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXmath.c: add ability to handle wide values in min/max
+	math functions and commands.
+	Merged TclX_MinFunc and TclX_MaxFunc into TclX_MinMaxFunc.
+
+2005-02-07  Andreas Kupries <andreask@activestate.com>
+
+	* generic/tclXkeylist.c (FindKeyedListEntry): Moved a C99 specific
+	  variable declaration to the top of its block, making it C89
+	  compatible.
+
+2005-02-03  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tests/keylist.test, generic/tclXkeylist.c: improve efficiency of
+	keyed lists by layering a hash table over the existing linear
+	list.  This has significant performance improvements for larger
+	lists.  To avoid use of the hash table, add
+	-DNO_KEYLIST_HASH_TABLE to your CFLAGS.
+
+	* tests/profile.test: update to pass 8.4 bcc changes
+
+	* generic/tclXsignal.c (FormatSignalListEntry): dup string passed
+	to TclX_KeyedListSet to ensure we don't break const-ness.
+
+	* configure, tclconfig/tcl.m4: increase Linux default opt level to
+	-O2.
+
+2005-01-21  Andreas Kupries <andreask@activestate.com>
+
+	* unix/tclXunixOS.c: Converted both implementations of TclXOSsleep
+	* win/tclXwinOS.c:   from direct access to native time functions
+	                     to the use of Tcl's more abstract interface
+	                     (Tcl_Sleep). For the reason behind _this_
+	                     change see TIP #233. Our change here now
+	                     causes TclX to be automatically in sync
+	                     with any virtualization set up in the core.
+
+2005-01-18  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXfcntl.c: make attrNames static
+
+2004-12-21  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tests/cmdtrace.test: updated for minor whitespace changes in Tcl
+	8.4 results.  Will fail on 8.3, but that's not a concern.
+
+2004-12-02  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in: cygpath a few required buildhelp vars
+	* configure, configure.in: refactor --with-help check to add 'col'
+	prog check and defer them until TclX help is requested.
+	* library/buildhelp.tcl (buildhelp): convert system call to exec
+	to allow it to work on Windows
+
+2004-12-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* unix/tools/tclmanpages: note resource.n last appears and lset.n
+	first appears in 8.4 docs.
+
+2004-11-23  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXfilescan.c (TclX_ScanfileObjCmd): watch for scanfile
+	closing the open channel. [Bug 1045190] (hellstroem)
+
+	* configure.in, configure: add check for NO_UNION_WAIT for
+	Solaris, HP and related systems
+
+2004-11-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* library/tclx.tcl: Reintroduce the addition of the 'help' command
+	* library/help.tcl: as tclx::help* (they can be namespace imported).
+	* configure:        Adjust the configure to allow --with-help, which
+	* configure.in:     is required to build the TclX help files.  This
+	* Makefile.in:      still needs work on how users would build and
+	install the help depending on whether it was a CVS or general
+	source distribution.
+
+	* library/edprocs.tcl (edprocs): harden tmpfile security access
+
+	* Makefile.in: remove TCL_DEFS dependency
+	* configure.in: add TEA_TIME_HANDLER checks to no longer rely on
+	TCL_DEFS (not good for 8.5).
+
+	* generic/tclXprofile.c (ProfStrCommandEval): CONST84-ify it
+
+	* unix/tclXunixSock.c (BindFileHandles): remove impotent channel
+	code on channel2.
+
+	* doc/TclX.n: minor typo fixes
+
+	* generic/tclExtdInt.h: compat defines to support building against
+	Tcl 8.5a2+. [Bug 1066799] (dgp)
+
+2004-07-14  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXselect.c: undef panic on __APPLE__ (steffen)
+
+2004-06-04  Andreas Kupries  <andreask@activestate.com>
+
+	* generic/tclExtdInt.h: Changed when 'tclInt.h' is included. Have
+	  to be done before 'tcl*Port.h', to prevent a clash over
+	  'TclpPanic'. Don Porter claims that this is ok in general as
+	  well. A comment in the file seems to contradict this, but the
+	  compilation I tried was ok. If this becomes truly a problem then
+	  we may have to refactor the TclX headers to ensure that both Tcl
+	  and TclX dependencies are resolved correctly.
+
+2004-05-24  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXsocket.c (InfoGetHost): read host after arg count
+	check. [Bug 930035] (teterin)
+
+	* doc/TclX.n: doc and comment fixes
+	* unix/tclXunixOS.c:
+	* win/tclXwinOS.c:
+
+2004-02-12  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* win/tclXwinOS.c (TclXOSkill): close process handle
+
+2003-04-04  Andreas Kupries  <andreask@activestate.com>
+
+	* configure.in:
+	* tclconfig/tcl.m4: Updated to newest tcl.m4, regenerated
+	  configure's.
+
+2002-12-17  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXkeylist.c (ValidateKey): move isPath check outside
+	of for loop.
+	(DupKeyedListInternalRep): duplicate value object instead of
+	directly incrementing refcount of existing object to stop memleak.
+	(TclX_KeyedListGetKeys): simplify list result obj creation.
+	(TclX_KeylkeysObjCmd): use obj-ified var set/get routines.
+
+	* Makefile.in: add valgrind and valgrindtest targets
+
+	* unix/INSTALL: remove references to Tk-required build
+
+2002-11-12  Karl Lehenbauer <karl@procplace.com>
+
+	* Makefile.in: Put some variables back in that were previously
+	    found in Config.mk.  "make buildhelp" now works again.
+	* configure:
+	* configure.in: Moved the help dir to the top directory of the
+	    TclX source code.  It was using a subdir that no longer exists.
+	* unix/tools/bldmanhelp.tcl: Add "package require Tclx" and source
+	    the help tools.
+	* unix/tools/instcopy.tcl: Add "package require Tclx" and source
+	    the TclX build utilities.
+	* unix/tools/runbuildhelp.tcl: "driver" to run buildhelp since
+	    we don't have a Tcl command line that can take the command
+	    on the command line.
+
+2002-11-03  Karl Lehenbauer <karl@procplace.com>
+
+	* generic/tclXfilescan.c:    Applied patch to fileparse to use 
+	  the public Tcl_RegExp interface instead of the private TclRegexp.  
+	  Submitted by Reinhard Max (rmax) [Patch #631096]
+
+2002-10-15  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tclconfig/tcl.m4:
+	* configure:
+	* configure.in: move the CFLAGS definition into TEA_ENABLE_SHARED
+	and make it pick up the env CFLAGS at configure time.
+
+2002-10-15  Andreas Kupries  <andreask@pliers.activestate.com>
+
+	* configure.in: Changed to propagate an initial CFLAGS value to
+	  the final definition. A TEA condition (SHARED_BUILD == 1)
+	  squashed it, causing it the build system to loose the
+	  +DAportable we specify for the AS PA-RISC2.2 build host. This is
+	  a problem for _all_ TEA and TEA 2 based configure files.
+
+2002-09-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclExtdInt.h: added TclX_(Struct)Offet header
+	* generic/tclXutil.c: added TclX_StructOffset to handle the
+	changes in the size of Tcl_HashTable when embedded in a structure.
+
+	* generic/tclExtend.h: added support for 8.4 CONSTification (TIP 27)
+	* generic/tclXbsearch.c:
+	* generic/tclXcmdloop.c:
+	* generic/tclXdebug.c:
+	* generic/tclXdup.c:
+	* generic/tclXfilecmds.c:
+	* generic/tclXlib.c:
+	* generic/tclXprofile.c:
+	* generic/tclXsignal.c:
+	* generic/tclXstring.c:
+
+	* tests/profile.test: support changed error msgs between 8.3 and 8.4
+	* tests/string.test:
+	* tests/tcllib.test:
+
+2002-04-11  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* configure:
+	* tcl.m4: Enabled COFF as well as CV style debug info with
+	--enable-symbols to allow Dr. Watson users to see function info.
+	More info on debugging levels can be obtained at:
+	http://msdn.microsoft.com/library/en-us/dnvc60/html/gendepdebug.asp
+
+2002-04-03  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/tclXgeneral.c (TclX_EchoObjCmd): use encoding aware
+	functions in 8.1+. [Bug #514053]
+
+	* generic/tclXselect.c: allow to compile on Windows as well
+	(although select isn't supported).
+
+	* Makefile.in: correct install targets
+	* configure:
+	* configure.in:
+	* tclconfig/tcl.m4: update to latest TEA base files
+
+	* win/tclXwinCmds.c: use the generic select command definition
+	* win/tclXwinOS.c (TclXNotAvailableError): use Tcl_AppendResult
+	* win/tclXwinPort.h: prevent redefinition complaints
+
+	* tests/chmod.test:
+	* tests/chroot.test:
+	* tests/fcntl.test:
+	* tests/fstat.test:
+	* tests/ftrunc.test:
+	* tests/lgets.test:
+	* tests/msgcat.test:
+	* tests/nice.test:
+	* tests/pipe.test:
+	* tests/process.test:
+	* tests/profile.test:
+	* tests/tcllib.test:
+	* tests/testlib.tcl:
+	* tests/tryeval.test:
+	* tests/unixcmds.test: convert to use tcltest test command
+
+2002-04-02  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* doc/TclX.n: updated to note lack of shell stuff in 8.4.
+
+	* configure:
+	* configure.in: added FULL_VERSION info
+
+	* generic/tclExtdInt.h: removed TclX_WriteStr, TclX_Eval and
+	TclX_VarEval as they simply shadowed Tcl commands.  Removed
+	TclX_ShellExit (no longer needed).  Updated files with Tcl equivs.
+	* generic/tclExtend.h:
+	* generic/tclXcmdloop.c:
+	* generic/tclXdebug.c:
+	* generic/tclXgeneral.c:
+	* generic/tclXinit.c:
+	* generic/tclXlib.c:
+	* generic/tclXtest.c:
+	* generic/tclXutil.c:
+
+	* generic/tclXinitDSA.c (removed):
+	* generic/tclXinitSA.c (removed): old Tcl plus patch files
+
+	* tests/cmdtrace.test:
+	* tests/dup.test:
+	* tests/flock.test:
+	* tests/help.test:
+	* tests/process.test:
+	* tests/signal.test:
+	* tests/testlib.tcl: updated tests to use $::tcltest::tcltest
+	instead of relying on TCL_PROGRAM.
+
+	* Makefile.in: remove tclXinitLib.c
+
+	* configure: regened
+	* configure.in: call SC_TCL_LINK_LIBS and add MATH_LIBS on unix.
+	* tclconfig/tcl.m4: updated with TEA sample
+
+2002-04-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* README: added some notes
+
+	* Makefile.in (new):
+	* aclocal.m4 (new):
+	* configure (new):
+	* configure.in (new):
+	* pkgIndex.tcl.in (new):
+	* tclconfig/ChangeLog (new):
+	* tclconfig/README.txt (new):
+	* tclconfig/install-sh (new):
+	* tclconfig/tcl.m4 (new): updated to new TEA architecture
+
+	* library/tclx.tcl: changed to force loading of most tclx runtime
+	library files directly
+
+	* library/arrayprocs.tcl:
+	* library/autoload.tcl:
+	* library/fmath.tcl: minor code cleanup
+
+	* generic/tclExtend.h: removed all TkX references
+	* generic/tclXcmdInit.c (removed): streamlined into tclXinit.c
+	* generic/tclXinit.c: cleaned up TclX initialization
+	* generic/tclXlibInit.c (removed): streamlined info tclXinit.c
+	* generic/tclXshell.c (removed): shell functionality removed from 8.4+.
+
+	* unix/Common.mk.in (removed):
+	* unix/Makefile.in (removed):
+	* unix/Makefile.in.sub (removed):
+	* unix/aclocal.m4 (removed):
+	* unix/configure (removed):
+	* unix/configure.in (removed):
+	* unix/pkgIndex.tcl.in (removed):
+	* unix/tcl.m4 (removed):
+	* win/Makefile.in (removed):
+	* win/aclocal.m4 (removed):
+	* win/configure.in (removed): old cygwin make files removed
+
+	* generic/hello.tcl (removed): no longer used
+
+	* tests/shell.test (removed): the shell functionality of TclX is
+	being removed in 8.4+
+	* tests/ucbtests.tcl (removed): old file
+	* tests/*: revamp of test files to use tcltest 'test' command.
+
+2001-10-24  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	**** POTENTIAL INCOMPATABILITY ****
+	* MASSIVE restructuring underway.  Reorganizing into a simple TclX
+	only extension - no more tkx or shell builds.  You can retrieve
+	the latest of the old style TclX from the tclx-8-3-0-branch.
+	**** POTENTIAL INCOMPATABILITY ****
+
+2001-09-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcl/generic/tclXlib.c (MakeAbsFile): Replaced a call to the
+	  internal 'TclpGetCwd' with an access to the public API
+	  'Tcl_GetCwd'. [457266]. Reported by Vincent Darley.
+
+2001-08-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* doc/TclX.n: 
+	* tcl/generic/tclXoscmds.c: allowed sleep to accept double values,
+	to match the Expect sleep command.  This prevents conflicts that
+	depended on the order of package requires.  [Patch #444332]
+
+2001-05-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* unix/tools/tclmanpages: Added "re_syntax.n" to the list of
+	  processed manpages [#405956].
+
+2001-05-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* All of the changes below are there to fix bug [418295].
+
+	* tcl/generic/tclXoscmds.c (TclX_OsCmdsInit): "system" and
+	  "sleep" now use the new command creation procedure.
+
+	* tcl/generic/tclXprocess.c (TclX_ProcessInit): "fork" and
+	  "wait" now use the new command creation procedure.
+
+	* tcl/generic/tclXutil.c (TclX_CreateObjCommand): Added
+	  the implementation of this new procedure.
+
+	* tcl/generic/tclExtdInt.h: Added TclX_CreateObjCommand to
+	  encapsulate the logic for the creation of commands FOO and
+	  tclx_FOO.
+
+2001-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcl/generic/tclXlist.c (TclX_LassignObjCmd): Added
+	  TCL_LEAVE_ERR_MSG to call of 'Tcl_SetVar2Ex'. This
+	  fixes the bug [227478].
+
+2001-05-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcl/generic/tclXgeneral.c (TclX_LoopObjCmd): Changed
+	  'Tcl_AppendStringsToObj' into 'Tcl_AddErrorInfo'. 
+
+	  Fixes bug [226388]. Associated patch is [403050]. No need to
+	  extend the testsuite, it already contained a test exercising the
+	  bug.
+
+2000-08-01 Brent Welch <welch@ajubasolutions.com>
+	* tcl/unix/Makefile.in:
+	* tk/unix/Makefile.in:
+	Fixed bogus "test -f" on the new HELP_DIR directory, which should
+	be "test -d".
+
+2000-07-30 Brent Welch <welch@ajubasolutions.com>
+	* win/Makefile.in - fixed because of new definition of
+	TCL_SRC_DIR and TK_SRC_DIR
+
+2000-07-12 Brent Welch <welch@ajubasolutions.com>
+	* Changed the HELP_DIR to be configurable so I could have parallel
+		builds not all trying to create the same help files.
+
+2000-07-12 Brent Welch <welch@ajubasolutions.com>
+	* tcl/win/configure.in, common.bc, common.vc
+	    Fixed version number to 8.3
+	* {tcl,tk}/unix/Makefile.in, tweaks to get references to LIB_RUNTIME_DIR
+	    properly expanded on irix builds.  Also added BUILDHELP macro
+	    that is conditional on nroff being present so we don't try to
+	    build help files on systems with out nroff.
+
+2000-07-10 Brent Welch <welch@ajubasolutions.com>
+	* tcl/win/tclXAppInit.c, tk/generic/tkXshell.c, tk/win/tkXAppInit.c
+	    - turn off USE_TCL_STUBS
+	* win/Makefile.in, win/configure.in: Cleanup use of stubs library.
+
+2000-04-03  Lee Bernhard  <lfb@scriptics.com>
+
+	* tcl/win/tclXwinOS.c (TclXOSkill): Added support for "kill"
+	command on Windows platforms.
+
+1999-08-20  Scott Stanton  <stanton@scriptics.com>
+
+	* win/aclocal.m4: Updated from latest tcl.m4.
+
+	* win/Makefile.in: Various changes to support Windows builds.
+	Fixed to properly generate pkgIndex.tcl for tkx.  Added
+	Makefile/configure rules.
+

@@ -10,7 +10,7 @@ SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-vdqypotf*] [*-D* 'portdir'] *clean*
-     [--archive] [--dist] [--logs] [--work] [--all] [--purge]
+     [--archive] [--dist] [--logs] [--work] [--all]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
@@ -59,17 +59,6 @@ OPTIONS
     Remove all temporary files. The same as specifying *--archive*, *--dist*,
     *--logs*, and *--work*.
 
-*--purge*::
-    Remove all temporary files of the chosen types, regardless of which port(s)
-    they are associated with. This is much faster than e.g. "port clean --all
-    all" and will also delete files created by ports that do not exist in the
-    current ports tree.
-    +
-    No ports need to be specified when using this option, and specifying ports
-    has no effect, since all ports' files are deleted regardless. This option
-    combines with other options as you would expect, so the default is to
-    delete all work directories, "port clean --logs --purge" will delete all
-    logs, and so on.
 
 include::global-flags.txt[]
 

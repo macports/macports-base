@@ -3,10 +3,14 @@
 package require tcltest 2
 namespace import tcltest::*
 
-set pwd [file dirname [file normalize $argv0]]
-
 source ../macports_test_autoconf.tcl
-source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
+package require macports 1.0
+
+# Debug options
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
 
 source ../macports_dlist.tcl
 
@@ -58,8 +62,8 @@ test dlist_delete {
     set dlist [list]
     lappend dlist $mport
 } -body {
-    if {[catch {dlist_delete dlist $mport} result]} {
-        return "FAIL: cannot run dlist_delete: $result"
+    if {[dlist_delete dlist $mport] ne ""} {
+        return "FAIL: cannot run dlist_delete"
     }
     if {$dlist ne ""} {
         return "FAIL: port not removed from list"

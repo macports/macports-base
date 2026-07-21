@@ -33,6 +33,7 @@
 package provide registry_util 2.0
 
 package require registry2 2.0
+package require tdbc::sqlite3
 
 namespace eval registry {
 
@@ -89,17 +90,16 @@ proc check_dependents {port force {action "uninstall/deactivate"}} {
             set deplist $active_deplist
         }
         if { [llength $deplist] > 0 } {
-            global macports::ui_options
             ## User Interaction Question
             # ask if user wants to uninstall a port and thereby break its dependents
-            if {[info exists ui_options(questions_yesno)] && ![string is true -strict $force]} { 
+            if {[info exists macports::ui_options(questions_yesno)] && ![string is true -strict $force]} { 
                 set portulist [list]
                 foreach depport $deplist {
                     lappend portulist [$depport name]@[$depport version]_[$depport revision]
                     #registry::entry close $depport
                 }
                 ui_msg "Note: It is not recommended to uninstall/deactivate a port that has dependents as it breaks the dependents."
-                set retvalue [$ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0 "[string totitle $action] [$port name] anyway?"]
+                set retvalue [$macports::ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0 "[string totitle $action] [$port name] anyway?"]
                 if {$retvalue == 0} {
                     set force "yes"
                 } else {
@@ -176,9 +176,8 @@ proc run_target {port target options} {
 
 ## Create and configure a tdbc connection to the registry
 proc tdbc_connect {args} {
-    package require tdbc::sqlite3
     variable tdbc_connection
-    set reg_path [::file join ${::macports::registry.path} registry registry.db]
+    set reg_path [::file join ${macports::registry.path} registry registry.db]
     set tdbc_connection [tdbc::sqlite3::connection new $reg_path]
     trace remove variable tdbc_connection read registry::tdbc_connect
     set stmt [$tdbc_connection prepare {PRAGMA foreign_keys = ON}]

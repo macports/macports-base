@@ -50,8 +50,7 @@ clean::
 	rm -f ${SWIG_OBJS} ${PKG_INDEX}
 	rm -f ${TESTS} \
 		tests/libmachista-test-dependency${SHLIB_SUFFIX} \
-		tests/libmachista-test-lib${SHLIB_SUFFIX} \
-		tests/libmachista-test-archive.a
+		tests/libmachista-test-lib${SHLIB_SUFFIX}
 	rm -rf ${TESTS:%=%.dSYM} \
 		tests/libmachista-test-dependency${SHLIB_SUFFIX}.dSYM \
 		tests/libmachista-test-lib${SHLIB_SUFFIX}.dSYM
@@ -62,21 +61,8 @@ distclean::
 test:: ${TESTS}
 	${TESTS}
 
-tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o hashmap.o tests/libmachista-test-lib${SHLIB_SUFFIX} tests/libmachista-test-archive.a
+tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o hashmap.o tests/libmachista-test-lib${SHLIB_SUFFIX}
 	$(CC) $(CFLAGS) -D_POSIX_SOURCE -o $@ -I. $< libmachista.o hashmap.o
-
-# A static archive (e.g. a *.a library) of more than one host-arch object, used
-# to check that libmachista parses archives and reports each arch only once.
-tests/libmachista-test-archive.a: tests/empty.c
-ifeq (darwin,@OS_PLATFORM@)
-	$(CC) $(CFLAGS) -c $< -o tests/libmachista-test-archive-1.o
-	$(CC) $(CFLAGS) -c $< -o tests/libmachista-test-archive-2.o
-	rm -f $@
-	ar rcs $@ tests/libmachista-test-archive-1.o tests/libmachista-test-archive-2.o
-	rm -f tests/libmachista-test-archive-1.o tests/libmachista-test-archive-2.o
-else
-	touch $@
-endif
 
 # The tests for this library need a universal lib; we used to just use
 # /usr/lib/libSystem.B.dylib, but Apple has removed that with macOS 11, so now

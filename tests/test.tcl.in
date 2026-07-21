@@ -28,7 +28,7 @@ set color_out ""
 set err ""
 
 # Get tclsh path.
-set tcl "@TEST_TCLSH@"
+set tcl "@TCLSH@"
 
 proc print_help {arg} {
     if { $arg eq "tests" } {

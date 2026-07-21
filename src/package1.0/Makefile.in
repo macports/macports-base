@@ -6,10 +6,7 @@ include ../../Mk/macports.autoconf.mk
 INSTALLDIR=	${TCL_PACKAGE_PATH}/package1.0
 
 SRCS=	package.tcl portdmg.tcl portmdmg.tcl portmpkg.tcl portpkg.tcl \
-	portarchive.tcl portunarchive.tcl portarchivefetch.tcl \
-	portarchive_run.tcl portarchivefetch_run.tcl portdmg_run.tcl \
-	portmdmg_run.tcl portmpkg_run.tcl portpkg_run.tcl \
-	portunarchive_run.tcl
+	portarchive.tcl portunarchive.tcl portarchivefetch.tcl
 
 all:: pkgIndex.tcl
 
@@ -24,7 +21,7 @@ distclean:: clean
 	rm -f Makefile
 
 test::
-	$(TEST_TCLSH) $(srcdir)/../tests/test.tcl -nocolor
+	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
 install:: all
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}"

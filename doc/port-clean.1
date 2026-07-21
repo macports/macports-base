@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-CLEAN" "1" "2\&.12\&.99" "MacPorts 2\&.12\&.99" "MacPorts Manual"
+.TH "PORT\-CLEAN" "1" "2\&.11\&.99" "MacPorts 2\&.11\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -25,7 +25,7 @@ port-clean \- Remove temporary files used to build a port\&.
 .sp
 .nf
 \fBport\fR [\fB\-vdqypotf\fR] [\fB\-D\fR \fIportdir\fR] \fBclean\fR
-     [\-\-archive] [\-\-dist] [\-\-logs] [\-\-work] [\-\-all] [\-\-purge]
+     [\-\-archive] [\-\-dist] [\-\-logs] [\-\-work] [\-\-all]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
@@ -122,13 +122,6 @@ Remove all temporary files\&. The same as specifying
 \fB\-\-dist\fR,
 \fB\-\-logs\fR, and
 \fB\-\-work\fR\&.
-.RE
-.PP
-\fB\-\-purge\fR
-.RS 4
-Remove all temporary files of the chosen types, regardless of which port(s) they are associated with\&. This is much faster than e\&.g\&. "port clean \-\-all all" and will also delete files created by ports that do not exist in the current ports tree\&.
-
-No ports need to be specified when using this option, and specifying ports has no effect, since all ports\*(Aq files are deleted regardless\&. This option combines with other options as you would expect, so the default is to delete all work directories, "port clean \-\-logs \-\-purge" will delete all logs, and so on\&.
 .RE
 .SH "GLOBAL OPTIONS"
 .sp

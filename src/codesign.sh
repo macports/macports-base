@@ -23,10 +23,8 @@ for f in "$@"; do
         chown "$SUDO_USER" "$f" "$DIR"
     fi
 
-    while ! $SUDO /usr/bin/codesign --sign "$CODESIGN_ID" --identifier=org.macports.base --options=runtime --timestamp --verbose "$f"
-    do
-        sleep 1
-    done
+    $SUDO /usr/bin/codesign --sign "$CODESIGN_ID" --identifier=org.macports.base --options=runtime --timestamp --verbose "$f"
+
     if [ -n "$SUDO" ]; then
         chown "$FILE_OWNER" "$f"
         chown "$DIR_OWNER" "$DIR"

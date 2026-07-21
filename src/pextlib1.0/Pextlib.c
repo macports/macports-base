@@ -61,7 +61,6 @@
 #include <limits.h>
 #include <netdb.h>
 #include <pwd.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -80,7 +79,6 @@
 #endif
 
 #ifdef __MACH__
-#include <ar.h>
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
 #endif
@@ -93,7 +91,6 @@
 #include "sha1cmd.h"
 #include "rmd160cmd.h"
 #include "sha256cmd.h"
-#include "blake3cmd.h"
 #include "fs-traverse.h"
 #include "filemap.h"
 #include "curl.h"
@@ -110,7 +107,6 @@
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
-#include "time_connect.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -420,15 +416,15 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         for (char **envp = environ; *envp != NULL; envp++) {
             char *equals = strchr(*envp, '=');
             if (equals != NULL) {
-				Tcl_Size len = (Tcl_Size)(equals - *envp);
+				size_t len = (size_t)(equals - *envp);
                 Tcl_ListObjAppendElement(interp, tclList, Tcl_NewStringObj(*envp, len));
             }
         }
 
-		Tcl_Size listLength;
+		int listLength;
 		Tcl_Obj **listArray;
         Tcl_ListObjGetElements(interp, tclList, &listLength, &listArray);
-        for (Tcl_Size loopCounter = 0; loopCounter < listLength; loopCounter++) {
+        for (int loopCounter = 0; loopCounter < listLength; loopCounter++) {
             unsetenv(Tcl_GetString(listArray[loopCounter]));
         }
         Tcl_DecrRefCount( tclList );
@@ -559,16 +555,6 @@ static int fileIsBinaryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int
         /* this is a mach-o file */
         Tcl_SetObjResult(interp, Tcl_NewBooleanObj(true));
         return TCL_OK;
-    }
-    if (memcmp(&magic, ARMAG, sizeof(magic)) == 0) {
-        /* static archive ("!<arch>\n", e.g. *.a); holds mach-o objects */
-        char rest[SARMAG - sizeof(magic)];
-        if (sizeof(rest) == fread(rest, 1, sizeof(rest), file)
-                && memcmp(rest, &ARMAG[sizeof(magic)], sizeof(rest)) == 0) {
-            fclose(file);
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(true));
-            return TCL_OK;
-        }
     }
     if (magic == htonl(FAT_MAGIC)) {
         uint32_t archcount;
@@ -1239,7 +1225,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha256", SHA256Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "blake3", BLAKE3Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
@@ -1280,8 +1265,6 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "fs_clone_capable", FSCloneCapableCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "clonefile", ClonefileCmd, NULL, NULL);
-
-    Tcl_CreateObjCommand(interp, "time_connect", TimeConnectCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

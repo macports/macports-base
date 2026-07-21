@@ -88,7 +88,6 @@ proc setup {rules} {
 
 proc tracelib_setup {} {
     global \
-        cwd \
         darwintrace_lib \
         env \
         fifo \
@@ -98,7 +97,6 @@ proc tracelib_setup {} {
 
     set fifo_mktemp_template "/tmp/macports-test-XXXXXX"
     set fifo [mktemp $fifo_mktemp_template]
-    set sip_workaround_path [mkdtemp "$cwd/sip-workaround-XXXXXX"]
 
     set thread [thread::create -joinable [list source threadsetup.tcl]]
     thread::send $thread [list setup $fifo]
@@ -110,7 +108,6 @@ proc tracelib_setup {} {
 
     set env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
     set env(DARWINTRACE_LOG) $fifo
-    set env(DARWINTRACE_SIP_WORKAROUND_PATH) $sip_workaround_path
 }
 
 proc expect {{violations {}} {unknowns {}}} {
@@ -185,12 +182,7 @@ proc tracelib_cleanup {} {
     thread::send -async $thread [list cleanup]
     thread::join $thread
 
-    if {[info exists env(DARWINTRACE_SIP_WORKAROUND_PATH)]} {
-        file delete -force $env(DARWINTRACE_SIP_WORKAROUND_PATH)
-    }
-
-    unset -nocomplain env(DYLD_INSERT_LIBRARIES)
-    unset -nocomplain env(DARWINTRACE_LOG)
-    unset -nocomplain env(DARWINTRACE_SIP_WORKAROUND_PATH)
+    array unset env DYLD_INSERT_LIBRARIES
+    array unset env DARWINTRACE_LOG
 }
 

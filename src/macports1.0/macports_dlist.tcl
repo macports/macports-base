@@ -106,7 +106,7 @@ proc dlist_delete {dlist ditem} {
 	upvar $dlist uplist
 	set ix [lsearch -exact $uplist $ditem]
 	if {$ix >= 0} {
-		lpop uplist $ix
+		set uplist [lreplace ${uplist}[set uplist {}] $ix $ix]
 	}
 }
 
@@ -397,7 +397,11 @@ proc ditem_key {ditem args} {
 		return $val
 	} elseif {$nbargs == 1} {
 		set key [lindex $args 0]
-		return [dict getwithdefault [set $ditem] $key {}]
+		if {[dict exists [set $ditem] $key]} {
+		    return [dict get [set $ditem] $key]
+		} else {
+		    return {}
+		}
 	} elseif {[info exists $ditem]} {
 		return [set $ditem]
 	} else {

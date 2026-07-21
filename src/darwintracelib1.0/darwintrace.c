@@ -580,23 +580,13 @@ static void fsend(const void *restrict buf, size_t size) {
 	 * a way to know how many bytes have actually been written, i.e. without
 	 * a way to do the call again. Because of this great API design and
 	 * implementation on macOS, we'll just use write(2) here. */
-	int fd = -1;
-	bool retry = false;
-	size_t count;
-retry:
-	fd = fileno(__darwintrace_sock());
-	count = 0;
+	int fd = fileno(__darwintrace_sock());
+	size_t count = 0;
 	while (count < size) {
 		ssize_t res = write(fd, buf + count, size - count);
 		if (res < 0) {
 			if (errno == EINTR) {
 				continue;
-			}
-			if (errno == EBADF && !retry) {
-				__darwintrace_close();
-				__darwintrace_setup();
-				retry = true;
-				goto retry;
 			}
 			perror("darwintrace: write");
 			abort();
