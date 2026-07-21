@@ -111,11 +111,7 @@ proc foreachport {portlist block} {
             set variations [dict get $portspec variants]
             set requested_variations [dict get $portspec requested_variants]
             set options [dict get $portspec options]
-            if {[dict exists $portspec metadata]} {
-                set portmetadata [dict get $portspec metadata]
-            } else {
-                set portmetadata ""
-            }
+            set portmetadata [dict getwithdefault $portspec metadata {}]
         }
 
         # Invoke block

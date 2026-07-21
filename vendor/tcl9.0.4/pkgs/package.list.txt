@@ -1,0 +1,23 @@
+# This file contains the mapping of directory names to package names for
+# documentation purposes. Each non-blank non-comment line is a two-element
+# list that says a possible name of directory and the documentation name of the
+# package to match. Pseudo-numeric suffixes are interpreted as version numbers.
+
+# [incr Tcl]
+itcl {[incr Tcl]}
+
+# SQLite
+sqlite SQLite3
+sqlite3 SQLite3
+
+# Thread
+thread Thread
+
+# Tcl Database Connectivity
+tdbc TDBC
+# Drivers for TDBC
+tdbcmysql	tdbc::mysql
+tdbcodbc	tdbc::odbc
+tdbcpostgres	tdbc::postgres
+tdbcsqlite3	tdbc::sqlite3
+tdbcsqlite	tdbc::sqlite3

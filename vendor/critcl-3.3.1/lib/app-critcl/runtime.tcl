@@ -112,7 +112,7 @@ proc ::critcl::runtime::MapPlatform {{mapping {}}} {
 
     set platform [::platform::generic]
     set version $::tcl_platform(osVersion)
-    if {[string match "macosx-*" $platform]} {
+    if {[string match "macos*-*" $platform]} {
 	# "normalize" the osVersion to match OSX release numbers
 	set v [split $version .]
 	set v1 [lindex $v 0]

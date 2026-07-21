@@ -1,0 +1,7 @@
+The files in this directory are used for testing zipfs file systems.
+They fall under the following licenses:
+
+test-overlay.zip, test-password[2].zip, test-zip-in-zip.zip - Tcl's license
+
+All other files - test files from libzip (https://libzip.org) and are covered by
+the license in LICENSE-libzip.

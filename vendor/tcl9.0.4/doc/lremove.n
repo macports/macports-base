@@ -1,0 +1,57 @@
+'\"
+'\" Copyright (c) 2019 Donal K. Fellows.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH lremove n 9.0 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+lremove \- Remove elements from a list by index
+.SH SYNOPSIS
+\fBlremove \fIlist\fR ?\fIindex ...\fR?
+.BE
+.SH DESCRIPTION
+.PP
+\fBlremove\fR returns a new list formed by simultaneously removing zero or
+more elements of \fIlist\fR at each of the indices given by an arbitrary number
+of \fIindex\fR arguments. The indices may be in any order and may be repeated;
+the element at index will only be removed once.  The index values are
+interpreted the same as index values for the command \fBstring index\fR,
+supporting simple index arithmetic and indices relative to the end of the
+list.  0 refers to the first element of the list, and \fBend\fR refers to the
+last element of the list.
+.SH EXAMPLES
+.PP
+Removing the third element of a list:
+.PP
+.CS
+% \fBlremove\fR {a b c d e} 2
+a b d e
+.CE
+.PP
+Removing two elements from a list:
+.PP
+.CS
+% \fBlremove\fR {a b c d e} end-1 1
+a c e
+.CE
+.PP
+Removing the same element indicated in two different ways:
+.PP
+.CS
+% \fBlremove\fR {a b c d e} 2 end-2
+a b d e
+.CE
+.SH "SEE ALSO"
+list(n), lappend(n), lassign(n), ledit(n), lindex(n), linsert(n), llength(n),
+lmap(n), lpop(n), lrange(n), lrepeat(n), lreplace(n),
+lreverse(n), lsearch(n), lseq(n), lset(n), lsort(n)
+.SH KEYWORDS
+element, list, remove
+.\" Local variables:
+.\" mode: nroff
+.\" fill-column: 78
+.\" End:

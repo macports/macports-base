@@ -1,0 +1,592 @@
+# This file contains a collection of tests for functionality originally
+# sourced from the ooutil package in Tcllib. Sourcing this file into Tcl runs
+# the tests and generates output for errors. No output means no errors were
+# found.
+#
+# Copyright © 2014-2016 Andreas Kupries
+# Copyright © 2018 Donal K. Fellows
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+package require tcl::oo 1.3.1
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+test ooUtil-1.1 {TIP 478: classmethod} -setup {
+    oo::class create parent
+} -body {
+    oo::class create ActiveRecord {
+	superclass parent
+	classmethod find args {
+	    return "[self] called with arguments: $args"
+	}
+    }
+    oo::class create Table {
+	superclass ActiveRecord
+    }
+    Table find foo bar
+} -cleanup {
+    parent destroy
+} -result {::Table called with arguments: foo bar}
+test ooUtil-1.2 {TIP 478: classmethod in namespace} -setup {
+    namespace eval ::testns {}
+} -body {
+    namespace eval ::testns {
+	oo::class create ActiveRecord {
+	    classmethod find args {
+		return "[self] called with arguments: $args"
+	    }
+	}
+	oo::class create Table {
+	    superclass ActiveRecord
+	}
+    }
+    testns::Table find foo bar
+} -cleanup {
+    namespace delete ::testns
+} -result {::testns::Table called with arguments: foo bar}
+test ooUtil-1.3 {TIP 478: classmethod must not interfere with constructor signatures} -setup {
+    oo::class create parent
+} -body {
+    oo::class create TestClass {
+	superclass oo::class parent
+	self method create {name ignore body} {
+	    next $name $body
+	}
+    }
+    TestClass create okay {} {}
+} -cleanup {
+    parent destroy
+} -result {::okay}
+test ooUtil-1.4 {TIP 478: classmethod with several inheritance levels} -setup {
+    oo::class create parent
+} -body {
+    oo::class create ActiveRecord {
+	superclass parent
+	classmethod find args {
+	    return "[self] called with arguments: $args"
+	}
+    }
+    oo::class create Table {
+	superclass ActiveRecord
+    }
+    oo::class create SubTable {
+	superclass Table
+    }
+    SubTable find foo bar
+} -cleanup {
+    parent destroy
+} -result {::SubTable called with arguments: foo bar}
+test ooUtil-1.5 {TIP 478: classmethod and instances} -setup {
+    oo::class create parent
+} -body {
+    oo::class create ActiveRecord {
+	superclass parent
+	classmethod find args {
+	    return "[self] called with arguments: $args"
+	}
+    }
+    oo::class create Table {
+	superclass ActiveRecord
+    }
+    set t [Table new]
+    $t find 1 2 3
+} -cleanup {
+    parent destroy
+} -result {::Table called with arguments: 1 2 3}
+test ooUtil-1.6 {TIP 478: classmethod and instances} -setup {
+    oo::class create parent
+} -body {
+    oo::class create ActiveRecord {
+	superclass parent
+	classmethod find args {
+	    return "[self] called with arguments: $args"
+	}
+    }
+    oo::class create Table {
+	superclass ActiveRecord
+	unexport find
+    }
+    set t [Table new]
+    $t find 1 2 3
+} -returnCodes error -cleanup {
+    parent destroy
+} -match glob -result {unknown method "find": must be *}
+test ooUtil-1.7 {} -setup {
+    oo::class create parent
+} -body {
+    oo::class create Foo {
+	superclass parent
+	classmethod bar {} {
+	    puts "This is in the class; self is [self]"
+	    my meee
+	}
+	classmethod meee {} {
+	    puts "This is meee"
+	}
+    }
+    oo::class create Grill {
+	superclass Foo
+	classmethod meee {} {
+	    puts "This is meee 2"
+	}
+    }
+    list [Foo bar] [Grill bar] [[Foo new] bar] [[Grill new] bar]
+} -cleanup {
+    parent destroy
+} -result {{} {} {} {}} -output "This is in the class; self is ::Foo\nThis is meee\nThis is in the class; self is ::Grill\nThis is meee 2\nThis is in the class; self is ::Foo\nThis is meee\nThis is in the class; self is ::Grill\nThis is meee 2\n"
+# Two tests to confirm that we correctly initialise the scripted part of TclOO
+# in child interpreters. This is slightly tricky at the implementation level
+# because we cannot count on either [source] or [open] being available.
+test ooUtil-1.8 {TIP 478: classmethod in child interp} -setup {
+    set childinterp [interp create]
+} -body {
+    $childinterp eval {
+	oo::class create ActiveRecord {
+	    classmethod find args {
+		return "[self] called with arguments: $args"
+	    }
+	}
+	oo::class create Table {
+	    superclass ActiveRecord
+	}
+	# This is confirming that this is not the parent interpreter
+	list [Table find foo bar] [info globals childinterp]
+    }
+} -cleanup {
+    interp delete $childinterp
+} -result {{::Table called with arguments: foo bar} {}}
+test ooUtil-1.9 {TIP 478: classmethod in safe child interp} -setup {
+    set safeinterp [interp create -safe]
+} -body {
+    $safeinterp eval {
+	oo::class create ActiveRecord {
+	    classmethod find args {
+		return "[self] called with arguments: $args"
+	    }
+	}
+	oo::class create Table {
+	    superclass ActiveRecord
+	}
+	# This is confirming that this is a (basic) safe interpreter
+	list [Table find foo bar] [info commands source]
+    }
+} -cleanup {
+    interp delete $safeinterp
+} -result {{::Table called with arguments: foo bar} {}}
+test ooUtil-1.10.1 {Bug 680503: classmethod shouldn't require create body} -body {
+    oo::class create C
+    oo::define C {classmethod cm {} {}}
+} -cleanup {
+    catch {C destroy}
+} -result {}
+test ooUtil-1.10.2 {Bug 680503: case that worked} -body {
+    oo::class create C {}
+    oo::define C {classmethod cm {} {}}
+} -cleanup {
+    catch {C destroy}
+} -result {}
+
+test ooUtil-2.1 {TIP 478: callback generation} -setup {
+    oo::class create parent
+} -body {
+    oo::class create c {
+	superclass parent
+	method CallMe {} { return ok,[self] }
+	method makeCall {} {
+	    return [callback CallMe]
+	}
+    }
+    c create ::context
+    set cb [context makeCall]
+    {*}$cb
+} -cleanup {
+    parent destroy
+} -result {ok,::context}
+test ooUtil-2.2 {TIP 478: callback generation} -setup {
+    oo::class create parent
+} -body {
+    oo::class create c {
+	superclass parent
+	method CallMe {a b c} { return ok,[self],$a,$b,$c }
+	method makeCall {b} {
+	    return [callback CallMe 123 $b]
+	}
+    }
+    c create ::context
+    set cb [context makeCall "a b c"]
+    {*}$cb PQR
+} -cleanup {
+    parent destroy
+} -result {ok,::context,123,a b c,PQR}
+test ooUtil-2.3 {TIP 478: callback generation, alternate name} -setup {
+    oo::class create parent
+} -body {
+    oo::class create c {
+	superclass parent
+	method CallMe {} { return ok,[self] }
+	method makeCall {} {
+	    return [mymethod CallMe]
+	}
+    }
+    c create ::context
+    set cb [context makeCall]
+    {*}$cb
+} -cleanup {
+    parent destroy
+} -result {ok,::context}
+test ooUtil-2.4 {TIP 478: callback generation, alternate name} -setup {
+    oo::class create parent
+} -body {
+    oo::class create c {
+	superclass parent
+	method CallMe {a b c} { return ok,[self],$a,$b,$c }
+	method makeCall {b} {
+	    return [mymethod CallMe 123 $b]
+	}
+    }
+    c create ::context
+    set cb [context makeCall "a b c"]
+    {*}$cb PQR
+} -cleanup {
+    parent destroy
+} -result {ok,::context,123,a b c,PQR}
+test ooUtil-2.5 {TIP 478: callbacks and method lifetime} -setup {
+    oo::class create parent
+} -body {
+    oo::class create c {
+	superclass parent
+	method makeCall {b} {
+	    return [callback CallMe 123 $b]
+	}
+    }
+    c create ::context
+    set cb [context makeCall "a b c"]
+    set result [list [catch {{*}$cb PQR} msg] $msg]
+    oo::objdefine context {
+	method CallMe {a b c} { return ok,[self],$a,$b,$c }
+    }
+    lappend result [{*}$cb PQR]
+} -cleanup {
+    parent destroy
+} -result {1 {unknown method "CallMe": must be <cloned>, destroy, eval, makeCall, unknown, variable or varname} {ok,::context,123,a b c,PQR}}
+test ooUtil-2.6 {TIP 478: callback use case} -setup {
+    oo::class create parent
+    unset -nocomplain x
+} -body {
+    oo::class create c {
+	superclass parent
+	variable count
+	constructor {var} {
+	    set count 0
+	    upvar 1 $var v
+	    trace add variable v write [callback TraceCallback]
+	}
+	method count {} {return $count}
+	method TraceCallback {name1 name2 op} {
+	    incr count
+	}
+    }
+    set o [c new x]
+    for {set x 0} {$x < 5} {incr x} {}
+    $o count
+} -cleanup {
+    unset -nocomplain x
+    parent destroy
+} -result 6
+
+test ooUtil-3.1 {TIP 478: class initialisation} -setup {
+    oo::class create parent
+    catch {rename ::foobar-3.1 {}}
+} -body {
+    oo::class create ::cls {
+	superclass parent
+	initialise {
+	    proc foobar-3.1 {} {return ok}
+	}
+	method calls {} {
+	    list [catch foobar-3.1 msg] $msg \
+		[namespace eval [info object namespace [self class]] foobar-3.1]
+	}
+    }
+    [cls new] calls
+} -cleanup {
+    parent destroy
+} -result {1 {invalid command name "foobar-3.1"} ok}
+test ooUtil-3.2 {TIP 478: class variables} -setup {
+    oo::class create parent
+    catch {rename ::foobar-3.1 {}}
+} -body {
+    oo::class create ::cls {
+	superclass parent
+	initialise {
+	    variable x 123
+	}
+	method call {} {
+	    classvariable x
+	    incr x
+	}
+    }
+    cls create a
+    cls create b
+    cls create c
+    list [a call] [b call] [c call] [a call] [b call] [c call]
+} -cleanup {
+    parent destroy
+} -result {124 125 126 127 128 129}
+test ooUtil-3.3 {TIP 478: class initialisation} -setup {
+    oo::class create parent
+    catch {rename ::foobar-3.3 {}}
+} -body {
+    oo::class create ::cls {
+	superclass parent
+	initialize {
+	    proc foobar-3.3 {} {return ok}
+	}
+	method calls {} {
+	    list [catch foobar-3.3 msg] $msg \
+		[namespace eval [info object namespace [self class]] foobar-3.3]
+	}
+    }
+    [cls new] calls
+} -cleanup {
+    parent destroy
+} -result {1 {invalid command name "foobar-3.3"} ok}
+test ooUtil-3.4 {TIP 478: class initialisation} -setup {
+    oo::class create parent
+    catch {rename ::appendToResultVar {}}
+    proc ::appendToResultVar args {
+	lappend ::result {*}$args
+    }
+    set result {}
+} -body {
+    trace add execution oo::define::initialise enter appendToResultVar
+    oo::class create ::cls {
+	superclass parent
+	initialise {proc xyzzy {} {}}
+    }
+    return $result
+} -cleanup {
+    catch {
+	trace remove execution oo::define::initialise enter appendToResultVar
+    }
+    rename ::appendToResultVar {}
+    parent destroy
+} -result {{initialise {proc xyzzy {} {}}} enter}
+
+test ooUtil-4.1 {TIP 478: singleton} -setup {
+    oo::class create parent
+} -body {
+    oo::singleton create xyz {
+	superclass parent
+    }
+    set x [xyz new]
+    set y [xyz new]
+    set z [xyz new]
+    set code [catch {$x destroy} msg]
+    set p [xyz new]
+    lappend code [catch {rename $x ""}]
+    set q [xyz new]
+    string map [list $x ONE $q TWO] [list {*}$code $x $y $z $p $q [xyz new]]
+} -cleanup {
+    parent destroy
+} -result {1 0 ONE ONE ONE ONE TWO TWO}
+test ooUtil-4.2 {TIP 478: singleton errors} -setup {
+    oo::class create parent
+} -body {
+    oo::singleton create xyz {
+	superclass parent
+    }
+    [xyz new] destroy
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {may not destroy a singleton object}
+test ooUtil-4.3 {TIP 478: singleton errors} -setup {
+    oo::class create parent
+} -body {
+    oo::singleton create xyz {
+	superclass parent
+    }
+    oo::copy [xyz new]
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {may not clone a singleton object}
+
+
+test ooUtil-5.1 {TIP 478: abstract} -setup {
+    oo::class create parent
+} -body {
+    oo::abstract create xyz {
+	superclass parent
+	method foo {} {return 123}
+    }
+    oo::class create pqr {
+	superclass xyz
+	method bar {} {return 456}
+    }
+    set codes [list [catch {xyz new}] [catch {xyz create x}] [catch {xyz createWithNamespace x y}]]
+    set x [pqr new]
+    set y [pqr create ::y]
+    lappend codes [$x foo] [$x bar] $y
+} -cleanup {
+    parent destroy
+} -result {1 1 1 123 456 ::y}
+
+test ooUtil-6.1 {TIP 478: classvariable} -setup {
+    oo::class create parent
+} -body {
+    oo::class create xyz {
+	superclass parent
+	initialise {
+	    variable x 1 y 2
+	}
+	method a {} {
+	    classvariable x
+	    incr x
+	}
+	method b {} {
+	    classvariable y
+	    incr y
+	}
+	method c {} {
+	    classvariable x y
+	    list $x $y
+	}
+    }
+    set p [xyz new]
+    set q [xyz new]
+    set result [list [$p c] [$q c]]
+    $p a
+    $q b
+    lappend result [[xyz new] c]
+} -cleanup {
+    parent destroy
+} -result {{1 2} {1 2} {2 3}}
+test ooUtil-6.2 {TIP 478: classvariable error case} -setup {
+    oo::class create parent
+} -body {
+    oo::class create xyz {
+	superclass parent
+	method a {} {
+	    classvariable x(1)
+	    incr x(1)
+	}
+    }
+    set p [xyz new]
+    set q [xyz new]
+    list [$p a] [$q a]
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad variable name "x(1)": can't create a scalar variable that looks like an array element}
+test ooUtil-6.3 {TIP 478: classvariable error case} -setup {
+    oo::class create parent
+} -body {
+    oo::class create xyz {
+	superclass parent
+	method a {} {
+	    classvariable ::x
+	    incr x
+	}
+    }
+    set p [xyz new]
+    set q [xyz new]
+    list [$p a] [$q a]
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad variable name "::x": can't create a local variable with a namespace separator in it}
+
+test ooUtil-7.1 {TIP 478: link calling pattern} -setup {
+    oo::class create parent
+} -body {
+    oo::class create cls {
+	superclass parent
+	method foo {} {return "in foo of [self]"}
+	method Bar {} {return "in bar of [self]"}
+	method Grill {} {return "in grill of [self]"}
+	export eval
+	constructor {} {
+	    link foo
+	    link {bar Bar} {grill Grill}
+	}
+    }
+    cls create o
+    o eval {list [foo] [bar] [grill]}
+} -cleanup {
+    parent destroy
+} -result {{in foo of ::o} {in bar of ::o} {in grill of ::o}}
+test ooUtil-7.2 {TIP 478: link removed when [my] disappears} -setup {
+    oo::class create parent
+} -body {
+    oo::class create cls {
+	superclass parent
+	method foo {} {return "in foo of [self]"}
+	constructor {cmd} {
+	    link [list ::$cmd foo]
+	}
+    }
+    cls create o pqr
+    list [o foo] [pqr] [rename [info object namespace o]::my {}] [catch pqr msg] $msg
+} -cleanup {
+    parent destroy
+} -result {{in foo of ::o} {in foo of ::o} {} 1 {invalid command name "pqr"}}
+
+# Tests a very weird combination of things (with a key problem locus in
+# MixinClassDelegates) that TIP 567 fixes
+test ooUtil-8.1 {TIP 567: call oo::define twice from metaclass constructor} -setup {
+    oo::class create parent
+} -body {
+    ::oo::class create A {
+	superclass parent
+    }
+    ::oo::class create B {
+	superclass ::oo::class parent
+	constructor {{definitionScript ""}} {
+	    next $definitionScript
+	    next {superclass ::A}
+	}
+    }
+    B create C {
+	superclass A
+    }
+    C create instance
+} -cleanup {
+    parent destroy
+} -result ::instance
+
+# Tests that verify issues detected with the tcllib version of the code
+test ooUtil-tcllib-ticket-b3577ed586 {test scoping of delegation in oo::class.Delegate } -setup {
+    oo::class create animal {}
+    namespace eval ::ooutiltest {
+	oo::class create pet { superclass animal }
+    }
+} -body {
+    namespace eval ::ooutiltest {
+	oo::class create dog { superclass pet }
+    }
+} -cleanup {
+    namespace delete ooutiltest
+    rename animal {}
+} -result {::ooutiltest::dog}
+test ooUtil-tcllib-ticket-fe7a0e0a3a {classmethod must not interfere with constructor signatures} -setup {
+    oo::class create TestClass {
+	superclass oo::class
+	self method create {name ignore body} {
+	    next $name $body
+	}
+    }
+} -body {
+    TestClass create okay {} {}
+} -cleanup {
+    rename TestClass {}
+} -result {::okay}
+
+cleanupTests
+return
+
+# Local Variables:
+# fill-column: 78
+# mode: tcl
+# End:

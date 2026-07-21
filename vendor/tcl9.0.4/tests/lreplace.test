@@ -1,0 +1,550 @@
+# Commands covered:  lreplace
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright © 1991-1993 The Regents of the University of California.
+# Copyright © 1994 Sun Microsystems, Inc.
+# Copyright © 1998-1999 Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+test lreplace-1.1 {lreplace command} {
+    lreplace {1 2 3 4 5} 0 0 a
+} {a 2 3 4 5}
+test lreplace-1.2 {lreplace command} {
+    lreplace {1 2 3 4 5} 1 1 a
+} {1 a 3 4 5}
+test lreplace-1.3 {lreplace command} {
+    lreplace {1 2 3 4 5} 2 2 a
+} {1 2 a 4 5}
+test lreplace-1.4 {lreplace command} {
+    lreplace {1 2 3 4 5} 3 3 a
+} {1 2 3 a 5}
+test lreplace-1.5 {lreplace command} {
+    lreplace {1 2 3 4 5} 4 4 a
+} {1 2 3 4 a}
+test lreplace-1.6 {lreplace command} {
+    lreplace {1 2 3 4 5} 4 5 a
+} {1 2 3 4 a}
+test lreplace-1.7 {lreplace command} {
+    lreplace {1 2 3 4 5} -1 -1 a
+} {a 1 2 3 4 5}
+test lreplace-1.8 {lreplace command} {
+    lreplace {1 2 3 4 5} 2 end a b c d
+} {1 2 a b c d}
+test lreplace-1.9 {lreplace command} {
+    lreplace {1 2 3 4 5} 0 3
+} {5}
+test lreplace-1.10 {lreplace command} {
+    lreplace {1 2 3 4 5} 0 4
+} {}
+test lreplace-1.11 {lreplace command} {
+    lreplace {1 2 3 4 5} 0 1
+} {3 4 5}
+test lreplace-1.12 {lreplace command} {
+    lreplace {1 2 3 4 5} 2 3
+} {1 2 5}
+test lreplace-1.13 {lreplace command} {
+    lreplace {1 2 3 4 5} 3 end
+} {1 2 3}
+test lreplace-1.14 {lreplace command} {
+    lreplace {1 2 3 4 5} -1 4 a b c
+} {a b c}
+test lreplace-1.15 {lreplace command} {
+    lreplace {a b "c c" d e f} 3 3
+} {a b {c c} e f}
+test lreplace-1.16 {lreplace command} {
+    lreplace { 1 2 3 4 5} 0 0 a
+} {a 2 3 4 5}
+test lreplace-1.17 {lreplace command} {
+    lreplace {1 2 3 4 "5 6"} 4 4 a
+} {1 2 3 4 a}
+test lreplace-1.18 {lreplace command} {
+    lreplace {1 2 3 4 {5 6}} 4 4 a
+} {1 2 3 4 a}
+test lreplace-1.19 {lreplace command} {
+    lreplace {1 2 3 4} 2 end x y z
+} {1 2 x y z}
+test lreplace-1.20 {lreplace command} {
+    lreplace {1 2 3 4} end end a
+} {1 2 3 a}
+test lreplace-1.21 {lreplace command} {
+    lreplace {1 2 3 4} end 3 a
+} {1 2 3 a}
+test lreplace-1.22 {lreplace command} {
+    lreplace {1 2 3 4} end end
+} {1 2 3}
+test lreplace-1.23 {lreplace command} {
+    lreplace {1 2 3 4} 2 -1 xy
+} {1 2 xy 3 4}
+test lreplace-1.24 {lreplace command} {
+    lreplace {1 2 3 4} end -1 z
+} {1 2 3 z 4}
+test lreplace-1.25 {lreplace command} {
+    concat \"[lreplace {\}\     hello} end end]\"
+} {"\}\ "}
+test lreplace-1.26 {lreplace command} {
+    catch {unset foo}
+    set foo {a b}
+    list [set foo [lreplace $foo end end]] \
+	[set foo [lreplace $foo end end]] \
+	[set foo [lreplace $foo end end]]
+} {a {} {}}
+test lreplace-1.27 {lreplace command} -body {
+    lreplace x 1 1
+} -result x
+test lreplace-1.28 {lreplace command} -body {
+    lreplace x 1 1 y
+} -result {x y}
+test lreplace-1.29 {lreplace command} -body {
+    lreplace x 1 1 [error foo]
+} -returnCodes 1 -result {foo}
+test lreplace-1.30 {lreplace command} -body {
+    lreplace {not {}alist} 0 0 [error foo]
+} -returnCodes 1 -result {foo}
+
+test lreplace-2.1 {lreplace errors} -body {
+    list [catch lreplace msg] $msg
+} -result {1 {wrong # args: should be "lreplace list first last ?element ...?"}}
+test lreplace-2.2 {lreplace errors} -body {
+    list [catch {lreplace a b} msg] $msg
+} -result {1 {wrong # args: should be "lreplace list first last ?element ...?"}}
+test lreplace-2.3 {lreplace errors} -body {
+    list [catch {lreplace x a 10} msg] $msg
+} -result {1 {bad index "a": must be integer?[+-]integer? or end?[+-]integer?}}
+test lreplace-2.4 {lreplace errors} -body {
+    list [catch {lreplace x 10 x} msg] $msg
+} -result {1 {bad index "x": must be integer?[+-]integer? or end?[+-]integer?}}
+test lreplace-2.5 {lreplace errors} -body {
+    list [catch {lreplace x 10 1x} msg] $msg
+} -result {1 {bad index "1x": must be integer?[+-]integer? or end?[+-]integer?}}
+test lreplace-2.6 {lreplace errors} -body {
+    list [catch {lreplace x 3 2} msg] $msg
+} -result {0 x}
+test lreplace-2.7 {lreplace errors} -body {
+    list [catch {lreplace x 2 2} msg] $msg
+} -result {0 x}
+
+test lreplace-3.1 {lreplace won't modify shared argument objects} {
+    proc p {} {
+	lreplace "a b c" 1 1 "x y"
+	return "a b c"
+    }
+    p
+} "a b c"
+
+test lreplace-4.1 {Bug ccc2c2cc98: lreplace edge case} {
+    lreplace {} 1 1
+} {}
+test lreplace-4.2 {Bug ccc2c2cc98: lreplace edge case} {
+    lreplace { } 1 1
+} {}
+test lreplace-4.3 {lreplace edge case} {
+    lreplace {1 2 3} 2 0
+} {1 2 3}
+test lreplace-4.4 {lreplace edge case} {
+    lreplace {1 2 3 4 5} 3 1
+} {1 2 3 4 5}
+test lreplace-4.5 {lreplace edge case} {
+    lreplace {1 2 3 4 5} 3 0 _
+} {1 2 3 _ 4 5}
+test lreplace-4.6 {lreplace end-x: bug a4cb3f06c4} {
+    lreplace {0 1 2 3 4} 0 end-2
+} {3 4}
+test lreplace-4.6.1 {lreplace end-x: bug a4cb3f06c4} {
+    lreplace {0 1 2 3 4} 0 end-2 a b c
+} {a b c 3 4}
+test lreplace-4.7 {lreplace with two end-indexes: increasing} {
+    lreplace {0 1 2 3 4} end-2 end-1
+} {0 1 4}
+test lreplace-4.7.1 {lreplace with two end-indexes: increasing} {
+    lreplace {0 1 2 3 4} end-2 end-1 a b c
+} {0 1 a b c 4}
+test lreplace-4.8 {lreplace with two end-indexes: equal} {
+    lreplace {0 1 2 3 4} end-2 end-2
+} {0 1 3 4}
+test lreplace-4.8.1 {lreplace with two end-indexes: equal} {
+    lreplace {0 1 2 3 4} end-2 end-2 a b c
+} {0 1 a b c 3 4}
+test lreplace-4.9 {lreplace with two end-indexes: decreasing} {
+    lreplace {0 1 2 3 4} end-2 end-3
+} {0 1 2 3 4}
+test lreplace-4.9.1 {lreplace with two end-indexes: decreasing} {
+    lreplace {0 1 2 3 4} end-2 end-3 a b c
+} {0 1 a b c 2 3 4}
+test lreplace-4.10 {lreplace with two equal indexes} {
+    lreplace {0 1 2 3 4} 2 2
+} {0 1 3 4}
+test lreplace-4.10.1 {lreplace with two equal indexes} {
+    lreplace {0 1 2 3 4} 2 2 a b c
+} {0 1 a b c 3 4}
+test lreplace-4.11 {lreplace end index first} {
+    lreplace {0 1 2 3 4} end-2 1 a b c
+} {0 1 a b c 2 3 4}
+test lreplace-4.12 {lreplace end index first} {
+    lreplace {0 1 2 3 4} end-2 2 a b c
+} {0 1 a b c 3 4}
+test lreplace-4.13 {lreplace empty list} {
+    lreplace {} 1 1 1
+} 1
+test lreplace-4.14 {lreplace empty list} {
+    lreplace {} 2 2 2
+} 2
+
+test lreplace-5.1 {compiled lreplace: Bug 47ac84309b} {
+    apply {x {
+	lreplace $x end 0
+    }} {a b c}
+} {a b c}
+test lreplace-5.2 {compiled lreplace: Bug 47ac84309b} {
+    apply {x {
+	lreplace $x end 0 A
+    }} {a b c}
+} {a b A c}
+
+# Testing for compiled behaviour. Far too many variations to check with
+# spelt-out tests. Note that this *just* checks whether the compiled version
+# and the interpreted version are the same, not whether the interpreted
+# version is correct.
+apply {{} {
+    set lss     {{} {a} {a b c} {a b c d}}
+    set ins     {{} A {A B}}
+    set idxs    {-2 -1 0 1 2 3 end-3 end-2 end-1 end end+1 end+2}
+    set lreplace lreplace
+
+    foreach ls $lss {
+	foreach a $idxs {
+	    foreach b $idxs {
+		foreach i $ins {
+		    set expected [list [catch {$lreplace $ls $a $b {*}$i} m] $m]
+		    set tester [list lreplace $ls $a $b {*}$i]
+		    set script [list catch $tester m]
+		    set script "list \[$script\] \$m"
+		    test lreplace-6.[incr n] {lreplace battery} -body \
+			[list apply [list {} $script]] -result $expected
+		}
+	    }
+	}
+    }
+}}
+
+# Essentially same tests as above but for ledit
+test ledit-1.1 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 0 0 a] $l
+} {{a 2 3 4 5} {a 2 3 4 5}}
+test ledit-1.2 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 1 1 a] $l
+} {{1 a 3 4 5} {1 a 3 4 5}}
+test ledit-1.3 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 2 2 a] $l
+} {{1 2 a 4 5} {1 2 a 4 5}}
+test ledit-1.4 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 3 3 a] $l
+} {{1 2 3 a 5} {1 2 3 a 5}}
+test ledit-1.5 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 4 4 a] $l
+} {{1 2 3 4 a} {1 2 3 4 a}}
+test ledit-1.6 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 4 5 a] $l
+} {{1 2 3 4 a} {1 2 3 4 a}}
+test ledit-1.7 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l -1 -1 a] $l
+} {{a 1 2 3 4 5} {a 1 2 3 4 5}}
+test ledit-1.8 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 2 end a b c d] $l
+} {{1 2 a b c d} {1 2 a b c d}}
+test ledit-1.9 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 0 3] $l
+} {5 5}
+test ledit-1.10 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 0 4] $l
+} {{} {}}
+test ledit-1.11 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 0 1] $l
+} {{3 4 5} {3 4 5}}
+test ledit-1.12 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 2 3] $l
+} {{1 2 5} {1 2 5}}
+test ledit-1.13 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l 3 end] $l
+} {{1 2 3} {1 2 3}}
+test ledit-1.14 {ledit command} {
+    set l {1 2 3 4 5}
+    list [ledit l -1 4 a b c] $l
+} {{a b c} {a b c}}
+test ledit-1.15 {ledit command} {
+    set l {a b "c c" d e f}
+    list [ledit l 3 3] $l
+} {{a b {c c} e f} {a b {c c} e f}}
+test ledit-1.16 {ledit command} {
+    set l { 1 2 3 4 5}
+    list [ledit l 0 0 a] $l
+} {{a 2 3 4 5} {a 2 3 4 5}}
+test ledit-1.17 {ledit command} {
+    set l {1 2 3 4 "5 6"}
+    list [ledit l 4 4 a] $l
+} {{1 2 3 4 a} {1 2 3 4 a}}
+test ledit-1.18 {ledit command} {
+    set l {1 2 3 4 {5 6}}
+    list [ledit l 4 4 a] $l
+} {{1 2 3 4 a} {1 2 3 4 a}}
+test ledit-1.19 {ledit command} {
+    set l {1 2 3 4}
+    list [ledit l 2 end x y z] $l
+} {{1 2 x y z} {1 2 x y z}}
+test ledit-1.20 {ledit command} {
+    set l {1 2 3 4}
+    list [ledit l end end a] $l
+} {{1 2 3 a} {1 2 3 a}}
+test ledit-1.21 {ledit command} {
+    set l {1 2 3 4}
+    list [ledit l end 3 a] $l
+} {{1 2 3 a} {1 2 3 a}}
+test ledit-1.22 {ledit command} {
+    set l {1 2 3 4}
+    list [ledit l end end] $l
+} {{1 2 3} {1 2 3}}
+test ledit-1.23 {ledit command} {
+    set l {1 2 3 4}
+    list [ledit l 2 -1 xy] $l
+} {{1 2 xy 3 4} {1 2 xy 3 4}}
+test ledit-1.24 {ledit command} {
+    set l {1 2 3 4}
+    list [ledit l end -1 z] $l
+} {{1 2 3 z 4} {1 2 3 z 4}}
+test ledit-1.25 {ledit command} {
+    set l {\}\     hello}
+    concat \"[ledit l end end]\" $l
+} {"\}\ " \}\ }
+test ledit-1.26 {ledit command} {
+    catch {unset foo}
+    set foo {a b}
+    list [ledit foo end end] $foo \
+	[ledit foo end end] $foo \
+	[ledit foo end end] $foo
+} {a a {} {} {} {}}
+test ledit-1.27 {lsubset command} -body {
+    set l x
+    list [ledit l 1 1] $l
+} -result {x x}
+test ledit-1.28 {ledit command} -body {
+    set l x
+    list [ledit l 1 1 y] $l
+} -result {{x y} {x y}}
+test ledit-1.29 {ledit command} -body {
+    set l x
+    ledit l 1 1 [error foo]
+} -returnCodes 1 -result {foo}
+test ledit-1.30 {ledit command} -body {
+    set l {not {}alist}
+    ledit l 0 0 [error foo]
+} -returnCodes 1 -result {foo}
+test ledit-1.31 {ledit command} -body {
+    unset -nocomplain arr
+    set arr(x) {a b}
+    list [ledit arr(x) 0 0 c] $arr(x)
+} -result {{c b} {c b}}
+
+test ledit-2.1 {ledit errors} -body {
+    list [catch ledit msg] $msg
+} -result {1 {wrong # args: should be "ledit listVar first last ?element ...?"}}
+test ledit-2.2 {ledit errors} -body {
+    unset -nocomplain x
+    list [catch {ledit l b} msg] $msg
+} -result {1 {wrong # args: should be "ledit listVar first last ?element ...?"}}
+test ledit-2.3 {ledit errors} -body {
+    set x {}
+    list [catch {ledit x a 10} msg] $msg
+} -result {1 {bad index "a": must be integer?[+-]integer? or end?[+-]integer?}}
+test ledit-2.4 {ledit errors} -body {
+    set l {}
+    list [catch {ledit l 10 x} msg] $msg
+} -result {1 {bad index "x": must be integer?[+-]integer? or end?[+-]integer?}}
+test ledit-2.5 {ledit errors} -body {
+    set l {}
+    list [catch {ledit l 10 1x} msg] $msg
+} -result {1 {bad index "1x": must be integer?[+-]integer? or end?[+-]integer?}}
+test ledit-2.6 {ledit errors} -body {
+    set l x
+    list [catch {ledit l 3 2} msg] $msg
+} -result {0 x}
+test ledit-2.7 {ledit errors} -body {
+    set l x
+    list [catch {ledit l 2 2} msg] $msg
+} -result {0 x}
+test ledit-2.8 {ledit errors} -body {
+    unset -nocomplain l
+    ledit l 0 0 x
+} -returnCodes error -result {can't read "l": no such variable}
+test ledit-2.9 {ledit errors} -body {
+    unset -nocomplain arr
+    ledit arr(x) 0 0 x
+} -returnCodes error -result {can't read "arr(x)": no such variable}
+test ledit-2.10 {ledit errors} -body {
+    unset -nocomplain arr
+    set arr(y) y
+    ledit arr(x) 0 0 x
+} -returnCodes error -result {can't read "arr(x)": no such element in array}
+
+test ledit-3.1 {ledit won't modify shared argument objects} {
+    proc p {} {
+	set l "a b c"
+	ledit l 1 1 "x y"
+	# The literal in locals table should be unmodified
+	return [list "a b c" $l]
+    }
+    p
+} {{a b c} {a {x y} c}}
+
+# Following bugs were in lreplace. Make sure ledit does not have them
+test ledit-4.1 {Bug ccc2c2cc98: lreplace edge case} {
+    set l {}
+    list [ledit l 1 1] $l
+} {{} {}}
+test ledit-4.2 {Bug ccc2c2cc98: lreplace edge case} {
+    set l { }
+    list [ledit l 1 1] $l
+} {{} {}}
+test ledit-4.3 {lreplace edge case} {
+    set l {1 2 3}
+    ledit l 2 0
+} {1 2 3}
+test ledit-4.4 {ledit edge case} {
+    set l {1 2 3 4 5}
+    list [ledit l 3 1] $l
+} {{1 2 3 4 5} {1 2 3 4 5}}
+test ledit-4.5 {ledit edge case} {
+    lreplace {1 2 3 4 5} 3 0 _
+} {1 2 3 _ 4 5}
+test ledit-4.6 {ledit end-x: bug a4cb3f06c4} {
+    set l {0 1 2 3 4}
+    list [ledit l 0 end-2] $l
+} {{3 4} {3 4}}
+test ledit-4.6.1 {ledit end-x: bug a4cb3f06c4} {
+    set l {0 1 2 3 4}
+    list [ledit l 0 end-2 a b c] $l
+} {{a b c 3 4} {a b c 3 4}}
+test ledit-4.7 {ledit with two end-indexes: increasing} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 end-1] $l
+} {{0 1 4} {0 1 4}}
+test ledit-4.7.1 {ledit with two end-indexes: increasing} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 end-1 a b c] $l
+} {{0 1 a b c 4} {0 1 a b c 4}}
+test ledit-4.8 {ledit with two end-indexes: equal} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 end-2] $l
+} {{0 1 3 4} {0 1 3 4}}
+test ledit-4.8.1 {ledit with two end-indexes: equal} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 end-2 a b c] $l
+} {{0 1 a b c 3 4} {0 1 a b c 3 4}}
+test ledit-4.9 {ledit with two end-indexes: decreasing} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 end-3] $l
+} {{0 1 2 3 4} {0 1 2 3 4}}
+test ledit-4.9.1 {ledit with two end-indexes: decreasing} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 end-3 a b c] $l
+} {{0 1 a b c 2 3 4} {0 1 a b c 2 3 4}}
+test ledit-4.10 {ledit with two equal indexes} {
+    set l {0 1 2 3 4}
+    list [ledit l 2 2] $l
+} {{0 1 3 4} {0 1 3 4}}
+test ledit-4.10.1 {ledit with two equal indexes} {
+    set l {0 1 2 3 4}
+    list [ledit l 2 2 a b c] $l
+} {{0 1 a b c 3 4} {0 1 a b c 3 4}}
+test ledit-4.11 {ledit end index first} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 1 a b c] $l
+} {{0 1 a b c 2 3 4} {0 1 a b c 2 3 4}}
+test ledit-4.12 {ledit end index first} {
+    set l {0 1 2 3 4}
+    list [ledit l end-2 2 a b c] $l
+} {{0 1 a b c 3 4} {0 1 a b c 3 4}}
+test ledit-4.13 {ledit empty list} {
+    set l {}
+    list [ledit l 1 1 1] $l
+} {1 1}
+test ledit-4.14 {ledit empty list} {
+    set l {}
+    list [ledit l 2 2 2] $l
+} {2 2}
+
+test ledit-5.1 {compiled lreplace: Bug 47ac84309b} {
+    apply {x {
+	ledit x end 0
+    }} {a b c}
+} {a b c}
+test ledit-5.2 {compiled lreplace: Bug 47ac84309b} {
+    apply {x {
+	ledit x end 0 A
+    }} {a b c}
+} {a b A c}
+
+test ledit-bug-a366c6efee {Bug [a366c6efee]} -body {
+    apply {{} {
+	set l { }
+	string length [ledit l 1 1]; # Force string generation
+	set result foo
+	append result " " bar
+    }}
+} -result "foo bar"
+
+# Testing for compiled behaviour. Far too many variations to check with
+# spelt-out tests. Note that this *just* checks whether the compiled version
+# and the interpreted version are the same, not whether the interpreted
+# version is correct.
+apply {{} {
+    set lss     {{} {a} {a b c} {a b c d}}
+    set ins     {{} A {A B}}
+    set idxs    {-2 -1 0 1 2 3 end-3 end-2 end-1 end end+1 end+2}
+    set lreplace lreplace
+
+    foreach ls $lss {
+	foreach a $idxs {
+	    foreach b $idxs {
+		foreach i $ins {
+		    set expected [list [catch {$lreplace $ls $a $b {*}$i} m] $m]
+		    set tester [list ledit ls $a $b {*}$i]
+		    set script [list catch $tester m]
+		    set script "list \[$script\] \$m"
+		    test ledit-6.[incr n] {ledit battery} -body \
+			[list apply [list {ls} $script] $ls] -result $expected
+		}
+	    }
+	}
+    }
+}}
+
+# cleanup
+catch {unset foo}
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

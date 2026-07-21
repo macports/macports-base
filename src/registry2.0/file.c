@@ -160,7 +160,8 @@ static int file_search(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
         reg_error error;
         int file_count;
         for (i = 2; i < objc;) {
-            int index, strat_index, val_length;
+            int index, strat_index;
+            Tcl_Size val_length;
             if (Tcl_GetIndexFromObj(interp, objv[i], file_props, "search key",
                         0, &index) != TCL_OK) {
                 return TCL_ERROR;

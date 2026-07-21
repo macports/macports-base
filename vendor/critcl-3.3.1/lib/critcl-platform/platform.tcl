@@ -180,6 +180,7 @@ proc ::platform::identify {} {
 	    append plat $text
 	    return "${plat}-${cpu}"
 	}
+	macos -
 	macosx {
 	    set major [lindex [split $tcl_platform(osVersion) .] 0]
 	    if {$major > 8} {
@@ -195,7 +196,7 @@ proc ::platform::identify {} {
 	            incr major -4
 		        append plat 10.$major
 	        }
-		    return "${plat}-${cpu}"
+		    return "macosx-${cpu}"
 	    }
 	}
 	linux {
@@ -337,27 +338,50 @@ proc ::platform::patterns {id} {
 		}
 	    }
 	}
-	macosx-aarch64 {
-	    lappend res macosx-arm macosx-arm64 macosx-universal2
+	macos*-aarch64 {
+	    foreach m {macosx macos} {
+	        if {${m}-aarch64 ni $res} {
+	            lappend res ${m}-aarch64
+	        }
+	        lappend res ${m}-arm ${m}-arm64
+	    }
+	    lappend res macosx-universal2
 	}
-	macosx-arm {
-	    lappend res macosx-arm64 macosx-aarch64 macosx-universal2
+	macos*-arm {
+	    foreach m {macosx macos} {
+	        if {${m}-aarch64 ni $res} {
+	            lappend res ${m}-arm
+	        }
+	        lappend res ${m}-aarch64 ${m}-arm64
+	    }
+	    lappend res macosx-universal2
 	}
-	macosx-arm64 {
-	    lappend res macosx-arm macosx-aarch64 macosx-universal2
+	macos*-arm64 {
+	    foreach m {macosx macos} {
+	        if {${m}-aarch64 ni $res} {
+	            lappend res ${m}-arm64
+	        }
+	        lappend res ${m}-arm ${m}-aarch64
+	    }
+	    lappend res macosx-universal2
 	}
 	macosx-powerpc {
 	    lappend res macosx-universal
 	}
-	macosx-x86_64 {
+	macos*-x86_64 {
+	    foreach m {macosx macos} {
+	        if {${m}-x86_64 ni $res} {
+	            lappend res ${m}-x86_64
+	        }
+	    }
 	    lappend res macosx-i386-x86_64 macosx-universal2
 	}
-	macosx-ix86 {
+	macos*-ix86 {
 	    lappend res macosx-universal macosx-i386-x86_64
 	}
-	macosx*-*    {
+	macos*-*    {
 	    # 10.5+
-	    if {[regexp {macosx([^-]*)-(.*)} $id -> v cpu]} {
+	    if {[regexp {macosx?([^-]*)-(.*)} $id -> v cpu]} {
 
 		switch -exact -- $cpu {
 		    aarch64 {

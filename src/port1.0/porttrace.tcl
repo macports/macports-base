@@ -78,10 +78,9 @@ namespace eval porttrace {
         # path component intact. This will, for instance, prevent /tmp from
         # being resolved to /private/tmp.
         # Use realpath to avoid this behavior.
-        set normalizedPath [file normalize $path]
         # realpath only works on files that exist
-        if {![catch {file type $normalizedPath}]} {
-            set normalizedPath [realpath $normalizedPath]
+        if {[catch {realpath $path} normalizedPath]} {
+            set normalizedPath [file normalize $path]
         }
         lappend sndbxlst "[string map $mapping $path]=$action"
         if {$normalizedPath ne $path} {
@@ -164,7 +163,12 @@ namespace eval porttrace {
         create_slave $workpath $fifo
 
         # Launch darwintrace.dylib.
-        set darwintracepath [file join ${portutil::autoconf::tcl_package_path} darwintrace1.0 darwintrace.dylib]
+        if {[info exists ::env(MACPORTS_SOURCETREE_DARWINTRACE)]} {
+            set darwintracepath [file join $::env(MACPORTS_SOURCETREE_DARWINTRACE) darwintrace.dylib]
+            ui_warn "Using darwintrace.dylib from MacPorts source directory $::env(MACPORTS_SOURCETREE_DARWINTRACE)"
+        } else {
+            set darwintracepath [file join ${::portutil::autoconf::tcl_package_path} darwintrace1.0 darwintrace.dylib]
+        }
 
         # Add darwintrace.dylib as last entry in DYLD_INSERT_LIBRARIES
         if {[info exists env(DYLD_INSERT_LIBRARIES)] && [string length $env(DYLD_INSERT_LIBRARIES)] > 0} {
@@ -229,8 +233,9 @@ namespace eval porttrace {
         set xcode_paths [list]
         lappend xcode_paths "/var/db/xcode_select_link"
         lappend xcode_paths "/var/db/mds"
-        # XXX Tcl9 unsafe
-        lappend xcode_paths [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
+        if {[geteuid] == 0} {
+            lappend xcode_paths [file normalize [file tildeexpand ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]]
+        }
         lappend xcode_paths "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
 
         # Allow access to developer_dir; however, if it ends with /Contents/Developer, strip
@@ -265,10 +270,14 @@ namespace eval porttrace {
         }
 
         # Grant access to the directory we use to mirror binaries under SIP
-        allow trace_sandbox ${portutil::autoconf::trace_sipworkaround_path}
+        if {[info exists ::env(DARWINTRACE_SIP_WORKAROUND_PATH)]} {
+            allow trace_sandbox $::env(DARWINTRACE_SIP_WORKAROUND_PATH)
+        } else {
+            allow trace_sandbox ${::portutil::autoconf::trace_sipworkaround_path}
+        }
         # Grant access to MacPorts' clonebin utilities
-        if {${portutil::autoconf::clonebin_path} ne ""} {
-            allow trace_sandbox ${portutil::autoconf::clonebin_path}
+        if {${::portutil::autoconf::clonebin_path} ne ""} {
+            allow trace_sandbox ${::portutil::autoconf::clonebin_path}
         }
         # Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
         # or it'll be used instead of more specific rules.

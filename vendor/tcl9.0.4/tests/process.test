@@ -1,0 +1,341 @@
+# process.test --
+#
+# This file contains a collection of tests for the tcl::process ensemble.
+# Sourcing this file into Tcl runs the tests and generates output for
+# errors.  No output means no errors were found.
+#
+# Copyright © 2017 Frederic Bonnet
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+# Utilities
+file delete [set path(test-signalfile)  [makeFile {} test-signalfile]]
+set path(test-signalfile2) [makeFile {} test-signalfile2]
+# $path(sleep) time ?filename? -- sleep for time (in ms) and stop if it gets signaled (file gets deleted)
+set path(sleep) [makeFile {
+    after [expr {[lindex $argv 0]*1000}] {set stop 1}
+    if {[set fn [lindex $::argv 1]] ne ""} {
+	close [open $fn w]
+	proc check {} {
+	    if {![file exists $::fn]} { # exit signaled
+		after 10 {set ::stop 2}
+	    }
+	    after 10 check
+	}
+	after 10 check
+    }
+    vwait stop
+    exit
+} sleep]
+
+proc wait_for_file {fn {timeout 10000}} {
+    if {![file exists $fn]} {
+	set toev [after $timeout {set found 0}]
+	proc check {fn} {
+	    if {[file exists $fn]} {
+		set ::found 1
+		return
+	    }
+	    after 10 [list check $fn]
+	}
+	after 10 [list check $fn]
+	vwait ::found
+	after cancel $toev
+	unset ::found
+    }
+    file exists $fn
+}
+proc signal_exit {fn {wait 1}} {
+    # wait for until file created if expected:
+    if {!$wait || [wait_for_file $fn]} {
+	# delete file to signal exit for child-process:
+	while {1} {
+	    if {![catch { file delete $fn } msg opt]
+		|| [lrange [dict get $opt -errorcode] 0 1] ne {POSIX EACCES}
+	    } break
+	}
+    }
+}
+
+set path(exit) [makeFile {
+    exit [lindex $argv 0]
+} exit]
+
+# Basic syntax checking
+test process-1.1 {tcl::process command basic syntax} -returnCodes error -body {
+    tcl::process
+} -result {wrong # args: should be "tcl::process subcommand ?arg ...?"}
+test process-1.2 {tcl::process subcommands} -returnCodes error -body {
+    tcl::process ?
+} -match glob -result {unknown or ambiguous subcommand "?": must be autopurge, list, purge, or status}
+
+# Autopurge flag
+# - Default state
+test process-2.1 {autopurge default} -body {
+    tcl::process autopurge
+} -result {1}
+# - Enabling autopurge
+test process-2.2 {enable autopurge} -body {
+    tcl::process autopurge true
+    tcl::process autopurge
+} -result {1}
+# - Disabling autopurge
+test process-2.3 {disable autopurge} -body {
+    tcl::process autopurge false
+    tcl::process autopurge
+} -result {0} -cleanup {tcl::process autopurge true}
+
+# Subprocess list & status
+test process-3.1 {empty subprocess list} -body {
+    llength [tcl::process list]
+} -result {0}
+test process-3.2 {empty subprocess status} -body {
+    dict size [tcl::process status]
+} -result {0}
+
+# Spawn subprocesses using [exec]
+# - One child
+test process-4.1 {exec one child} -body {
+    tcl::process autopurge 0
+    set pid [exec [interpreter] $path(exit) 0 &]
+    set list [tcl::process list]
+    set statuses [tcl::process status -wait]
+    set status [lindex [tcl::process status $pid] 1]
+    expr {
+	   [llength $list] eq 1
+	&& [lindex $list 0] eq $pid
+	&& [dict size $statuses] eq 1
+	&& [dict get $statuses $pid] eq $status
+	&& $status eq 0
+    }
+} -result {1} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+# - Two children
+test process-4.2 {exec two children in parallel} -body {
+    tcl::process autopurge 0
+    set pid1 [exec [interpreter] $path(exit) 0 &]
+    set pid2 [exec [interpreter] $path(exit) 0 &]
+    set list [tcl::process list]
+    set statuses [tcl::process status -wait]
+    set status1 [lindex [tcl::process status $pid1] 1]
+    set status2 [lindex [tcl::process status $pid2] 1]
+    expr {
+	   [llength $list] eq 2
+	&& [lsearch $list $pid1] >= 0
+	&& [lsearch $list $pid2] >= 0
+	&& [dict size $statuses] eq 2
+	&& [dict get $statuses $pid1] eq $status1
+	&& [dict get $statuses $pid2] eq $status2
+	&& $status1 eq 0
+	&& $status2 eq 0
+    }
+} -result {1} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+# - 3-stage pipe
+test process-4.3 {exec 3-stage pipe} -body {
+    tcl::process autopurge 0
+    set pids [exec \
+	  [interpreter] $path(exit) 0 \
+	| [interpreter] $path(exit) 0 \
+	| [interpreter] $path(exit) 0 \
+    &]
+    lassign $pids pid1 pid2 pid3
+    set list [tcl::process list]
+    set statuses [tcl::process status -wait]
+    set status1 [lindex [tcl::process status $pid1] 1]
+    set status2 [lindex [tcl::process status $pid2] 1]
+    set status3 [lindex [tcl::process status $pid3] 1]
+    expr {
+	   [llength $pids] eq 3
+	&& [llength $list] eq 3
+	&& [lsearch $list $pid1] >= 0
+	&& [lsearch $list $pid2] >= 0
+	&& [lsearch $list $pid3] >= 0
+	&& [dict size $statuses] eq 3
+	&& [dict get $statuses $pid1] eq $status1
+	&& [dict get $statuses $pid2] eq $status2
+	&& [dict get $statuses $pid3] eq $status3
+	&& $status1 eq 0
+	&& $status2 eq 0
+	&& $status3 eq 0
+    }
+} -result {1} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+
+# Spawn subprocesses using [open "|"]
+# - One child
+test process-5.1 {exec one child} -body {
+    tcl::process autopurge 0
+    set f [open "|\"[interpreter]\" \"$path(exit)\" 0"]
+    set pid [pid $f]
+    set list [tcl::process list]
+    set statuses [tcl::process status -wait]
+    set status [lindex [tcl::process status $pid] 1]
+    expr {
+	   [llength $list] eq 1
+	&& [lindex $list 0] eq $pid
+	&& [dict size $statuses] eq 1
+	&& [dict get $statuses $pid] eq $status
+	&& $status eq 0
+    }
+} -result {1} -cleanup {
+    close $f
+    tcl::process purge
+    tcl::process autopurge 1
+}
+# - Two children
+test process-5.2 {exec two children in parallel} -body {
+    tcl::process autopurge 0
+    set f1 [open "|\"[interpreter]\" \"$path(exit)\" 0"]
+    set f2 [open "|\"[interpreter]\" \"$path(exit)\" 0"]
+    set pid1 [pid $f1]
+    set pid2 [pid $f2]
+    set list [tcl::process list]
+    set statuses [tcl::process status -wait]
+    set status1 [lindex [tcl::process status $pid1] 1]
+    set status2 [lindex [tcl::process status $pid2] 1]
+    expr {
+	   [llength $list] eq 2
+	&& [lsearch $list $pid1] >= 0
+	&& [lsearch $list $pid2] >= 0
+	&& [dict size $statuses] eq 2
+	&& [dict get $statuses $pid1] eq $status1
+	&& [dict get $statuses $pid2] eq $status2
+	&& $status1 eq 0
+	&& $status2 eq 0
+    }
+} -result {1} -cleanup {
+    close $f1
+    close $f2
+    tcl::process purge
+    tcl::process autopurge 1
+}
+# - 3-stage pipe
+test process-5.3 {exec 3-stage pipe} -body {
+    tcl::process autopurge 0
+    set f [open "|
+	  \"[interpreter]\" \"$path(exit)\" 0
+	| \"[interpreter]\" \"$path(exit)\" 0
+	| \"[interpreter]\" \"$path(exit)\" 0
+    "]
+    set pids [pid $f]
+    lassign $pids pid1 pid2 pid3
+    set list [tcl::process list]
+    set statuses [tcl::process status -wait]
+    set status1 [lindex [tcl::process status $pid1] 1]
+    set status2 [lindex [tcl::process status $pid2] 1]
+    set status3 [lindex [tcl::process status $pid3] 1]
+    expr {
+	   [llength $pids] eq 3
+	&& [llength $list] eq 3
+	&& [lsearch $list $pid1] >= 0
+	&& [lsearch $list $pid2] >= 0
+	&& [lsearch $list $pid3] >= 0
+	&& [dict size $statuses] eq 3
+	&& [dict get $statuses $pid1] eq $status1
+	&& [dict get $statuses $pid2] eq $status2
+	&& [dict get $statuses $pid3] eq $status3
+	&& $status1 eq 0
+	&& $status2 eq 0
+	&& $status3 eq 0
+    }
+} -result {1} -cleanup {
+    close $f
+    tcl::process purge
+    tcl::process autopurge 1
+}
+
+# Async child status
+test process-6.1 {async status} -setup {
+    signal_exit $path(test-signalfile) 0; # clean signal-file
+} -body {
+    tcl::process autopurge 0
+    set pid [exec [interpreter] $path(sleep) 1 $path(test-signalfile) &]
+    set status1 [lindex [tcl::process status $pid] 1]
+    signal_exit $path(test-signalfile); # signal exit (stop sleep)
+    set status2 [lindex [tcl::process status -wait $pid] 1]
+    expr {
+	   $status1 eq {}
+	&& $status2 eq 0
+    }
+} -result {1} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+test process-6.2 {selective wait} -setup {
+    signal_exit $path(test-signalfile)  0; # clean signal-files
+    signal_exit $path(test-signalfile2) 0;
+} -body {
+    tcl::process autopurge 0
+    # Child 1 sleeps 1s
+    set pid1 [exec [interpreter] $path(sleep) 1 $path(test-signalfile) &]
+    # Child 2 sleeps 1s
+    set pid2 [exec [interpreter] $path(sleep) 2 $path(test-signalfile2) &]
+    # Initial status
+    set status1_1 [lindex [tcl::process status $pid1] 1]
+    set status1_2 [lindex [tcl::process status $pid2] 1]
+    # Wait until child 1 termination
+    signal_exit $path(test-signalfile); # signal exit for pid1 (stop sleep)
+    set status2_1 [lindex [tcl::process status -wait $pid1] 1]
+    set status2_2 [lindex [tcl::process status $pid2] 1]
+    # Wait until child 2 termination
+    signal_exit $path(test-signalfile2); # signal exit for pid2 (stop sleep)
+    set status3_2 [lindex [tcl::process status -wait $pid2] 1]
+    set status3_1 [lindex [tcl::process status $pid1] 1]
+    expr {
+	   $status1_1 eq {}
+	&& $status1_2 eq {}
+	&& $status2_1 eq 0
+	&& $status2_2 eq {}
+	&& $status3_1 eq 0
+	&& $status3_2 eq 0
+    }
+} -result {1} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+
+# Error codes
+test process-7.1 {normal exit} -body {
+    tcl::process autopurge 0
+    set pid [exec [interpreter] $path(exit) 0 &]
+    lindex [tcl::process status -wait $pid] 1
+} -result {0} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+test process-7.2 {abnormal exit} -body {
+    tcl::process autopurge 0
+    set pid [exec [interpreter] $path(exit) 1 &]
+    lindex [tcl::process status -wait $pid] 1
+} -match glob -result {1 {child process exited abnormally} {CHILDSTATUS * 1}} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+test process-7.3 {child killed} -constraints {win} -body {
+    tcl::process autopurge 0
+    set pid [exec [interpreter] $path(exit) -1 &]
+    lindex [tcl::process status -wait $pid] 1
+} -match glob -result {1 {child killed: unknown signal} {CHILDKILLED * {unknown signal} {unknown signal}}} -cleanup {
+    tcl::process purge
+    tcl::process autopurge 1
+}
+
+removeFile $path(exit)
+removeFile $path(sleep)
+
+rename wait_for_file {}
+rename signal_exit {}
+::tcltest::cleanupTests
+return

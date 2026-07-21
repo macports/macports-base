@@ -1,0 +1,145 @@
+# Commands covered:  lpop
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright © 1991-1993 The Regents of the University of California.
+# Copyright © 1994 Sun Microsystems, Inc.
+# Copyright © 1998-1999 Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+unset -nocomplain no; # following tests expecting var "no" does not exists
+test lpop-1.1 {error conditions} -returnCodes error -body {
+    lpop no
+} -result {can't read "no": no such variable}
+test lpop-1.2 {error conditions} -returnCodes error -body {
+    lpop no 0
+} -result {can't read "no": no such variable}
+test lpop-1.3 {error conditions} -returnCodes error -body {
+    set l "x {}x"
+    lpop l
+} -result {list element in braces followed by "x" instead of space}
+test lpop-1.4 {error conditions} -returnCodes error -body {
+    set l "x y"
+    lpop l -1
+} -result {index "-1" out of range}
+test lpop-1.4b {error conditions (also check SF on empty list variable, bug [234d6c811d])} -body {
+    set l "x y"
+    list [lpop l] [lpop l] [catch {lpop l} v] $v [catch {lpop l 0} v] $v $l
+} -result {y x 1 {index "end" out of range} 1 {index "0" out of range} {}}
+test lpop-1.5 {error conditions} -returnCodes error -body {
+    set l "x y z"
+    lpop l 3
+} -result {index "3" out of range} ;#-errorCode {TCL OPERATION LPOP BADINDEX}
+test lpop-1.6 {error conditions} -returnCodes error -body {
+    set l "x y"
+    lpop l end+1
+} -result {index "end+1" out of range}
+test lpop-1.7 {error conditions} -returnCodes error -body {
+    set l "x y"
+    lpop l {}
+} -match glob -result {bad index *}
+test lpop-1.8 {error conditions} -returnCodes error -body {
+    set l "x y"
+    lpop l 0 0 0 0 1
+} -result {index "1" out of range}
+test lpop-1.9 {error conditions} -returnCodes error -body {
+    set l "x y"
+    lpop l {1 0}
+} -match glob -result {bad index *}
+
+test lpop-2.1 {basic functionality} -body {
+    set l "x y z"
+    list [lpop l 0] $l
+} -result {x {y z}}
+test lpop-2.2 {basic functionality} -body {
+    set l "x y z"
+    list [lpop l 1] $l
+} -result {y {x z}}
+test lpop-2.3 {basic functionality} -body {
+    set l "x y z"
+    list [lpop l] $l
+} -result {z {x y}}
+test lpop-2.4 {basic functionality} -body {
+    set l "x y z"
+    set l2 $l
+    list [lpop l] $l $l2
+} -result {z {x y} {x y z}}
+
+test lpop-3.1 {nested} -body {
+    set l "x y"
+    set l2 $l
+    list [lpop l 0 0 0 0] $l $l2
+} -result {x {{{{}}} y} {x y}}
+test lpop-3.2 {nested} -body {
+    set l "{x y} {a b}"
+    list [lpop l 0 1] $l
+} -result {y {x {a b}}}
+test lpop-3.3 {nested} -body {
+    set l "{x y} {a b}"
+    list [lpop l 1 0] $l
+} -result {a {{x y} b}}
+
+
+
+
+
+test lpop-99.1 {performance} -constraints perf -body {
+    set l [lrepeat 10000 x]
+    set l2 $l
+    set t1 [time {
+	while {[llength $l] >= 2} {
+	    lpop l end
+	}
+    }]
+    set l [lrepeat 30000 x]
+    set l2 $l
+    set t2 [time {
+	while {[llength $l] >= 2} {
+	    lpop l end
+	}
+    }]
+    regexp {\d+} $t1 ms1
+    regexp {\d+} $t2 ms2
+    set ratio [expr {double($ms2)/$ms1}]
+    # Deleting from end should have linear performance
+    expr {$ratio > 4 ? $ratio : 4}
+} -result {4}
+
+test lpop-99.2 {performance} -constraints perf -body {
+    set l [lrepeat 10000 x]
+    set l2 $l
+    set t1 [time {
+	while {[llength $l] >= 2} {
+	    lpop l 1
+	}
+    }]
+    set l [lrepeat 30000 x]
+    set l2 $l
+    set t2 [time {
+	while {[llength $l] >= 2} {
+	    lpop l 1
+	}
+    }]
+    regexp {\d+} $t1 ms1
+    regexp {\d+} $t2 ms2
+    set ratio [expr {double($ms2)/$ms1}]
+    expr {$ratio > 10 ? $ratio : 10}
+} -result {10}
+
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

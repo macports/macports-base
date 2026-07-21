@@ -1,0 +1,28 @@
+'\"
+'\" Copyright (c) 1995-1996 Sun Microsystems, Inc.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH fconfigure n 8.3 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+fconfigure \- Set and get options on a channel
+.SH SYNOPSIS
+.nf
+\fBfconfigure \fIchannel\fR
+\fBfconfigure \fIchannel name\fR
+\fBfconfigure \fIchannel name value \fR?\fIname value ...\fR?
+.fi
+.BE
+.SH DESCRIPTION
+.PP
+The \fBfconfigure\fR command has been superceded by the \fBchan configure\fR
+command which supports the same syntax and options.
+.SH "SEE ALSO"
+chan(n)
+'\" Local Variables:
+'\" mode: nroff
+'\" End:

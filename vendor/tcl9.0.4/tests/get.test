@@ -1,0 +1,128 @@
+# Commands covered:  none
+#
+# This file contains a collection of tests for the procedures in the
+# file tclGet.c.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright © 1995-1996 Sun Microsystems, Inc.
+# Copyright © 1998-1999 Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+::tcltest::loadTestedCommands
+catch [list package require -exact tcl::test [info patchlevel]]
+
+source [file join [file dirname [info script]] tcltests.tcl]
+
+testConstraint testgetint [llength [info commands testgetint]]
+testConstraint testdoubleobj [llength [info commands testdoubleobj]]
+testConstraint longIs64bit [expr {$tcl_platform(wordSize) == 8}]
+
+test get-1.1 {Tcl_GetInt procedure} testgetint {
+    testgetint 44 { 	  22}
+} {66}
+test get-1.2 {Tcl_GetInt procedure} testgetint {
+    testgetint 44 -3
+} {41}
+test get-1.3 {Tcl_GetInt procedure} testgetint {
+    testgetint 44 +8
+} {52}
+test get-1.4 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint 44 foo} msg] $msg
+} {1 {expected integer but got "foo"}}
+test get-1.5 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint 44 {16	 }} msg] $msg
+} {0 60}
+test get-1.6 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint 44 {16	 x}} msg] $msg
+} {1 {expected integer but got a list}}
+test get-1.7 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint 44 18446744073709551616} msg] $msg $errorCode
+} {1 {integer value too large to represent} {ARITH IOVERFLOW {integer value too large to represent}}}
+test get-1.8 {Tcl_GetInt procedure} {testgetint longIs64bit} {
+    testgetint 18446744073709551614
+} {-2}
+test get-1.9 {Tcl_GetInt procedure} {testgetint longIs64bit} {
+    testgetint +18446744073709551614
+} {-2}
+test get-1.10 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint -18446744073709551614} msg] $msg $errorCode
+} {1 {integer value too large to represent} {ARITH IOVERFLOW {integer value too large to represent}}}
+test get-1.11 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint 44 4294967296} msg] $msg $errorCode
+} {1 {integer value too large to represent} {ARITH IOVERFLOW {integer value too large to represent}}}
+test get-1.12 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint 4294967294} msg] $msg
+} {0 -2}
+test get-1.13 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint +4294967294} msg] $msg
+} {0 -2}
+test get-1.14 {Tcl_GetInt procedure} testgetint {
+    list [catch {testgetint -4294967294} msg] $msg
+} {1 {integer value too large to represent}}
+
+test get-2.1 {Tcl_GetInt procedure} {
+    format %g 1.23
+} {1.23}
+test get-2.2 {Tcl_GetInt procedure} {
+    format %g { 	 1.23 	}
+} {1.23}
+test get-2.3 {Tcl_GetInt procedure} {
+    list [catch {format %g clip} msg] $msg
+} {1 {expected floating-point number but got "clip"}}
+test get-2.4 {Tcl_GetInt procedure} {
+    format %g .000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
+} 0
+
+test get-3.1 {Tcl_GetInt(FromObj), bad numbers} {
+    # SF bug #634856
+    set result ""
+    set numbers [list 1 +1 ++1 +-1 -+1 -1 --1 "- +1" "+12345678987654321" "++12345678987654321"]
+    foreach num $numbers {
+	lappend result [catch {format %ld $num} msg] $msg
+    }
+    set result
+} {0 1 0 1 1 {expected integer but got "++1"} 1 {expected integer but got "+-1"} 1 {expected integer but got "-+1"} 0 -1 1 {expected integer but got "--1"} 1 {expected integer but got a list} 0 12345678987654321 1 {expected integer but got "++12345678987654321"}}
+test get-3.2 {Tcl_GetDouble(FromObj), bad numbers} {
+    set result ""
+    set numbers [list 1.0 +1.0 ++1.0 +-1.0 -+1.0 -1.0 --1.0 "- +1.0"]
+    foreach num $numbers {
+	lappend result [catch {format %g $num} msg] $msg
+    }
+    set result
+} {0 1 0 1 1 {expected floating-point number but got "++1.0"} 1 {expected floating-point number but got "+-1.0"} 1 {expected floating-point number but got "-+1.0"} 0 -1 1 {expected floating-point number but got "--1.0"} 1 {expected floating-point number but got a list}}
+# Bug 7114ac6141
+test get-3.3 {tcl_GetInt with iffy numbers} testgetint {
+    lmap x {0 " 0" "0 " " 0 " " 0xa " " 010 " " 0o10 " " 0b10 "} {
+	catch {testgetint 44 $x} x
+	set x
+    }
+} {44 44 44 44 54 54 52 46}
+
+test get-3.4 {Tcl_GetDouble with iffy numbers} testdoubleobj {
+    lmap x {0 0.0 " .0" ".0 " " 0e0 " "09" "- 0" "-0" "0o12" "0b10" "2_0.3_4e+1_5" _1.0e+2 1_.0e+2 1._0e+2 1.0_e+2 1.0e_+2 1.0e+_2 1.0e+2_ 1_1.0e+0_2 2__2.0e+2__2 54321________} {
+	catch {testdoubleobj set 1 $x} x
+	set x
+    }
+} {0.0 0.0 0.0 0.0 0.0 9.0 {expected floating-point number but got a list} 0.0 10.0 2.0 20340000000000000.0 {expected floating-point number but got "_1.0e+2"} {expected floating-point number but got "1_.0e+2"} {expected floating-point number but got "1._0e+2"} {expected floating-point number but got "1.0_e+2"} {expected floating-point number but got "1.0e_+2"} {expected floating-point number but got "1.0e+_2"} {expected floating-point number but got "1.0e+2_"} 1100.0 2.2e+23 {expected floating-point number but got "54321________"}}
+
+test get-3.5 {tcl_GetInt with numeric whitespace (i.e. '_')} testgetint {
+    lmap x {0_0 " 1_0" "0_2 " " 3_3 " 14__23__32___4 " 0x0_a " 0b1111_1111 " 0_07 " " 0o1_0 " " 0b_1_0 " " 0_b1_0 " _33 42_ 0_x15 0_o17 0_d19 0x_b 0o_2_0 0o2__3_4} {
+	catch {testgetint $x} x
+	set x
+    }
+} {0 10 2 33 1423324 10 255 7 8 {expected integer but got " 0b_1_0 "} {expected integer but got " 0_b1_0 "} {expected integer but got "_33"} {expected integer but got "42_"} {expected integer but got "0_x15"} {expected integer but got "0_o17"} {expected integer but got "0_d19"} {expected integer but got "0x_b"} {expected integer but got "0o_2_0"} 156}
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

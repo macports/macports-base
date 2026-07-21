@@ -1,5 +1,20 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Disable BLAKE3 AVX2 support. */
+#undef BLAKE3_NO_AVX2
+
+/* Disable BLAKE3 AVX512 support. */
+#undef BLAKE3_NO_AVX512
+
+/* Disable BLAKE3 SSE2 support. */
+#undef BLAKE3_NO_SSE2
+
+/* Disable BLAKE3 SSE41 support. */
+#undef BLAKE3_NO_SSE41
+
+/* Disable BLAKE3 NEON support. */
+#undef BLAKE3_USE_NEON
+
 /* Absolute path to a directory used by darwintrace to copy SIP-protected
    files before executing */
 #undef DARWINTRACE_SIP_WORKAROUND_PATH

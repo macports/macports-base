@@ -71,7 +71,7 @@ Field selection
     *port echo category:haskell*) instead. See man:port[1] for more information
     on pseudo-port selectors.
 
-*--depends*, *--depends_build*, *--depends_extract*, *--depends_fetch*, *--depends_lib*, *--depends_run*::
+*--depends*, *--depends_build*, *--depends_extract*, *--depends_fetch*, *--depends_lib*, *--depends_patch*, *--depends_run*, *--depends_test*::
     Search for ports that depend on the port given as keyword. *--depends* is an
     alias for all other *--depends_* options combined. Note that only
     dependencies present in default variants will be found by this search. As

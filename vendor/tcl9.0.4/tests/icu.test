@@ -1,0 +1,253 @@
+# Tests for tcl::unsupported::icu
+# Contains basic sanity checks only! Commands are not intended for
+# production use.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest
+    namespace import -force ::tcltest::*
+}
+
+# Disable ICU tests in the presence of valgrind since the dl_load
+# allocations interfere with valgrind output and icu is anyways an
+# unsupported component.
+if {![testConstraint valgrind]} {
+    # Force late loading of ICU if present
+    catch {::tcl::unsupported::icu}
+    testConstraint icu [llength [info commands ::tcl::unsupported::icu::detect]]
+}
+
+namespace eval icu {
+    namespace path {::tcl::unsupported ::tcl::mathop}
+
+    test icu-detect-0 {Return list of ICU encodings} -constraints icu -body {
+	set encoders [icu detect]
+	list [in UTF-8 $encoders] [in ISO-8859-1 $encoders]
+    } -result {1 1}
+
+    test icu-detect-1 {Guess encoding} -constraints icu -body {
+	icu detect [readFile [info script]]
+    } -result ISO-8859-1
+    test icu-detect-2 {Get all possible encodings} -constraints icu -body {
+	set encodings [icu detect [readFile [info script]] -all]
+	list [in UTF-8 $encodings] [in ISO-8859-1 $encodings]
+    } -result {1 1}
+    test icu-detect-3 {error case} -constraints icu -returnCodes error -body {
+	icu detect gorp gorp gorp
+    } -result {wrong # args: should be "icu detect ?bytes ?-all??"}
+
+    test icu-tclToIcu-0 {Map Tcl encoding} -constraints icu -body {
+	# tis-620 because it is ambiguous in ICU on some platforms
+	# but should return the preferred encoding
+	lmap enc {utf-8 tis-620 shiftjis} {
+	    icu tclToIcu $enc
+	}
+    } -result {UTF-8 TIS-620 ibm-943_P15A-2003}
+    test icu-tclToIcu-1 {Map Tcl encoding - no map} -constraints icu -body {
+	# Should not raise an error
+	icu tclToIcu dummy
+    } -result {}
+    test icu-tclToIcu-2 {error case} -constraints icu -returnCodes error -body {
+	icu tclToIcu gorp gorp
+    } -result {wrong # args: should be "icu tclToIcu tclName"}
+
+    test icu-icuToTcl-0 {Map ICU encoding} -constraints icu -body {
+	lmap enc {UTF-8 TIS-620 ibm-943_P15A-2003} {
+	    icu icuToTcl $enc
+	}
+    } -result {utf-8 tis-620 cp932}
+    test icu-icuToTcl-1 {Map ICU encoding - no map} -constraints icu -body {
+	# Should not raise an error
+	icu icuToTcl dummy
+    } -result {}
+    test icu-icuToTcl-2 {error case} -constraints icu -returnCodes error -body {
+	icu icuToTcl gorp gorp
+    } -result {wrong # args: should be "icu icuToTcl icuName"}
+
+    ###
+    # icu convertfrom syntax and arg checks
+    # These tests are NOT for testing encodings, that's elsewhere.
+
+    test icu-convertfrom-error-0 {no args} -constraints icu -body {
+	icu convertfrom
+    } -result {wrong # args: should be "icu convertfrom ?-profile PROFILE? ICUENCNAME STRING"} -returnCodes error
+
+    test icu-convertfrom-error-1 {one arg} -constraints icu -body {
+	icu convertfrom ASCII
+    } -result {wrong # args: should be "icu convertfrom ?-profile PROFILE? ICUENCNAME STRING"} -returnCodes error
+
+    test icu-convertfrom-error-2 {missing option value} -constraints icu -body {
+	icu convertfrom -profile strict ASCII
+    } -result {Missing value for option -profile.} -returnCodes error
+
+    test icu-convertfrom-error-3 {-failindex} -constraints icu -body {
+	icu convertfrom -failindex failindex ASCII abc
+    } -result {Option -failindex not implemented.} -returnCodes error
+
+    test icu-convertfrom-error-4 {extra arg} -constraints icu -body {
+	icu convertfrom -profile strict extra ASCII abc
+    } -result {bad option "extra": must be -profile or -failindex} -returnCodes error
+
+    test icu-convertfrom-error-5 {invalid profile} -constraints icu -body {
+	icu convertfrom -profile tcl8 ASCII abc
+    } -result {Invalid value "tcl8" supplied for option "-profile". Must be "strict" or "replace".} -returnCodes error
+
+    test icu-convertfrom-error-6 {invalid encoding} -constraints icu -body {
+	icu convertfrom nosuchencoding abc
+    } -result {Could not get encoding converter.*} -match glob -returnCodes error
+
+    test icu-convertfrom-0 {default success} -constraints icu -body {
+	icu convertfrom UTF-8 \xf0\x9f\x98\x80
+    } -result \U1F600
+
+    test icu-convertfrom-1 {-profile strict success} -constraints icu -body {
+	icu convertfrom -profile strict UTF-8 \xf0\x9f\x98\x80
+    } -result \U1F600
+
+    test icu-convertfrom-2 {-profile replace success} -constraints icu -body {
+	icu convertfrom -profile replace UTF-8 \xf0\x9f\x98\x80
+    } -result \U1F600
+
+    test icu-convertfrom-3 {default invalid encoding} -constraints icu -body {
+	icu convertfrom UTF-8 \xC0\x80
+    } -result {ICU error while decoding. ICU error (12): U_ILLEGAL_CHAR_FOUND} -returnCodes error
+
+    test icu-convertfrom-4 {-profile strict invalid encoding} -constraints icu -body {
+	icu convertfrom -profile strict UTF-8 \xC0\x80
+    } -result {ICU error while decoding. ICU error (12): U_ILLEGAL_CHAR_FOUND} -returnCodes error
+
+    test icu-convertfrom-5 {-profile replace invalid encoding} -constraints icu -body {
+	icu convertfrom -profile replace UTF-8 \xC0\x80
+    } -result \UFFFD\uFFFD
+
+    ###
+    # icu convertto syntax and arg checks
+    # These tests are NOT for testing encodings, that's elsewhere.
+
+    test icu-convertto-error-0 {no args} -constraints icu -body {
+	icu convertto
+    } -result {wrong # args: should be "icu convertto ?-profile PROFILE? ICUENCNAME STRING"} -returnCodes error
+
+    test icu-convertto-error-1 {one arg} -constraints icu -body {
+	icu convertto ASCII
+    } -result {wrong # args: should be "icu convertto ?-profile PROFILE? ICUENCNAME STRING"} -returnCodes error
+
+    test icu-convertto-error-2 {missing option value} -constraints icu -body {
+	icu convertto -profile strict ASCII
+    } -result {Missing value for option -profile.} -returnCodes error
+
+    test icu-convertto-error-3 {-failindex} -constraints icu -body {
+	icu convertto -failindex failindex ASCII abc
+    } -result {Option -failindex not implemented.} -returnCodes error
+
+    test icu-convertto-error-4 {extra arg} -constraints icu -body {
+	icu convertto -profile strict extra ASCII abc
+    } -result {bad option "extra": must be -profile or -failindex} -returnCodes error
+
+    test icu-convertto-error-5 {invalid profile} -constraints icu -body {
+	icu convertto -profile tcl8 ASCII abc
+    } -result {Invalid value "tcl8" supplied for option "-profile". Must be "strict" or "replace".} -returnCodes error
+
+    test icu-convertto-error-6 {invalid encoding} -constraints icu -body {
+	icu convertto nosuchencoding abc
+    } -result {Could not get encoding converter.*} -match glob -returnCodes error
+
+    test icu-convertto-0 {default success} -constraints icu -body {
+	icu convertto UTF-8 \U1F600
+    } -result \xf0\x9f\x98\x80
+
+    test icu-convertto-1 {-profile strict success} -constraints icu -body {
+	icu convertto -profile strict UTF-8 \U1F600
+    } -result \xf0\x9f\x98\x80
+
+    test icu-convertto-2 {-profile replace success} -constraints icu -body {
+	icu convertto -profile replace UTF-8 \U1F600
+    } -result \xf0\x9f\x98\x80
+
+    test icu-convertto-3 {default unencodable character} -constraints icu -body {
+	icu convertto ISO-8859-2 \U1F600
+    } -result {ICU error while encoding. ICU error (10): U_INVALID_CHAR_FOUND} -returnCodes error
+
+    test icu-convertto-4 {-profile strict unencodable character} -constraints icu -body {
+	icu convertto -profile strict ISO-8859-2 \U1F600
+    } -result {ICU error while encoding. ICU error (10): U_INVALID_CHAR_FOUND} -returnCodes error
+
+    test icu-convertto-5 {-profile replace unencodable character} -constraints icu -body {
+	icu convertto -profile replace ISO-8859-2 \U1F600
+    } -result \x1A
+
+    ###
+    # Basic tests for normalization
+
+    test icu-normalize-error-0 {no args} -constraints icu -body {
+	icu normalize
+    } -result {wrong # args: should be "icu normalize ?-profile PROFILE? ?-mode MODE? STRING"} -returnCodes error
+
+    test icu-normalize-error-1 {missing -profile arg} -constraints icu -body {
+	icu normalize -profile STRING
+    } -result {Missing value for option -profile.} -returnCodes error
+
+    test icu-normalize-error-2 {missing -mode arg} -constraints icu -body {
+	icu normalize -mode STRING
+    } -result {Missing value for option -mode.} -returnCodes error
+
+    test icu-normalize-error-3 {extra arg} -constraints icu -body {
+	icu normalize -profile strict STRING arg
+    } -result {bad option "STRING": must be -profile or -mode} -returnCodes error
+
+    test icu-normalize-error-4 {invalid profile} -constraints icu -body {
+	icu normalize -profile tcl8 ASCII abc
+    } -result {Invalid value "tcl8" supplied for option "-profile". Must be "strict" or "replace".} -returnCodes error
+
+    test icu-normalize-error-6 {invalid mode} -constraints icu -body {
+	icu normalize -mode xxx ASCII abc
+    } -result {bad normalization mode "xxx": must be nfc, nfd, nfkc, or nfkd} -returnCodes error
+
+    # Source is composed
+    set s \uFB01anc\u00e9
+    test icu-normalize-0 {Default normalization} -constraints icu -body {
+	icu normalize $s
+    } -result \uFB01anc\u00e9
+    test icu-normalize-nfc-0 {NFC normalization} -constraints icu -body {
+	icu normalize -mode nfc $s
+    } -result \uFB01anc\u00e9
+    test icu-normalize-nfd-0 {NFD normalization} -constraints icu -body {
+	icu normalize -mode nfd $s
+    } -result \uFB01ance\u0301
+    test icu-normalize-nfkc-0 {NFKC normalization} -constraints icu -body {
+	icu normalize -mode nfkc $s
+    } -result fianc\u00e9
+    test icu-normalize-nfkd-0 {NFKD normalization} -constraints icu -body {
+	icu normalize -mode nfkd $s
+    } -result fiance\u0301
+
+    # Source is decomposed
+    set s \uFB01ance\u0301
+    test icu-normalize-1 {Default normalization} -constraints icu -body {
+	icu normalize $s
+    } -result \uFB01anc\u00e9
+    test icu-normalize-nfc-1 {NFC normalization} -constraints icu -body {
+	icu normalize -mode nfc $s
+    } -result \uFB01anc\u00e9
+    test icu-normalize-nfd-1 {NFD normalization} -constraints icu -body {
+	icu normalize -mode nfd $s
+    } -result \uFB01ance\u0301
+    test icu-normalize-nfkc-1 {NFKC normalization} -constraints icu -body {
+	icu normalize -mode nfkc $s
+    } -result fianc\u00e9
+    test icu-normalize-nfkd-1 {NFKD normalization} -constraints icu -body {
+	icu normalize -mode nfkd $s
+    } -result fiance\u0301
+
+    # Source has multiple diacritics with different canonical ordering
+    foreach s [list \u1EC7 e\u0302\u0323 e\u0323\u0302] {
+	test icu-normalize-nfc-2-$s {fully composed} -constraints icu -body {
+	    icu normalize -mode nfc $s
+	} -result \u1EC7
+	test icu-normalize-nfc-3-$s {fully decomposed} -constraints icu -body {
+	    icu normalize -mode nfd $s
+	} -result e\u0323\u0302
+    }
+}
+
+namespace delete icu
+::tcltest::cleanupTests

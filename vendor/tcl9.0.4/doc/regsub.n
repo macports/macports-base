@@ -1,0 +1,284 @@
+'\"
+'\" Copyright (c) 1993 The Regents of the University of California.
+'\" Copyright (c) 1994-1996 Sun Microsystems, Inc.
+'\" Copyright (c) 2000 Scriptics Corporation.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+.TH regsub n 8.3 Tcl "Tcl Built-In Commands"
+.so man.macros
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+regsub \- Perform substitutions based on regular expression pattern matching
+.SH SYNOPSIS
+\fBregsub \fR?\fIswitches\fR? \fIexp string subSpec \fR?\fIvarName\fR?
+.BE
+.SH DESCRIPTION
+.PP
+This command matches the regular expression \fIexp\fR against
+\fIstring\fR,
+and either copies \fIstring\fR to the variable whose name is
+given by \fIvarName\fR or returns \fIstring\fR if \fIvarName\fR is not
+present.
+(Regular expression matching is described in the \fBre_syntax\fR
+reference page.)
+If there is a match, then while copying \fIstring\fR to \fIvarName\fR
+(or to the result of this command if \fIvarName\fR is not present)
+the portion of \fIstring\fR that
+matched \fIexp\fR is replaced with \fIsubSpec\fR.
+If \fIsubSpec\fR contains a
+.QW &
+or
+.QW \e0 ,
+then it is replaced in the substitution with the portion of
+\fIstring\fR that matched \fIexp\fR.
+If \fIsubSpec\fR contains a
+.QW \e\fIn\fR ,
+where \fIn\fR is a digit
+between 1 and 9, then it is replaced in the substitution with
+the portion of \fIstring\fR that matched the \fIn\fR'th
+parenthesized subexpression of \fIexp\fR.
+Additional backslashes may be used in \fIsubSpec\fR to prevent special
+interpretation of
+.QW & ,
+.QW \e0 ,
+.QW \e\fIn\fR
+and backslashes.
+The use of backslashes in \fIsubSpec\fR tends to interact badly
+with the Tcl parser's use of backslashes, so it is generally
+safest to enclose \fIsubSpec\fR in braces if it includes
+backslashes.
+.LP
+If the initial arguments to \fBregsub\fR start with \fB\-\fR then
+they are treated as switches.  The following switches are
+currently supported:
+.\" OPTION: -all
+.TP
+\fB\-all\fR
+.
+All ranges in \fIstring\fR that match \fIexp\fR are found and
+substitution is performed for each of these ranges.
+Without this switch only the first
+matching range is found and substituted.
+If \fB\-all\fR is specified, then
+.QW &
+and
+.QW \e\fIn\fR
+sequences are handled for each substitution using the information
+from the corresponding match.
+.\" OPTION: -command
+.TP
+\fB\-command\fR
+.VS TIP463
+Changes the handling of \fIsubSpec\fR so that it is not treated
+as a template for a substitution string and the substrings
+.QW &
+and
+.QW \e\fIn\fR
+no longer have special meaning. Instead \fIsubSpec\fR must be a
+command prefix, that is, a non-empty list.  The substring of \fIstring\fR
+that matches \fIexp\fR, and then each substring that matches each
+capturing sub-RE within \fIexp\fR are appended as additional elements
+to that list. (The items appended to the list are much like what
+\fBregexp\fR \fB\-inline\fR would return).  The completed list is then
+evaluated as a Tcl command, and the result of that command is the
+substitution string.  Any error or exception from command evaluation
+becomes an error or exception from the \fBregsub\fR command.
+.RS
+.PP
+If \fB\-all\fR is not also given, the command callback will be invoked at most
+once (exactly when the regular expression matches). If \fB\-all\fR is given,
+the command callback will be invoked for each matched location, in sequence.
+The exact location indices that matched are not made available to the script.
+.PP
+See \fBEXAMPLES\fR below for illustrative cases.
+.RE
+.VE TIP463
+.\" OPTION: -expanded
+.TP
+\fB\-expanded\fR
+.
+Enables use of the expanded regular expression syntax where
+whitespace and comments are ignored.  This is the same as specifying
+the \fB(?x)\fR embedded option (see the \fBre_syntax\fR manual page).
+.\" OPTION: -line
+.TP
+\fB\-line\fR
+.
+Enables newline-sensitive matching.  By default, newline is a
+completely ordinary character with no special meaning.  With this flag,
+.QW [^
+bracket expressions and
+.QW .
+never match newline,
+.QW ^
+matches an empty string after any newline in addition to its normal
+function, and
+.QW $
+matches an empty string before any newline in
+addition to its normal function.  This flag is equivalent to
+specifying both \fB\-linestop\fR and \fB\-lineanchor\fR, or the
+\fB(?n)\fR embedded option (see the \fBre_syntax\fR manual page).
+.\" OPTION: -linestop
+.TP
+\fB\-linestop\fR
+.
+Changes the behavior of
+.QW [^
+bracket expressions and
+.QW .
+so that they
+stop at newlines.  This is the same as specifying the \fB(?p)\fR
+embedded option (see the \fBre_syntax\fR manual page).
+.\" OPTION: -lineanchor
+.TP
+\fB\-lineanchor\fR
+.
+Changes the behavior of
+.QW ^
+and
+.QW $
+(the
+.QW anchors )
+so they match the
+beginning and end of a line respectively.  This is the same as
+specifying the \fB(?w)\fR embedded option (see the \fBre_syntax\fR
+manual page).
+.\" OPTION: -nocase
+.TP
+\fB\-nocase\fR
+.
+Upper-case characters in \fIstring\fR will be converted to lower-case
+before matching against \fIexp\fR;  however, substitutions specified
+by \fIsubSpec\fR use the original unconverted form of \fIstring\fR.
+.\" OPTION: -start
+.TP
+\fB\-start\fI index\fR
+.
+Specifies a character index offset into the string to start
+matching the regular expression at.
+The \fIindex\fR value is interpreted in the same manner
+as the \fIindex\fR argument to \fBstring index\fR.
+When using this switch,
+.QW ^
+will not match the beginning of the line, and \eA will still
+match the start of the string at \fIindex\fR.
+\fIindex\fR will be constrained to the bounds of the input string.
+.\" OPTION: --
+.TP
+\fB\-\|\-\fR
+.
+Marks the end of switches.  The argument following this one will
+be treated as \fIexp\fR even if it starts with a \fB\-\fR.
+.PP
+If \fIvarName\fR is supplied, the command returns a count of the
+number of matching ranges that were found and replaced, otherwise the
+string after replacement is returned.
+See the manual entry for \fBregexp\fR for details on the interpretation
+of regular expressions.
+.SH EXAMPLES
+.PP
+Replace (in the string in variable \fIstring\fR) every instance of
+\fBfoo\fR which is a word by itself with \fBbar\fR:
+.PP
+.CS
+\fBregsub\fR -all {\emfoo\eM} $string bar string
+.CE
+.PP
+or (using the
+.QW "basic regular expression"
+syntax):
+.PP
+.CS
+\fBregsub\fR -all {(?b)\e<foo\e>} $string bar string
+.CE
+.PP
+Insert double-quotes around the first instance of the word
+\fBinteresting\fR, however it is capitalized.
+.PP
+.CS
+\fBregsub\fR -nocase {\eyinteresting\ey} $string {"&"} string
+.CE
+.PP
+Convert all non-ASCII and Tcl-significant characters into \eu escape
+sequences by using \fBregsub\fR and \fBsubst\fR in combination:
+.PP
+.CS
+# This RE is just a character class for almost everything "bad"
+set RE {[][{};#\e\e\e$ \er\et\eu0080-\euffff]}
+
+# We will substitute with a fragment of Tcl script in brackets
+set substitution {[format \e\e\e\eu%04x [scan "\e\e&" %c]]}
+
+# Now we apply the substitution to get a subst-string that
+# will perform the computational parts of the conversion. Note
+# that newline is handled specially through \fBstring map\fR since
+# backslash-newline is a special sequence.
+set quoted [subst [string map {\en {\e\eu000a}} \e
+        [\fBregsub\fR -all $RE $string $substitution]]]
+.CE
+.PP
+.VS TIP463
+The above operation can be done using \fBregsub \-command\fR instead, which is
+often faster. (A full pre-computed \fBstring map\fR would be faster still, but
+the cost of computing the map for a transformation as complex as this can be
+quite large.)
+.PP
+.CS
+# This RE is just a character class for everything "bad"
+set RE {[][{};#\e\e\e$\es\eu0080-\euffff]}
+
+# This encodes what the RE described above matches
+proc encodeChar {ch} {
+    # newline is handled specially since backslash-newline is a
+    # special sequence.
+    if {$ch eq "\en"} {
+        return "\e\eu000a"
+    }
+    # No point in writing this as a one-liner
+    scan $ch %c charNumber
+    format "\e\eu%04x" $charNumber
+}
+
+set quoted [\fBregsub\fR -all -command $RE $string encodeChar]
+.CE
+.PP
+Decoding a URL-encoded string using \fBregsub \-command\fR, a lambda term and
+the \fBapply\fR command.
+.PP
+.CS
+# Match one of the sequences in a URL-encoded string that needs
+# fixing, converting + to space and %XX to the right character
+# (e.g., %7e becomes ~)
+set RE {(\e+)|%([0-9A-Fa-f]{2})}
+
+# Note that -command uses a command prefix, not a command name
+set decoded [\fBregsub\fR -all -command $RE $string {apply {{- p h} {
+    # + is a special case; handle directly
+    if {$p eq "+"} {
+        return " "
+    }
+    # convert hex to a char
+    scan $h %x charNumber
+    format %c $charNumber
+}}}]
+.CE
+.PP
+The \fB\-command\fR option can also be useful for restricting the range of
+commands such as \fBstring totitle\fR:
+.PP
+.CS
+set message "the quIck broWn fOX JUmped oVer the laZy dogS..."
+puts [\fBregsub\fR -all -command {\ew+} $message {string totitle}]
+# \(-> \fIThe Quick Brown Fox Jumped Over The Lazy Dogs..\fR
+.CE
+.VE TIP463
+.SH "SEE ALSO"
+regexp(n), re_syntax(n), subst(n), string(n)
+.SH KEYWORDS
+match, pattern, quoting, regular expression, substitution
+'\" Local Variables:
+'\" mode: nroff
+'\" End:

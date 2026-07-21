@@ -70,7 +70,7 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int rval = TCL_OK;
     Tcl_Obj *listPtr;
     Tcl_Obj *const *objv_orig = objv;
-    int lobjc;
+    Tcl_Size lobjc;
     Tcl_Obj **lobjv;
 
     /* Adjust arguments to remove command name */

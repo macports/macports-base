@@ -138,7 +138,7 @@ proc ::tar::readHeader {data} {
         set $x [string trim [set $x] "\x00"]
     }
     foreach x {uid gid size mtime cksum} {
-        set $x [format %d 0[string trim [set $x] " \x00"]]
+        set $x [format %d 0o0[string trim [set $x] " \x00"]]
     }
     set mode [string trim $mode " \x00"]
 
@@ -149,7 +149,7 @@ proc ::tar::readHeader {data} {
             set $x [string trim [set $x] "\x00"]
         }
         foreach x {devmajor devminor} {
-            set $x [format %d 0[string trim [set $x] " \x00"]]
+            set $x [format %d 0o0[string trim [set $x] " \x00"]]
         }
     } elseif {$magic eq "ustar\x00"} {
         # posix tar
@@ -157,7 +157,7 @@ proc ::tar::readHeader {data} {
             set $x [string trim [set $x] "\x00"]
         }
         foreach x {devmajor devminor} {
-            set $x [format %d 0[string trim [set $x] " \x00"]]
+            set $x [format %d 0o0[string trim [set $x] " \x00"]]
         }
     } else {
         # old style tar

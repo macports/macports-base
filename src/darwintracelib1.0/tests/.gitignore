@@ -8,9 +8,11 @@ lstat
 mkdir
 open
 posix_spawn
+rmrf
 readdir
 readlink
 rename
 rmdir
 stat
 unlink
+sip-workaround-*

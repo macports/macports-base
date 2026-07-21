@@ -294,14 +294,6 @@ using the [web admin interface](https://trac.macports.org/admin/ticket/versions)
 on our Trac installation.
 
 
-### Update macports-ci-files ###
-
-A new tag and release corresponding to the base release should be
-created in the [macports-ci-files](https://github.com/macports/macports-ci-files)
-repo. This will automatically build and upload binaries of base
-suitable for use by the macports-ports CI.
-
-
 ### Verify That the Public Rsync Server Has Updated ###
 
 Verify that the MacPorts version on the public rsync server has been updated:

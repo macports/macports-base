@@ -25,7 +25,7 @@ SHLIB_LDFLAGS+= -install_name ${INSTALLDIR}/${SHLIB_NAME}
 endif
 
 test::
-	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
+	$(TEST_TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_test_autoconf.tcl ${SHLIB_NAME}

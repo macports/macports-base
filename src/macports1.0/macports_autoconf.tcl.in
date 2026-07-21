@@ -55,6 +55,7 @@ namespace eval macports::autoconf {
     variable signify_path "@prefix_expanded@/libexec/macports/bin/signify"
     variable tar_command "@TAR_CMD@"
     variable tar_path "@TAR@"
+    variable tar_k "@TAR_K@"
     variable tar_q "@TAR_Q@"
     variable tclsh_path "@TCLSH@"
     variable unzip_path "@UNZIP@"

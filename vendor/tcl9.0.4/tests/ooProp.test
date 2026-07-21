@@ -1,0 +1,885 @@
+# This file contains a collection of tests for Tcl's built-in object system,
+# specifically the parts that support configurable properties on objects.
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright © 2019-2020 Donal K. Fellows
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+package require tcl::oo 1.0.3
+package require tcltest 2
+if {"::tcltest" in [namespace children]} {
+    namespace import -force ::tcltest::*
+}
+
+test ooProp-1.1 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::readableproperties -set a b c
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::readableproperties -set f e d
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::readableproperties -set a a a
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::readableproperties -set
+    lappend result [info class properties c] [info class properties c -writable]
+} -cleanup {
+    parent destroy
+} -result {{} {} {a b c} {} {d e f} {} a {} {} {}}
+test ooProp-1.2 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set a b c
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set f e d
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set a a a
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+} -cleanup {
+    parent destroy
+} -result {{} {} {a b c} {} {d e f} {} a {} {} {}}
+test ooProp-1.3 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::writableproperties -set a b c
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::writableproperties -set f e d
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::writableproperties -set a a a
+    lappend result [info class properties c] [info class properties c -writable]
+    oo::define c ::oo::configuresupport::writableproperties -set
+    lappend result [info class properties c] [info class properties c -writable]
+} -cleanup {
+    parent destroy
+} -result {{} {} {} {a b c} {} {d e f} {} a {} {}}
+test ooProp-1.4 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set a b c
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set f e d
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set a a a
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set
+    lappend result [info class properties c -all] [info class properties c -writable -all]
+} -cleanup {
+    parent destroy
+} -result {{} {} {} {a b c} {} {d e f} {} a {} {}}
+test ooProp-1.5 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    oo::class create d {superclass c}
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set a b c
+    oo::define d ::oo::configuresupport::readableproperties -set x y z
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set f e d
+    oo::define d ::oo::configuresupport::readableproperties -set r p q
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set a a h
+    oo::define d ::oo::configuresupport::readableproperties -set g h g
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define d ::oo::configuresupport::readableproperties -set
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+} -cleanup {
+    parent destroy
+} -result {{} {} {a b c x y z} {} {d e f p q r} {} {a g h} {} {g h} {} {} {}}
+test ooProp-1.6 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    oo::class create d {superclass c}
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set a b c
+    oo::define d ::oo::configuresupport::writableproperties -set x y z
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set f e d
+    oo::define d ::oo::configuresupport::writableproperties -set r p q
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set a a h
+    oo::define d ::oo::configuresupport::writableproperties -set g h g
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+    oo::define d ::oo::configuresupport::writableproperties -set
+    lappend result [info class properties d -all] [info class properties d -writable -all]
+} -cleanup {
+    parent destroy
+} -result {{} {} {} {a b c x y z} {} {d e f p q r} {} {a g h} {} {g h} {} {}}
+test ooProp-1.7 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    c create o
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objreadableproperties -set a b c
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objreadableproperties -set f e d
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objreadableproperties -set a a h
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objreadableproperties -set
+    lappend result [info object properties o] [info object properties o -writable]
+} -cleanup {
+    parent destroy
+} -result {{} {} {a b c} {} {d e f} {} {a h} {} {} {}}
+test ooProp-1.8 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    c create o
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objwritableproperties -set a b c
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objwritableproperties -set f e d
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objwritableproperties -set a a h
+    lappend result [info object properties o] [info object properties o -writable]
+    oo::objdefine o ::oo::configuresupport::objwritableproperties -set
+    lappend result [info object properties o] [info object properties o -writable]
+} -cleanup {
+    parent destroy
+} -result {{} {} {} {a b c} {} {d e f} {} {a h} {} {}}
+test ooProp-1.9 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    oo::class create d {superclass c}
+    d create o
+    lappend result [info object properties o -all] [info object properties o -writable -all]
+    oo::define c ::oo::configuresupport::readableproperties -set a b
+    oo::define d ::oo::configuresupport::readableproperties -set c d
+    oo::objdefine o ::oo::configuresupport::objreadableproperties -set e f
+    lappend result [info object properties o -all] [info object properties o -writable -all]
+    oo::objdefine o ::oo::configuresupport::objreadableproperties -set f e d b e
+    lappend result [info object properties o -all] [info object properties o -writable -all]
+} -cleanup {
+    parent destroy
+} -result {{} {} {a b c d e f} {} {a b c d e f} {}}
+test ooProp-1.10 {TIP 558: properties: core support} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::class create c {superclass parent}
+    oo::class create d {superclass c}
+    d create o
+    lappend result [info object properties o -all] [info object properties o -writable -all]
+    oo::define c ::oo::configuresupport::writableproperties -set a b
+    oo::define d ::oo::configuresupport::writableproperties -set c d
+    oo::objdefine o ::oo::configuresupport::objwritableproperties -set e f
+    lappend result [info object properties o -all] [info object properties o -writable -all]
+    oo::objdefine o ::oo::configuresupport::objwritableproperties -set f e d b e
+    lappend result [info object properties o -all] [info object properties o -writable -all]
+} -cleanup {
+    parent destroy
+} -result {{} {} {} {a b c d e f} {} {a b c d e f}}
+test ooProp-1.11 {TIP 558: properties: core support cache} -setup {
+    oo::class create parent
+    unset -nocomplain result
+} -body {
+    oo::class create m {
+	superclass parent
+	::oo::configuresupport::readableproperties -set a
+	::oo::configuresupport::writableproperties -set c
+    }
+    oo::class create c {
+	superclass parent
+	::oo::configuresupport::readableproperties -set b
+	::oo::configuresupport::writableproperties -set d
+    }
+    c create o
+    lappend result [info object properties o -all -readable] \
+	[info object properties o -all -writable]
+    oo::objdefine o mixin m
+    lappend result [info object properties o -all -readable] \
+	[info object properties o -all -writable]
+} -cleanup {
+    parent destroy
+} -result {b d {a b} {c d}}
+
+test ooProp-2.1 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+	variable x y
+	method report {} {
+	    lappend ::result "x=$x, y=$y"
+	}
+    }
+    set pt [Point new -x 3]
+    $pt report
+    $pt configure -y 4
+    $pt report
+    lappend result [$pt configure -x],[$pt configure -y] [$pt configure]
+} -cleanup {
+    parent destroy
+} -result {{x=3, y=0} {x=3, y=4} 3,4 {-x 3 -y 4}}
+test ooProp-2.2 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+    }
+    oo::configurable create 3DPoint {
+	superclass Point
+	property z
+	constructor args {
+	    next -z 0 {*}$args
+	}
+    }
+    set pt [3DPoint new -x 3 -y 4 -z 5]
+    list [$pt configure -x],[$pt configure -y],[$pt configure -z] \
+	[$pt configure]
+} -cleanup {
+    parent destroy
+} -result {3,4,5 {-x 3 -y 4 -z 5}}
+test ooProp-2.3 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+    }
+    set pt [Point new -x 3 -y 4]
+    oo::objdefine $pt property z
+    $pt configure -z 5
+    list [$pt configure -x],[$pt configure -y],[$pt configure -z] \
+	[$pt configure]
+} -cleanup {
+    parent destroy
+} -result {3,4,5 {-x 3 -y 4 -z 5}}
+test ooProp-2.4 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+    }
+    [Point new] configure gorp
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property "gorp": must be -x or -y}
+test ooProp-2.5 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+    }
+    oo::configurable create 3DPoint {
+	superclass Point
+	property z
+	constructor args {
+	    next -z 0 {*}$args
+	}
+    }
+    [3DPoint new] configure gorp
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property "gorp": must be -x, -y, or -z}
+test ooProp-2.6 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+    }
+    [Point create p] configure -x 1 -y
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {wrong # args: should be "::p configure ?-option value ...?"}
+test ooProp-2.7 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+    unset -nocomplain msg
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y -kind writable
+	constructor args {
+	    my configure -x 0 -y 0 {*}$args
+	}
+    }
+    Point create p
+    list [p configure -y ok] [catch {p configure -y} msg] $msg
+} -cleanup {
+    parent destroy
+} -result {{} 1 {property "-y" is write only}}
+test ooProp-2.8 {TIP 558: properties: configurable class system} -setup {
+    oo::class create parent
+    unset -nocomplain msg
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x y -kind readable
+	constructor args {
+	    my configure -x 0 {*}$args
+	    variable y 123
+	}
+    }
+    Point create p
+    list [p configure] [p configure -y] [catch {p configure -y foo} msg] $msg
+} -cleanup {
+    parent destroy
+} -result {{-x 0 -y 123} 123 1 {property "-y" is read only}}
+
+test ooProp-3.1 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	variable xyz
+	property x -get {
+	    global result
+	    lappend result "get"
+	    return [lrepeat 3 $xyz]
+	} -set {
+	    global result
+	    lappend result [list set $value]
+	    set xyz [expr {$value * 3}]
+	}
+    }
+    Point create pt
+    pt configure -x 5
+    lappend result >[pt configure -x]<
+} -cleanup {
+    parent destroy
+} -result {{set 5} get {>15 15 15<}}
+test ooProp-3.2 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+    unset -nocomplain result
+    set result {}
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	variable xyz
+	property x -get {
+	    global result
+	    lappend result "get"
+	    return [lrepeat 3 $xyz]
+	} -set {
+	    global result
+	    lappend result [list set $value]
+	    set xyz [expr {$value * 3}]
+	} y -kind readable -get {return $xyz}
+    }
+    Point create pt
+    pt configure -x 5
+    lappend result >[pt configure -x]< [pt configure -y]
+} -cleanup {
+    parent destroy
+} -result {{set 5} get {>15 15 15<} 15}
+test ooProp-3.3 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	variable xyz
+	property -x -get {return $xyz}
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property name "-x": must not begin with -}
+test ooProp-3.4 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property "x y"
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property name "x y": must be a simple word}
+test ooProp-3.5 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property ::x
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property name "::x": must not contain namespace separators}
+test ooProp-3.6 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property x(
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property name "x(": must not contain parentheses}
+test ooProp-3.7 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property x)
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad property name "x)": must not contain parentheses}
+test ooProp-3.8 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property x -get
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {missing body to go with -get option}
+test ooProp-3.9 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property x -set
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {missing body to go with -set option}
+test ooProp-3.10 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property x -kind
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {missing kind value to go with -kind option}
+test ooProp-3.11 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {superclass parent}
+    oo::define Point {
+	property x -get {} -set
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {missing body to go with -set option}
+test ooProp-3.12 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {} -get {return ok}
+    }
+    [Point new] configure -x
+} -cleanup {
+    parent destroy
+} -result ok
+test ooProp-3.13 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -kind gorp
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {bad kind "gorp": must be readable, readwrite, or writable}
+test ooProp-3.14 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -k reada -g {return ok}
+    }
+    [Point new] configure -x
+} -cleanup {
+    parent destroy
+} -result ok
+test ooProp-3.15 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property {*}{
+	    x -kind writable
+	    y -get {return ok}
+	}
+    }
+    [Point new] configure -y
+} -cleanup {
+    parent destroy
+} -result ok
+test ooProp-3.16 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+    unset -nocomplain msg
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	variable xy
+	property x -kind readable -get {return $xy}
+	property x -kind writable -set {set xy $value}
+    }
+    Point create pt
+    list [catch {
+	pt configure -x ok
+    } msg] $msg [catch {
+	pt configure -x
+    } msg] $msg [catch {
+	pt configure -y 1
+    } msg] $msg
+} -cleanup {
+    parent destroy
+} -result {0 {} 1 {property "-x" is write only} 1 {bad property "-y": must be -x}}
+test ooProp-3.17 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {return -code break}
+    }
+    while 1 {
+	[Point new] configure -x
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {property getter for -x did a break}
+test ooProp-3.18 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {return -code break}
+    }
+    while 1 {
+	[Point new] configure
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {property getter for -x did a break}
+test ooProp-3.19 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {error "boo"}
+    }
+    while 1 {
+	[Point new] configure -x
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result boo
+test ooProp-3.20 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {error "boo"}
+    }
+    while 1 {
+	[Point new] configure
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result boo
+test ooProp-3.21 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {return -code continue}
+    }
+    while 1 {
+	[Point new] configure -x
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {property getter for -x did a continue}
+test ooProp-3.22 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {return -level 2 ok}
+    }
+    apply {{} {
+	[Point new] configure
+	return bad
+    }}
+} -cleanup {
+    parent destroy
+} -result ok
+test ooProp-3.23 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -get {return -level 2 ok}
+    }
+    apply {{} {
+	[Point new] configure -x
+	return bad
+    }}
+} -cleanup {
+    parent destroy
+} -result ok
+test ooProp-3.24 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -set {return -code break}
+    }
+    while 1 {
+	[Point new] configure -x gorp
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {property setter for -x did a break}
+test ooProp-3.25 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -set {return -code continue}
+    }
+    while 1 {
+	[Point new] configure -x gorp
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result {property setter for -x did a continue}
+test ooProp-3.26 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -set {error "boo"}
+    }
+    while 1 {
+	[Point new] configure -x gorp
+	break
+    }
+} -returnCodes error -cleanup {
+    parent destroy
+} -result boo
+test ooProp-3.27 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x -set {return -level 2 ok}
+    }
+    apply {{} {
+	[Point new] configure -x gorp
+	return bad
+    }}
+} -cleanup {
+    parent destroy
+} -result ok
+test ooProp-3.28 {TIP 558: properties: declaration semantics} -setup {
+    oo::class create parent
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	private property var
+    }
+    Point create pt
+    pt configure -var ok
+    pt configure -var
+} -cleanup {
+    parent destroy
+} -result ok
+
+test ooProp-4.1 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {superclass parent}
+    list [catch {oo::define Point {property -x}} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {bad property name "-x": must not begin with -
+    while executing
+"property -x"
+    (in definition script for class "::Point" line 1)
+    invoked from within
+"oo::define Point {property -x}"} {TCL OO PROPERTY_FORMAT}}
+test ooProp-4.2 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {superclass parent}
+    list [catch {oo::define Point {property x -get}} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {missing body to go with -get option
+    while executing
+"property x -get"
+    (in definition script for class "::Point" line 1)
+    invoked from within
+"oo::define Point {property x -get}"} {TCL WRONGARGS}}
+test ooProp-4.3 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {superclass parent}
+    list [catch {oo::define Point {property x -set}} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {missing body to go with -set option
+    while executing
+"property x -set"
+    (in definition script for class "::Point" line 1)
+    invoked from within
+"oo::define Point {property x -set}"} {TCL WRONGARGS}}
+test ooProp-4.4 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {superclass parent}
+    list [catch {oo::define Point {property x -kind}} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {missing kind value to go with -kind option
+    while executing
+"property x -kind"
+    (in definition script for class "::Point" line 1)
+    invoked from within
+"oo::define Point {property x -kind}"} {TCL WRONGARGS}}
+test ooProp-4.5 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {superclass parent}
+    list [catch {oo::define Point {property x -kind gorp}} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {bad kind "gorp": must be readable, readwrite, or writable
+    while executing
+"property x -kind gorp"
+    (in definition script for class "::Point" line 1)
+    invoked from within
+"oo::define Point {property x -kind gorp}"} {TCL LOOKUP INDEX kind gorp}}
+test ooProp-4.6 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {superclass parent}
+    list [catch {oo::define Point {property x -gorp}} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {bad option "-gorp": must be -get, -kind, or -set
+    while executing
+"property x -gorp"
+    (in definition script for class "::Point" line 1)
+    invoked from within
+"oo::define Point {property x -gorp}"} {TCL LOOKUP INDEX option -gorp}}
+test ooProp-4.7 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x
+    }
+    Point create pt
+    list [catch {pt configure -gorp} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {bad property "-gorp": must be -x
+    while executing
+"pt configure -gorp"} {TCL LOOKUP INDEX property -gorp}}
+test ooProp-4.8 {TIP 558: properties: error details} -setup {
+    oo::class create parent
+    unset -nocomplain msg opt
+} -body {
+    oo::configurable create Point {
+	superclass parent
+	property x
+    }
+    Point create pt
+    list [catch {pt configure -gorp blarg} msg opt] \
+	[dict get $opt -errorinfo] [dict get $opt -errorcode]
+} -cleanup {
+    parent destroy
+} -result {1 {bad property "-gorp": must be -x
+    while executing
+"pt configure -gorp blarg"} {TCL LOOKUP INDEX property -gorp}}
+
+cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

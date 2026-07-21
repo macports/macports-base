@@ -1,0 +1,20 @@
+# clock-no-tzdata.test --
+#
+# This test file covers the 'clock' command without tzdata in tcl-library.
+#
+# See ticket [51aa53616067cb63] and file "clock.test" for more information.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest
+    namespace import -force ::tcltest::*
+}
+
+if {[testConstraint clock-no-tzdata]} {
+    puts [outputChannel] "  No tzdata tests ..."
+    # mock-up directory tzdata isn't unavailable in tcl-library:
+    clock scan 0 -gmt 1; # auto load
+    append ::tcl::clock::DataDir .no-tzdata
+    # inline clock tests:
+    source [file join [file dirname [info script]] clock-ivm.test]
+    source [file join [file dirname [info script]] clock.test]
+}

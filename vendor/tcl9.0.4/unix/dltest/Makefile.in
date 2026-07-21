@@ -1,0 +1,174 @@
+# This Makefile is used to create several test cases for Tcl's load
+# command.  It also illustrates how to take advantage of configuration
+# exported by Tcl to set up Makefiles for shared libraries.
+
+CC = @CC@
+LIBS =			@TCL_BUILD_STUB_LIB_SPEC@ @TCL_LIBS@
+AC_FLAGS =		@DEFS@
+SHLIB_LD =		@SHLIB_LD@
+SHLIB_CFLAGS =		@SHLIB_CFLAGS@
+SHLIB_LD_LIBS =		@SHLIB_LD_LIBS@
+SHLIB_SUFFIX =		@SHLIB_SUFFIX@
+DLTEST_LD =		@DLTEST_LD@
+DLTEST_SUFFIX =		@DLTEST_SUFFIX@
+SRC_DIR =		@TCL_SRC_DIR@/unix/dltest
+BUILD_DIR =		@builddir@
+TCL_VERSION=		@TCL_VERSION@
+
+CFLAGS_DEBUG		= @CFLAGS_DEBUG@
+CFLAGS_OPTIMIZE		= @CFLAGS_OPTIMIZE@
+CFLAGS			= @CFLAGS_DEFAULT@ @CFLAGS@ -DTCL_NO_DEPRECATED=1 -Wall -Wextra -Wc++-compat -Wconversion -Werror
+LDFLAGS_DEBUG		= @LDFLAGS_DEBUG@
+LDFLAGS_OPTIMIZE	= @LDFLAGS_OPTIMIZE@
+LDFLAGS			= @LDFLAGS_DEFAULT@ @LDFLAGS@
+
+CC_SWITCHES = $(CFLAGS) -I${SRC_DIR}/../../generic \
+	${SHLIB_CFLAGS} -DUSE_TCL_STUBS ${AC_FLAGS}
+
+all: embtest tcl9pkga${SHLIB_SUFFIX} tcl9pkgb${SHLIB_SUFFIX} tcl9pkgc${SHLIB_SUFFIX} \
+	tcl9pkgd${SHLIB_SUFFIX} tcl9pkge${SHLIB_SUFFIX} tcl9pkgt${SHLIB_SUFFIX} tcl9pkgua${SHLIB_SUFFIX} \
+	tcl9pkgooa${SHLIB_SUFFIX} pkga${SHLIB_SUFFIX} pkgb${SHLIB_SUFFIX} pkgc${SHLIB_SUFFIX}  pkgt${SHLIB_SUFFIX}
+	@if test -n "$(DLTEST_SUFFIX)"; then $(MAKE) dltest_suffix; fi
+	@touch ../dltest.marker
+
+dltest_suffix: tcl9pkga${DLTEST_SUFFIX} tcl9pkgb${DLTEST_SUFFIX} tcl9pkgc${DLTEST_SUFFIX} \
+	tcl9pkgd${DLTEST_SUFFIX} tcl9pkge${DLTEST_SUFFIX} tcl9pkgt${DLTEST_SUFFIX} tcl9pkgua${DLTEST_SUFFIX} \
+	tcl9pkgooa${DLTEST_SUFFIX} pkga${DLTEST_SUFFIX} pkgb${DLTEST_SUFFIX} pkgc${DLTEST_SUFFIX} pkgt${DLTEST_SUFFIX}
+	@touch ../dltest.marker
+
+embtest.o: $(SRC_DIR)/embtest.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/embtest.c
+
+pkgπ.o: $(SRC_DIR)/pkgπ.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgπ.c
+
+pkga.o: $(SRC_DIR)/pkga.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkga.c
+
+pkgb.o: $(SRC_DIR)/pkgb.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgb.c
+
+pkgc.o: $(SRC_DIR)/pkgc.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgc.c
+
+pkgt.o: $(SRC_DIR)/pkgt.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgt.c
+
+tcl8pkga.o: $(SRC_DIR)/pkga.c
+	$(CC) -o $@ -c $(CC_SWITCHES) -DTCL_MAJOR_VERSION=8 $(SRC_DIR)/pkga.c
+
+tcl8pkgb.o: $(SRC_DIR)/pkgb.c
+	$(CC) -o $@ -c $(CC_SWITCHES) -DTCL_MAJOR_VERSION=8 $(SRC_DIR)/pkgb.c
+
+tcl8pkgc.o: $(SRC_DIR)/pkgc.c
+	$(CC) -o $@ -c $(CC_SWITCHES) -DTCL_MAJOR_VERSION=8 $(SRC_DIR)/pkgc.c
+
+tcl8pkgt.o: $(SRC_DIR)/pkgt.c
+	$(CC) -o $@ -c $(CC_SWITCHES) -DTCL_MAJOR_VERSION=8 $(SRC_DIR)/pkgt.c
+
+pkgd.o: $(SRC_DIR)/pkgd.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgd.c
+
+pkge.o: $(SRC_DIR)/pkge.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkge.c
+
+pkgua.o: $(SRC_DIR)/pkgua.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgua.c
+
+pkgooa.o: $(SRC_DIR)/pkgooa.c
+	$(CC) -c $(CC_SWITCHES) $(SRC_DIR)/pkgooa.c
+
+embtest: embtest.o
+	$(CC) $(CC_SWITCHES) -o $@ embtest.o ${SHLIB_LD_LIBS}
+
+tcl9pkgπ${SHLIB_SUFFIX}: pkgπ.o
+	${SHLIB_LD} -o $@ pkgπ.o ${SHLIB_LD_LIBS}
+
+tcl9pkga${SHLIB_SUFFIX}: pkga.o
+	${SHLIB_LD} -o $@ pkga.o ${SHLIB_LD_LIBS}
+
+tcl9pkgb${SHLIB_SUFFIX}: pkgb.o
+	${SHLIB_LD} -o $@ pkgb.o ${SHLIB_LD_LIBS}
+
+tcl9pkgc${SHLIB_SUFFIX}: pkgc.o
+	${SHLIB_LD} -o $@ pkgc.o ${SHLIB_LD_LIBS}
+
+tcl9pkgt${SHLIB_SUFFIX}: pkgt.o
+	${SHLIB_LD} -o $@ pkgt.o ${SHLIB_LD_LIBS}
+
+pkga${SHLIB_SUFFIX}: tcl8pkga.o
+	${SHLIB_LD} -o $@ tcl8pkga.o ${SHLIB_LD_LIBS}
+
+pkgb${SHLIB_SUFFIX}: tcl8pkgb.o
+	${SHLIB_LD} -o $@ tcl8pkgb.o ${SHLIB_LD_LIBS}
+
+pkgc${SHLIB_SUFFIX}: tcl8pkgc.o
+	${SHLIB_LD} -o $@ tcl8pkgc.o ${SHLIB_LD_LIBS}
+
+pkgt${SHLIB_SUFFIX}: tcl8pkgt.o
+	${SHLIB_LD} -o $@ tcl8pkgt.o ${SHLIB_LD_LIBS}
+
+tcl9pkgd${SHLIB_SUFFIX}: pkgd.o
+	${SHLIB_LD} -o $@ pkgd.o ${SHLIB_LD_LIBS}
+
+tcl9pkge${SHLIB_SUFFIX}: pkge.o
+	${SHLIB_LD} -o $@ pkge.o ${SHLIB_LD_LIBS}
+
+tcl9pkgua${SHLIB_SUFFIX}: pkgua.o
+	${SHLIB_LD} -o $@ pkgua.o ${SHLIB_LD_LIBS}
+
+tcl9pkgooa${SHLIB_SUFFIX}: pkgooa.o
+	${SHLIB_LD} -o $@ pkgooa.o ${SHLIB_LD_LIBS}
+
+tcl9pkgπ${DLTEST_SUFFIX}: pkgπ.o
+	${DLTEST_LD} -o $@ pkgπ.o ${SHLIB_LD_LIBS}
+
+tcl9pkga${DLTEST_SUFFIX}: pkga.o
+	${DLTEST_LD} -o $@ pkga.o ${SHLIB_LD_LIBS}
+
+tcl9pkgb${DLTEST_SUFFIX}: pkgb.o
+	${DLTEST_LD} -o $@ pkgb.o ${SHLIB_LD_LIBS}
+
+tcl9pkgc${DLTEST_SUFFIX}: pkgc.o
+	${DLTEST_LD} -o $@ pkgc.o ${SHLIB_LD_LIBS}
+
+tcl9pkgt${DLTEST_SUFFIX}: pkgt.o
+	${DLTEST_LD} -o $@ pkgt.o ${SHLIB_LD_LIBS}
+
+pkga${DLTEST_SUFFIX}: tcl8pkga.o
+	${DLTEST_LD} -o $@ tcl8pkga.o ${SHLIB_LD_LIBS}
+
+pkgb${DLTEST_SUFFIX}: tcl8pkgb.o
+	${DLTEST_LD} -o $@ tcl8pkgb.o ${SHLIB_LD_LIBS}
+
+pkgc${DLTEST_SUFFIX}: tcl8pkgc.o
+	${DLTEST_LD} -o $@ tcl8pkgc.o ${SHLIB_LD_LIBS}
+
+pkgt${DLTEST_SUFFIX}: tcl8pkgt.o
+	${DLTEST_LD} -o $@ tcl8pkgt.o ${SHLIB_LD_LIBS}
+
+tcl9pkgd${DLTEST_SUFFIX}: pkgd.o
+	${DLTEST_LD} -o $@ pkgd.o ${SHLIB_LD_LIBS}
+
+tcl9pkge${DLTEST_SUFFIX}: pkge.o
+	${DLTEST_LD} -o $@ pkge.o ${SHLIB_LD_LIBS}
+
+tcl9pkgua${DLTEST_SUFFIX}: pkgua.o
+	${DLTEST_LD} -o $@ pkgua.o ${SHLIB_LD_LIBS}
+
+tcl9pkgooa${DLTEST_SUFFIX}: pkgooa.o
+	${DLTEST_LD} -o $@ pkgooa.o ${SHLIB_LD_LIBS}
+
+clean:
+	rm -f embtest *.o lib.exp ../dltest.marker
+	@if test "$(SHLIB_SUFFIX)" != ""; then \
+	    echo "rm -f *${SHLIB_SUFFIX}" ; \
+	    rm -f *${SHLIB_SUFFIX} ; \
+	fi
+	@if test "$(DLTEST_SUFFIX)" != ""; then \
+	    echo "rm -f *${DLTEST_SUFFIX}" ; \
+	    rm -f *${DLTEST_SUFFIX} ; \
+	fi
+
+distclean: clean
+	rm -f Makefile

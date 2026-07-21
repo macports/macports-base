@@ -1,0 +1,1182 @@
+# Test cases for large sized data
+#
+# Copyright © 2023 Ashok P. Nadkarni
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+# These are very rudimentary tests for large size arguments to commands.
+# They do not exercise all possible code paths such as shared/unshared Tcl_Objs,
+# literal/variable arguments etc.
+# They do however test compiled and uncompiled execution.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest
+
+    namespace import -force ::tcltest::*
+}
+
+::tcltest::loadTestedCommands
+catch [list package require -exact tcl::test [info patchlevel]]
+source [file join [file dirname [info script]] tcltests.tcl]
+
+#
+# bigtest and bigtestRO (RO->read only) generate compiled and uncompiled
+# versions of the given test script. The difference between the two is
+# that bigtest generates separate test instances for the two cases while
+# bigtestRO generates a single test case covering both. The latter can
+# only be used when operands are not modified and when combining tests
+# does not consume too much additional memory.
+
+# Wrapper to generate compiled and uncompiled cases for a test. If $args does
+# not contain a -body key, $comment is treated as the test body
+proc bigtest {id comment result args} {
+    if {[dict exists $args -body]} {
+	set body [dict get $args -body]
+	dict unset args -body
+    } else {
+	set body $comment
+    }
+    dict lappend args -constraints bigdata
+
+    uplevel 1 [list test $id.uncompiled "$comment (uncompiled)" \
+		   -body [list testevalex $body] \
+		   -result $result \
+		   {*}$args]
+
+    uplevel 1 [list test $id.compiled-script "$comment (compiled script)" \
+		   -body [list try $body] \
+		   -result $result \
+		   {*}$args]
+
+    return
+
+    # TODO - is this proc compilation required separately from the compile-script above?
+    dict append args -setup \n[list proc testxproc {} $body]
+    dict append args -cleanup "\nrename testxproc {}"
+    uplevel 1 [list test $id.compiled-proc "$comment (compiled proc)" \
+		   -body {testxproc} \
+		   -result $result \
+		   {*}$args]
+}
+
+# Like bigtest except that both compiled and uncompiled are combined into one
+# test using the same inout argument. This saves time but for obvious reasons
+# should only be used when the input argument is not modified.
+proc bigtestRO {id comment result args} {
+    if {[dict exists $args -body]} {
+	set body [dict get $args -body]
+	dict unset args -body
+    } else {
+	set body $comment
+    }
+    dict lappend args -constraints bigdata
+
+    set wrapper ""
+    set body "{$body}"
+    append wrapper "set uncompiled_result \[testevalex $body]" \n
+    append wrapper "set compiled_result \[try $body]" \n
+    append wrapper {list $uncompiled_result $compiled_result}
+    uplevel 1 [list test $id.uncompiled,compiled {$comment} \
+		   -body $wrapper \
+		   -result [list $result $result] \
+		   {*}$args]
+    return
+}
+
+interp alias {} bigClean {} unset -nocomplain s s1 s2 bin bin1 bin2 l l1 l2
+
+interp alias {} bigString {} testbigdata string
+interp alias {} bigBinary {} testbigdata bytearray
+interp alias {} bigList {} testbigdata list
+proc bigPatLen {} {
+    proc bigPatLen {} "return [string length [testbigdata string]]"
+    bigPatLen
+}
+
+# Returns list of expected elements at the indices specified
+proc bigStringIndices {indices} {
+    set pat [testbigdata string]
+    set patlen [string length $pat]
+    lmap idx $indices {
+	string index $pat [expr {$idx%$patlen}]
+    }
+}
+
+# Returns the largest multiple of the pattern length that is less than $limit
+proc bigPatlenMultiple {limit} {
+    set patlen [bigPatLen]
+    return [expr {($limit/$patlen)*$patlen}]
+}
+
+set ::bigLengths(intmax) 0x7fffffff
+set ::bigLengths(uintmax) 0xffffffff
+# Some tests are more convenient if operands are multiple of pattern length
+if {[testConstraint bigdata]} {
+set ::bigLengths(patlenmultiple) [bigPatlenMultiple $::bigLengths(intmax)]
+set ::bigLengths(upatlenmultiple) [bigPatlenMultiple $::bigLengths(uintmax)]
+}
+
+#
+# script limits
+bigtestRO script-length-bigdata-1 {Test script length limit} b -body {
+    try [string cat [string repeat " " 0x7ffffff7] "set a b"]
+}
+# TODO - different behaviour between compiled and uncompiled
+test script-length-bigdata-2.compiled {Test script length limit} -body {
+    try [string cat [string repeat " " 0x7ffffff8] "set a b"]
+} -constraints {
+    bigdata
+} -result {Script length 2147483647 exceeds max permitted length 2147483646.} -returnCodes error
+test script-length-bigdata-2.uncompiled {Test script length limit} -body {
+    testevalex [string cat [string repeat " " 0x7ffffff8] "set a b"]
+} -constraints {
+    bigdata
+ } -result b
+test script-bytecode-length-bigdata-1 {Test bytecode length limit} -body {
+    # Note we need to exceed bytecode limit without exceeding script char limit
+    set s [string repeat {{*}$x;} [expr 0x7fffffff/6]]
+    catch $s r e
+} -cleanup {
+    bigClean
+} -constraints panicInEnterCmdStartData
+
+#
+# string cat
+bigtest string-cat-bigdata-1 "string cat large small result > INT_MAX" 1 -body {
+    string equal \
+	[string cat [bigString $::bigLengths(patlenmultiple)] [bigString]] \
+	[bigString [expr {[bigPatLen]+$::bigLengths(patlenmultiple)}]]
+}
+bigtest string-cat-bigdata-2 "string cat small large result > INT_MAX" 1 -body {
+    string equal \
+	[string cat [bigString] [bigString $::bigLengths(patlenmultiple)]] \
+	[bigString [expr {[bigPatLen]+$::bigLengths(patlenmultiple)}]]
+}
+bigtest string-cat-bigdata-3 "string cat result > UINT_MAX" 1 -body {
+    set s [bigString $::bigLengths(patlenmultiple)]
+    string equal \
+	[string cat $s [bigString] $s] \
+	[bigString [expr {[bigPatLen]+2*$::bigLengths(patlenmultiple)}]]
+}
+
+#
+# string compare/equal
+bigtestRO string-equal/compare-bigdata-1 "string compare/equal equal strings" {0 1} -body {
+    list [string compare $s1 $s2] [string equal $s1 $s2]
+} -setup {
+    set s1 [bigString 0x100000000]
+    set s2 [bigString 0x100000000]; # Separate so Tcl_Obj is not the same
+} -cleanup {
+    bigClean
+}
+bigtestRO string-equal/compare-bigdata-2 "string compare/equal -length unequal strings" {-1 0 0 1} -body {
+    # Also tests lengths do not wrap
+    set result {}
+    lappend result [string compare $s1 $s2]
+    lappend result [string equal $s1 $s2]
+    # Check lengths > UINT_MAX
+    # Also that lengths do not truncate to sizeof(int)
+    lappend result [string compare -length 0x100000000 $s1 $s2]
+    lappend result [string equal -length 0x100000000 $s1 $s2]
+} -setup {
+    set s1 [bigString 0x100000001]
+    set s2 [bigString 0x100000001 0x100000000]; # Differs in last char
+} -cleanup {
+    bigClean
+}
+
+#
+# string first
+bigtestRO string-first-bigdata-1 "string first > INT_MAX" {2147483648 -1 2147483650 1} -body {
+    list \
+	[string first X $s] \
+	[string first Y $s] \
+	[string first 0 $s 0x80000000] \
+	[string first 1 $s end-0x80000010]
+} -setup {
+    set s [bigString 0x8000000a 0x80000000]
+} -cleanup {
+    bigClean
+}
+
+bigtestRO string-first-bigdata-2 "string first > UINT_MAX" {4294967296 -1 4294967300 1} -body {
+    list \
+	[string first X $s] \
+	[string first Y $s] \
+	[string first 0 $s 0x100000000] \
+	[string first 1 $s end-0x100000010]
+} -setup {
+    set s [bigString 0x10000000a 0x100000000]
+} -cleanup {
+    bigClean
+}
+
+bigtestRO string-first-bigdata-3 "string first - long needle" 10 -body {
+    string first $needle $s
+} -setup {
+    set s [bigString 0x10000000a 0]
+    set needle [bigString 0x100000000]
+} -cleanup {
+   bigClean needle
+}
+
+#
+# string index
+bigtestRO string-index-bigdata-1 "string index" {6 7 5 {} 5 4 {} 9 {}} -body {
+    list \
+	[string index $s 0x100000000] \
+	[string index $s 0x100000000+1] \
+	[string index $s 0x100000000-1] \
+	[string index $s 0x10000000a] \
+	[string index $s end] \
+	[string index $s end-1] \
+	[string index $s end+1] \
+	[string index $s end-0x100000000] \
+	[string index $s end-0x10000000a]
+} -setup {
+    set s [bigString 0x10000000a]
+} -cleanup {
+    bigClean
+}
+
+#
+# string insert
+bigtestRO string-insert-bigdata-1 "string insert" 1 -body {
+    # Note insert at multiple of 10 to enable comparison against generated string
+    string equal [string insert [bigString 4294967312] 4294967310 "0123456789"] [bigString 4294967322]
+}
+bigtestRO string-insert-bigdata-2 "string insert" 1 -body {
+    string equal [string insert [bigString 4294967312] 10 "0123456789"] [bigString 4294967322]
+}
+
+#
+# string is
+bigtestRO string-is-bigdata-1 "string is" {1 0 0 4294967296} -body {
+    # TODO - add the other "is" classes
+    unset -nocomplain failat result
+    lappend result [string is alnum -failindex failat $s] [info exists failat]
+    lappend result [string is digit -failindex failat $s] $failat
+} -setup {
+    set s [bigString 0x10000000a 0x100000000]
+} -cleanup {
+    bigClean failat
+}
+
+#
+# string last
+bigtestRO string-last-bigdata-1 "string last > INT_MAX" {2 -1 2147483640 11} -body {
+    set s [bigString 0x80000010 2]
+    list \
+	[string last X $s] \
+	[string last Y $s] \
+	[string last 0 $s 0x80000000] \
+	[string last 1 $s end-0x80000000]
+} -setup {
+    set s [bigString 0x80000010 2]
+} -cleanup {
+    bigClean
+}
+bigtestRO string-last-bigdata-2 "string last > UINT_MAX" {4294967320 -1 4294967290 1} -body {
+    list \
+	[string last 0 $s] \
+	[string last Y $s] \
+	[string last 0 $s 0x100000000] \
+	[string last 1 $s end-0x100000010]
+} -setup {
+    set s [bigString 0x10000001a 2]
+} -cleanup {
+    bigClean
+}
+bigtestRO string-last-bigdata-3 "string last - long needle" 0 -body {
+    string last $needle $s
+} -setup {
+    set s [bigString 0x10000000a 0x10000000a]
+    set needle [bigString 0x100000000]
+} -cleanup {
+    bigClean needle
+}
+
+#
+# string length
+bigtestRO string-length-bigdata-1 {string length $s} 4294967296 -setup {
+    set s [bigString 0x100000000]
+} -cleanup {
+    bigClean
+}
+
+#
+# string map
+bigtestRO string-map-bigdata-1 {string map} {5 0 0 5} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [string map {0 5 5 0} $s]
+    list \
+	[string index $s2 0] \
+	[string index $s2 5] \
+	[string index $s2 end] \
+	[string index $s2 end-5]
+} -setup {
+    set s [bigString 0x100000000]
+} -cleanup {
+    bigClean
+} -constraints bugTakesTooLong
+
+#
+# string match
+bigtestRO string-match-bigdata-1 {string match} {1 0 1} -body {
+    list \
+	[string match 0*5 $s] \
+	[string match 0*4 $s] \
+	[string match $s $s]
+} -setup {
+    set s [bigString 0x100000000]
+} -cleanup {
+    bigClean
+}
+
+#
+# string range
+bigtestRO string-range-bigdata-1 "string range" {6 7 5 {} 5 4 {} 9 {}} -body {
+    list \
+	[string range $s 0x100000000 0x100000000] \
+	[string range $s 0x100000000+1 0x100000000+1] \
+	[string range $s 0x100000000-1 0x100000000-1] \
+	[string range $s 0x10000000a 0x10000000a] \
+	[string range $s end end] \
+	[string range $s end-1 end-1] \
+	[string range $s end+1 end+1] \
+	[string range $s end-0x100000000 end-0x100000000] \
+	[string range $s end-0x10000000a end-0x10000000a]
+} -setup {
+    set s [bigString 0x10000000a]
+} -cleanup {
+    bigClean
+}
+bigtestRO string-range-bigdata-2 "bug ad9361fd20 case 1" aXaaaa -body {
+    string range [string insert [string repeat a 0x80000000] end-0x7fffffff X] 0 5
+}
+bigtestRO string-range-bigdata-3 "bug ad9361fd20 case 2" 2 -body {
+    string length [string range $s end-0x7fffffff end-0x7ffffffe]
+} -setup {
+    set s [string repeat a 0xffffffff]
+} -cleanup {
+    bigClean
+}
+# TODO - add tests for large result range
+
+#
+# string repeat - use bigtest, not bigtestRO !!
+bigtest string-repeat-bigdata-1 "string repeat single char length > UINT_MAX" 4294967296 -body {
+    string length [string repeat x 0x100000000]
+}
+bigtest string-repeat-bigdata-2 "string repeat multiple char" {4294967296 0123456789abcdef 0123456789abcdef} -body {
+    set s [string repeat 0123456789abcdef [expr 0x100000000/16]]
+    list \
+	[string length $s] \
+	[string range $s 0 15] \
+	[string range $s end-15 end]
+} -cleanup {
+    bigClean
+}
+
+#
+# string replace
+bigtestRO string-replace-bigdata-1 "string replace" {789012345 012345678 XYZ789012345 012345678XYZ} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain result
+    lappend result [string replace $s 0 0x100000000]
+    lappend result [string replace $s end-0x100000000 end]
+    lappend result [string replace $s 0 0x100000000 XYZ]
+    lappend result [string replace $s end-0x100000000 end XYZ]
+} -setup {
+    set s [bigString 0x10000000a]
+} -cleanup {
+    bigClean
+}
+# TODO -
+# - replacements string is large
+# - replace in the middle - string length grows, shrinks
+# - last < first
+
+#
+# string reverse
+bigtestRO string-reverse-bigdata-1 "string reverse" {5432109876 9876543210} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2 result
+    set s2 [string reverse $s]
+    list [string range $s2 0 9] [string range $s2 end-9 end]
+} -setup {
+    set s [bigString 0x10000000a]
+} -cleanup {
+    bigClean
+}
+
+#
+# string tolower
+bigtestRO string-tolower-bigdata-1 "string tolower" 1 -body {
+    string equal [string tolower $s] [string repeat abcd $repts]
+} -setup {
+    set repts [expr 0x100000010/4]
+    set s [string repeat ABCD $repts]
+} -cleanup {
+    bigClean repts
+}
+bigtestRO string-tolower-bigdata-2 "string tolower first last" {4294967312 ABCDabcdABCD 4294967312 ABCDabcdABCD 4294967312 ABCDabcdABCD} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2 result
+    set s2 [string tolower $s 4 7]
+    lappend result [string length $s2] [string range $s2 0 11]
+
+    unset s2; #Explicit free to reduce total memory
+    set s2 [string tolower $s 0x100000008 0x10000000b]
+    lappend result [string length $s2] [string range $s2 0x100000004 end]
+
+    unset s2; #Explicit free to reduce total memory
+    set s2 [string tolower $s end-7 end-4]
+    lappend result [string length $s2] [string range $s2 0x100000004 end]
+} -setup {
+    set repts [expr 0x100000010/4]
+    set s [string repeat ABCD $repts]
+} -cleanup {
+    bigClean repts
+}
+
+#
+# string totitle
+bigtestRO string-totitle-bigdata-1 "string totitle first last" {4294967312 aBcDAbcdaBcD 4294967312 aBcDAbcdaBcD 4294967312 aBcDAbcdaBcD} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2 result
+    set s2 [string totitle $s 4 7]
+    lappend result [string length $s2] [string range $s2 0 11]
+    unset s2; #Explicit free to reduce total memory
+    set s2 [string totitle $s 0x100000008 0x10000000b]
+    lappend result [string length $s2] [string range $s2 0x100000004 0x10000000f]
+    unset s2; #Explicit free to reduce total memory
+    set s2 [string totitle $s end-7 end-4]
+    lappend result [string length $s2] [string range $s2 0x100000004 0x10000000f]
+} -setup {
+    set repts [expr 0x100000010/4]
+    set s [string repeat aBcD $repts]
+} -cleanup {
+    bigClean repts
+}
+
+#
+# string toupper
+bigtestRO string-toupper-bigdata-1 "string toupper" 1 -body {
+    string equal [string toupper $s] [string repeat ABCD $repts]
+} -setup {
+    set repts [expr 0x100000010/4]
+    set s [string repeat abcd $repts]
+} -cleanup {
+    bigClean repts
+}
+bigtestRO string-toupper-bigdata-2 "string toupper first last" {4294967312 abcdABCDabcd 4294967312 abcdABCDabcd 4294967312 abcdABCDabcd} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2 result
+    set s2 [string toupper $s 4 7]
+    lappend result [string length $s2] [string range $s2 0 11]
+    unset s2; #Explicit free to reduce total memory
+    set s2 [string toupper $s 0x100000008 0x10000000b]
+    lappend result [string length $s2] [string range $s2 0x100000004 0x10000000f]
+    unset s2; #Explicit free to reduce total memory
+    set s2 [string toupper $s end-7 end-4]
+    lappend result [string length $s2] [string range $s2 0x100000004 0x10000000f]
+} -setup {
+    set repts [expr 0x100000010/4]
+    set s [string repeat abcd $repts]
+} -cleanup {
+    bigClean repts
+}
+
+#
+# string trim
+bigtestRO string-trim-bigdata-1 "string trim" {abcdyxxy yxxyabcd} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [string trim $s xy]
+    list [string range $s2 0 7] [string range $s2 end-7 end]
+} -setup {
+    set repts [expr 0x100000010/8]
+    set s [string repeat xyabcdyx $repts]
+} -cleanup {
+    bigClean
+}
+
+#
+# string trimleft
+bigtestRO string-trimleft-bigdata-1 "string trimleft" {abcdyxxy xyabcdyx} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [string trimleft $s xy]
+    list [string range $s2 0 7] [string range $s2 end-7 end]
+} -setup {
+    set repts [expr 0x100000010/8]
+    set s [string repeat xyabcdyx $repts]
+} -cleanup {
+    bigClean
+}
+
+#
+# string trimright
+bigtestRO string-trimright-bigdata-1 "string trimright" {xyabcdyx yxxyabcd} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [string trimright $s xy]
+    list [string range $s2 0 7] [string range $s2 end-7 end]
+} -setup {
+    set repts [expr 0x100000010/8]
+    set s [string repeat xyabcdyx $repts]
+} -cleanup {
+    bigClean
+}
+
+#
+# append
+bigtestRO append-bigdata-1 "append large to small" 1 -body {
+    set s 0123456789
+    append s [bigString 0x100000000]
+    string equal $s [bigString 0x10000000a]
+} -cleanup {
+    bigClean
+}
+bigtest append-bigdata-2 "append small to cross UINT_MAX boundary" 1 -body {
+    append s 0123456789
+    string equal $s [bigString 4294967300]
+} -setup {
+    set s [bigString 4294967290]
+} -cleanup {
+    bigClean
+}
+bigtest append-bigdata-3 "append small to cross UINT_MAX boundary" 1 -body {
+    set s2 ""
+    append s2 $s $s $s $s
+    string equal $s2 [bigString 4294967320]
+} -setup {
+    # Make length multiple of 4 AND 10 since the bigString pattern length is 10
+    set len [expr 4294967320/4]
+    set s [bigString $len]
+} -cleanup {
+    bigClean
+}
+
+#
+# format
+bigtestRO format-bigdata-1 "format %s" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [format %s $s]
+    string equal $s $s2
+} -setup {
+    set s [bigString 0x100000000]
+} -cleanup {
+    bigClean
+}
+bigtest format-bigdata-2 "format bigstring%s" 1 -body {
+    set s [format $s X]
+    string equal $s [bigString 0x100000001 0x100000000]
+} -setup {
+    set s [bigString 0x100000000]
+    append s %s
+} -cleanup {
+    bigClean
+}
+bigtest format-bigdata-3 "format big width" {4294967300 {    } {   a}} -body {
+    set s [format %4294967300s a]
+    list [string length $s] [string range $s 0 3] [string range $s end-3 end]
+} -cleanup {
+    bigClean
+}
+bigtest format-bigdata-4 "format big negative width" {4294967300 {a   } {    }} -body {
+    set s [format %-4294967300s a]
+    list [string length $s] [string range $s 0 3] [string range $s end-3 end]
+} -cleanup {
+    bigClean
+}
+bigtest format-bigdata-5 "format big * width" {4294967300 {    } {   a}} -body {
+    set s [format %*s 4294967300 a]
+    list [string length $s] [string range $s 0 3] [string range $s end-3 end]
+} -cleanup {
+    bigClean
+}
+bigtest format-bigdata-6 "format big negative * width" {4294967300 {a   } {    }} -body {
+    set s [format %*s -4294967300 a]
+    list [string length $s] [string range $s 0 3] [string range $s end-3 end]
+} -cleanup {
+    bigClean
+}
+bigtestRO format-bigdata-7 "format big precision" {4294967300 0123 6789} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [format %.4294967300s $s]
+    list [string length $s2] [string range $s2 0 3] [string range $s2 end-3 end]
+} -setup {
+    set s [testbigdata string 4294967310]
+} -cleanup {
+    bigClean
+}
+bigtestRO format-bigdata-8 "format big * precision" {4294967300 0123 6789} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain s2
+    set s2 [format %.*s 4294967300 $s]
+    list [string length $s2] [string range $s2 0 3] [string range $s2 end-3 end]
+} -setup {
+    set s [testbigdata string 4294967310]
+} -cleanup {
+    bigClean
+}
+
+#
+# scan
+bigtestRO scan-bigdata-1 "scan %s" {1 1 2 X 1 2 4294967300 01234X} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain result digits x
+    lappend result [string equal [scan $s %s] $s]
+    lappend result [string equal [scan $s {%[0-9X]}] $s]
+    lappend result [scan $s {%[0-9]%s} digits x] $x
+    lappend result [string equal $digits [bigString 0x100000009]]
+    lappend result [scan $s %4294967300s%s x y]
+    lappend result [string length $x] $y
+} -setup {
+    set s [bigString 0x10000000a 0x100000009]
+} -cleanup {
+    bigClean digits
+}
+
+#
+# regexp
+bigtestRO regexp-bigdata-1 "regexp" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain result digits
+    lappend result [regexp {[[:digit:]]*X} $s]
+} -setup {
+    set s [bigString 0x100000000 0x100000000]
+} -cleanup {
+    bigClean digits
+}
+bigtestRO regexp-bigdata-2 "regexp with capture" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain result digits match
+    lappend result [regexp {([[:digit:]])*X} $s match digits] [string equal $match $s]
+    puts B
+    unset match; # Free up memory
+    lappend result [string equal $digits [bigString 0x100000009]]
+} -setup {
+    set s [bigString 0x10000000a 0x100000009]
+} -cleanup {
+    bigClean digits match
+} -constraints bugTakesTooLong
+
+#
+# regsub
+bigtestRO regsub-bigdata-1 "regsub" X -body {
+    regsub -all \\d $s {}
+} -setup {
+    set s [bigString 0x100000001 0x100000000]
+} -cleanup {
+    bigClean
+} -constraints bugTakesTooLong
+bigtestRO regsub-bigdata-2 "regsub" 1 -body {
+    string equal [regsub -all \\d $s x] [string cat [string repeat x 0x100000000] X]
+} -setup {
+    set s [bigString 0x100000001 0x100000000]
+} -cleanup {
+    bigClean
+} -constraints bugTakesTooLong
+
+#
+# subst
+bigtestRO subst-bigdata-1 "subst" {1 1} -body {
+    unset -nocomplain result
+    lappend result [string equal [subst $s] $s]
+    lappend result [string equal [subst {$s}] $s]
+} -setup {
+    set s [bigString 0x10000000a]
+} -cleanup {
+    bigClean
+}
+
+#
+# binary format
+bigtestRO binary-format-bigdata-1 "binary format aN" [list 4294967296  X\0\0\0 \0\0\0\0] -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain bin
+    set bin [binary format a4294967296 X]
+    list [string length $bin] [string range $bin 0 3] [string range $bin end-3 end]
+} -cleanup {
+    bigClean
+}
+# TODO - do string compare and add other format specifiers
+
+bigtestRO binary-format-bigdata-2 "binary format a*" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain bin2
+    set bin2 [binary format a* $bin]
+    string equal $bin $bin2
+} -setup {
+    set bin [bigBinary 4294967296]
+} -cleanup {
+    bigClean
+}
+
+#
+# binary scan
+bigtestRO binary-scan-bigdata-1 "binary scan aN" {4294967296 0123 2345} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain bin2
+    binary scan $bin a4294967296 bin2
+    list [string length $bin2] [string range $bin2 0 3] [string range $bin2 end-3 end]
+} -setup {
+    set bin [bigBinary 4294967296]
+} -cleanup {
+    bigClean
+}
+# TODO - do string compare and add other format specifiers once above bug is fixed
+
+bigtestRO binary-scan-bigdata-2 "binary scan a*" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain bin2
+    binary scan $bin a* bin2
+    string equal $bin $bin2
+} -setup {
+    set bin [bigBinary 4294967296]
+} -cleanup {
+    bigClean
+}
+# TODO - do string compare and add other format specifiers once above bug is fixed
+
+#
+# binary encode / decode base64
+bigtestRO binary-encode/decode-base64-bigdata-1 "binary encode/decode base64" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    string equal $bin [binary decode base64 [binary encode base64 $bin]]
+} -setup {
+    set bin [bigBinary 4294967296]
+} -cleanup {
+    bigClean
+}
+
+#
+# binary encode / decode hex
+bigtestRO binary-encode/decode-hex-bigdata-1 "binary encode/decode hex" 1 -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    string equal $bin [binary decode hex [binary encode hex $bin]]
+} -setup {
+    set bin [bigBinary 4294967296]
+} -cleanup {
+    bigClean
+}
+
+#
+# binary encode / decode uuencode
+bigtestRO binary-encode/decode-uuencode-bigdata-1 "binary encode/decode uuencode" 1 -body {
+    string equal $bin [binary decode uuencode [binary encode uuencode $bin]]
+} -setup {
+    set bin [bigBinary 4294967296]
+} -cleanup {
+    bigClean
+}
+
+################################################################
+# List commands
+
+#
+# foreach
+bigtestRO foreach-bigdata-1 "foreach" 1 -body {
+    # Unset explicitly before setting as bigtestRO runs the script twice.
+    unset -nocomplain l2
+    foreach x $l {
+	lappend l2 $x
+    }
+    testlutil equal $l $l2
+} -setup {
+    set l [bigList 0x100000000]
+} -cleanup {
+    bigClean
+}
+
+#
+# lappend
+bigtest lappend-bigdata-1 "lappend" {4294967300 4294967300 {1 2 3 4 5 a b c d}} -body {
+    # Do NOT initialize l in a -setup block. That requires more memory and fails.
+    # Do not have enough memory for a full compare.
+    # Just check end
+    set l [bigList 0x100000000]
+    list [llength [lappend l a b c d]] [llength $l] [lrange $l end-8 end]
+} -cleanup {
+    bigClean
+}
+
+#
+# lassign
+bigtestRO lassign-bigdata-1 "lassign" {0 1 2 3 4 5 6 7 8 {9 0 1 2 3 4 5 6 7 8} {6 7 8 9 0 1 2 3 4 5}} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain l2
+    set l2 [lassign $l a b c d e f g h i]
+    list $a $b $c $d $e $f $g $h $i [lrange $l2 0 9] [lrange $l2 end-9 end]
+} -setup {
+    set l [bigList 0x10000000a]
+} -cleanup {
+    bigClean
+}
+
+#
+# ledit
+bigtest ledit-bigdata-1 "ledit - small result" {{0 X Y Z 8} {0 X Y Z 8}} -body {
+    list [ledit l 1 0x100000001 X Y Z] $l
+} -setup {
+    set l [bigList 0x100000003]
+} -cleanup {
+    bigClean
+}
+
+bigtest ledit-bigdata-2 "ledit - large result" {4294967304 4294967304 {a b c d e f g 7}} -body {
+    # Do NOT initialize l in a -setup block. That requires more memory and fails.
+    set l [bigList 0x100000002]
+    list [llength [ledit l 0x100000000 0x100000000 a b c d e f g]] [llength $l] [lrange $l 0x100000000 end]
+} -cleanup {
+    bigClean
+}
+
+bigtest ledit-bigdata-3 "ledit - small -> large result" {2147483650 2147483650 {a b 0 1 2 3 4 5} {0 1 e f g h i j}} -body {
+    set l2 {a b c d e f g h i j}
+    list [llength [ledit l2 2 3 {*}$l]] [llength $l2] [lrange $l2 0 7] [lrange $l2 end-7 end]
+} -setup {
+    # Note total number of arguments has to be less than INT_MAX
+    set l [bigList 2147483642]
+} -cleanup {
+    bigClean
+} -constraints memoryAllocationPanic
+
+#
+# lindex
+bigtestRO lindex-bigdata-1 "lindex" {6 7 5 {} 5 4 {} 9 {}} -body {
+    list \
+	[lindex $l 0x100000000] \
+	[lindex $l 0x100000000+1] \
+	[lindex $l 0x100000000-1] \
+	[lindex $l 0x10000000a] \
+	[lindex $l end] \
+	[lindex $l end-1] \
+	[lindex $l end+1] \
+	[lindex $l end-0x100000000] \
+	[lindex $l end-0x10000000a]
+} -setup {
+    set l [bigList 0x10000000a]
+} -cleanup {
+    bigClean
+}
+# TODO nested index
+
+#
+# linsert
+# Cannot use bigtestRO here because 16GB memory not enough to have two 4G sized lists
+# Have to throw away source list every time. Also means we cannot compare entire lists
+# and instead just compare the affected range
+bigtest linsert-bigdata-1 "linsert" {4294967330 1} -body {
+    # Note insert at multiple of 10 to enable comparison against generated string
+    set ins [split abcdefghij ""]
+    set pat [split 0123456789 ""]
+    set insidx 2000000000
+    set l [linsert [bigList 4294967320] $insidx {*}$ins]
+    list \
+	[llength $l] \
+	[testlutil equal [lrange $l $insidx-10 $insidx+19] [concat $pat $ins $pat]]
+} -cleanup {
+    bigClean
+}
+
+#
+# list and {*}
+# TODO - compiled and uncompiled behave differently so tested separately
+test list-bigdata-1.compiled {list {*}}  -body {
+    set l [bigList 0x100000000]
+    set l2 [list {*}$l]
+    unset l
+    list [llength $l2] [lindex $l2 0] [lindex $l2 end]
+} -cleanup {
+    bigClean
+} -constraints {
+    bigdata
+} -result {4294967296 0 5}
+test list-bigdata-1.uncompiled {list {*}}  -body {
+    set l [bigList 0x7fffffff]
+    testevalex {set l2 [list {*}$l]}
+} -cleanup {
+    bigClean
+} -constraints {
+    bigdata
+} -result {Number of words in command exceeds limit 2147483647.} -returnCodes error
+
+#
+# llength
+bigtestRO llength-bigdata-1 {llength} 4294967296 -body {
+    llength $l
+} -setup {
+    set l [bigList 0x100000000]
+} -cleanup {
+    bigClean
+}
+
+#
+# lmap
+bigtestRO lmap-bigdata-1 "lmap" 4294967296 -body {
+    set n 0
+    if {0} {
+	# TODO - This is the right test but runs out of memory
+	testlutil equal $l [lmap e $l {set e}]
+    } else {
+	lmap e $l {incr n; continue}
+    }
+    set n
+} -setup {
+    set l [bigList 0x100000000]
+} -cleanup {
+    bigClean
+    puts ""
+}
+
+#
+# lrange
+bigtestRO lrange-bigdata-1 "lrange" {6 {6 7} 7 5 {} 5 4 {} 9 {8 9} {}} -body {
+    list \
+	[lrange $l 0x100000000 0x100000000] \
+	[lrange $l 0x100000000 0x100000001] \
+	[lrange $l 0x100000000+1 0x100000000+1] \
+	[lrange $l 0x100000000-1 0x100000000-1] \
+	[lrange $l 0x10000000a 0x10000000a] \
+	[lrange $l end end] \
+	[lrange $l end-1 end-1] \
+	[lrange $l end+1 end+1] \
+	[lrange $l end-0x100000000 end-0x100000000] \
+	[lrange $l end-0x100000001 end-0x100000000] \
+	[lrange $l end-0x10000000a end-0x10000000a]
+} -setup {
+    set l [bigList 0x10000000a]
+} -cleanup {
+    bigClean
+}
+# TODO - add tests for large result range
+
+#
+# lrepeat - use bigtest, not bigtestRO !!
+bigtest lrepeat-bigdata-1 "lrepeat single element length > UINT_MAX" 4294967296 -body {
+    # Just to test long lengths are accepted as arguments
+    llength [lrepeat 0x100000000 x]
+}
+
+bigtest lrepeat-bigdata-2 "string repeat multiple char" {4294967400 {0 1 2 3 4 5 6 7}} -body {
+    set len [expr 4294967400/8]
+    set l [lrepeat $len 0 1 2 3 4 5 6 7]
+    list [llength $l] [lrange $l end-7 end]
+} -cleanup {
+    bigClean
+}
+
+#
+# lreplace
+bigtestRO lreplace-bigdata-1 "lreplace - small result" [list \
+					     [split 789012345 ""] \
+					     [split 012345678 ""] \
+					     [split XYZ789012345 ""] \
+					     [split 012345678XYZ ""] \
+					    ] -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain result
+    lappend result [lreplace $l 0 0x100000000]
+    lappend result [lreplace $l end-0x100000000 end]
+    lappend result [lreplace $l 0 0x100000000 X Y Z]
+    lappend result [lreplace $l end-0x100000000 end X Y Z]
+} -setup {
+    set l [bigList 0x10000000a]
+} -cleanup {
+    bigClean
+}
+
+bigtest lreplace-bigdata-2 "lreplace - large result" {4294967301 {a b c d e 0 1 2 3 4 5 6}} -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain l2
+    set l2 [lreplace [bigList 4294967296] 4294967290 0 a b c d e]
+    lrange $l2 4294967290 end
+} -setup {
+    #set l [bigList 4294967296]
+} -cleanup {
+    bigClean
+} -constraints bugOutOfMemoryPanic
+
+#
+# lsearch
+bigtestRO lsearch-bigdata-1 "lsearch" {4294967300 4294967310 -1}  -body {
+    list \
+	[lsearch -exact $l X] \
+	[lsearch -exact -start 4294967291 $l 0] \
+	[lsearch -exact $l Y]
+} -setup {
+    set l [bigList 0x100000010 4294967300]
+} -cleanup {
+    bigClean
+}
+# TODO - stride, inline, all
+
+#
+# lseq
+bigtest lseq-bigdata-1 "lseq" {4294967297 4294967296} -body {
+    list [llength $l] [lindex $l 0x100000000]
+} -setup {
+    set l [lseq 0x100000001]
+} -cleanup {
+    bigClean
+}
+bigtest lseq-bigdata-2 "lseq" {9223372036854775807 9223372036854775799} -body {
+    list [llength $l] [lindex $l 9223372036854775800]
+} -setup {
+    set l [lseq 0x7fffffffffffffff]; llength $l
+} -cleanup {
+    bigClean
+} -constraints bug_fa00fbbbab
+
+#
+# lset
+bigtest lset-bigdata-1 "lset" {4294967297 4294967297 {1 2 3 4 5 X}} -body {
+    # Do NOT initialize l in a -setup block. That requires more memory and fails.
+    set l [bigList 0x100000001]
+    list [llength [lset l 0x100000000 X]] [llength $l] [lrange $l end-5 end]
+} -cleanup {
+    bigClean
+}
+
+#
+# lsort
+bigtestRO lsort-bigdata-1 "lsort" [list 4294967296 [lrepeat 10 0] [lrepeat 10 9]] -body {
+    # Unset explicitly before setting to save memory as bigtestRO runs the
+    # script below twice.
+    unset -nocomplain l2
+    set l2 [lsort $l]
+    list [llength $l2] [lrange $l2 0 9] [lrange $l2 end-9 end]
+} -setup {
+    set l [bigList 0x100000000]
+} -cleanup {
+    bigClean
+} -constraints notenoughmemoryexception
+
+#
+# join
+bigtestRO join-bigdata-1 "join" [list 0123456789 6789012345] -body {
+    set s [join $l ""]
+    list [string range $s 0 9] [string range $s end-9 end]
+} -setup {
+    set l [bigList 0x100000000]
+} -cleanup {
+    bigClean
+}
+
+bigtest split-bigdata-1 "split" {4294967296 {0 1 2 3 4} {1 2 3 4 5}} -body {
+    # Fill list compare needs too much memory
+    set l [split $s ""]
+    list [llength $l] [lrange 0 4] [lrange end-4 end]
+} -setup {
+    set s [bigString 0x100000000]
+} -cleanup {
+    bigClean
+} -constraints bugTakesTooLong
+
+bigtestRO concat-bigdata-1 "concat" {4294967296 {0 1 2 3 4} {6 7 0 1 2} {3 4 5 6 7}} -body {
+    unset -nocomplain l2
+    set l2 [concat $l $l]
+    list [llength $l2] [lrange $l2 0 4] [lrange $l2 0x80000000-2 0x80000000+2] [lrange $l2 end-4 end]
+} -setup {
+    set l [bigList 0x80000000]
+}
+
+test puts-bigdata-1 "puts" -setup {
+    set fpath [makeFile {} bug-0306a5563.data]
+} -constraints {
+    bigdata
+} -body {
+    set fd [open $fpath w]
+    puts -nonewline $fd [testbigdata string 0x80000001]
+    close $fd
+    set fd [open $fpath]
+    seek $fd 0x7FFFFFFA
+    set written [read $fd]
+    close $fd
+    set written
+} -result {2345678}
+
+test puts-bigdata-2 "puts" -setup {
+    set fpath [tcltest::makeFile {} bug-0306a5563.data]
+} -constraints {
+    bigdata
+} -body {
+    set fd [open $fpath w]
+    set s [testbigdata string 0x7FFFFFFE]
+    # The character to append in the next line is —, EM DASH,
+    # code point 0x2014 (decimal 8212, UTF-8 #xE2 #x80 #x94)
+    append s \u2014
+    puts -nonewline $fd $s
+    close $fd
+    set fd [open $fpath]
+    seek $fd 0x7FFFFFFA
+    set written [read $fd]
+    close $fd
+    set written
+} -result {2345—}
+
+test source-bigdata-1 "source" -setup {
+    # This test crashes because the frame linenumber tracking
+    # wraps around at INT_MAX
+    set fpath [tcltest::makeFile {} source-bigdata-1.tcl]
+    set fd [open $fpath w]
+    fconfigure $fd -translation lf
+    puts -nonewline $fd [string repeat \n 4294967296]
+    puts $fd {dict get [info frame 0] line}
+    close $fd
+} -constraints {
+    bigdata knownBug
+} -body {
+    set line [source $fpath]
+} -result 4294967297
+
+#
+# TODO
+# lremove
+# lreverse
+# encoding convertfrom
+# encoding convertto
+# dict *
+
+
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# fill-column: 78
+# End:

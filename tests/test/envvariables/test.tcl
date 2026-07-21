@@ -15,14 +15,9 @@ port_index
 port_clean $path
 
 proc envvar_test {} {
-    global output_file path portsrc bindir
+    global output_file path portsrc test_tclsh top_srcdir
 
-    # Build helping string
-    set string "export ENVA=A; export ENVB=B; "
-    append string "export PORTSRC=${portsrc}; "
-    append string "${bindir}/port test"
-
-    exec -ignorestderr sh -c $string > output
+    exec -ignorestderr env ENVA=A ENVB=B PORTSRC=${portsrc} ${test_tclsh} ${top_srcdir}/src/port/port.tcl test > output
     set line [get_line $path/$output_file "a"]
     set line2 [get_line $path/$output_file "b"]
     return $line$line2

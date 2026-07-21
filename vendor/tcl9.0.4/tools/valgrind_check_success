@@ -1,0 +1,30 @@
+#! /usr/bin/env tclsh
+
+
+proc main {sourcetype source} {
+	switch $sourcetype {
+		file {
+			set chan [open $source]
+			try {
+				set data [read $chan]
+			} finally {
+				close $chan
+			}
+		}
+		string {
+			set data $source
+		}
+		default {
+			error [list {wrong # args}]
+		}
+	}
+	set found [regexp -inline -all {blocks are\
+	    (?:(?:(?:definitely|indirectly|possibly) lost)|still reachable)} $data]
+	if {[llength $found]} {
+		puts 0
+	} else {
+		puts 1
+	}
+	flush stdout
+}
+main {*}$argv

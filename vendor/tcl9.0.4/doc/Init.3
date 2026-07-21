@@ -1,0 +1,50 @@
+'\"
+'\" Copyright (c) 1998-2000 Scriptics Corporation.
+'\" All rights reserved.
+'\"
+.TH Tcl_Init 3 9.0 Tcl "Tcl Library Procedures"
+.so man.macros
+.BS
+.SH NAME
+Tcl_Init \- find and source initialization script
+.SH SYNOPSIS
+.nf
+\fB#include <tcl.h>\fR
+.sp
+int
+\fBTcl_Init\fR(\fIinterp\fR)
+.sp
+const char *
+\fBTcl_SetPreInitScript\fR(\fIscriptPtr\fR)
+.fi
+.SH ARGUMENTS
+.AS Tcl_Interp *interp
+.AP Tcl_Interp *interp in
+Interpreter to initialize.
+.AP "const char" *scriptPtr in
+Address of the initialization script.
+.BE
+
+.SH DESCRIPTION
+.PP
+\fBTcl_Init\fR is a helper procedure that finds and \fBsource\fRs the
+\fBinit.tcl\fR script, which should exist somewhere on the Tcl library
+path.
+.PP
+\fBTcl_Init\fR is typically called from \fBTcl_AppInit\fR procedures.
+.PP
+\fBTcl_SetPreInitScript\fR registers the pre-initialization script and
+returns the former (now replaced) script pointer.
+A value of \fINULL\fR may be passed to not register any script.
+The pre-initialization script is executed by \fBTcl_Init\fR before accessing
+the file system. The purpose is to typically prepare a custom file system
+(like an embedded zip-file) to be activated before the search.
+.PP
+When used in stub-enabled embedders, the stubs table must be first initialized
+using one of \fBTcl_InitSubsystems\fR, \fBTcl_SetPanicProc\fR,
+\fBTcl_FindExecutable\fR
+or \fBTclZipfs_AppHook\fR before \fBTcl_SetPreInitScript\fR may be called.
+.SH "SEE ALSO"
+Tcl_AppInit, Tcl_Main
+.SH KEYWORDS
+application, initialization, interpreter

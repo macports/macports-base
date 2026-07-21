@@ -49,10 +49,12 @@ namespace eval migrate {
             return 1
         }
 
+        global macports::ui_options
+
         if {[needs_migration]} {
-            if {[info exists macports::ui_options(questions_yesno)]} {
+            if {[info exists ui_options(questions_yesno)]} {
                 set msg "Migration will first upgrade MacPorts and then reinstall all installed ports."
-                set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
+                set retvalue [$ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
                 if {$retvalue == 1} {
                     # quit as user answered 'no'
                     ui_msg "Aborting migration. You can re-run 'sudo port migrate' later or follow the migration instructions: https://trac.macports.org/wiki/Migration"
@@ -80,9 +82,9 @@ namespace eval migrate {
         # that manually and we do not have confirmation to run migration yet;
         # do that now.
         set continuation [expr {[dict exists $opts ports_migrate_continue] && [dict get $opts ports_migrate_continue]}]
-        if {!$continuation && [info exists macports::ui_options(questions_yesno)]} {
+        if {!$continuation && [info exists ui_options(questions_yesno)]} {
             set msg "Migration will reinstall all installed ports."
-            set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationContinuationPrompt" "" {y} 0 "Would you like to continue?"]
+            set retvalue [$ui_options(questions_yesno) $msg "MigrationContinuationPrompt" "" {y} 0 "Would you like to continue?"]
             if {$retvalue == 1} {
                 # quit as user answered 'no'
                 ui_msg "Aborting migration. You can re-run 'sudo port migrate' later or follow the migration instructions: https://trac.macports.org/wiki/Migration"
@@ -177,9 +179,10 @@ namespace eval migrate {
     #   1. A dict mapping portname -> requested_variants -> archs
     #   2. A list of the mport handles for the opened Portfiles.
     proc get_intree_archs {} {
-        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        global macports::ui_options macports::ui_prefix
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists ui_options(progress_generic)]}]
         if {$fancy_output} {
-            set progress $macports::ui_options(progress_generic)
+            set progress $ui_options(progress_generic)
         } else {
             proc noop {args} {}
             set progress noop
@@ -188,7 +191,7 @@ namespace eval migrate {
         set intree_archs [dict create]
         set mports [list]
 
-        ui_msg "$macports::ui_prefix Loading Portfiles"
+        ui_msg "$ui_prefix Loading Portfiles"
         $progress start
         set portfile_counter 0
         set installed_ports [registry::entry imaged]
@@ -239,10 +242,10 @@ namespace eval migrate {
             upvar $reasonvar reason
             set reason {}
         }
-        if {$os_platform ne $macports::autoconf::os_platform
-            || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)
+        if {$os_platform ne $::macports::autoconf::os_platform
+            || ($os_platform eq "darwin" && $os_major != $::macports::autoconf::os_major)
         } then {
-            set reason "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
+            set reason "Current platform \"$os_platform $os_major\" does not match expected platform \"$::macports::autoconf::os_platform $::macports::autoconf::os_major\""
             return 1
         }
         if {$os_platform eq "darwin" && $os_major >= 20 && $build_arch ne "x86_64"
@@ -250,7 +253,7 @@ namespace eval migrate {
         } then {
             # Check if our tclsh has an arm64 slice - rebuilding not needed if it's universal
             set h [machista::create_handle]
-            set rlist [machista::parse_file $h $macports::autoconf::tclsh_path]
+            set rlist [machista::parse_file $h $::macports::autoconf::tclsh_path]
             if {[lindex $rlist 0] == $machista::SUCCESS} {
                 set r [lindex $rlist 1]
                 set a [$r cget -mt_archs]
