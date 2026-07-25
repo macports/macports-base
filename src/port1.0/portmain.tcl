@@ -175,76 +175,21 @@ proc portmain::get_source_date_epoch {} {
     if {[info exists source_date_epoch_cached]} {
         return $source_date_epoch_cached
     }
+
     global portpath PortInfo
-    set newest 0
-    if {[catch {findBinary git} git]} {
-        set git {}
-        set paths_in_git_repo 0
-    }
     set checkpaths [list $portpath]
     if {[info exists PortInfo(portgroups)]} {
         lappend checkpaths {*}[lmap g $PortInfo(portgroups) {lindex $g 2}]
     }
-    if {$git ne {}} {
-        set checkdirs [list $portpath {*}[lmap p [lrange $checkpaths 1 end] {file dirname $p}]]
-        set paths_in_git_repo 1
-        foreach d $checkdirs {
-            if {[catch {exec -ignorestderr $git -c safe.directory=* -C $d rev-parse --is-inside-work-tree 2> /dev/null}]} {
-                set paths_in_git_repo 0
-                break
-            }
-        }
+    set newest [portutil::get_latest_commit_time $checkpaths]
+
+    if {$newest eq {}} {
+        global filespath
+        set maybe_filespath [expr {[file isdirectory $filespath] ? [list $filespath] : {}}]
+        set checkpaths [list [file join $portpath Portfile] {*}$maybe_filespath {*}[lrange $checkpaths 1 end]]
+        set newest [portutil::get_latest_path_mtime $checkpaths]
     }
-    if {$paths_in_git_repo} {
-        # Use time of last commit only if there are no uncommitted changes
-        set any_uncommitted 0
-        foreach p $checkpaths d $checkdirs {
-            if {[catch {exec -ignorestderr $git -c safe.directory=* -C $d status --porcelain $p 2> /dev/null} result]} {
-                set any_uncommitted 1
-                ui_debug "get_source_date_epoch: git status failed: $result"
-                break
-            } elseif {$result ne ""} {
-                set any_uncommitted 1
-                ui_debug "get_source_date_epoch: uncommitted changes to $p"
-                break
-            }
-        }
-        if {!$any_uncommitted} {
-            set log_failed 0
-            foreach p $checkpaths d $checkdirs {
-                if {![catch {exec -ignorestderr $git -c safe.directory=* -C $d log -1 --pretty=%ct $p 2> /dev/null} result]} {
-                    if {$result > $newest} {
-                        set newest $result
-                    }
-                } else {
-                    set log_failed 1
-                    ui_debug "get_source_date_epoch: git log failed: $result"
-                    break
-                }
-            }
-            if {!$log_failed} {
-                set source_date_epoch_cached $newest
-                return $newest
-            }
-        }
-    }
-    # TODO: Ensure commit timestamps as extracted above are set in
-    # ports tree distributed as tarball.
-    global filespath
-    set maybe_filespath [expr {[file isdirectory $filespath] ? [list $filespath] : {}}]
-    set checkpaths [list [file join $portpath Portfile] {*}$maybe_filespath {*}[lrange $checkpaths 1 end]]
-    fs-traverse fullpath $checkpaths {
-        if {[catch {
-            if {[file type $fullpath] eq "file"} {
-                set mtime [file mtime $fullpath]
-                if {$mtime > $newest} {
-                    set newest $mtime
-                }
-            }
-        } result]} {
-            ui_debug "get_source_date_epoch: $result"
-        }
-    }
+
     set source_date_epoch_cached $newest
     return $newest
 }

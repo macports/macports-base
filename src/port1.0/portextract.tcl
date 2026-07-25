@@ -55,9 +55,9 @@ default extract.asroot no
 default extract.only {[portextract::disttagclean $distfiles]}
 
 default extract.dir {${workpath}}
-default extract.cmd {[portextract::get_extract_cmd]}
-default extract.pre_args {[portextract::get_extract_pre_args]}
-default extract.post_args {[portextract::get_extract_post_args]}
+default extract.cmd {[portextract::get_extract_cmd [portextract::method_for_suffix ${extract.suffix}]]}
+default extract.pre_args {[portextract::get_extract_pre_args [portextract::method_for_suffix ${extract.suffix}]]}
+default extract.post_args {[portextract::get_extract_post_args [portextract::method_for_suffix ${extract.suffix}]]}
 default extract.suffix .tar.gz
 default extract.methods {}
 default extract.mkdir no
@@ -69,128 +69,7 @@ foreach _extract_use_option ${portextract::all_use_options} {
 }
 unset _extract_use_option
 
-# Map a given file name to a canonical extract method name
-proc portextract::method_for_suffix {filename} {
-    switch -glob -nocase -- $filename {
-        *.tgz -
-        *.tar.gz {
-            return gzip
-        }
-        *.tbz -
-        *.tbz2 -
-        *.tar.bz2 {
-            return bzip2
-        }
-        *.txz -
-        *.tar.xz {
-            return xz
-        }
-        *.zip {
-            return zip
-        }
-        *.tzst -
-        *.tar.zst {
-            return zstd
-        }
-        *.tlz -
-        *.tar.lzma {
-            return lzma
-        }
-        *.tar {
-            return tar
-        }
-        *.7z {
-            return 7z
-        }
-        *.tar.lz {
-            return lzip
-        }
-        *.dmg {
-            return dmg
-        }
-    }
-    return {}
-}
-
-proc portextract::get_extract_cmd {{method {}}} {
-    if {$method eq {}} {
-        global extract.suffix
-        set method [method_for_suffix ${extract.suffix}]
-    }
-    switch $method {
-        gzip {
-            return [findBinary gzip ${::portutil::autoconf::gzip_path}]
-        }
-        bzip2 {
-            if {![catch {findBinary lbzip2} result]} {
-                return $result
-            } else {
-                return [findBinary bzip2 ${::portutil::autoconf::bzip2_path}]
-            }
-        }
-        xz {
-            return [findBinary xz ${::portutil::autoconf::xz_path}]
-        }
-        zip {
-            return [findBinary unzip ${::portutil::autoconf::unzip_path}]
-        }
-        zstd {
-            return [binaryInPath zstd]
-        }
-        lzma {
-            return [findBinary lzma ${::portutil::autoconf::lzma_path}]
-        }
-        tar {
-            return [findBinary tar ${::portutil::autoconf::tar_command}]
-        }
-        7z {
-            return [binaryInPath 7za]
-        }
-        lzip {
-            return [binaryInPath lzip]
-        }
-        dmg {
-            return [findBinary hdiutil ${::portutil::autoconf::hdiutil_path}]
-        }
-    }
-    return {}
-}
-
-proc portextract::get_extract_pre_args {{method {}}} {
-    if {$method eq {}} {
-        global extract.suffix
-        set method [method_for_suffix ${extract.suffix}]
-    }
-    switch $method {
-        bzip2 -
-        gzip -
-        lzip -
-        lzma -
-        xz -
-        zstd {
-            return {-dc}
-        }
-        zip {
-            return {-q}
-        }
-        tar {
-            return {-xf}
-        }
-        7z {
-            return {x}
-        }
-        dmg {
-            return {attach}
-        }
-    }
-    return {}
-}
-
-proc portextract::get_extract_post_args {{method {}}} {
-    if {$method eq {}} {
-        global extract.suffix
-        set method [method_for_suffix ${extract.suffix}]
-    }
+proc portextract::get_extract_post_args {method} {
     switch $method {
         bzip2 -
         gzip -

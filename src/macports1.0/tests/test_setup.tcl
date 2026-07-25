@@ -54,6 +54,16 @@ proc macports_worker_init {} {
     # portlib functions
     interp alias {} portfetch::get_mirror_site_urls {} portlib::fetch::get_mirror_site_urls
     interp alias {} portfetch::assemble_url         {} portlib::fetch::assemble_url
+    interp alias {} canonicalize_variants           {} portlib::util::canonicalize_variants
+    interp alias {} delete                          {} portlib::util::delete
+    interp alias {} dirSize                         {} portlib::util::dirSize
+    interp alias {} getdistname                     {} portlib::util::getdistname
+    interp alias {} getdisttag                      {} portlib::util::getdisttag
+    interp alias {} portutil::_extract_archive_metadata {} portlib::util::extract_archive_metadata
+    interp alias {} ldelete                         {} portlib::util::ldelete
+    interp alias {} ln                              {} portlib::util::ln
+    interp alias {} portutil::_reinplace            {} portlib::util::reinplace
+    interp alias {} portutil::_touch                {} portlib::util::touch
     # New Registry/Receipts stuff
     interp alias {} registry_new                    {} registry::new_entry
     interp alias {} registry_open                   {} registry::open_entry

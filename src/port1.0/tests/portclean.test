@@ -148,6 +148,7 @@ test clean_archive {
 } -body {
     set subport subport
     set portdbpath $pwd/dbpath
+    set workpath $pwd/work
 
     file mkdir $portdbpath/incoming
     close [open $portdbpath/incoming/test.clean w+]

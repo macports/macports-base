@@ -225,7 +225,7 @@ namespace eval portlib {
                     }
                 }
                 close $fd
-    
+
                 # check for unspecified values and set to defaults
                 foreach cur_name $all_names {
                     foreach key [dict keys $defaults] {
@@ -243,6 +243,117 @@ namespace eval portlib {
                 }
             }
             return $site_dict
+        }
+    }
+
+    namespace eval extract {
+        # Map a given file name to a canonical extract method name
+        proc method_for_suffix {filename} {
+            switch -glob -nocase -- $filename {
+                *.tgz -
+                *.tar.gz {
+                    return gzip
+                }
+                *.tbz -
+                *.tbz2 -
+                *.tar.bz2 {
+                    return bzip2
+                }
+                *.txz -
+                *.tar.xz {
+                    return xz
+                }
+                *.zip {
+                    return zip
+                }
+                *.tzst -
+                *.tar.zst {
+                    return zstd
+                }
+                *.tlz -
+                *.tar.lzma {
+                    return lzma
+                }
+                *.tar {
+                    return tar
+                }
+                *.7z {
+                    return 7z
+                }
+                *.tar.lz {
+                    return lzip
+                }
+                *.dmg {
+                    return dmg
+                }
+            }
+            return {}
+        }
+
+        proc get_extract_cmd {method} {
+            switch $method {
+                gzip {
+                    return [macports::findBinary gzip ${::portlib::autoconf::gzip_path}]
+                }
+                bzip2 {
+                    if {![catch {macports::findBinary lbzip2} result]} {
+                        return $result
+                    } else {
+                        return [macports::findBinary bzip2 ${::portlib::autoconf::bzip2_path}]
+                    }
+                }
+                xz {
+                    return [macports::findBinary xz ${::portlib::autoconf::xz_path}]
+                }
+                zip {
+                    return [macports::findBinary unzip ${::portlib::autoconf::unzip_path}]
+                }
+                zstd {
+                    return [macports::binaryInPath zstd]
+                }
+                lzma {
+                    return [macports::findBinary lzma ${::portlib::autoconf::lzma_path}]
+                }
+                tar {
+                    return [macports::findBinary tar ${::portlib::autoconf::tar_command}]
+                }
+                7z {
+                    return [macports::binaryInPath 7za]
+                }
+                lzip {
+                    return [macports::binaryInPath lzip]
+                }
+                dmg {
+                    return [macports::findBinary hdiutil ${::portlib::autoconf::hdiutil_path}]
+                }
+            }
+            return {}
+        }
+
+        proc get_extract_pre_args {method} {
+            switch $method {
+                bzip2 -
+                gzip -
+                lzip -
+                lzma -
+                xz -
+                zstd {
+                    return {-dc}
+                }
+                zip {
+                    return {-q}
+                }
+                tar {
+                    return {-xf}
+                }
+                7z {
+                    return {x}
+                }
+                dmg {
+                    return {attach}
+                }
+            }
+            return {}
         }
     }
 
@@ -423,5 +534,993 @@ namespace eval portlib {
             }
             return $supported_archive_types
         }
+
+        # If the given path is in a git checkout, return the currently checked
+        # out commit. If not, return an empty string.
+        proc get_path_commit {path} {
+            set result {}
+            if {![catch {macports::findBinary git} git] && ![catch {file type $path} ftype]} {
+                if {$ftype ne "directory"} {
+                    set path [file dirname $path]
+                }
+                # Recent git refuses to run if the current user doesn't own
+                # the checkout, unless safe.directory is set.
+                if {[catch {exec -ignorestderr $git -c safe.directory=* -C $path rev-parse HEAD 2> /dev/null} result]} {
+                    ui_debug "get_path_commit: git rev-parse failed: $result"
+                    set result {}
+                }
+            }
+            return $result
+        }
+
+        # If all the given paths are in a git repo with no uncommitted
+        # changes, return the timestamp of the latest commit affecting
+        # any of them. Otherwise, return an empty string.
+        proc get_latest_commit_time {checkpaths} {
+            if {[catch {macports::findBinary git} git]} {
+                return {}
+            }
+            set checkdirs [lmap p $checkpaths {expr {[file isdirectory $p] ? $p : [file dirname $p]}}]
+            foreach d $checkdirs {
+                if {[catch {exec -ignorestderr $git -c safe.directory=* -C $d rev-parse --is-inside-work-tree 2> /dev/null}]} {
+                    return {}
+                }
+            }
+            # Use time of last commit only if there are no uncommitted changes
+            set any_uncommitted 0
+            foreach p $checkpaths d $checkdirs {
+                if {[catch {exec -ignorestderr $git -c safe.directory=* -C $d status --porcelain $p 2> /dev/null} result]} {
+                    ui_debug "get_latest_commit_time: git status failed: $result"
+                    return {}
+                } elseif {$result ne ""} {
+                    ui_debug "get_latest_commit_time: uncommitted changes to $p"
+                    return {}
+                }
+            }
+            set newest 0
+            foreach p $checkpaths d $checkdirs {
+                if {![catch {exec -ignorestderr $git -c safe.directory=* -C $d log -1 --pretty=%ct $p 2> /dev/null} result]} {
+                    if {$result > $newest} {
+                        set newest $result
+                    }
+                } else {
+                    ui_debug "get_latest_commit_time: git log failed: $result"
+                    return {}
+                }
+            }
+            return $newest
+        }
+
+        # return the latest mtime of any file at or under the given paths
+        proc get_latest_path_mtime {checkpaths} {
+            set newest 0
+            fs-traverse fullpath $checkpaths {
+                if {[catch {
+                    if {[file type $fullpath] eq "file"} {
+                        set mtime [file mtime $fullpath]
+                        if {$mtime > $newest} {
+                            set newest $mtime
+                        }
+                    }
+                } result]} {
+                    ui_debug "get_latest_path_mtime: $result"
+                }
+            }
+            return $newest
+        }
+
+        ########### Distname utility functions ###########
+
+        # Given a distribution file name, return the appended tag
+        # Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
+        # / isn't included in the regexp, thus allowing port specification in URLs.
+        proc getdisttag {filename} {
+            if {[regexp {.+:([0-9A-Za-z_-]+)$} $filename match tag]} {
+                return $tag
+            } else {
+                return {}
+            }
+        }
+
+        # Given a distribution file name, return the name without an attached tag
+        # Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
+        # / isn't included in the regexp, thus allowing port specification in URLs.
+        proc getdistname {filename} {
+            regexp {(.+):[0-9A-Za-z_-]+$} $filename match filename
+            return $filename
+        }
+
+        # ldelete
+        # Deletes a value from the supplied list
+        proc ldelete {list value} {
+            set ix [lsearch -exact $list $value]
+            if {$ix >= 0} {
+                lpop list $ix
+            }
+            return $list
+        }
+
+        # reinplace
+        # Provides "sed in place" functionality
+        proc reinplace {dir tempdir args}  {
+            global env macports::ui_prefix
+            set extended 0
+            set suppress 0
+            set quiet 0
+            set oldlocale_exists 0
+            set oldlocale {}
+            set locale {}
+            while {1} {
+                set arg [lindex $args 0]
+                if {[string index $arg 0] eq "-"} {
+                    set args [lrange $args 1 end]
+                    switch -- [string range $arg 1 end] {
+                        locale {
+                            set oldlocale_exists [info exists env(LC_CTYPE)]
+                            if {$oldlocale_exists} {
+                                set oldlocale $env(LC_CTYPE)
+                            }
+                            set locale [lindex $args 0]
+                            set args [lrange $args 1 end]
+                        }
+                        E {
+                            set extended 1
+                        }
+                        n {
+                            set suppress 1
+                        }
+                        q {
+                            set quiet 1
+                        }
+                        W {
+                            set dir [lindex $args 0]
+                            set args [lrange $args 1 end]
+                        }
+                        - {
+                            break
+                        }
+                        default {
+                            error "reinplace: unknown flag '$arg'"
+                        }
+                    }
+                } else {
+                    break
+                }
+            }
+            if {[llength $args] < 2} {
+                error "reinplace ?-E? ?-n? ?-q? ?-W dir? pattern file ..."
+            }
+            set pattern [lindex $args 0]
+            set files [lrange $args 1 end]
+
+            if {![file isdirectory ${tempdir}]} {
+                set tempdir [file tempdir]
+            }
+
+            foreach file $files {
+                # if $file is an absolute path already, file join will just return the
+                # absolute path, otherwise it is $dir/$file
+                set file [file join $dir $file]
+
+                if {[catch {set tmpfd [file tempfile tmpfile ${tempdir}/[file tail $file].sed]} error]} {
+                    ui_debug $::errorInfo
+                    ui_error "reinplace: $error"
+                    return -code error "reinplace failed"
+                }
+
+                set cmdline [list $::portlib::autoconf::sed_command]
+                if {$extended} {
+                    lappend cmdline -E
+                }
+                if {$suppress} {
+                    lappend cmdline -n
+                }
+                lappend cmdline $pattern "<$file" ">@$tmpfd"
+                if {$locale ne ""} {
+                    set env(LC_CTYPE) $locale
+                }
+                ui_info "$ui_prefix [format [msgcat::mc "Patching %s: %s"] [file tail $file] $pattern]"
+                ui_debug "Executing reinplace: $cmdline"
+                if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
+                    ui_debug $::errorInfo
+                    ui_error "reinplace: $error"
+                    file delete "$tmpfile"
+                    if {$locale ne ""} {
+                        if {$oldlocale_exists} {
+                            set env(LC_CTYPE) $oldlocale
+                        } else {
+                            unset env(LC_CTYPE)
+                        }
+                    }
+                    close $tmpfd
+                    return -code error "reinplace sed(1) failed"
+                }
+
+                if {$locale ne ""} {
+                    if {$oldlocale_exists} {
+                        set env(LC_CTYPE) $oldlocale
+                    } else {
+                        unset env(LC_CTYPE)
+                    }
+                }
+                close $tmpfd
+
+                if {!$quiet && ![catch {exec -ignorestderr cmp -s $file $tmpfile}]} {
+                    ui_warn "[format [msgcat::mc "reinplace %1\$s didn't change anything in %2\$s"] $pattern $file]"
+                }
+
+                set attributes [file attributes $file]
+                chownAsRoot $file
+
+                # We need to overwrite this file
+                if {[catch {file attributes $file -permissions u+w} error]} {
+                    ui_debug $::errorInfo
+                    ui_error "reinplace: $error"
+                    file delete "$tmpfile"
+                    return -code error "reinplace permissions failed"
+                }
+
+                if {[catch {file copy -force $tmpfile $file} error]} {
+                    ui_debug $::errorInfo
+                    ui_error "reinplace: $error"
+                    file delete "$tmpfile"
+                    return -code error "reinplace copy failed"
+                }
+
+                fileAttrsAsRoot $file $attributes
+
+                file delete $tmpfile
+            }
+        }
+
+        # touch
+        # mimics the BSD touch command
+        proc touch {dir args} {
+            while {[string match "-*" [lindex $args 0]]} {
+                set arg [string range [lindex $args 0] 1 end]
+                set args [lrange $args 1 end]
+                switch -- $arg {
+                    a -
+                    c -
+                    m {set options($arg) yes}
+                    r -
+                    t {
+                        set narg [lindex $args 0]
+                        set args [lrange $args 1 end]
+                        if {$narg eq ""} {
+                            return -code error "touch: option requires an argument -- $arg"
+                        }
+                        set options($arg) $narg
+                        set options(rt) $arg ;# later option overrides earlier
+                    }
+                    W {
+                        set dir [lindex $args 0]
+                        set args [lrange $args 1 end]
+                    }
+                    - break
+                    default {return -code error "touch: illegal option -- $arg"}
+                }
+            }
+
+            # parse the r/t options
+            if {[info exists options(rt)]} {
+                if {$options(rt) eq "r"} {
+                    # -r
+                    # get atime/mtime from the file
+                    if {[file exists $options(r)]} {
+                        set atime [file atime $options(r)]
+                        set mtime [file mtime $options(r)]
+                    } else {
+                        return -code error "touch: $options(r): No such file or directory"
+                    }
+                } else {
+                    # -t
+                    # parse the time specification
+                    # turn it into a CCyymmdd hhmmss
+                    set timespec {^(?:(\d\d)?(\d\d))?(\d\d)(\d\d)(\d\d)(\d\d)(?:\.(\d\d))?$}
+                    if {[regexp $timespec $options(t) {} CC YY MM DD hh mm SS]} {
+                        if {$YY eq ""} {
+                            set year [clock format [clock seconds] -format %Y]
+                        } elseif {$CC eq ""} {
+                            if {$YY >= 69 && $YY <= 99} {
+                                set year 19$YY
+                            } else {
+                                set year 20$YY
+                            }
+                        } else {
+                            set year $CC$YY
+                        }
+                        if {$SS eq ""} {
+                            set SS 00
+                        }
+                        set atime [clock scan "$year$MM$DD $hh$mm$SS"]
+                        set mtime $atime
+                    } else {
+                        return -code error \
+                            {touch: out of range or illegal time specification: [[CC]YY]MMDDhhmm[.SS]}
+                    }
+                }
+            } else {
+                set atime [clock seconds]
+                set mtime [clock seconds]
+            }
+
+            # do we have any files to process?
+            if {[llength $args] == 0} {
+                # print usage
+                return -code error {usage: touch [-a] [-c] [-m] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] [-W dir] file ...}
+            }
+
+            foreach file $args {
+                # if $file is an absolute path already, file join will just
+                # return the absolute path, otherwise it is $dir/$file
+                set file [file join $dir $file]
+
+                if {![file exists $file]} {
+                    if {[info exists options(c)]} {
+                        continue
+                    } else {
+                        close [open $file w]
+                    }
+                }
+
+                if {[info exists options(a)] || ![info exists options(m)]} {
+                    file atime $file $atime
+                }
+                if {[info exists options(m)] || ![info exists options(a)]} {
+                    file mtime $file $mtime
+                }
+            }
+        }
+
+        # copy
+        # Wrapper for file copy
+        proc copy {args} {
+            file copy {*}$args
+        }
+
+        # delete
+        # Wrapper for file delete -force
+        proc delete {args} {
+            file delete -force -- {*}$args
+        }
+
+        # move
+        # Wrapper for file rename that handles case-only renames
+        proc move {args} {
+            set options [list]
+            while {[string match "-*" [lindex $args 0]]} {
+                set arg [string range [lpop args 0] 1 end]
+                switch -- $arg {
+                    force {lappend options -$arg}
+                    - break
+                    default {return -code error "move: illegal option -- $arg"}
+                }
+            }
+            lappend options --
+            if {[llength $args] == 2} {
+                set oldname [lindex $args 0]
+                set newname [lindex $args 1]
+                if {[string equal -nocase $oldname $newname] && $oldname ne $newname} {
+                    # case-only rename
+                    set tempdir [mkdtemp ${oldname}-XXXXXXXX]
+                    set tempname $tempdir/[file tail $oldname]
+                    file rename {*}$options $oldname $tempname
+                    file rename {*}$options $tempname $newname
+                    delete $tempdir
+                    return
+                }
+            }
+            file rename {*}$options {*}$args
+        }
+
+        # ln
+        # Mimics the BSD ln implementation
+        # ln [-f] [-h] [-s] [-v] source_file [target_file]
+        # ln [-f] [-h] [-s] [-v] source_file ... target_dir
+        proc ln {args} {
+            while {[string match "-*" [lindex $args 0]]} {
+                set arg [string range [lindex $args 0] 1 end]
+                if {[string length $arg] > 1} {
+                    set remainder -[string range $arg 1 end]
+                    set arg [string range $arg 0 0]
+                    lset args 0 $remainder
+                } else {
+                    lpop args 0
+                }
+                switch -- $arg {
+                    f -
+                    h -
+                    s -
+                    v {set options($arg) yes}
+                    - break
+                    default {return -code error "ln: illegal option -- $arg"}
+                }
+            }
+
+            if {[llength $args] == 0} {
+                return -code error [join {{usage: ln [-f] [-h] [-s] [-v] source_file [target_file]}
+                                          {       ln [-f] [-h] [-s] [-v] file ... directory}} "\n"]
+            } elseif {[llength $args] == 1} {
+                set files $args
+                set target ./
+            } else {
+                set files [lrange $args 0 end-1]
+                set target [lindex $args end]
+            }
+
+            set target_dir 0
+            set append_path 0
+            if {[file isdirectory $target]} {
+                set target_dir 1
+                if {[file type $target] ne "link" || ![info exists options(h)]} {
+                    set append_path 1
+                }
+            }
+
+            foreach file $files {
+                if {[file isdirectory $file] && ![info exists options(s)]} {
+                    return -code error "ln: $file: Is a directory"
+                }
+
+                if {$append_path} {
+                    set linktarget [file join $target [file tail $file]]
+                } else {
+                    set linktarget $target
+                }
+
+                if {![catch {file type $linktarget}]} {
+                    if {[info exists options(f)]} {
+                        file delete $linktarget
+                    } else {
+                        return -code error "ln: $linktarget: File exists"
+                    }
+                }
+
+                if {[llength $files] > 1} {
+                    if {!$append_path && ![file exists $linktarget]} {
+                        return -code error "ln: $linktarget: No such file or directory"
+                    } elseif {!$target_dir} {
+                        # this error isn't strictly what BSD ln gives, but I think it's more useful
+                        return -code error "ln: $target: Not a directory"
+                    }
+                }
+
+                if {[info exists options(v)]} {
+                    ui_notice "ln: $linktarget -> $file"
+                }
+                if {[info exists options(s)]} {
+                    symlink $file $linktarget
+                } else {
+                    file link -hard $linktarget $file
+                }
+            }
+        }
+
+        # recursive dependency search for portname
+        proc recursive_collect_deps {portname {depsfound {}}} \
+        {
+            # Get the active port from the registry
+            set entries [registry::entry installed $portname]
+            if {[llength $entries < 1]} {
+                ui_warn "recursive_collect_deps: '$portname' is registered as a dependency but is not active"
+                return $depsfound
+            }
+            # There can be only one port version active at a time, so take the first result only
+            set regentry [lindex $entries 0]
+
+            # Get port dependencies from the registry
+            foreach item [$regentry dependencies] {
+                set depname [string tolower [$item name]]
+                if {![dict exists $depsfound $depname]} {
+                    dict set depsfound $depname 1
+                    set depsfound [recursive_collect_deps $depname $depsfound]
+                }
+            }
+
+            return $depsfound
+        }
+
+        # Given a list of variant specifications, return a canonical string form
+        # for the registry.
+        # The strategy is as follows: regardless of how some collection of variants
+        # was turned on or off, a particular instance of the port is uniquely
+        # characterized by the set of variants that are *on*. Thus, record those
+        # variants in a string in a standard order as +var1+var2 etc.
+        # Can also do the same for -variants, for recording the negated list.
+        proc canonicalize_variants {variants {sign "+"}} {
+            set result {}
+            set vlist [lsort -ascii [dict keys $variants]]
+            foreach v $vlist {
+                if {[dict get $variants $v] eq $sign} {
+                    append result ${sign}${v}
+                }
+            }
+            return $result
+        }
+
+        proc adduser {username args} {
+            global macports::os_platform
+
+            if {[getuid] != 0} {
+                ui_warn "adduser only works when running as root."
+                ui_warn "The requested user '$username' was not created."
+                return
+            }
+
+            set passwd {*}
+            set uid [nextuid]
+            set gid [existsgroup nogroup]
+            set realname ${username}
+            set home /var/empty
+            set shell /usr/bin/false
+
+            set keyval_re {([a-z]*)=(.*)}
+            foreach arg $args {
+                if {[regexp $keyval_re $arg match key val]} {
+                    set $key $val
+                }
+            }
+
+            if {[existsuser ${username}] != -1 || [existsuser ${uid}] != -1} {
+                return
+            }
+
+            if {[geteuid] != 0} {
+                seteuid 0; setegid 0
+                set escalated 1
+            }
+
+            if {${os_platform} eq "darwin"} {
+                set dscl [findBinary dscl $::portlib::autoconf::dscl_path]
+                set failed? 0
+                macports_try {
+                    exec -ignorestderr $dscl . -create /Users/${username} UniqueID ${uid}
+
+                    # These are implicitly added on Mac OS X Lion.  AuthenticationAuthority
+                    # causes the user to be visible in the Users & Groups Preference Pane,
+                    # and the others are just noise, so delete them.
+                    # https://trac.macports.org/ticket/30168
+                    exec -ignorestderr $dscl . -delete /Users/${username} AuthenticationAuthority
+                    exec -ignorestderr $dscl . -delete /Users/${username} PasswordPolicyOptions
+                    exec -ignorestderr $dscl . -delete /Users/${username} dsAttrTypeNative:KerberosKeys
+                    exec -ignorestderr $dscl . -delete /Users/${username} dsAttrTypeNative:ShadowHashData
+
+                    exec -ignorestderr $dscl . -create /Users/${username} RealName ${realname}
+                    exec -ignorestderr $dscl . -create /Users/${username} Password ${passwd}
+                    exec -ignorestderr $dscl . -create /Users/${username} PrimaryGroupID ${gid}
+                    exec -ignorestderr $dscl . -create /Users/${username} NFSHomeDirectory ${home}
+                    exec -ignorestderr $dscl . -create /Users/${username} UserShell ${shell}
+                } on error {{CHILDKILLED *} eCode eMessage} {
+                    # the foreachs are a simple workaround for Tcl 8.4, which doesn't
+                    # seem to have lassign
+                    foreach {- pid sigName msg} $eCode {
+                        ui_error "dscl($pid) was killed by $sigName: $msg"
+                        ui_debug "dscl printed: $eMessage"
+                    }
+
+                    set failed? 1
+                } on error {{CHILDSTATUS *} eCode eMessage} {
+                    foreach {- pid code} $eCode {
+                        ui_error "dscl($pid) terminated with an exit status of $code"
+                        ui_debug "dscl printed: $eMessage"
+                    }
+
+                    set failed? 1
+                } on error {{POSIX *} eCode eMessage} {
+                    foreach {- errName msg} {
+                        ui_error "failed to execute $dscl: $errName: $msg"
+                        ui_debug "dscl printed: $eMessage"
+                    }
+
+                    set failed? 1
+                } finally {
+                    if {${failed?}} {
+                        # creating the user properly failed and we're bailing out
+                        # anyway, try to delete the half-created user to revert to the
+                        # state before the error
+                        ui_debug "Attempting to clean up failed creation of user $username"
+                        macports_try {
+                            exec -ignorestderr $dscl . -delete /Users/${username}
+                        } on error {{CHILDKILLED *} eCode eMessage} {
+                            foreach {- pid sigName msg} {
+                                ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $username."
+                                ui_debug "dscl printed: $eMessage"
+                            }
+                        } on error {{CHILDSTATUS *} eCode eMessage} {
+                            # ignoring childstatus failure, because that probably means
+                            # the first call failed and the user wasn't even created
+                        } on error {{POSIX *} eCode eMessage} {
+                            foreach {- errName msg} {
+                                ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $username."
+                                ui_debug "dscl printed: $eMessage"
+                            }
+                        }
+
+                        # drop privileges if they were escalated before
+                        if {[info exists escalated]} {
+                            dropPrivileges
+                        }
+
+                        # and raise an error to abort
+                        error "dscl failed to create required user $username."
+                    }
+                }
+            } else {
+                # XXX adduser is only available for darwin, add more support here
+                ui_warn "adduser is not implemented on ${os_platform}."
+                ui_warn "The requested user '$username' was not created."
+            }
+
+            if {[info exists escalated]} {
+                dropPrivileges
+            }
+        }
+
+        proc addgroup {groupname args} {
+            global macports::os_platform
+
+            if {[getuid] != 0} {
+                ui_warn "addgroup only works when running as root."
+                ui_warn "The requested group '$groupname' was not created."
+                return
+            }
+
+            set gid [nextgid]
+            set realname ${groupname}
+            set passwd {*}
+            set users ""
+
+            set keyval_re {([a-z]*)=(.*)}
+            foreach arg $args {
+                if {[regexp $keyval_re $arg match key val]} {
+                    set $key $val
+                }
+            }
+
+            if {[existsgroup ${groupname}] != -1 || [existsgroup ${gid}] != -1} {
+                return
+            }
+
+            if {[geteuid] != 0} {
+                seteuid 0; setegid 0
+                set escalated 1
+            }
+
+            if {${os_platform} eq "darwin"} {
+                set dscl [findBinary dscl $::portlib::autoconf::dscl_path]
+                set failed? 0
+                macports_try {
+                    exec -ignorestderr $dscl . -create /Groups/${groupname} Password ${passwd}
+                    exec -ignorestderr $dscl . -create /Groups/${groupname} RealName ${realname}
+                    exec -ignorestderr $dscl . -create /Groups/${groupname} PrimaryGroupID ${gid}
+                    if {${users} ne ""} {
+                        exec -ignorestderr $dscl . -create /Groups/${groupname} GroupMembership ${users}
+                    }
+                } on error {{CHILDKILLED *} eCode eMessage} {
+                    # the foreachs are a simple workaround for Tcl 8.4, which doesn't
+                    # seem to have lassign
+                    foreach {- pid sigName msg} $eCode {
+                        ui_error "dscl($pid) was killed by $sigName: $msg"
+                        ui_debug "dscl printed: $eMessage"
+                    }
+
+                    set failed? 1
+                } on error {{CHILDSTATUS *} eCode eMessage} {
+                    foreach {- pid code} $eCode {
+                        ui_error "dscl($pid) terminated with an exit status of $code"
+                        ui_debug "dscl printed: $eMessage"
+                    }
+
+                    set failed? 1
+                } on error {{POSIX *} eCode eMessage} {
+                    foreach {- errName msg} {
+                        ui_error "failed to execute $dscl: $errName: $msg"
+                        ui_debug "dscl printed: $eMessage"
+                    }
+
+                    set failed? 1
+                } finally {
+                    if {${failed?}} {
+                        # creating the user properly failed and we're bailing out
+                        # anyway, try to delete the half-created user to revert to the
+                        # state before the error
+                        ui_debug "Attempting to clean up failed creation of group $groupname"
+                        macports_try {
+                            exec -ignorestderr $dscl . -delete /Groups/${groupname}
+                        } on error {{CHILDKILLED *} eCode eMessage} {
+                            foreach {- pid sigName msg} {
+                                ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $groupname."
+                                ui_debug "dscl printed: $eMessage"
+                            }
+                        } on error {{CHILDSTATUS *} eCode eMessage} {
+                            # ignoring childstatus failure, because that probably means
+                            # the first call failed and the user wasn't even created
+                        } on error {{POSIX *} eCode eMessage} {
+                            foreach {- errName msg} {
+                                ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $groupname."
+                                ui_debug "dscl printed: $eMessage"
+                            }
+                        }
+
+                        if {[info exists escalated]} {
+                            dropPrivileges
+                        }
+
+                        # and raise an error to abort
+                        error "dscl failed to create required group $groupname."
+                    }
+                }
+            } else {
+                # XXX addgroup is only available for darwin, add more support here
+                ui_warn "addgroup is not implemented on ${os_platform}."
+                ui_warn "The requested group was not created."
+            }
+
+            if {[info exists escalated]} {
+                dropPrivileges
+            }
+        }
+
+        # proc to calculate size of a directory
+        # moved here from portpkg.tcl
+        proc dirSize {dir} {
+            set size    0;
+            foreach file [readdir $dir] {
+                if {[file type [file join $dir $file]] eq "link" } {
+                    continue
+                }
+                if {[file isdirectory [file join $dir $file]]} {
+                    incr size [dirSize [file join $dir $file]]
+                } else {
+                    incr size [file size [file join $dir $file]];
+                }
+            }
+            return $size;
+        }
+
+        # return the specified pieces of metadata from the +CONTENTS file in the given archive
+        proc extract_archive_metadata {archive_location archive_type metadata_types tempdir} {
+            set qflag ${::portlib::autoconf::tar_q}
+            set raw_contents {}
+
+            if {$archive_type in {xar cpgz cpio aar}} {
+                set twostep 1
+                if {[file isdirectory $tempdir]} {
+                    set tempdir [file tempdir ${tempdir}/portarchive]
+                } else {
+                    set tempdir [file tempdir portarchive]
+                }
+            }
+
+            switch -- $archive_type {
+                tbz -
+                tbz2 {
+                    set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
+                }
+                tgz {
+                    set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xOz${qflag}f $archive_location ./+CONTENTS]
+                }
+                tar {
+                    set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xO${qflag}f $archive_location ./+CONTENTS]
+                }
+                txz {
+                    set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [macports::findBinary xz ""] ./+CONTENTS]
+                }
+                tlz {
+                    set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [macports::findBinary lzma ""] ./+CONTENTS]
+                }
+                xar {
+                    system -W ${tempdir} "[macports::findBinary xar ${::portlib::autoconf::xar_path}] -xf [shellescape $archive_location] +CONTENTS"
+                }
+                zip {
+                    set raw_contents [exec -ignorestderr [macports::findBinary unzip ${::portlib::autoconf::unzip_path}] -p $archive_location +CONTENTS]
+                }
+                cpgz {
+                    system -W ${tempdir} "[macports::findBinary pax ${::portlib::autoconf::pax_path}] -rzf [shellescape $archive_location] +CONTENTS"
+                }
+                cpio {
+                    system -W ${tempdir} "[macports::findBinary pax ${::portlib::autoconf::pax_path}] -rf [shellescape $archive_location] +CONTENTS"
+                }
+                aar {
+                    system -W ${tempdir} "[macports::findBinary aa ${::portlib::autoconf::aa_path}] extract -i [shellescape $archive_location] -include-path +CONTENTS"
+                }
+            }
+            if {[info exists twostep]} {
+                set fd [open "${tempdir}/+CONTENTS"]
+                set raw_contents [read -nonewline $fd]
+                close $fd
+                file delete -force $tempdir
+            }
+            set ret [dict create]
+            foreach metadata_type $metadata_types {
+                switch -- $metadata_type {
+                    contents {
+                        set contents [list]
+                        set binary_info [list]
+                        set ignore 0
+                        set sep [file separator]
+                        foreach line [split $raw_contents \n] {
+                            if {$ignore} {
+                                set ignore 0
+                                continue
+                            }
+                            if {[string index $line 0] ne "@"} {
+                                lappend contents "${sep}${line}"
+                            } elseif {$line eq "@ignore"} {
+                                set ignore 1
+                            } elseif {[string range $line 0 15] eq "@comment binary:"} {
+                                lappend binary_info [lindex $contents end] [string range $line 16 end]
+                            }
+                        }
+                        dict set ret contents [list $contents $binary_info]
+                    }
+                    portname {
+                        set portname {}
+                        foreach line [split $raw_contents \n] {
+                            if {[lindex $line 0] eq "@portname"} {
+                                set portname [lindex $line 1]
+                                break
+                            }
+                        }
+                        dict set ret portname $portname
+                    }
+                    cxx_info {
+                        set val_cxx_stdlib ""
+                        set val_cxx_stdlib_overridden ""
+                        foreach line [split $raw_contents \n] {
+                            if {[lindex $line 0] eq "@cxx_stdlib"} {
+                                set val_cxx_stdlib [lindex $line 1]
+                                if {$val_cxx_stdlib_overridden ne ""} {
+                                    break
+                                }
+                            } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
+                                set val_cxx_stdlib_overridden [lindex $line 1]
+                                if {$val_cxx_stdlib ne ""} {
+                                    break
+                                }
+                            }
+                        }
+                        dict set ret cxx_info [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
+                    }
+                    default {
+                        return -code error "unknown metadata_type: $metadata_type"
+                    }
+                }
+            }
+            return $ret
+        }
+
+        ##
+        # Escape a string for safe use in regular expressions
+        #
+        # @param str the string to be quoted
+        # @return the escaped string
+        proc quotemeta {str} {
+            regsub -all {(\W)} $str {\\\1} str
+            return $str
+        }
+
+        ##
+        # Recursively chown the given file or directory to the specified user.
+        #
+        # @param path the file/directory to be chowned
+        # @param user the user to chown file to
+        proc chown {path user} {
+            lchown $path $user
+
+            if {[file isdirectory $path]} {
+                fs-traverse myfile [list $path] {
+                    lchown $myfile $user
+                }
+            }
+        }
+
+        ##
+        # Recursively chown the given file or directory to $macportsuser, using root privileges.
+        #
+        # @param path the file/directory to be chowned
+        proc chownAsRoot {path} {
+            if {[getuid] == 0} {
+                global macports::macportsuser
+                if {[geteuid] != 0} {
+                    # if started with sudo but have dropped the privileges
+                    seteuid 0; setegid 0
+                    ui_debug "euid/egid changed to: [geteuid]/[getegid]"
+                    set drop_after 1
+                }
+                chown $path $macportsuser
+                ui_debug "chowned $path to $macportsuser"
+                if {[info exists drop_after]} {
+                    setegid [uname_to_gid $macportsuser]
+                    seteuid [name_to_uid $macportsuser]
+                    ui_debug "euid/egid changed to: [geteuid]/[getegid]"
+                }
+            }
+        }
+
+        ##
+        # Change attributes of file while running as root
+        #
+        # @param file the file in question
+        # @param attributes the attributes for the file
+        proc fileAttrsAsRoot {file attributes} {
+            if {[getuid] == 0} {
+                if {[geteuid] != 0} {
+                    # Started as root, but not root now
+                    seteuid 0; setegid 0
+                    ui_debug "euid/egid changed to: [geteuid]/[getegid]"
+                    set drop_after 1
+                }
+                ui_debug "setting attributes on $file"
+                file attributes $file {*}$attributes
+                if {[info exists drop_after]} {
+                    global macports::macportsuser
+                    setegid [uname_to_gid $macportsuser]
+                    seteuid [name_to_uid $macportsuser]
+                    ui_debug "euid/egid changed to: [geteuid]/[getegid]"
+                }
+            } else {
+                # not root, so can't set owner/group
+                set permissions [lindex $attributes [lsearch -exact $attributes "-permissions"]+1]
+                file attributes $file -permissions $permissions
+            }
+        }
+
+        ##
+        # Elevate privileges back to root.
+        #
+        # @param action the action for which privileges are being elevated
+        proc elevateToRoot {action} {
+            if {[getuid] != 0} {
+                return -code error "MacPorts requires root privileges for this action"
+            }
+            if {[geteuid] != 0} {
+                # if started with sudo but have dropped the privileges
+                seteuid 0; setegid 0
+                ui_debug "elevating privileges for $action: euid changed to [geteuid], egid changed to [getegid]."
+            }
+        }
+
+        ##
+        # de-escalate privileges from root to those of $macportsuser.
+        #
+        proc dropPrivileges {} {
+            if {[geteuid] == 0} {
+                global macports::macportsuser
+                if { [catch {
+                        if {[name_to_uid $macportsuser] != 0} {
+                            setegid [uname_to_gid $macportsuser]
+                            seteuid [name_to_uid $macportsuser]
+                            ui_debug "dropping privileges: euid changed to [geteuid], egid changed to [getegid]."
+                        }
+                    }]
+                } {
+                    ui_debug $::errorInfo
+                    ui_error "Failed to de-escalate privileges."
+                }
+            } else {
+                ui_debug "Privilege de-escalation not attempted as not running as root."
+            }
+        }
+
+        # get the mountpoint providing a given directory
+        proc get_mountpoint {target_dir} {
+            file stat $target_dir target_stat
+            set cur_dir $target_dir
+            while {$cur_dir ne "/"} {
+                set next_parent [file dirname $cur_dir]
+                file stat $next_parent stat
+
+                if {$stat(dev) != $target_stat(dev)} {
+                    return $cur_dir
+                }
+
+                set cur_dir $next_parent
+            }
+
+            return $cur_dir
+        }
+
     }
 }

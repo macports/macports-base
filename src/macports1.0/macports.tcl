@@ -1665,6 +1665,12 @@ match macports.conf.default."
     if {![info exists macportsuser]} {
         set macportsuser $macports::autoconf::macportsuser
     }
+    # check for existence of macportsuser and use fallback if necessary
+    if {[getuid] == 0 && $macportsuser ne "root" && 
+        ([existsuser $macportsuser] == -1 || [existsgroup $macportsuser] == -1)} {
+        ui_warn "configured user/group $macportsuser does not exist, will build as root"
+        set macportsuser "root"
+    }
 
     # Default mp universal options
     if {![info exists universal_archs]} {
@@ -2197,6 +2203,38 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias portfetch::assemble_url portlib::fetch::assemble_url
     $workername alias portfetch::separate_tag portlib::fetch::separate_tag
     $workername alias portfetch::get_mirror_site_urls portlib::fetch::get_mirror_site_urls
+
+    $workername alias portextract::method_for_suffix portlib::extract::method_for_suffix
+    $workername alias portextract::get_extract_cmd portlib::extract::get_extract_cmd
+    $workername alias portextract::get_extract_pre_args portlib::extract::get_extract_pre_args
+
+    $workername alias portutil::get_path_commit portlib::util::get_path_commit
+    $workername alias portutil::get_latest_commit_time portlib::util::get_latest_commit_time
+    $workername alias portutil::get_latest_path_mtime portlib::util::get_latest_path_mtime
+
+    $workername alias adduser portlib::util::adduser
+    $workername alias addgroup portlib::util::addgroup
+    $workername alias canonicalize_variants portlib::util::canonicalize_variants
+    $workername alias chown portlib::util::chown
+    $workername alias chownAsRoot portlib::util::chownAsRoot
+    $workername alias dirSize portlib::util::dirSize
+    $workername alias dropPrivileges portlib::util::dropPrivileges
+    $workername alias elevateToRoot portlib::util::elevateToRoot
+    $workername alias portutil::_extract_archive_metadata portlib::util::extract_archive_metadata
+    $workername alias fileAttrsAsRoot portlib::util::fileAttrsAsRoot
+    $workername alias getdisttag portlib::util::getdisttag
+    $workername alias getdistname portlib::util::getdistname
+    $workername alias get_mountpoint portlib::util::get_mountpoint
+    $workername alias ldelete portlib::util::ldelete
+    $workername alias portutil::_reinplace portlib::util::reinplace
+    $workername alias portutil::_touch portlib::util::touch
+    $workername alias copy portlib::util::copy
+    $workername alias delete portlib::util::delete
+    $workername alias ln portlib::util::ln
+    $workername alias move portlib::util::move
+    $workername alias quotemeta portlib::util::quotemeta
+
+    $workername alias portutil::recursive_collect_deps portlib::util::recursive_collect_deps
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -2996,7 +3034,6 @@ proc _mportexec {target mport} {
     macports::push_log $mport
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
-    $workername eval [list validate_macportsuser]
 
     # If the target doesn't need a toolchain (e.g. because an archive is
     # available and we're not going to build it), don't check for the Xcode
@@ -3061,8 +3098,6 @@ proc mportexec {mport target} {
     global macports::ui_prefix macports::portautoclean
     set workername [ditem_key $mport workername]
 
-    # check for existence of macportsuser and use fallback if necessary
-    $workername eval [list validate_macportsuser]
     # check variants
     if {[$workername eval [list check_variants $target]] != 0} {
         return 1

@@ -33,24 +33,6 @@ package provide portinstall_run 1.0
 
 namespace eval portinstall {
 
-# If the given path is in a git checkout, return the currently checked
-# out commit. If not, return an empty string.
-proc get_path_commit {path} {
-    set result ""
-    if {![catch {findBinary git} git] && ![catch {file type $path} ftype]} {
-        if {$ftype ne "directory"} {
-            set path [file dirname $path]
-        }
-        # Recent git refuses to run if the current user doesn't own
-        # the checkout, unless safe.directory is set.
-        if {[catch {exec -ignorestderr $git -c safe.directory=* -C $path rev-parse HEAD 2> /dev/null} result]} {
-            ui_debug "get_path_commit: git rev-parse failed: $result"
-            set result ""
-        }
-    }
-    return $result
-}
-
 proc install_start {args} {
     global UI_PREFIX subport version revision portvariants \
            prefix_frozen
@@ -174,7 +156,7 @@ proc create_archive {location archive.type} {
             }
         }
     }
-    set ports_commit [get_path_commit $portpath]
+    set ports_commit [portutil::get_path_commit $portpath]
     if {$ports_commit ne ""} {
         puts $fd "@ports_commit $ports_commit"
     }
