@@ -38,6 +38,10 @@ port-select \- Switch between different implementations of a tool
 .nf
 \fBport\fR [\fB\-dv\fR] \fBselect\fR [\-\-set] \fIgroup\fR \fIoption\fR
 .fi
+.sp
+.nf
+\fBport\fR [\fB\-dv\fR] \fBselect\fR [\-\-set] \fIgroup\fR none
+.fi
 .SH "DESCRIPTION"
 .sp
 \fBport select\fR provides a mechanism to choose from different implementations of a common tool or port\&. Selecting one of the options makes it the primary version or implementation, e\&.g\&. the one to be run by default when you do not explicitly select a version or implementation on the command line\&.
@@ -47,6 +51,8 @@ Note that \fBport select\fR is only for your convenience as user\&. It does not,
 One example is the set of MySQL and forks of MySQL, where there are mysql51, mysql55, mysql56, mariadb, mariadb\-10\&.0, mariadb\-11\&.0, percona, possibly among others\&. \fBport select\fR lets you choose which of these becomes the version run, when you simply run \fImysql\fR or other commands from the MySQL suite\&.
 .sp
 \fBport select\fR has multiple modes of operation: It can display a summary, show the current primary implementation and list all available implementations given a group name, and change the primary implementation\&. See \fBOPTIONS\fR below for details\&.
+.sp
+The special value \fBnone\fR undoes a previous \fBport select\fR invocation by removing the relevant symbolic links again\&.
 .SH "OPTIONS"
 .PP
 \fB\-\-summary\fR
@@ -94,6 +100,18 @@ $> sudo port select \-\-set mysql $option
 .\}
 .sp
 where \fI$option\fR is \fImysql56\fR if you want the version from MySQL, or \fIpercona\fR, if you want the version from Percona\&.
+.sp
+If you now want to do undo this selection, you can do so by running
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$> sudo port select \-\-set mysql none
+.fi
+.if n \{\
+.RE
+.\}
 .SH "SEE ALSO"
 .sp
 \fBport\fR(1)
