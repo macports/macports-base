@@ -299,7 +299,7 @@ default configure.pkg_config_path   {}
 options configure.build_arch configure.ld_archflags \
         configure.sdk_version configure.sdkroot \
         configure.sysroot configure.developer_dir
-default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
+default configure.build_arch    {[portconfigure::choose_supported_archs $build_arch $supported_archs ${configure.sdk_version}]}
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
 default configure.sdk_version   {$macosx_sdk_version}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
@@ -314,7 +314,7 @@ options configure.universal_archs configure.universal_args \
         configure.universal_cflags \
         configure.universal_objcflags \
         configure.universal_cppflags configure.universal_ldflags
-default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
+default configure.universal_archs       {[portconfigure::choose_supported_archs $universal_archs $supported_archs ${configure.sdk_version}]}
 default configure.universal_args        --disable-dependency-tracking
 default configure.universal_cflags      {[portconfigure::configure_get_universal_archflags]}
 default configure.universal_objcflags   {${configure.universal_cflags}}
@@ -357,78 +357,6 @@ default compiler.openmp_version        {}
 default compiler.mpi                   {}
 default compiler.thread_local_storage  no
 
-# internal function to choose the default configure.build_arch and
-# configure.universal_archs based on supported_archs and build_arch or
-# universal_archs, plus the SDK being used
-proc portconfigure::choose_supported_archs {archs} {
-    global supported_archs configure.sdk_version
-
-    if {${configure.sdk_version} ne ""} {
-        # Figure out which archs are supported by the SDK
-        if {[vercmp ${configure.sdk_version} 11] >= 0} {
-            set sdk_archs [list arm64 x86_64]
-        } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
-            set sdk_archs [list x86_64]
-        } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
-            set sdk_archs [list x86_64 i386]
-        } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
-            set sdk_archs [list x86_64 i386 ppc]
-        } elseif {[vercmp ${configure.sdk_version} 10.5] >= 0} {
-            set sdk_archs [list x86_64 i386 ppc ppc64]
-        } else {
-            # 10.4u
-            set sdk_archs [list i386 ppc ppc64]
-        }
-
-        # Set intersection_archs to the intersection of what's supported by
-        # the SDK and the port's supported_archs
-        if {$supported_archs eq ""} {
-            # Blank supported_archs; allow whatever the SDK does.
-            set intersection_archs $sdk_archs
-        } else {
-            set intersection_archs [list]
-            foreach arch $sdk_archs {
-                if {$arch in $supported_archs} {
-                    lappend intersection_archs $arch
-                }
-            }
-            if {$intersection_archs eq ""} {
-                # No archs in common.
-                return [list]
-            }
-        }
-    } elseif {$supported_archs eq ""} {
-        # Nothing to filter on.
-        return $archs
-    } else {
-        # No SDK version (maybe not on macOS)
-        set intersection_archs $supported_archs
-    }
-    set ret [list]
-    # Filter out unsupported archs, but allow demoting to another arch
-    # supported by the SDK if needed, e.g. 64-bit to 32-bit. That means
-    # e.g. if build_arch is x86_64 it's still possible to build a port
-    # that sets supported_archs to "i386 ppc" if the SDK allows it.
-    set arch_demotions [dict create \
-                                arm64 x86_64 \
-                                x86_64 i386 \
-                                ppc64 ppc \
-                                i386 ppc]
-    foreach arch $archs {
-        if {$arch in $intersection_archs} {
-            set add_arch $arch
-        } elseif {[dict exists $arch_demotions $arch] && [dict get $arch_demotions $arch] in $intersection_archs} {
-            set add_arch [dict get $arch_demotions $arch]
-        } else {
-            continue
-        }
-        if {$add_arch ni $ret} {
-            lappend ret $add_arch
-        }
-    }
-    return $ret
-}
-
 # internal function to determine the compiler flags to select an arch
 proc portconfigure::configure_get_archflags {tool} {
     global configure.build_arch configure.m32 configure.m64 configure.compiler
@@ -464,183 +392,33 @@ proc portconfigure::configure_get_ld_archflags {} {
     }
 }
 
-# find a "close enough" match for the given sdk_version in sdk_path
-proc portconfigure::find_close_sdk {sdk_version sdk_path} {
-    # only works right for versions >= 11, which is all we need
-    set sdk_major [lindex [split $sdk_version .] 0]
-    set sdks [glob -nocomplain -directory $sdk_path MacOSX${sdk_major}*.sdk]
-    foreach sdk [lsort -command vercmp $sdks] {
-        # Sanity check - mostly empty SDK directories are known to exist
-        if {[file exists ${sdk}/usr/include/sys/cdefs.h]} {
-            return $sdk
-        }
-    }
-    return ""
-}
-
 proc portconfigure::configure_get_sdkroot {sdk_version} {
-    global developer_dir macos_version macos_version_major xcodeversion \
-           os.arch os.major os.platform use_xcode system_options
+    global system_options os.platform os.major macos_version_major
 
     # Explicit override value
     if {[info exists system_options(macosx_sdk_path)]} {
         return $system_options(macosx_sdk_path)
     }
 
-    # This is only relevant for macOS
-    if {${os.platform} ne "darwin"} {
-        return {}
-    }
-
     # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
-    if {${os.major} < 19 && $sdk_version eq $macos_version_major && [file exists /usr/include/sys/cdefs.h]} {
+    if {${os.platform} ne "darwin" || (${os.major} < 19 && $sdk_version eq $macos_version_major && [file_exists /usr/include/sys/cdefs.h])} {
         return {}
     }
 
-    variable sdkroot_cache
-    set sdk_major [lindex [split $sdk_version .] 0]
-    set cltpath /Library/Developer/CommandLineTools
-    # Check CLT first if Xcode shouldn't be used
-    if {![tbool use_xcode]} {
-        set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
-        if {[file exists $sdk]} {
-            return $sdk
-        } elseif {$sdk_major >= 11} {
-            # SDKs have minor versions as of macOS 11
-            set sdk [find_close_sdk $sdk_version ${cltpath}/SDKs]
-            if {$sdk ne ""} {
-                return $sdk
-            }
-        }
-
-        if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
-            set try_versions [list ${sdk_major}.0 ${macos_version}]
-        } else {
-            set try_versions [list $sdk_version]
-        }
-        foreach try_version $try_versions {
-            if {[info exists sdkroot_cache(macosx${try_version})]} {
-                if {$sdkroot_cache(macosx${try_version}) ne ""} {
-                    return $sdkroot_cache(macosx${try_version})
-                }
-                # negative result cached, do nothing here
-            } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
-                set sdkroot_cache(macosx${try_version}) $sdk
-                return $sdk
-            } else {
-                set sdkroot_cache(macosx${try_version}) ""
-            }
-        }
-
-        # Fallback on "macosx"
-        set sdk ${cltpath}/SDKs/MacOSX.sdk
-        if {[file exists $sdk]} {
-            return $sdk
-        }
-
-        if {[info exists sdkroot_cache(macosx)]} {
-            if {$sdkroot_cache(macosx) ne ""} {
-                return $sdkroot_cache(macosx)
-            }
-            # negative result cached, do nothing here
-        } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
-            set sdkroot_cache(macosx) $sdk
-            return $sdk
-        } else {
-            set sdkroot_cache(macosx) ""
-        }
-    }
-
-    if {[vercmp $xcodeversion 4.3] < 0} {
-        set sdks_dir ${developer_dir}/SDKs
-    } else {
-        set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
-    }
-
-    foreach try_path [list ${sdks_dir} ${cltpath}/SDKs] {
-        if {$sdk_version eq "10.4"} {
-            set sdk ${try_path}/MacOSX10.4u.sdk
-        } else {
-            set sdk ${try_path}/MacOSX${sdk_version}.sdk
-        }
-
-        if {[file exists $sdk]} {
-            return $sdk
-        } elseif {$sdk_major >= 11} {
-            # SDKs have minor versions as of macOS 11
-            set sdk [find_close_sdk $sdk_version ${try_path}]
-            if {$sdk ne ""} {
-                return $sdk
-            }
-        }
-    }
-
-    if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
-        set try_versions [list ${sdk_major}.0 ${macos_version}]
-    } else {
-        set try_versions [list $sdk_version]
-    }
-    foreach try_version $try_versions {
-        if {[info exists sdkroot_cache(macosx${try_version},noclt)]} {
-            if {$sdkroot_cache(macosx${try_version},noclt) ne ""} {
-                return $sdkroot_cache(macosx${try_version},noclt)
-            }
-            # negative result cached, do nothing here
-        } elseif {![catch {exec xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
-            set sdkroot_cache(macosx${try_version},noclt) $sdk
-            return $sdk
-        } else {
-            set sdkroot_cache(macosx${try_version},noclt) ""
-        }
-    }
-
-    set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
-    if {[file exists $sdk]} {
-        return $sdk
-    } elseif {$sdk_major >= 11} {
-        # SDKs have minor versions as of macOS 11
-        set sdk [find_close_sdk $sdk_version ${cltpath}/SDKs]
-        if {$sdk ne ""} {
-            return $sdk
-        }
-    }
-
-    set sdk ${sdks_dir}/MacOSX.sdk
-    if {[file exists $sdk]} {
-        return $sdk
-    }
-
-    # Support falling back to "macosx" if it is present.
-    #       This leads to problems when it is newer than the base OS because many OSS assume that
-    #       the SDK version matches the deployment target, so they unconditionally try to use
-    #       symbols that are only available on newer OS versions..
-    # But it's better than not being able to build at all. Recent Xcode released have been able
-    # to run on 10.x but only include an SDK for 10.x+1. Combined with the disappearance of
-    # /usr/include, that means not having this fallback would cause great breakage.
-    # See <https://trac.macports.org/ticket/57143>
-    if {[info exists sdkroot_cache(macosx,noclt)]} {
-        # no negative-cached case here because that would mean overall failure
-        return $sdkroot_cache(macosx,noclt)
-    } elseif {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
-        set sdkroot_cache(macosx,noclt) $sdk
-        return $sdk
-    }
-
-    # We can get here if $sdk_version != $macos_version_major on old OS versions
-    return {}
+    global use_xcode
+    return [_get_sdkroot $sdk_version [tbool use_xcode]]
 }
 
 # internal function to determine DEVELOPER_DIR according to Xcode dependency
 proc portconfigure::configure_get_developer_dir {} {
     global use_xcode developer_dir
-    set cltpath "/Library/Developer/CommandLineTools"
     # Assume that the existence of libxcselect indicates the earliest version of
     # macOS that places CLT in /Library/Developer/CommandLineTools
     # If port is Xcode-dependent or CommandLineTools directory is invalid, set to developer_dir
     if {[tbool use_xcode]} {
         return ${developer_dir}
     } else {
-        return ${cltpath}
+        return /Library/Developer/CommandLineTools
     }
 }
 

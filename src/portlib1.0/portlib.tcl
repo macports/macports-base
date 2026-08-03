@@ -246,6 +246,233 @@ namespace eval portlib {
         }
     }
 
+    namespace eval configure {
+        variable arch_demotions [dict create \
+                                    arm64 x86_64 \
+                                    x86_64 i386 \
+                                    ppc64 ppc \
+                                    i386 ppc]
+        # internal function to choose the default configure.build_arch and
+        # configure.universal_archs based on supported_archs and build_arch or
+        # universal_archs, plus the SDK being used
+        proc choose_supported_archs {archs supported_archs configure.sdk_version} {
+            if {${configure.sdk_version} ne ""} {
+                # Figure out which archs are supported by the SDK
+                if {[vercmp ${configure.sdk_version} 11] >= 0} {
+                    set sdk_archs [list arm64 x86_64]
+                } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
+                    set sdk_archs [list x86_64]
+                } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
+                    set sdk_archs [list x86_64 i386]
+                } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
+                    set sdk_archs [list x86_64 i386 ppc]
+                } elseif {[vercmp ${configure.sdk_version} 10.5] >= 0} {
+                    set sdk_archs [list x86_64 i386 ppc ppc64]
+                } else {
+                    # 10.4u
+                    set sdk_archs [list i386 ppc ppc64]
+                }
+
+                # Set intersection_archs to the intersection of what's supported by
+                # the SDK and the port's supported_archs
+                if {$supported_archs eq ""} {
+                    # Blank supported_archs; allow whatever the SDK does.
+                    set intersection_archs $sdk_archs
+                } else {
+                    set intersection_archs [list]
+                    foreach arch $sdk_archs {
+                        if {$arch in $supported_archs} {
+                            lappend intersection_archs $arch
+                        }
+                    }
+                    if {$intersection_archs eq ""} {
+                        # No archs in common.
+                        return [list]
+                    }
+                }
+            } elseif {$supported_archs eq ""} {
+                # Nothing to filter on.
+                return $archs
+            } else {
+                # No SDK version (maybe not on macOS)
+                set intersection_archs $supported_archs
+            }
+            set ret [list]
+            # Filter out unsupported archs, but allow demoting to another arch
+            # supported by the SDK if needed, e.g. 64-bit to 32-bit. That means
+            # e.g. if build_arch is x86_64 it's still possible to build a port
+            # that sets supported_archs to "i386 ppc" if the SDK allows it.
+            variable arch_demotions
+            foreach arch $archs {
+                if {$arch in $intersection_archs} {
+                    set add_arch $arch
+                } elseif {[dict exists $arch_demotions $arch] && [dict get $arch_demotions $arch] in $intersection_archs} {
+                    set add_arch [dict get $arch_demotions $arch]
+                } else {
+                    continue
+                }
+                if {$add_arch ni $ret} {
+                    lappend ret $add_arch
+                }
+            }
+            return $ret
+        }
+
+        # find a "close enough" match for the given sdk_version in sdk_path
+        proc find_close_sdk {sdk_version sdk_path} {
+            # only works right for versions >= 11, which is all we need
+            set sdk_major [lindex [split $sdk_version .] 0]
+            set sdks [glob -directory $sdk_path MacOSX${sdk_major}*.sdk]
+            foreach sdk [lsort -command vercmp $sdks] {
+                # Sanity check - mostly empty SDK directories are known to exist
+                if {[file_exists ${sdk}/usr/include/sys/cdefs.h]} {
+                    return $sdk
+                }
+            }
+            return {}
+        }
+
+        variable file_exists_cache [dict create]
+        # check if a file exists, caching the result
+        proc file_exists {path} {
+            variable file_exists_cache
+            if {![dict exists $file_exists_cache $path]} {
+                dict set file_exists_cache $path [file exists $path]
+            }
+            return [dict get $file_exists_cache $path]
+        }
+
+        variable sdkroot_cache [dict create]
+        # Find SDK location matching the given parameters
+        proc get_sdkroot {sdk_version use_xcode} {
+            variable sdkroot_cache
+            set cache_key ${sdk_version},${use_xcode}
+            if {[dict exists $sdkroot_cache $cache_key]} {
+                return [dict get $sdkroot_cache $cache_key]
+            }
+
+            set result {}
+            set sdk_major [lindex [split $sdk_version .] 0]
+            set cltpath /Library/Developer/CommandLineTools
+            # Check CLT first if Xcode shouldn't be used
+            global macports::macos_version_major macports::macos_version
+            if {!$use_xcode} {
+                set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
+                if {[file_exists $sdk]} {
+                    set result $sdk
+                } elseif {$sdk_major >= 11} {
+                    # SDKs have minor versions as of macOS 11
+                    set result [find_close_sdk $sdk_version ${cltpath}/SDKs]
+                }
+
+                if {$result eq {}} {
+                    if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
+                        set try_versions [list ${sdk_major}.0 ${macos_version}]
+                    } else {
+                        set try_versions [list $sdk_version]
+                    }
+                    foreach try_version $try_versions {
+                        if {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
+                            set result $sdk
+                            break
+                        }
+                    }
+                }
+
+                if {$result eq {}} {
+                    # Fallback on "macosx"
+                    set sdk ${cltpath}/SDKs/MacOSX.sdk
+                    if {[file_exists $sdk]} {
+                        set result $sdk
+                    }
+                }
+                if {$result eq {} && ![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+                    set result $sdk
+                }
+                if {$result ne {}} {
+                    dict set sdkroot_cache $cache_key $result
+                    return $result
+                }
+            }
+
+            global macports::xcodeversion macports::developer_dir
+            if {[vercmp $xcodeversion 4.3] < 0} {
+                set sdks_dir ${developer_dir}/SDKs
+            } else {
+                set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
+            }
+
+            foreach try_path [list ${sdks_dir} ${cltpath}/SDKs] {
+                if {$sdk_version eq "10.4"} {
+                    set sdk ${try_path}/MacOSX10.4u.sdk
+                } else {
+                    set sdk ${try_path}/MacOSX${sdk_version}.sdk
+                }
+
+                if {[file_exists $sdk]} {
+                    set result $sdk
+                    break
+                } elseif {$sdk_major >= 11} {
+                    # SDKs have minor versions as of macOS 11
+                    set sdk [find_close_sdk $sdk_version $try_path]
+                    if {$sdk ne ""} {
+                        set result $sdk
+                        break
+                    }
+                }
+            }
+
+            if {$result eq {}} {
+                if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
+                    set try_versions [list ${sdk_major}.0 ${macos_version}]
+                } else {
+                    set try_versions [list $sdk_version]
+                }
+                foreach try_version $try_versions {
+                    if {![catch {exec xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
+                        set result $sdk
+                        break
+                    }
+                }
+            }
+
+            if {$result eq {}} {
+                set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
+                if {[file_exists $sdk]} {
+                    set result $sdk
+                } elseif {$sdk_major >= 11} {
+                    # SDKs have minor versions as of macOS 11
+                    set sdk [find_close_sdk $sdk_version ${cltpath}/SDKs]
+                    if {$sdk ne ""} {
+                        set result $sdk
+                    }
+                }
+            }
+
+            if {$result eq {}} {
+                set sdk ${sdks_dir}/MacOSX.sdk
+                if {[file_exists $sdk]} {
+                    set result $sdk
+                }
+            }
+
+            # Support falling back to "macosx" if it is present.
+            #       This leads to problems when it is newer than the base OS because many OSS assume that
+            #       the SDK version matches the deployment target, so they unconditionally try to use
+            #       symbols that are only available on newer OS versions..
+            # But it's better than not being able to build at all. Recent Xcode released have been able
+            # to run on 10.x but only include an SDK for 10.x+1. Combined with the disappearance of
+            # /usr/include, that means not having this fallback would cause great breakage.
+            # See <https://trac.macports.org/ticket/57143>
+            if {$result eq {} && ![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+                set result $sdk
+            }
+
+            dict set sdkroot_cache $cache_key $result
+            return $result
+        }
+    }
+
     namespace eval extract {
         # Map a given file name to a canonical extract method name
         proc method_for_suffix {filename} {

@@ -2199,6 +2199,11 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias archiveTypeIsSupported portlib::util::archiveTypeIsSupported
     $workername alias supportedArchiveTypes portlib::util::supportedArchiveTypes
 
+    $workername alias portconfigure::choose_supported_archs portlib::configure::choose_supported_archs
+    $workername alias portconfigure::find_close_sdk portlib::configure::find_close_sdk
+    $workername alias portconfigure::file_exists portlib::configure::file_exists
+    $workername alias portconfigure::_get_sdkroot portlib::configure::get_sdkroot
+
     $workername alias portfetch::percent_encode portlib::fetch::percent_encode
     $workername alias portfetch::assemble_url portlib::fetch::assemble_url
     $workername alias portfetch::separate_tag portlib::fetch::separate_tag
