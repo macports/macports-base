@@ -425,15 +425,11 @@ proc portconfigure::configure_get_developer_dir {} {
 # internal function to determine the "-arch xy" flags for the compiler
 proc portconfigure::configure_get_universal_archflags {} {
     global configure.universal_archs
-    set flags ""
+    set flaglist [list]
     foreach arch ${configure.universal_archs} {
-        if {$flags eq ""} {
-            set flags "-arch $arch"
-        } else {
-            append flags " -arch $arch"
-        }
+        lappend flaglist -arch $arch
     }
-    return $flags
+    return [join $flaglist]
 }
 
 # internal proc to determine if the compiler supports -arch
