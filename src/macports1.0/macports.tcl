@@ -2199,10 +2199,25 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias archiveTypeIsSupported portlib::util::archiveTypeIsSupported
     $workername alias supportedArchiveTypes portlib::util::supportedArchiveTypes
 
+    $workername alias portconfigure::arch_flag_supported portlib::configure::arch_flag_supported
+    $workername alias portconfigure::choose_compiler portlib::configure::choose_compiler
     $workername alias portconfigure::choose_supported_archs portlib::configure::choose_supported_archs
+    $workername alias portconfigure::_configure_get_compiler portlib::configure::configure_get_compiler
+    $workername alias portconfigure::compiler_is_port portlib::configure::compiler_is_port
+    $workername alias portconfigure::compiler_port_name portlib::configure::compiler_port_name
     $workername alias portconfigure::find_close_sdk portlib::configure::find_close_sdk
+    $workername alias portconfigure::find_developer_tool portlib::configure::find_developer_tool
     $workername alias portconfigure::file_exists portlib::configure::file_exists
+    $workername alias portconfigure::get_apple_compilers_os_version portlib::configure::get_apple_compilers_os_version
+    $workername alias portconfigure::get_apple_compilers_xcode_version portlib::configure::get_apple_compilers_xcode_version
+    $workername alias portconfigure::get_clang_compilers portlib::configure::get_clang_compilers
+    $workername alias portconfigure::get_gcc_compilers portlib::configure::get_gcc_compilers
+    $workername alias portconfigure::get_gcc_dependencies portlib::configure::get_gcc_dependencies
+    $workername alias portconfigure::get_implicit_function_declaration_whitelist portlib::configure::get_implicit_function_declaration_whitelist
+    $workername alias portconfigure::get_mpi_wrapper portlib::configure::get_mpi_wrapper
     $workername alias portconfigure::_get_sdkroot portlib::configure::get_sdkroot
+    $workername alias portconfigure::get_system_compiler_version portlib::configure::get_system_compiler_version
+    $workername alias portconfigure::max_version portlib::configure::max_version
 
     $workername alias portfetch::percent_encode portlib::fetch::percent_encode
     $workername alias portfetch::assemble_url portlib::fetch::assemble_url
@@ -2281,8 +2296,6 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # variant_descriptions.conf
     $workername alias get_variant_description macports::get_variant_description
 
-    # compiler version cache
-    $workername alias get_compiler_version macports::get_compiler_version
     # tool path cache
     $workername alias get_tool_path macports::get_tool_path
 

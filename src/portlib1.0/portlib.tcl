@@ -258,15 +258,15 @@ namespace eval portlib {
         proc choose_supported_archs {archs supported_archs configure.sdk_version} {
             if {${configure.sdk_version} ne ""} {
                 # Figure out which archs are supported by the SDK
-                if {[vercmp ${configure.sdk_version} 11] >= 0} {
+                if {[vercmp ${configure.sdk_version} >= 11]} {
                     set sdk_archs [list arm64 x86_64]
-                } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
+                } elseif {[vercmp ${configure.sdk_version} >= 10.14]} {
                     set sdk_archs [list x86_64]
-                } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
+                } elseif {[vercmp ${configure.sdk_version} >= 10.7]} {
                     set sdk_archs [list x86_64 i386]
-                } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
+                } elseif {[vercmp ${configure.sdk_version} >= 10.6]} {
                     set sdk_archs [list x86_64 i386 ppc]
-                } elseif {[vercmp ${configure.sdk_version} 10.5] >= 0} {
+                } elseif {[vercmp ${configure.sdk_version} >= 10.5]} {
                     set sdk_archs [list x86_64 i386 ppc ppc64]
                 } else {
                     # 10.4u
@@ -396,7 +396,7 @@ namespace eval portlib {
             }
 
             global macports::xcodeversion macports::developer_dir
-            if {[vercmp $xcodeversion 4.3] < 0} {
+            if {[vercmp $xcodeversion < 4.3]} {
                 set sdks_dir ${developer_dir}/SDKs
             } else {
                 set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
@@ -471,6 +471,569 @@ namespace eval portlib {
             dict set sdkroot_cache $cache_key $result
             return $result
         }
+
+        # internal proc to determine if the compiler supports -arch
+        proc arch_flag_supported {compiler {multiple_arch_flags no}} {
+            if {$multiple_arch_flags} {
+                return [regexp {^gcc-4|llvm|apple|clang} $compiler]
+            }
+            global macports::os_subplatform
+            # GCC prior to 4.7 does not accept -arch flag
+            if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]
+                    || ($os_subplatform ne "macosx" && $compiler in {cc gcc})} {
+                return 0
+            }
+            return 1
+        }
+
+        proc compiler_port_name {compiler} {
+            set valid_compiler_ports {
+                {^apple-gcc-(\d+)\.(\d+)$}                                                    {apple-gcc%s%s}
+                {^macports-clang-(\d+(?:\.\d+)?)$}                                            {clang-%s}
+                {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}                                    {%sgcc%s%s}
+                {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$}                {%s-default}
+                {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$}                  {%s-clang}
+                {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+)\.(\d+)$}     {%s-clang%s%s}
+                {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+)$}            {%s-clang%s}
+                {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-gcc-(\d+)(?:\.(\d+))?$}  {%s-gcc%s%s}
+                {^macports-g95$}                                                              {g95}
+                {^macports-(clang|gcc)-devel$}                                                {%s-devel}
+            }
+            foreach {re fmt} $valid_compiler_ports {
+                if {[set matches [regexp -inline $re $compiler]] ne ""} {
+                    return [format $fmt {*}[lrange $matches 1 end]]
+                }
+            }
+            return {}
+        }
+
+        proc compiler_is_port {compiler} {
+            expr {[compiler_port_name $compiler] ne {}}
+        }
+
+        proc choose_compiler {search_list blacklist checktool developer_dir} {
+            foreach compiler $search_list {
+                set allowed 1
+                foreach pattern $blacklist {
+                    if {[llength $pattern] >= 3 && [lindex $pattern 0] eq $compiler} {
+                        # version based, e.g. {clang < 500}
+                        set compiler_vers [get_system_compiler_version $compiler $developer_dir]
+                        set allowed 0
+                        if {$compiler_vers eq {}} {
+                            break
+                        }
+                        foreach {operator check_vers} [lrange ${pattern} 1 end] {
+                            # matches only if all comparisons are true
+                            if {![vercmp $compiler_vers $operator $check_vers]} {
+                                set allowed 1
+                                break
+                            }
+                        }
+                        if {!$allowed} {
+                            break
+                        }
+                    } elseif {[string match $pattern $compiler]} {
+                        # pattern based, e.g. *gcc-4.2
+                        set allowed 0
+                        break
+                    }
+                }
+                if {$allowed &&
+                    ([file executable [configure_get_compiler $checktool $compiler]] ||
+                     [compiler_is_port $compiler])
+                } then {
+                    return $compiler
+                }
+            }
+            return {}
+        }
+
+        # internal utility procedure to return the greater of two versions
+        proc max_version {verA verB} {
+            expr {[vercmp $verA >= $verB] ? $verA : $verB}
+        }
+
+        # utility procedure: get Apple compilers based on Xcode version
+        proc get_apple_compilers_xcode_version {} {
+            global macports::xcodeversion
+            # https://developer.apple.com/library/content/releasenotes/DeveloperTools/RN-Xcode/Chapters/Introduction.html
+            # https://developer.apple.com/library/content/documentation/CompilerTools/Conceptual/LLVMCompilerOverview/index.html
+            # Xcode 3.2 release notes (Link?)
+            # About Xcode 3.1 Tools (about_xcode_tools_3.1.pdf, Link?)
+            # About Xcode 3.2 (about_xcode_3.2.pdf, Link?)
+            #
+            # Xcode 5 does not support use of the LLVM-GCC compiler and the GDB debugger.
+            # From Xcode 4.2, Clang is the default compiler for Mac OS X.
+            # llvm-gcc4.2 is now the default system compiler in Xcode 4.
+            # The LLVM compiler is the next-generation compiler, introduced in Xcode 3.2
+            # GCC 4.0 has been removed from Xcode 4.
+            #
+            # attempt to include all available compilers except gcc-3*
+            # attempt to have the default compilers first
+            if {[vercmp ${xcodeversion} >= 5]} {
+                return [list clang]
+            } elseif {[vercmp ${xcodeversion} >= 4.3]} {
+                return [list clang llvm-gcc-4.2]
+            } elseif {[vercmp ${xcodeversion} >= 4.2]} {
+                # llvm-gcc is more reliable
+                # see https://github.com/macports/macports-base/commit/10d62cb51b1f0f9703a873173bac468eee69d01a
+                return [list llvm-gcc-4.2 clang]
+            } elseif {[vercmp ${xcodeversion} >= 4.0]} {
+                return [list llvm-gcc-4.2 clang gcc-4.2]
+            } elseif {[vercmp ${xcodeversion} >= 3.2]} {
+                # from about_xcode_3.2.pdf:
+                #    GCC 4.2 is the primary system compiler for the 10.6 SDK
+                # clang does *not* provide clang++, but configure.cxx will fall back to llvm-g++-4.2
+                return [list gcc-4.2 llvm-gcc-4.2 clang gcc-4.0]
+            } elseif {[vercmp ${xcodeversion} >= 3.1]} {
+                # from about_xcode_tools_3.1.pdf:
+                #     GCC 4.2 & LLVM GCC 4.2 optional compilers
+                # assume they exist
+                return [list gcc-4.2 llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0]
+            }
+            return [list apple-gcc-4.2 gcc-4.0]
+        }
+
+        # utility procedure: get compilers provided by Apple based on OS version
+        proc get_apple_compilers_os_version {} {
+            global macports::os_major
+            if {${os_major} >= 13} {
+                # 5.0.1 <= Xcode
+                return [list clang]
+            } elseif {${os_major} >= 12} {
+                # 4.4 <= Xcode <= 5.1.1
+                set test_compilers [list clang llvm-gcc-4.2]
+            } elseif {${os_major} >= 11} {
+                # 4.1 <= Xcode <= 4.6.3
+                set test_compilers [list clang llvm-gcc-4.2 gcc-4.2]
+            } else {
+                # Command Line Tools is only available for Mac OS X 10.7 Lion and above
+                return [list]
+            }
+
+            global macports::developer_dir
+            set compilers [list]
+            foreach cc ${test_compilers} {
+                if {[macports::get_tool_path $cc] ne {} || [file executable ${developer_dir}/usr/bin/${cc}]} {
+                    lappend compilers $cc
+                }
+            }
+            return $compilers
+        }
+
+        variable clang_compilers_cache [dict create]
+        # utility procedure: get Clang compilers based on os.major
+        proc get_clang_compilers {porturl} {
+            variable clang_compilers_cache
+            set compiler_file [macports::getportresourcepath $porturl "port1.0/compilers/clang_compilers.tcl"]
+            if {[dict exists $clang_compilers_cache $compiler_file]} {
+                return [dict get $clang_compilers_cache $compiler_file]
+            }
+
+            global macports::os_major macports::os_platform
+            if {[file_exists $compiler_file]} {
+                # evaluate clang_compilers.tcl in a safe interpreter
+                set workername [interp create -safe]
+                $workername expose source
+                $workername eval [list set os.platform $os_platform]
+                $workername eval [list set os.major $os_major]
+                $workername eval [list set use_hints 1]
+                $workername eval [list source $compiler_file]
+                set compilers [$workername eval [list set compilers]]
+                interp delete $workername
+            } else {
+                ui_debug "clang_compilers.tcl not found in ports tree, using built-in selections"
+                set compilers [list]
+
+                # Clang 17+ only available on newer Darwin versions
+                if {${os_major} >= 17 || ${os_platform} ne "darwin"} {
+                    # For now limit exposure of clang-18+ to macOS13+ due to issues like
+                    # https://github.com/macports/macports-ports/pull/21051
+                    # https://trac.macports.org/ticket/68640
+                    if {${os_major} >= 22 || ${os_platform} ne "darwin"} {
+                        # Expose clang-21+ to ports needing the newest standards
+                        set hint [expr {${os_major} >= 25 || ${os_platform} ne "darwin" ? {} : {${compiler.cxx_standard} >= 2020}}]
+                        lappend compilers [list macports-clang-22 $hint] \
+                                          [list macports-clang-21 $hint]
+                        set hint [expr {${os_platform} ne "darwin" ? {} : {${compiler.cxx_standard} >= 2014}}]
+                        lappend compilers [list macports-clang-20 $hint] \
+                                          [list macports-clang-19 $hint]
+                        # Always allow clang-18 on macOS15+, otherwise if c++11 or newer is required
+                        set hint [expr {${os_platform} ne "darwin" || ${os_major} >= 24 ? {} : {${compiler.cxx_standard} >= 2011}}]
+                        lappend compilers [list macports-clang-18 $hint]
+                    }
+                    lappend compilers macports-clang-17
+                }
+
+                if {(${os_major} >= 10 && ${os_major} < 25) || ${os_platform} ne "darwin"} {
+                    # On Darwin10 only use selection here if c++20+ required
+                    set hint [expr {${os_platform} ne "darwin" || ${os_major} >= 11 ? {} : {${compiler.cxx_standard} >= 2020}}]
+                    lappend compilers [list macports-clang-16 $hint] \
+                                      [list macports-clang-15 $hint] \
+                                      [list macports-clang-14 $hint] \
+                                      [list macports-clang-13 $hint]
+                    if {${os_major} < 23 || ${os_platform} ne "darwin"} {
+                        # https://trac.macports.org/ticket/68257
+                        # Versions of clang older than clang-13 probably have build issues on
+                        # macOS14+. Until resolved do not append to fallback list.
+                        # Unlikely they will ever really be needed here though.
+                        lappend compilers [list macports-clang-12 $hint]
+                    }
+                }
+
+                if {${os_platform} eq "darwin"} {
+                    if {${os_major} <= 23} {
+                        lappend compilers macports-clang-11
+                        set hint {${configure.build_arch} ne "arm64"}
+                        lappend compilers [list macports-clang-10 $hint] \
+                                          [list macports-clang-9.0 $hint]
+                    }
+                    if {${os_major} < 20} {
+                        lappend compilers macports-clang-8.0 macports-clang-7.0 macports-clang-6.0 macports-clang-5.0
+                    }
+                    if {${os_major} < 16} {
+                        # The Sierra SDK requires a toolchain that supports class properties
+                        lappend compilers macports-clang-3.7 macports-clang-3.4
+                    }
+                }
+            }
+
+            dict set clang_compilers_cache $compiler_file $compilers
+            return $compilers
+        }
+
+        variable gcc_compilers_cache [dict create]
+        # utility procedure: get GCC compilers based on os.major
+        proc get_gcc_compilers {porturl} {
+            variable gcc_compilers_cache
+            set compiler_file [macports::getportresourcepath $porturl "port1.0/compilers/gcc_compilers.tcl"]
+            if {[dict exists $gcc_compilers_cache $compiler_file]} {
+                return [dict get $gcc_compilers_cache $compiler_file]
+            }
+
+            global macports::os_major macports::os_platform
+            if {[file_exists $compiler_file]} {
+                # evaluate gcc_compilers.tcl in a safe interpreter
+                set workername [interp create -safe]
+                $workername expose source
+                $workername eval [list set os.platform $os_platform]
+                $workername eval [list set os.major $os_major]
+                $workername eval [list set use_hints 1]
+                $workername eval [list source $compiler_file]
+                set compilers [$workername eval [list set compilers]]
+                interp delete $workername
+            } else {
+                ui_debug "gcc_compilers.tcl not found in ports tree, using built-in selections"
+
+                # GCC 15 and GCC 14 on all systems
+                set compilers [list macports-gcc-15 macports-gcc-14]
+
+                # GCC 11 to GCC 13 on OSX10.6+
+                if {${os_major} >= 10 || ${os_platform} ne "darwin"} {
+                    lappend compilers macports-gcc-13 macports-gcc-12 macports-gcc-11
+                }
+
+                # GCC 10 on all systems
+                lappend compilers macports-gcc-10
+                
+                # GCC 8 and 9 and older on OSX 10.6 to 10.10
+                # GCC 7 or older on OSX 10.6 or older
+                # https://trac.macports.org/ticket/65472
+                if {${os_major} < 15} {
+                    if {${os_major} >= 10} {
+                        lappend compilers macports-gcc-9 macports-gcc-8
+                    }
+                    lappend compilers macports-gcc-7 macports-gcc-6 macports-gcc-5
+                }
+            }
+
+            dict set gcc_compilers_cache $compiler_file $compilers
+            return $compilers
+        }
+
+        # utility procedure: get MPI wrapper for a given compiler
+        proc get_mpi_wrapper {mpi compiler} {
+            set parts [split ${compiler} -]
+            if {[lindex ${parts} 0] ne "macports"} {
+                return macports-${mpi}-default
+            } else {
+                set type [lindex ${parts} 1]
+                set ver  [lindex ${parts} 2]
+                if {${type} eq "clang" && [vercmp ${ver} 3.3] < 0} {
+                    return ""
+                }
+                if {${type} eq "gcc" && [vercmp ${ver} 4.3] < 0} {
+                    return ""
+                }
+                if {${type} eq "g95"} {
+                    return ""
+                }
+                return macports-${mpi}-${type}-${ver}
+            }
+        }
+
+        # utility procedure: get system compiler version by running it
+        proc get_system_compiler_version {compiler developer_dir} {
+            set cc [configure_get_compiler cc $compiler]
+            if {$cc eq {}} {
+                return {}
+            }
+            return [macports::get_compiler_version $cc $developer_dir]
+        }
+
+        # Find a developer tool
+        proc find_developer_tool {name} {
+            set toolpath [macports::get_tool_path $name]
+            if {$toolpath ne ""} {
+                return $toolpath
+            }
+
+            # If we failed to find the tool, return a path from
+            # the developer_dir.
+            # The tool may not be there, but we'll leave it up to
+            # the invoking code to figure out that it doesn't have
+            # a valid compiler
+            global macports::developer_dir
+            return ${developer_dir}/usr/bin/${name}
+        }
+
+        proc configure_get_compiler {type compiler} {
+            global macports::prefix_frozen macports::os_major
+
+            if {$compiler eq "clang"} {
+                switch $type {
+                    cc      -
+                    objc    { return [find_developer_tool clang] }
+                    cxx     -
+                    objcxx  {
+                        set clangpp [find_developer_tool clang++]
+                        if {$os_major > 12 || [file executable $clangpp]} {
+                            return $clangpp
+                        } else {
+                            return [find_developer_tool llvm-g++-4.2]
+                        }
+                    }
+                }
+            } elseif {[regexp {^macports-clang(-[0-3]\.\d+)?$} $compiler -> suffix]} {
+                if {$suffix ne {}} {
+                    set suffix "-mp${suffix}"
+                }
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/clang${suffix} }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
+                }
+            } elseif {[regexp {^macports-clang(-\d+(?:\.\d+)?)$} $compiler -> suffix]} {
+                set suffix "-mp${suffix}"
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/clang${suffix} }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
+                    cpp     { return ${prefix_frozen}/bin/clang-cpp${suffix} }
+                }
+
+            } elseif {[regexp {^apple-gcc(-4\.[02])$} $compiler -> suffix]} {
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/gcc-apple${suffix} }
+                    cxx     -
+                    objcxx  {
+                        if {$suffix eq "-4.2"} {
+                            return ${prefix_frozen}/bin/g++-apple${suffix}
+                        }
+                    }
+                    cpp     { return ${prefix_frozen}/bin/cpp-apple${suffix} }
+                }
+            } elseif {[regexp {^gcc(-3\.3|-4\.[02])?$} $compiler -> suffix]} {
+                # Only exists in Xcode < 4.2, so 10.7 and older.
+                if {$os_major >= 12} {
+                    return {}
+                }
+                switch $type {
+                    cc      -
+                    objc    { return [find_developer_tool gcc${suffix}] }
+                    cxx     -
+                    objcxx  { return [find_developer_tool g++${suffix}] }
+                    cpp     { return [find_developer_tool cpp${suffix}] }
+                }
+            } elseif {$compiler eq "llvm-gcc-4.2"} {
+                # Only exists in Xcode < 5, so 10.8 and older.
+                if {$os_major >= 13} {
+                    return {}
+                }
+                switch $type {
+                    cc      -
+                    objc    { return [find_developer_tool llvm-gcc-4.2] }
+                    cxx     -
+                    objcxx  { return [find_developer_tool llvm-g++-4.2] }
+                    cpp     { return [find_developer_tool llvm-cpp-4.2] }
+                }
+            } elseif {[regexp {^macports-gcc(-\d+(?:\.\d+)?)?$} $compiler -> suffix]} {
+                if {$suffix ne {}} {
+                    set suffix "-mp${suffix}"
+                }
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/gcc${suffix} }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/g++${suffix} }
+                    cpp     { return ${prefix_frozen}/bin/cpp${suffix} }
+                    fc      -
+                    f77     -
+                    f90     { return ${prefix_frozen}/bin/gfortran${suffix} }
+                }
+            } elseif {[regexp {^macports-(clang|gcc)-devel$} $compiler -> comp]} {
+                set suffix "-mp-devel"
+                if { $comp eq "clang" } {
+                    switch $type {
+                        cc      -
+                        objc    { return ${prefix_frozen}/bin/clang${suffix} }
+                        cxx     -
+                        objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
+                        cpp     { return ${prefix_frozen}/bin/clang-cpp${suffix} }
+                    }
+                } else {
+                    switch $type {
+                        cc      -
+                        objc    { return ${prefix_frozen}/bin/gcc${suffix} }
+                        cxx     -
+                        objcxx  { return ${prefix_frozen}/bin/g++${suffix} }
+                        cpp     { return ${prefix_frozen}/bin/cpp${suffix} }
+                        fc      -
+                        f77     -
+                        f90     { return ${prefix_frozen}/bin/gfortran${suffix} }
+                    }
+                }
+            } elseif {$compiler eq "macports-llvm-gcc-4.2"} {
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/llvm-gcc-4.2 }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/llvm-g++-4.2 }
+                    cpp     { return ${prefix_frozen}/bin/llvm-cpp-4.2 }
+                }
+            } elseif {$compiler eq "macports-g95"} {
+                switch $type {
+                    fc      -
+                    f77     -
+                    f90     { return ${prefix_frozen}/bin/g95 }
+                }
+            } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$} $compiler -> mpi]} {
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-clang }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-clang }
+                }
+            } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+(?:\.\d+)?)$} $compiler -> mpi version]} {
+                set suffix [join [split ${version} .] ""]
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-clang${suffix} }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-clang${suffix} }
+                    cpp     { return ${prefix_frozen}/bin/clang-cpp-mp-${version} }
+                }
+            } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-gcc-(\d+(?:\.\d+)?)$} $compiler -> mpi version]} {
+                set suffix [join [split ${version} .] ""]
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-gcc${suffix} }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-gcc${suffix} }
+                    cpp     { return ${prefix_frozen}/bin/cpp-mp-${version} }
+                    fc      -
+                    f77     -
+                    f90     { return ${prefix_frozen}/bin/mpifort-${mpi}-gcc${suffix} }
+                }
+            } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$} $compiler -> mpi]} {
+                switch $type {
+                    cc      -
+                    objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-mp }
+                    cxx     -
+                    objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-mp }
+                }
+            }
+            # Fallbacks
+            switch $type {
+                cc      -
+                objc    { return [find_developer_tool cc] }
+                cxx     -
+                objcxx  { return [find_developer_tool c++] }
+                cpp     { return [find_developer_tool cpp] }
+            }
+            return {}
+        }
+
+        variable gcc_dependencies_cache [dict create]
+        proc get_gcc_dependencies {porturl gcc_version} {
+            variable gcc_dependencies_cache
+            set dependencies_file [macports::getportresourcepath $porturl "port1.0/compilers/gcc_dependencies.tcl"]
+            set cachekey ${dependencies_file},${gcc_version}
+            if {[dict exists $gcc_dependencies_cache $cachekey]} {
+                return [dict get $gcc_dependencies_cache $cachekey]
+            }
+
+            global macports::os_platform macports::os_major
+            if {[file_exists $dependencies_file]} {
+                # evaluate gcc_dependencies.tcl in a safe interpreter
+                set workername [interp create -safe]
+                $workername expose source
+                $workername alias vercmp vercmp
+                $workername eval [list set os.platform $os_platform]
+                $workername eval [list set os.major $os_major]
+                $workername eval [list set gcc_version $gcc_version]
+                $workername eval [list source $dependencies_file]
+                set libgccs [$workername eval [list set libgccs]]
+                interp delete $workername
+            } else {
+                ui_debug "gcc_dependencies.tcl not found in ports tree, using built-in data"
+
+                # GCC version providing the primary runtime
+                # Note settings here *must* match those in the lang/libgcc port and compilers PG
+                set gcc_main_version 14
+
+                # compiler links against libraries in libgcc\d* and/or libgcc-devel
+                if {[vercmp ${gcc_version} 4.6] < 0} {
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc45]
+                } elseif {[vercmp ${gcc_version} 7] < 0} {
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc6]
+                } elseif {[vercmp ${gcc_version} ${gcc_main_version}] < 0} {
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc${gcc_version}]
+                } else {
+                    # Using primary GCC version
+                    # Do not depend directly on primary runtime port, as implied by libgcc
+                    # and doing so prevents libgcc-devel being used as an alternative.
+                    set libgccs [list path:share/doc/libgcc/README:libgcc]
+                }
+            }
+            dict set gcc_dependencies_cache $cachekey $libgccs
+            return $libgccs
+        }
+
+        variable implicit_function_declaration_whitelist_cache [dict create]
+        proc get_implicit_function_declaration_whitelist {sdk_version} {
+            variable implicit_function_declaration_whitelist_cache
+            if {[dict exists $implicit_function_declaration_whitelist_cache $sdk_version]} {
+                return [dict get $implicit_function_declaration_whitelist_cache $sdk_version]
+            }
+
+            set whitelist [list]
+            set whitelist_file [macports::getdefaultportresourcepath "port1.0/checks/implicit_function_declaration/macosx${sdk_version}.sdk.list"]
+            if {[file_exists $whitelist_file]} {
+                set fd [open $whitelist_file r]
+                while {[gets $fd whitelist_entry] >= 0} {
+                    lappend whitelist $whitelist_entry
+                }
+                close $fd
+            }
+
+            dict set implicit_function_declaration_whitelist_cache $sdk_version $whitelist
+            return $whitelist
+        }
+
     }
 
     namespace eval extract {
