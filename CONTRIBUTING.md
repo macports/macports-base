@@ -1,15 +1,13 @@
 ## Contributing to MacPorts
 
 The preferred method for contributing changes to the MacPorts code bases
-is by opening a pull request on GitHub. Alternatively, patches may be
-attached to a ticket on our [Trac][1] instance.
+is by opening a pull request on GitHub.
 
-You are responsible for your contribution. In particular, by making a
-contribution you are certifying that you have the legal right to do so,
-and that the material in your contribution can be distributed under the
-project's license.
-
-[1]: https://trac.macports.org/
+You are responsible for your contribution, whether you open a PR
+yourself, or submit a change for inclusion in MacPorts in another way.
+In particular, by making a contribution you are certifying that you
+have the legal right to do so, and that the material in your
+contribution can be distributed under the project's license.
 
 ## Use of automated tools
 
@@ -19,8 +17,8 @@ the Linux kernel developers must be present in the Git commit message.
 
 `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]`
 
-If contributing via Trac, include this information in the ticket. Please
-see the [kernel documentation][2] for more details.
+This information must be disclosed for all contributions. Please see
+the [kernel documentation][2] for more details.
 
 Bear in mind that using tools does not diminish your responsibility for
 your contributions.
