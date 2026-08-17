@@ -1669,9 +1669,39 @@ namespace eval portlib {
             file copy {*}$args
         }
 
+        # make_deletable
+        # Add write permission to $path and every directory below it, so their
+        # entries can be unlinked. Symlinks are not followed.
+        proc make_deletable {path} {
+            # lstat, so a symlink reports as one rather than as its target.
+            if {[catch {file lstat $path st}] || $st(type) ne "directory"} {
+                return
+            }
+            # w to unlink entries, rx to list and descend.
+            catch {file attributes $path -permissions u+rwx}
+            # Let glob build the paths: [file join $dir ~name] yields ~name,
+            # which Tcl 8 reads as a home directory. -nocomplain is a no-op
+            # under Tcl 9 but is still needed under Tcl 8.
+            foreach entry [glob -nocomplain -directory $path -- * .*] {
+                if {[file tail $entry] in {. ..}} {
+                    continue
+                }
+                make_deletable $entry
+            }
+        }
+
         # delete
         # Wrapper for file delete -force
         proc delete {args} {
+            if {![catch {file delete -force -- {*}$args}]} {
+                return
+            }
+            # -force clears the read-only bit on files but not on directories,
+            # and unlinking an entry needs write permission on the directory
+            # holding it. Take that permission and retry once.
+            foreach path $args {
+                make_deletable $path
+            }
             file delete -force -- {*}$args
         }
 
