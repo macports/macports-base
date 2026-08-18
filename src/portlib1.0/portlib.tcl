@@ -1829,7 +1829,7 @@ namespace eval portlib {
         {
             # Get the active port from the registry
             set entries [registry::entry installed $portname]
-            if {[llength $entries < 1]} {
+            if {[llength $entries] < 1} {
                 ui_warn "recursive_collect_deps: '$portname' is registered as a dependency but is not active"
                 return $depsfound
             }
