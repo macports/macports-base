@@ -2417,8 +2417,10 @@ proc macports::get_tar_flags {suffix} {
 # Private helper
 proc macports::_curlwrap_credential_args {site credentials} {
     variable fetch_credentials
-    if {[dict exists $fetch_credentials $site]} {
-        set credentials [dict get $fetch_credentials $site]
+    set url_parts [::uri::split $site]
+    set host [dict getwithdefault $url_parts host {}]
+    if {$host ne {} && [dict exists $fetch_credentials $host]} {
+        set credentials [dict get $fetch_credentials $host]
     }
     return [expr {$credentials ne {} ? [list -u $credentials] : {}}]
 }
