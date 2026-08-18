@@ -1236,6 +1236,43 @@ namespace eval portlib {
             }
             return [list $element $tag]
         }
+
+        # Take possibly tagged URL and return a version with any tag
+        # affecting the subdir removed and the appropriate subdir added.
+        # Example: https://foo.bar/:mirror becomes https://foo.bar/${dist_subdir}
+        variable name_re {\$(?:name\y|\{name\})}
+        proc resolve_mirror_tags {element subdir tag name dist_subdir} {
+            variable name_re
+            # here we have the chance to take a look at tags, that possibly
+            # have been assigned in mirror_sites.tcl
+            lassign [separate_tag $element] element mirror_tag
+
+            # if the URL has $name embedded, kill any mirror_tag that may have been added
+            # since a mirror_tag and $name are incompatible
+            if {$mirror_tag ne "" && [regexp $name_re $element]} {
+                set mirror_tag ""
+            }
+
+            if {$mirror_tag eq "mirror"} {
+                set thesubdir ${dist_subdir}
+            } elseif {$subdir eq "" && $mirror_tag ne "nosubdir"} {
+                set thesubdir ${name}
+            } else {
+                set thesubdir ${subdir}
+            }
+
+            # parse an embedded $name. if present, remove the subdir
+            if {[regsub $name_re $element $thesubdir element] > 0} {
+                set thesubdir ""
+            }
+
+            if {$tag ne ""} {
+                append element ${thesubdir}:${tag}
+            } else {
+                append element $thesubdir
+            }
+            return $element
+        }
     }
 
     namespace eval util {

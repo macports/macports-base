@@ -35,6 +35,7 @@ package require Pextlib 1.0
 namespace eval portfetch {
     variable urlmap
     array set urlmap {}
+    variable tagged_url_re {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$}
 }
 
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
@@ -50,43 +51,33 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorscmd} {
         return [list]
     }
 
-    set ret [list]
-    set name_re {\$(?:name\y|\{name\})}
-    foreach element $sites_entry {
-
-        # here we have the chance to take a look at tags, that possibly
-        # have been assigned in mirror_sites.tcl
-        lassign [separate_tag $element] element mirror_tag
-
-        # if the URL has $name embedded, kill any mirror_tag that may have been added
-        # since a mirror_tag and $name are incompatible
-        if {$mirror_tag ne "" && [regexp $name_re $element]} {
-            set mirror_tag ""
-        }
-
-        if {$mirror_tag eq "mirror"} {
-            set thesubdir ${dist_subdir}
-        } elseif {$subdir eq "" && $mirror_tag ne "nosubdir"} {
-            set thesubdir ${name}
-        } else {
-            set thesubdir ${subdir}
-        }
-
-        # parse an embedded $name. if present, remove the subdir
-        if {[regsub $name_re $element $thesubdir element] > 0} {
-            set thesubdir ""
-        }
-
-        if {$tag ne ""} {
-            append element "${thesubdir}:${tag}"
-        } else {
-            append element "${thesubdir}"
-        }
-
-        lappend ret $element
+    lmap element $sites_entry {
+        resolve_mirror_tags $element $subdir $tag $name $dist_subdir
     }
+}
 
-    return $ret
+# Resolve any tags present in a user-defined site
+# a single tag is taken to be a mirror option tag (:nosubdir, :mirror)
+# an optional second tag acts like a tag on a url in master_sites
+proc portfetch::resolve_env_site {site} {
+    variable tagged_url_re
+    set resolved_is_tagged 0
+    if {[regexp $tagged_url_re $site]} {
+        global name dist_subdir
+        # At least one tag, check for a second
+        lassign [separate_tag $site] element tag
+        if {[regexp $tagged_url_re $element]} {
+            # two tags
+            set resolved_element [resolve_mirror_tags $element {} $tag $name $dist_subdir]
+            resolved_is_tagged 1
+        } else {
+            # single tag
+            set resolved_element [resolve_mirror_tags $site {} {} $name $dist_subdir]
+        }
+    } else {
+        set resolved_element $site
+    }
+    return [list $resolved_element $resolved_is_tagged]
 }
 
 # Checks sites.
@@ -98,7 +89,7 @@ proc portfetch::checksites {sitelists mirrorscmd} {
     global env
     variable urlmap
     set url_re {([a-zA-Z]+://.+)}
-    set tagged_url_re {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$}
+    variable tagged_url_re
 
     foreach {listname extras} $sitelists {
         upvar #0 $listname $listname
@@ -113,12 +104,15 @@ proc portfetch::checksites {sitelists mirrorscmd} {
         if {[llength $extras] >= 2} {
             lassign $extras sglobal senv
             if {[info exists env($senv)]} {
-                set full_list [list {*}$env($senv) {*}$full_list]
-                foreach env_site $env($senv) {
-                    if {![regexp $tagged_url_re $env_site]} {
-                        lappend untagged_env_sites $env_site
+                set resolved_senv [list]
+                foreach s $env($senv) {
+                    lassign [resolve_env_site $s] resolved_element resolved_is_tagged
+                    lappend resolved_senv $resolved_element
+                    if {!$resolved_is_tagged} {
+                        lappend untagged_env_sites $resolved_element
                     }
                 }
+                set full_list [list {*}$resolved_senv {*}$full_list]
             }
             if {$sglobal ne ""} {
                 set full_list [list $sglobal {*}$full_list]

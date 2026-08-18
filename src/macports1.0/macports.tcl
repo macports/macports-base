@@ -2222,6 +2222,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias portfetch::percent_encode portlib::fetch::percent_encode
     $workername alias portfetch::assemble_url portlib::fetch::assemble_url
     $workername alias portfetch::separate_tag portlib::fetch::separate_tag
+    $workername alias portfetch::resolve_mirror_tags portlib::fetch::resolve_mirror_tags
     $workername alias portfetch::get_mirror_site_urls portlib::fetch::get_mirror_site_urls
 
     $workername alias portextract::method_for_suffix portlib::extract::method_for_suffix
