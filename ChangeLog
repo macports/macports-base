@@ -2,6 +2,19 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.12.6 (unreleased)
+    - Fixed potential unreliable application of network proxy settings
+      with background fetches. (jmr in 6d9edb0)
+
+    - Fixed occasional failure to sync the PortIndex, which required
+      portindex to run locally. (fhgwright in 928dc47)
+
+    - Added documentation for the 'none' option for 'port select'.
+      (cvengler in 1552e82)
+
+    - Various reliability improvements for trace mode.
+      (cal in 6dda4cc, 1db3e7f, bea36d7)
+
 Release 2.12.5 (2026-04-22 by jmr)
     - Fixed upgrade --force sometimes failing when an archive cannot be
       fetched, instead of falling back to building from source.
