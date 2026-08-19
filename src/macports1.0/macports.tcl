@@ -1070,6 +1070,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     package require registry 1.0
     package require registry2 2.0
     package require machista 1.0
+    package require uri
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -2259,8 +2260,10 @@ proc macports::get_tar_flags {suffix} {
 # Private helper
 proc macports::_curlwrap_credential_args {site credentials} {
     variable fetch_credentials
-    if {[dict exists $fetch_credentials $site]} {
-        set credentials [dict get $fetch_credentials $site]
+    set url_parts [::uri::split $site]
+    set host [expr {[dict exists $url_parts host] ? [dict get $url_parts host] : {}}]
+    if {$host ne {} && [dict exists $fetch_credentials $host]} {
+        set credentials [dict get $fetch_credentials $host]
     }
     return [expr {$credentials ne {} ? [list -u $credentials] : {}}]
 }
