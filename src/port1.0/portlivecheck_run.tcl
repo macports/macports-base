@@ -164,6 +164,7 @@ proc _livecheck_main {{async no}} {
             # Async fetch code appends .TMP for in-progress files. No real
             # need to rename it here when it's done.
             file rename $tempfilename ${tempfilename}.TMP
+            chownAsRoot ${tempfilename}.TMP
         }
     }
 
