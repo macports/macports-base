@@ -119,8 +119,10 @@ proc ::critcl::runtime::MapPlatform {{mapping {}}} {
 	set v2 [lindex $v 1]
 	set v3 [lindex $v 2]
 	# Darwin 19 and earlier are macOS 10.x. Darwin 20-24 are macOS
-    # 11-15. Darwin 25 is macOS 26.
-    if {$v1 >= 25} {
+    # 11-15. Darwin 25 is macOS 26. Darwin 27 is macOS 27.
+    if {$v1 >= 27} {
+        set version $v1.$v2.$v3
+    } elseif {$v1 >= 25} {
         incr v1
         set version $v1.$v2.$v3
     } elseif {$v1 >= 20} {

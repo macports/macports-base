@@ -89,8 +89,10 @@ if {[regexp macosx?- $platform]} {
         # use the current platform
         set v1 [lindex [split $::tcl_platform(osVersion) .] 0]
         # Darwin 19 and earlier are macOS 10.x. Darwin 20-24 are macOS
-        # 11-15. Darwin 25 is macOS 26.
-        if {$v1 >= 25} {
+        # 11-15. Darwin 25 is macOS 26. Darwin 27 is macOS 27.
+        if {$v1 >= 27} {
+            set osxmin ${v1}.0
+        } elseif {$v1 >= 25} {
             incr v1
             set osxmin ${v1}.0
         } elseif {$v1 >= 20} {
