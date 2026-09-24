@@ -7558,8 +7558,10 @@ proc macports::get_parallel_jobs {{mem_restrict yes}} {
         set jobs $buildmakejobs
     } elseif {$os_platform eq "darwin" && $buildmakejobs == 0
               && ![catch {sysctl hw.activecpu} cpus]} {
+        variable os_major
+        set sysctl_name [expr {$os_major >= 23 ? "hw.memsize_usable" : "hw.memsize"}]
         set jobs $cpus
-        if {$mem_restrict && ![catch {sysctl hw.memsize} memsize]
+        if {$mem_restrict && ![catch {sysctl $sysctl_name} memsize]
                 && $jobs > $memsize / (1024 * 1024 * 1024) + 1} {
             set jobs [expr {$memsize / (1024 * 1024 * 1024) + 1}]
         }
