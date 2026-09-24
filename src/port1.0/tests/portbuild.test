@@ -33,6 +33,7 @@ set build_getjobs_fixture_setup {
                 }
                 return ${_activecpus}
             }
+            hw.memsize_usable -
             hw.memsize {
                 if {${_memsize_fail}} {
                     error "error requested"
