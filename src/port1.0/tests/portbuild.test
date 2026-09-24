@@ -57,8 +57,10 @@ set build_getjobs_fixture_cleanup {
 test build_getjobs_auto_cpubound {
     Verify that portbuild::build_getjobs correctly computes the number of parallel executors in the CPU-bound case
 } -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
-    global buildmakejobs
+    global buildmakejobs os.major os.platform
 
+    set os.major 25
+    set os.platform darwin
     # Make sure that buildmakejobs is 0 so the auto-detection is being run
     set buildmakejobs 0
     set _activecpus 8
