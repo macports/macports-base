@@ -153,10 +153,9 @@ proc portbuild::build_getjobs {args} {
         }
 
         macports_try -pass_signal {
-            global os.major os.platform
+            global os.major os.platform build.mem_per_job
             set sysctl_name [expr {(${os.major} >= 23 && ${os.platform} eq "darwin") ? "hw.memsize_usable" : "hw.memsize"}]
             set memsize [sysctl $sysctl_name]
-            global build.mem_per_job
             set jobs_limit_mem [expr {int($memsize / (${build.mem_per_job} * 1024 * 1024)) + 1}]
             if {$jobs > $jobs_limit_mem} {
                 set jobs $jobs_limit_mem
