@@ -501,8 +501,13 @@ proc start_pings {} {
             async_ping_start $urlmap($url_var)
         }
     }
-    # wait until we have a result for at least the main mirror
-    global global_mirror_site
+
+    # wait until we have a result for at least the main mirror, if appropriate
+    global global_mirror_site license ports_fetch_no-mirrors
+
+    if {[lsearch -exact -nocase $license "nomirror"] != -1 || ([info exists ports_fetch_no-mirrors] && ${ports_fetch_no-mirrors} ne "no")} {
+        return
+    }
 
     set primary_mirror [lindex [get_mirror_site_urls [get_full_mirror_sites_path] $global_mirror_site] 0]
     if {$primary_mirror ne {}} {
