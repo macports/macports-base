@@ -33,6 +33,13 @@ Release 2.13.0 (unreleased)
     - Fix trace mode on arm64 for macOS > 14.
       (#66358, cal in aacd364)
 
+Release 2.12.7 (2026-10-13 by jmr)
+    - Fixed error verifying signatures when multiple archive sites are
+      configured and use different signature types.
+      (#74474, pguyot in c225437)
+
+    - Fixed building with system curl on 10.5. (#74362, jmr in 847bfc2)
+
 Release 2.12.6 (2026-08-26 by jmr)
     - Fixed potential unreliable application of network proxy settings
       with background fetches. (jmr in 6d9edb0)
