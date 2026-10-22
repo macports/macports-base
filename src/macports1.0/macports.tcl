@@ -4419,14 +4419,20 @@ proc mportlookup {name} {
             macports_try -pass_signal {
                 seek $fd $offset
                 gets $fd line
-                set name [lindex $line 0]
-                set len  [lindex $line 1]
+                if {[catch {set found_name [lindex $line 0]}] || ![string equal -nocase $found_name $name]} {
+                    _mports_load_quickindex
+                    set offset [dict get $quick_index $sourceno $normname]
+                    seek $fd $offset
+                    gets $fd line
+                    set found_name [lindex $line 0]
+                }
+                set len [lindex $line 1]
                 set portinfo [read $fd $len]
 
                 if {[dict exists $portinfo portdir]} {
                     dict set portinfo porturl [dict get $porturl_prefix_map $source]/[dict get $portinfo portdir]
                 }
-                lappend matches $name $portinfo
+                lappend matches $found_name $portinfo
             } on error {_ eOptions} {
                 ui_warn "It looks like your PortIndex file for $source may be corrupt."
                 throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
