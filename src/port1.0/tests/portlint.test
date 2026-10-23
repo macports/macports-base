@@ -186,6 +186,73 @@ test test_lint_checksum_type_list_mixed {
     return "lint_checksum_type_list_mixed passed"
 } -result "lint_checksum_type_list_mixed passed"
 
+test test_lint_checksum_type_list_blake3_size {
+    Verify that a blake3+size line produces no warnings: blake3 is secure on
+    its own and must not be nagged toward rmd160/sha256.
+} -body {
+    set preferred_checksum_types [list blake3 size]
+    set results [portlint::lint_checksum_type_list $preferred_checksum_types]
+
+    if {[llength $results] > 0} {
+        return "FAIL: unexpected results: $results"
+    }
+
+    return "lint_checksum_type_list_blake3_size passed"
+} -result "lint_checksum_type_list_blake3_size passed"
+
+test test_lint_checksum_type_list_blake3_only {
+    Verify that blake3 on its own is not flagged as insecure and is not nagged
+    toward other recommended types.
+} -body {
+    set preferred_checksum_types [list blake3]
+    set results [portlint::lint_checksum_type_list $preferred_checksum_types]
+
+    if {[lsearch -glob $results *insecure*] != -1} {
+        return "FAIL: blake3 unexpectedly flagged as insecure: $results"
+    }
+
+    if {[lsearch -glob $results {missing recommended checksum type: rmd160}] != -1 ||
+            [lsearch -glob $results {missing recommended checksum type: sha256}] != -1 ||
+            [lsearch -glob $results {missing recommended checksum type: blake3}] != -1} {
+        return "FAIL: blake3 unexpectedly nagged toward another type: $results"
+    }
+
+    return "lint_checksum_type_list_blake3_only passed"
+} -result "lint_checksum_type_list_blake3_only passed"
+
+test test_lint_checksum_type_list_traditional {
+    Verify that the traditional rmd160+sha256+size combination still produces
+    no warnings, in particular no new nag toward blake3.
+} -body {
+    set preferred_checksum_types [list rmd160 sha256 size]
+    set results [portlint::lint_checksum_type_list $preferred_checksum_types]
+
+    if {[llength $results] > 0} {
+        return "FAIL: unexpected results: $results"
+    }
+
+    return "lint_checksum_type_list_traditional passed"
+} -result "lint_checksum_type_list_traditional passed"
+
+test test_lint_checksum_type_list_md5_still_insecure {
+    Verify that md5 on its own is still flagged as insecure and still warns
+    about missing recommended checksum types.
+} -body {
+    set preferred_checksum_types [list md5]
+    set results [portlint::lint_checksum_type_list $preferred_checksum_types]
+
+    if {[lsearch -glob $results *insecure*md5*] == -1} {
+        return "FAIL: expecting insecure warning for md5 on its own: $results"
+    }
+
+    if {[lsearch -glob $results *missing*recommended*] == -1} {
+        return "FAIL: expecting warnings about missing recommended checksum\
+                types: $results"
+    }
+
+    return "lint_checksum_type_list_md5_still_insecure passed"
+} -result "lint_checksum_type_list_md5_still_insecure passed"
+
 test test_lint_checksum_basic {
     Verify linting the most basic checksum that is still valid
 } -body {
