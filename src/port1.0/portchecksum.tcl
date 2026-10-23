@@ -19,7 +19,11 @@ namespace eval portchecksum {
     variable default_checksum_types [list rmd160 sha256 size]
 
     # types that are considered secure
-    variable secure_checksum_types [list rmd160 sha256]
+    variable secure_checksum_types [list rmd160 sha256 blake3]
+
+    # types that portlint recommends a Portfile include (unless it already
+    # uses blake3, which is secure on its own)
+    variable recommended_checksum_types [list rmd160 sha256]
 }
 
 # Options

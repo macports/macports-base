@@ -81,13 +81,23 @@ variable lint_optional [list \
 # Returns an empty list if no issues are found.
 proc lint_checksum_type_list {types} {
     set issues [list]
-    set using_secure false
 
-    foreach preferred $::portchecksum::secure_checksum_types {
-        if {$preferred ni $types} {
-            lappend issues "missing recommended checksum type: $preferred"
-        } else {
+    # A line is considered secure if it uses at least one secure type.
+    set using_secure false
+    foreach secure $::portchecksum::secure_checksum_types {
+        if {$secure in $types} {
             set using_secure true
+            break
+        }
+    }
+
+    # Nudge ports toward the recommended types, but don't push ports that
+    # already use blake3 (secure on its own) toward rmd160/sha256.
+    if {"blake3" ni $types} {
+        foreach recommended $::portchecksum::recommended_checksum_types {
+            if {$recommended ni $types} {
+                lappend issues "missing recommended checksum type: $recommended"
+            }
         }
     }
     global ports_lint_nitpick
