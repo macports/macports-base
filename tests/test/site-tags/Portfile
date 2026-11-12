@@ -3,28 +3,26 @@
 PortSystem  1.0
 
 name            site-tags
-version         2
+version         3
 categories      test
 maintainers     kallisys.net:pguyot
 description     Test port for site:tags functionalities
 homepage        https://www.macports.org/
-platforms       darwin
 supported_archs noarch
-configure.cxx_stdlib
 
-long_description ${description}
+long_description {*}${description}
 
-master_sites    http://distfiles.macports.org/py-importlib/:importlib \
+master_sites    http://distfiles.macports.org/py-roman/:roman \
                 http://distfiles.macports.org/py-errorhandler/:errorhandler
-distfiles       importlib-1.0.2.tar.gz:importlib \
-                errorhandler-1.1.1.tar.gz:errorhandler
+distfiles       roman-4.1.tar.gz:roman \
+                errorhandler-2.0.1.tar.gz:errorhandler
 
-checksums       importlib-1.0.2.tar.gz \
-                    rmd160  0bd0d01f4e419340066c29e3e09ddc182b96f8d1 \
-                    sha256  24d0966aa76859b288485803f310076512f87377e6c9afe9c28c52a8ccdd328c \
-                errorhandler-1.1.1.tar.gz \
-                    rmd160  3a60f826eb1bae0e249fdefd3d6c4eb3c598832f \
-                    sha256  2baa97a8a256fe72960d196bbdee4404162186f539c4d73b3f1c072db18463e9
+checksums       roman-4.1.tar.gz \
+                    rmd160  ebfa4afbfd864715ba59d5caf3d179442183cf49 \
+                    sha256  4da8a200529a730822a27f1704b3ac70bc907141d3bc558115fb8e36af13b412 \
+                errorhandler-2.0.1.tar.gz \
+                    rmd160  ae66f0fa9184872e2dc957a9e14709954c10ab0b \
+                    sha256  7e578ad67af40845bfd044f71627a29f1fc436d53ccb058bbf1792ef31ab6163
 
 extract         {}
 use_configure   no
