@@ -554,7 +554,8 @@ static int fileIsBinaryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int
         fclose(file);
         return TCL_ERROR;
     }
-    if (magic == MH_MAGIC || magic == MH_MAGIC_64) {
+    if (magic == MH_MAGIC || magic == MH_MAGIC_64 || magic == MH_CIGAM
+        || magic == MH_CIGAM_64 || magic == htonl(FAT_MAGIC_64)) {
         fclose(file);
         /* this is a mach-o file */
         Tcl_SetObjResult(interp, Tcl_NewBooleanObj(true));
