@@ -83,6 +83,9 @@
 #include <ar.h>
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
+#ifndef FAT_MAGIC_64
+#define FAT_MAGIC_64 0xcafebabf
+#endif
 #endif
 
 #include <tcl.h>
