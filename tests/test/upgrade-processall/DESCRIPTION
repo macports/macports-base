@@ -1,0 +1,8 @@
+This test checks upgrades with -p (ports_processall). A port whose
+new version fails to build, has no binary archive when -b is given, or
+fails to activate must keep its installed version, the other ports
+must still be upgraded, and a dry run must still show the operations
+of every port.
+
+See ticket #74668,
+https://trac.macports.org/ticket/74668
