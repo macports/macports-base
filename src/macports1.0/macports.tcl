@@ -5897,6 +5897,12 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
     set loaded_startupitems [dict create]
     set ports_to_upgrade [list]
     set ports_to_install [list]
+    # With ports_processall, the rest of the operations of a port that
+    # failed to install are skipped, and the other versions of a port
+    # that failed to install or activate are not uninstalled (except in
+    # a dry run, which only shows the operations).
+    set skip_mport {}
+    set skip_names [dict create]
     try {
         # First pass through the list, extracting the port names for display
         # and the mports which we need to close when we're done.
@@ -5955,6 +5961,42 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
 
         # Now run the actual operations
         foreach op $oplist {
+            if {$skip_mport ne "" && [macports::global_option_isset ports_dryrun]} {
+                # A dry run only shows the operations: nothing to skip.
+                set skip_mport {}
+            }
+            if {$skip_mport ne ""} {
+                dict set skip_names [ditem_key $skip_mport provides] 1
+                switch -- [lindex $op 0] {
+                    activate_only -
+                    save_startupitems {
+                        if {[lindex $op 1] eq $skip_mport} {
+                            continue
+                        }
+                    }
+                    load_startupitems {
+                        if {[lindex $op 1] eq $skip_mport} {
+                            set skip_mport {}
+                            continue
+                        }
+                    }
+                    uninstall {
+                        dict set skip_names [lindex $op 1] 1
+                        continue
+                    }
+                    deactivate {
+                        dict set skip_names [lindex $op 2] 1
+                        continue
+                    }
+                    message {
+                        continue
+                    }
+                }
+                set skip_mport {}
+            }
+            if {[lindex $op 0] eq "uninstall_other_vers" && [dict exists $skip_names [lindex $op 1]]} {
+                continue
+            }
             switch -- [lindex $op 0] {
                 activate {
                     # Install and activate a port
@@ -6006,6 +6048,7 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         if {![macports::ui_isset ports_processall]} {
                             break
                         }
+                        dict set skip_names $portname 1
                     }
                 }
                 deactivate {
@@ -6062,6 +6105,8 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                                 if {![macports::ui_isset ports_processall]} {
                                     break
                                 }
+                                set skip_mport $mport
+                                continue
                             }
                             if {[catch {mportexec $mport destroot} result]} {
                                 ui_debug $::errorInfo
@@ -6069,11 +6114,15 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                                 if {![macports::ui_isset ports_processall]} {
                                     break
                                 }
+                                set skip_mport $mport
+                                continue
                             } elseif {$result != 0} {
                                 set status 1
                                 if {![macports::ui_isset ports_processall]} {
                                     break
                                 }
+                                set skip_mport $mport
+                                continue
                             }
                         }
                     } else {
@@ -6085,11 +6134,15 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                             if {![macports::ui_isset ports_processall]} {
                                 break
                             }
+                            set skip_mport $mport
+                            continue
                         } elseif {$result != 0} {
                             set status 1
                             if {![macports::ui_isset ports_processall]} {
                                 break
                             }
+                            set skip_mport $mport
+                            continue
                         }
                     }
                 }

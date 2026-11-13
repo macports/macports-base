@@ -18,6 +18,7 @@ set test_suite {
     svn-and-patchsites
     trace
     universal
+    upgrade-processall
     variants
     xcodeversion
 }
