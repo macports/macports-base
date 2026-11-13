@@ -6,11 +6,13 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../package_test_autoconf.tcl
+source ../../port1.0/port_autoconf.tcl
 source $macports::autoconf::top_srcdir/src/macports1.0/tests/test_setup.tcl
 source ./library.tcl
 
 package require portutil 1.0
 package require portpkg 1.0
+package require portpkg_run 1.0
 macports_worker_init
 
 
@@ -52,5 +54,34 @@ test pkg_main {
     
 } -result "Package pkg successful."
 
+
+test tiger_folder_package {Tiger builds a BOM and cpio package even when PackageMaker exists.} -constraints darwin -setup {
+    env_init
+    set UI_PREFIX {---> }
+    set saved_prefix $prefix
+    set prefix /opt/macports-test
+    set os.major 8
+    set workpath [makeDirectory tiger-pkg-work]
+    set destpath [makeDirectory tiger-pkg-root]
+    set package.destpath $workpath
+    set package.resources $workpath/resources
+    set package.scripts $workpath/scripts
+    file mkdir ${package.resources} ${package.scripts} ${destpath}${prefix}/share
+    set fd [open ${package.resources}/test.txt w]; puts $fd test; close $fd
+    set fd [open ${destpath}${prefix}/share/smoke.txt w]; puts $fd payload; close $fd
+    # An existing executable which would fail if called as PackageMaker.
+    set portpkg::packagemaker [info nameofexecutable]
+    set portpkg::pkgbuild {}
+    set portpkg::language English
+} -body {
+    portpkg::package_pkg tiger-smoke 0 1.0 0
+    set contents $workpath/tiger-smoke-1.0.pkg/Contents
+    list [file isfile $contents/Archive.bom] \
+        [string match *share/smoke.txt* [exec [findBinary pax $portlib::autoconf::pax_path] -zf $contents/Archive.pax.gz]]
+} -cleanup {
+    removeDirectory tiger-pkg-work
+    removeDirectory tiger-pkg-root
+    set prefix $saved_prefix
+} -result {1 1}
 
 cleanupTests

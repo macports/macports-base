@@ -245,7 +245,11 @@ proc startupitem_create_darwin_launchd {attrs} {
     puts ${plist} "</array>"
 
     puts ${plist} "<key>Disabled</key><true/>"
-    puts ${plist} "<key>KeepAlive</key><true/>"
+    if {$macosx_deployment_target ne "10.4"} {
+        puts ${plist} "<key>KeepAlive</key><true/>"
+    } else {
+        puts ${plist} "<key>OnDemand</key><false/>"
+    }
 
     if {$username ne ""} {
         puts ${plist} "<key>UserName</key><string>$username</string>"
@@ -324,8 +328,12 @@ proc _loaded {} {
             if {![catch {exec -ignorestderr $launchctl_path print ${domain}/${si_uniquename} >&/dev/null}]} {
                 lappend ret $si_name
             }
-        } else {
+        } elseif {${os.major} >= 9} {
             if {![catch {exec_as_uid $uid {system "$launchctl_path list ${si_uniquename} > /dev/null"}}]} {
+                lappend ret $si_name
+            }
+        } else {
+            if {![catch {exec_as_uid $uid {system "$launchctl_path list | grep -F ${si_uniquename} > /dev/null"}}]} {
                 lappend ret $si_name
             }
         }

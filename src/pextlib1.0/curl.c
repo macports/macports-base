@@ -124,9 +124,18 @@ void CurlInit(void);
 static void set_curl_version_info(void);
 void CurlFreeInterpData(ClientData clientData, Tcl_Interp *interp);
 
+/* curl_multi_socket_action was added in libcurl 7.16.3. Tiger's SDK
+ * headers predate it, so retain the multi_perform/fdset interface there. */
+#if LIBCURL_VERSION_NUM >= 0x071003
+#define USE_CURL_SOCKET_API 1
+#ifdef HAVE_KQUEUE
+#define USE_CURL_KQUEUE 1
+#endif
+#endif
+
 /* curl_multi_socket callback support */
 typedef struct {
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
     int eventfd;
     struct timespec timeout;
 #else
@@ -138,15 +147,49 @@ typedef struct {
 #endif
 } curl_poll_info_t;
 
+#ifdef USE_CURL_SOCKET_API
 static int socket_callback(CURL *easy, curl_socket_t s, int what, void *clientp, void *socketp);
 static int timer_callback(CURLM *multi, long timeout_ms, void *clientp);
+#endif
+
+static CURLMcode perform_curl(CURLM *multi, int *running)
+{
+#ifdef USE_CURL_SOCKET_API
+    return curl_multi_socket_action(multi, CURL_SOCKET_TIMEOUT, 0, running);
+#else
+    CURLMcode result;
+    do {
+        result = curl_multi_perform(multi, running);
+    } while (result == CURLM_CALL_MULTI_PERFORM);
+    return result;
+#endif
+}
+
+#ifndef USE_CURL_SOCKET_API
+static CURLMcode prepare_polling(CURLM *multi, curl_poll_info_t *state)
+{
+    int maxfd = -1;
+    FD_ZERO(&state->readfds);
+    FD_ZERO(&state->writefds);
+    FD_ZERO(&state->errorfds);
+    /* select modifies both the sets and timeout, so rebuild them every time.
+     * A bounded wait also services Tcl timers, cancellation and signals when
+     * libcurl temporarily has no pollable descriptors. */
+    state->timeout.tv_sec = 0;
+    state->timeout.tv_usec = 100000;
+    CURLMcode result = curl_multi_fdset(multi, &state->readfds,
+        &state->writefds, &state->errorfds, &maxfd);
+    state->nfds = maxfd + 1;
+    return result;
+}
+#endif
 
 static int init_polling(Tcl_Interp* interp,
                         CURLM* theMHandle,
                         curl_poll_info_t *poll_info)
 {
     poll_info->timeout.tv_sec = 0;
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
     poll_info->timeout.tv_nsec = 0;
     poll_info->eventfd = kqueue();
     if (poll_info->eventfd == -1) {
@@ -160,6 +203,7 @@ static int init_polling(Tcl_Interp* interp,
     FD_ZERO(&(poll_info->writefds));
     FD_ZERO(&(poll_info->errorfds));
 #endif
+#ifdef USE_CURL_SOCKET_API
     CURLMcode theCurlMCode = curl_multi_setopt(theMHandle, CURLMOPT_SOCKETDATA, poll_info);
     if (theCurlMCode != CURLM_OK) {
         return SetResultFromCurlMErrorCode(interp, theCurlMCode);
@@ -178,10 +222,15 @@ static int init_polling(Tcl_Interp* interp,
     if (theCurlMCode != CURLM_OK) {
         return SetResultFromCurlMErrorCode(interp, theCurlMCode);
     }
+#else
+    (void)interp;
+    (void)theMHandle;
+#endif
     return TCL_OK;
 }
 
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_SOCKET_API
+#ifdef USE_CURL_KQUEUE
 static int event_to_bitmask(struct kevent *event)
 {
     int bitmask = 0;
@@ -206,7 +255,7 @@ static CURLMcode handle_poll_events(CURLM *theMHandle, curl_poll_info_t *poll_in
 {
     CURLMcode theCurlMCode = CURLM_OK;
     int ev_bitmask; /* types of event on the fd */
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
     ev_bitmask = event_to_bitmask(&eventlist[0]);
     if (nevents == 1) {
         theCurlMCode = curl_multi_socket_action(theMHandle, eventlist[0].ident,
@@ -250,6 +299,12 @@ static CURLMcode handle_poll_events(CURLM *theMHandle, curl_poll_info_t *poll_in
 #endif
     return theCurlMCode;
 }
+#else
+static CURLMcode handle_poll_events(CURLM *multi, curl_poll_info_t *state UNUSED, int *running)
+{
+    return perform_curl(multi, running);
+}
+#endif
 
 
 /**
@@ -827,8 +882,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
         /* wait for events on the file descriptors used by curl and
          * interleave with checks for TclX signals */
-        theCurlMCode = curl_multi_socket_action(theMHandle, CURL_SOCKET_TIMEOUT,
-                                                0, &running);
+        theCurlMCode = perform_curl(theMHandle, &running);
         if (theCurlMCode != CURLM_OK) {
             theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
             break;
@@ -843,7 +897,14 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				break;
             }
 
-#ifdef HAVE_KQUEUE
+#ifndef USE_CURL_SOCKET_API
+            theCurlMCode = prepare_polling(theMHandle, &poll_info);
+            if (theCurlMCode != CURLM_OK) {
+                theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+                break;
+            }
+#endif
+#ifdef USE_CURL_KQUEUE
             /* read and write events delivered separately */
             struct kevent eventlist[2];
             rc = kevent(poll_info.eventfd, NULL, 0,
@@ -871,14 +932,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
             if (rc > 0) {
                 /* call curl_multi_socket_action for each event */
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
                 theCurlMCode = handle_poll_events(theMHandle, rc, eventlist, &running);
 #else
                 theCurlMCode = handle_poll_events(theMHandle, &poll_info, &running);
 #endif
             } else {
-                theCurlMCode = curl_multi_socket_action(theMHandle, CURL_SOCKET_TIMEOUT,
-                                                        0, &running);
+                theCurlMCode = perform_curl(theMHandle, &running);
             }
             if (theCurlMCode != CURLM_OK) {
                 theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
@@ -896,18 +956,20 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 			while (Tcl_DoOneEvent((TCL_ALL_EVENTS & ~TCL_IDLE_EVENTS)|TCL_DONT_WAIT)) {}
 		} while (running > 0);
 
+#ifdef USE_CURL_SOCKET_API
         /* uninstall callbacks since the structure they use is not persistent */
         curl_multi_setopt(theMHandle, CURLMOPT_SOCKETFUNCTION, NULL);
         curl_multi_setopt(theMHandle, CURLMOPT_TIMERFUNCTION, NULL);
         curl_multi_setopt(theMHandle, CURLMOPT_SOCKETDATA, NULL);
         curl_multi_setopt(theMHandle, CURLMOPT_TIMERDATA, NULL);
 
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
         /* close kqueue fd */
         if (poll_info.eventfd >= 0) {
             close(poll_info.eventfd);
         }
 #endif
+#endif /* USE_CURL_SOCKET_API */
 
 		/* Find out whether the transfer succeeded or failed. */
 		info = curl_multi_info_read(theMHandle, &running);
@@ -1570,8 +1632,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
         /* wait for events on the file descriptors used by curl and
          * interleave with checks for TclX signals */
-        theCurlMCode = curl_multi_socket_action(theMHandle, CURL_SOCKET_TIMEOUT,
-                                                0, &running);
+        theCurlMCode = perform_curl(theMHandle, &running);
         if (theCurlMCode != CURLM_OK) {
             theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
             break;
@@ -1586,7 +1647,14 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 				break;
             }
 
-#ifdef HAVE_KQUEUE
+#ifndef USE_CURL_SOCKET_API
+            theCurlMCode = prepare_polling(theMHandle, &poll_info);
+            if (theCurlMCode != CURLM_OK) {
+                theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+                break;
+            }
+#endif
+#ifdef USE_CURL_KQUEUE
             /* read and write events delivered separately */
             struct kevent eventlist[2];
             rc = kevent(poll_info.eventfd, NULL, 0,
@@ -1614,14 +1682,13 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 
             if (rc > 0) {
                 /* call curl_multi_socket_action for each event */
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
                 theCurlMCode = handle_poll_events(theMHandle, rc, eventlist, &running);
 #else
                 theCurlMCode = handle_poll_events(theMHandle, &poll_info, &running);
 #endif
             } else {
-                theCurlMCode = curl_multi_socket_action(theMHandle, CURL_SOCKET_TIMEOUT,
-                                                        0, &running);
+                theCurlMCode = perform_curl(theMHandle, &running);
             }
             if (theCurlMCode != CURLM_OK) {
                 theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
@@ -1635,20 +1702,25 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 					break;
 				}
 			}
+            /* Service queued Tcl events as in curl fetch, including requests
+             * to cancel an asynchronous HEAD transfer. */
+            while (Tcl_DoOneEvent((TCL_ALL_EVENTS & ~TCL_IDLE_EVENTS)|TCL_DONT_WAIT)) {}
 		} while (running > 0);
 
+#ifdef USE_CURL_SOCKET_API
         /* uninstall callbacks since the structure they use is not persistent */
         curl_multi_setopt(theMHandle, CURLMOPT_SOCKETFUNCTION, NULL);
         curl_multi_setopt(theMHandle, CURLMOPT_TIMERFUNCTION, NULL);
         curl_multi_setopt(theMHandle, CURLMOPT_SOCKETDATA, NULL);
         curl_multi_setopt(theMHandle, CURLMOPT_TIMERDATA, NULL);
 
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
         /* close kqueue fd */
         if (poll_info.eventfd >= 0) {
             close(poll_info.eventfd);
         }
 #endif
+#endif /* USE_CURL_SOCKET_API */
 
         /* Find out whether the transfer succeeded or failed. */
 		info = curl_multi_info_read(theMHandle, &running);
@@ -2308,6 +2380,7 @@ static void CurlProgressCleanup(
 	Tcl_RestoreInterpState(callback->interp, state);
 }
 
+#ifdef USE_CURL_SOCKET_API
 static int socket_callback(CURL *easy UNUSED,
                     curl_socket_t s,
                     int what,
@@ -2318,7 +2391,7 @@ static int socket_callback(CURL *easy UNUSED,
         return -1;
     }
     curl_poll_info_t *state = (curl_poll_info_t *)clientp;
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
     /* Always add both read and write filters, but disable those that
        are not requested by curl. No need to explicitly handle
        CURL_POLL_REMOVE since filters are automatically cleaned up when
@@ -2377,10 +2450,11 @@ static int timer_callback(CURLM *multi UNUSED,
         timeout_ms = 0;
     }
     state->timeout.tv_sec = timeout_ms / 1000;
-#ifdef HAVE_KQUEUE
+#ifdef USE_CURL_KQUEUE
     state->timeout.tv_nsec = (timeout_ms % 1000) * 1000000;
 #else
     state->timeout.tv_usec = (timeout_ms % 1000) * 1000;
 #endif
     return 0;
 }
+#endif /* USE_CURL_SOCKET_API */

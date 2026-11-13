@@ -43,6 +43,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <time.h>
 #ifdef HAVE_KQUEUE
 #include <sys/event.h>
 #include <sys/time.h>
@@ -84,7 +85,7 @@ TimeConnectCmd(
 #ifdef HAVE_KQUEUE
     struct timespec tv;
     struct kevent changelist, eventlist;
-    int event_queue;
+    int event_queue = -1;
     if (status == TCL_OK) {
         event_queue = kqueue();
         if (event_queue < 0) {

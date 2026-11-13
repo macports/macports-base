@@ -965,7 +965,17 @@ AC_DEFUN([SC_CONFIG_CFLAGS], [
 	    *++|*++-*)
 		;;
 	    *)
-		CFLAGS_WARNING="${CFLAGS_WARNING} -Wc++-compat -fextended-identifiers"
+                AC_CACHE_CHECK([whether the compiler accepts C compatibility flags],
+                    [tcl_cv_cc_c_compat_flags], [
+                    tcl_save_CFLAGS="$CFLAGS"
+                    CFLAGS="$CFLAGS -Werror -Wc++-compat -fextended-identifiers"
+                    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+                        [tcl_cv_cc_c_compat_flags=yes], [tcl_cv_cc_c_compat_flags=no])
+                    CFLAGS="$tcl_save_CFLAGS"
+                ])
+                AS_IF([test "$tcl_cv_cc_c_compat_flags" = yes], [
+                    CFLAGS_WARNING="${CFLAGS_WARNING} -Wc++-compat -fextended-identifiers"
+                ])
 		;;
 	esac
 

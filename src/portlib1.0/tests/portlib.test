@@ -66,4 +66,66 @@ test supportedArchiveTypes {
 } -result "Supported archives successful."
 
 
+test clang_fallback_tiger {Fallback choices respect Tiger and Leopard compiler availability.} -setup {
+    set saved_major $macports::os_major
+    set saved_platform $macports::os_platform
+    set saved_cache $portlib::configure::clang_compilers_cache
+    rename macports::getportresourcepath macports::saved_getportresourcepath
+    proc macports::getportresourcepath {args} {return /nonexistent/macports-test-resource}
+} -body {
+    set macports::os_platform darwin
+    set macports::os_major 8
+    set portlib::configure::clang_compilers_cache [dict create]
+    set tiger [portlib::configure::get_clang_compilers file://$pwd]
+    set macports::os_major 9
+    set portlib::configure::clang_compilers_cache [dict create]
+    set leopard [portlib::configure::get_clang_compilers file://$pwd]
+    set retained [list]
+    foreach compiler {macports-clang-11 macports-clang-8.0 macports-clang-3.7 macports-clang-3.4} {
+        lappend retained [expr {$compiler in $leopard}]
+    }
+    list $tiger $retained
+} -cleanup {
+    rename macports::getportresourcepath {}
+    rename macports::saved_getportresourcepath macports::getportresourcepath
+    set macports::os_major $saved_major
+    set macports::os_platform $saved_platform
+    set portlib::configure::clang_compilers_cache $saved_cache
+} -result {{macports-clang-3.4 macports-clang-3.3} {1 1 1 1}}
+
+foreach {version expected} {500 second 600 first {} second} {
+    test compiler_version_blacklist_$version {Version blacklists work without a PortGroup, failing closed for unknown versions.} -setup {
+        rename portlib::configure::get_system_compiler_version portlib::configure::saved_compiler_version
+        proc portlib::configure::get_system_compiler_version {args} {return $::version}
+        rename portlib::configure::configure_get_compiler portlib::configure::saved_get_compiler
+        proc portlib::configure::configure_get_compiler {args} {return /usr/bin/true}
+    } -body {
+        portlib::configure::choose_compiler {first second} {{first < 600}} cc {}
+    } -cleanup {
+        rename portlib::configure::get_system_compiler_version {}
+        rename portlib::configure::saved_compiler_version portlib::configure::get_system_compiler_version
+        rename portlib::configure::configure_get_compiler {}
+        rename portlib::configure::saved_get_compiler portlib::configure::configure_get_compiler
+    } -result $expected
+}
+
+test archive_metadata_tbz2 {Read +CONTENTS with Tiger's tar, including paths containing spaces.} -setup {
+    set saved_archive_major $macports::os_major
+    set saved_archive_platform $macports::os_platform
+    set macports::os_major 8
+    set macports::os_platform darwin
+    set archive_dir [makeDirectory {archive metadata}]
+    set archive_path [file join $archive_dir {test archive.tbz2}]
+    set fd [open [file join $archive_dir +CONTENTS] w]
+    puts $fd {@portname tiger-metadata-test}
+    close $fd
+    exec [macports::findBinary tar $portlib::autoconf::tar_path] -cjf $archive_path -C $archive_dir ./+CONTENTS
+} -body {
+    portlib::util::extract_archive_metadata $archive_path tbz2 {portname} $archive_dir
+} -cleanup {
+    removeDirectory {archive metadata}
+    set macports::os_major $saved_archive_major
+    set macports::os_platform $saved_archive_platform
+} -result {portname tiger-metadata-test}
+
 cleanupTests

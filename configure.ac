@@ -28,10 +28,10 @@ if test "x$SW_VERS" != "x"; then
 fi
 
 case "$MACOSX_VERSION" in
-  10.[[0-4]]|10.[[0-4]].*)
-    AC_MSG_ERROR([MacPorts requires Mac OS X 10.5 or later.])
+  10.[[0-3]]|10.[[0-3]].*)
+    AC_MSG_ERROR([MacPorts requires Mac OS X 10.4 or later.])
     ;;
-  10.5|10.5.[[1-7]]|10.6|10.6.[[1-7]]|10.7|10.7.[[1-4]])
+  10.4|10.4.[[1-9]]|10.4.10|10.5|10.5.[[1-7]]|10.6|10.6.[[1-7]]|10.7|10.7.[[1-4]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;

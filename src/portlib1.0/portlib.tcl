@@ -682,18 +682,24 @@ namespace eval portlib {
                 }
 
                 if {${os_platform} eq "darwin"} {
-                    if {${os_major} <= 23} {
+                    if {${os_major} >= 9 && ${os_major} <= 23} {
                         lappend compilers macports-clang-11
                         set hint {${configure.build_arch} ne "arm64"}
                         lappend compilers [list macports-clang-10 $hint] \
                                           [list macports-clang-9.0 $hint]
                     }
-                    if {${os_major} < 20} {
+                    if {${os_major} >= 9 && ${os_major} < 20} {
                         lappend compilers macports-clang-8.0 macports-clang-7.0 macports-clang-6.0 macports-clang-5.0
                     }
                     if {${os_major} < 16} {
                         # The Sierra SDK requires a toolchain that supports class properties
-                        lappend compilers macports-clang-3.7 macports-clang-3.4
+                        if {${os_major} >= 9} {
+                            lappend compilers macports-clang-3.7
+                        }
+                        lappend compilers macports-clang-3.4
+                        if {${os_major} < 9} {
+                            lappend compilers macports-clang-3.3
+                        }
                     }
                 }
             }
@@ -2123,7 +2129,19 @@ namespace eval portlib {
             switch -- $archive_type {
                 tbz -
                 tbz2 {
-                    set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
+                    global macports::os_major macports::os_platform
+                    if {${os_major} == 8 && ${os_platform} eq "darwin"} {
+                        # Tiger's gnutar may exit nonzero after successfully reading +CONTENTS.
+                        # https://trac.macports.org/ticket/70622
+                        set tar_cmd [string cat [macports::findBinary tar ${::portlib::autoconf::tar_path}] \
+                            " -xOj${qflag}f [macports::shellescape $archive_location] ./+CONTENTS 2>/dev/null || true"]
+                        set raw_contents [exec -ignorestderr /bin/sh -c $tar_cmd]
+                        if {$raw_contents eq ""} {
+                            error "extracting +CONTENTS from $archive_location failed"
+                        }
+                    } else {
+                        set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
+                    }
                 }
                 tgz {
                     set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xOz${qflag}f $archive_location ./+CONTENTS]

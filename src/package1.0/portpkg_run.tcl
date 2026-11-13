@@ -36,7 +36,7 @@ proc pkg_start {args} {
     global packagemaker_path xcodeversion porturl \
            package.resources package.scripts package.flat \
            subport version revision description long_description \
-           homepage workpath
+           homepage workpath os.major
     variable packagemaker
     variable pkgbuild
     variable language
@@ -77,7 +77,7 @@ proc pkg_start {args} {
     write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $version $revision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
 
-    if {${package.flat}} {
+    if {${package.flat} && ${os.major} >= 9} {
         write_distribution "${workpath}/Distribution" $subport $version $revision
     }
 }
@@ -129,7 +129,9 @@ proc package_pkg {portname portepoch portversion portrevision} {
     }
 
     set using_pkgbuild [expr {$pkgbuild ne "" && ${package.flat}}]
-    if {$using_pkgbuild || [file exists "$packagemaker"]} {
+    # Use the existing folder-package builder on Tiger instead of relying on
+    # the older PackageMaker archive helper.
+    if {${os.major} >= 9 && ($using_pkgbuild || [file exists "$packagemaker"])} {
         if {${package.flat}} {
             set pkgtarget "10.5"
             set pkgresources " --scripts [shellescape ${package.scripts}]"

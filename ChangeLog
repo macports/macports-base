@@ -3,6 +3,14 @@
 ###
 
 Release 2.13.0 (unreleased)
+    - Restored Mac OS X 10.4 Tiger support, including the system compiler,
+      installation tools, Mach-O parsing, compiler selection, archive
+      metadata extraction, launchd plists, and folder-package generation.
+      Optional Tcl C compatibility flags are now checked before use.
+      System curl headers predating 7.16.3 use fdset polling, with queued Tcl
+      events serviced during HEAD requests. Fixed TCP timing declarations
+      and error cleanup with Tiger's SDK.
+
     - Added a --purge option for 'port clean' that quickly and
       unconditionally deletes all files of the chosen type(s).
       (jmr in 22e1abd)

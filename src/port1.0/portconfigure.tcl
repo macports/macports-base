@@ -400,6 +400,13 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $system_options(macosx_sdk_path)
     }
 
+    # Tiger's PowerPC system libraries lack Intel slices for universal builds.
+    global os.arch developer_dir
+    if {${os.platform} eq "darwin" && ${os.arch} eq "powerpc"
+        && $macos_version_major eq "10.4" && [variant_exists universal] && [variant_isset universal]} {
+        return ${developer_dir}/SDKs/MacOSX10.4u.sdk
+    }
+
     # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
     if {${os.platform} ne "darwin" || (${os.major} < 19 && $sdk_version eq $macos_version_major && [file_exists /usr/include/sys/cdefs.h])} {
         return {}

@@ -40,7 +40,9 @@ install: all mkdirs
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror port-tclsh "${DESTDIR}${bindir}/"
 	$(LN_S) -f port "${DESTDIR}${bindir}/portf"
 ifeq (darwin,@OS_PLATFORM@)
+ifneq (8,@OS_MAJOR@)
 	chmod -h 555 "${DESTDIR}${bindir}/portf"
+endif
 endif
 
 codesign:: port-tclsh

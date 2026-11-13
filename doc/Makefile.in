@@ -163,7 +163,14 @@ distclean: clean
 %.html: %.soelim
 	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
 
-HAVE_DOCS_REQS= $(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL))
+# Nested checks also work with Tiger's GNU Make 3.80, which lacks $(and ...).
+ifneq ($(ASCIIDOC),)
+ifneq ($(XSLTPROC),)
+ifneq ($(DOCBOOK_XSL),)
+HAVE_DOCS_REQS= 1
+endif
+endif
+endif
 ifneq ($(HAVE_DOCS_REQS),)
 %: %.xml manpage.xsl
 	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
@@ -194,8 +201,11 @@ install: all
 	< prefix.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 	< base.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 ifeq (darwin,@OS_PLATFORM@)
+ifneq (8,@OS_MAJOR@)
+# Tiger's chmod doesn't accept -h
 # mtree with umask 0077 doesn't get the permissions of the symlink right
 	chmod -h 755 "${DESTDIR}${INSTALLDIR}/man"
+endif
 endif
 
 	for f in ${CONF}; do \

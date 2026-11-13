@@ -1,0 +1,72 @@
+Check optional C compatibility flags before enabling them with older GCC.
+--- vendor/tcl/unix/tcl.m4.orig
++++ vendor/tcl/unix/tcl.m4
+@@ -965,7 +965,17 @@
+ 	    *++|*++-*)
+ 		;;
+ 	    *)
+-		CFLAGS_WARNING="${CFLAGS_WARNING} -Wc++-compat -fextended-identifiers"
++                AC_CACHE_CHECK([whether the compiler accepts C compatibility flags],
++                    [tcl_cv_cc_c_compat_flags], [
++                    tcl_save_CFLAGS="$CFLAGS"
++                    CFLAGS="$CFLAGS -Werror -Wc++-compat -fextended-identifiers"
++                    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
++                        [tcl_cv_cc_c_compat_flags=yes], [tcl_cv_cc_c_compat_flags=no])
++                    CFLAGS="$tcl_save_CFLAGS"
++                ])
++                AS_IF([test "$tcl_cv_cc_c_compat_flags" = yes], [
++                    CFLAGS_WARNING="${CFLAGS_WARNING} -Wc++-compat -fextended-identifiers"
++                ])
+ 		;;
+ 	esac
+ 
+--- vendor/tcl/unix/configure.orig
++++ vendor/tcl/unix/configure
+@@ -5717,7 +5717,46 @@
+ 	    *++|*++-*)
+ 		;;
+ 	    *)
+-		CFLAGS_WARNING="${CFLAGS_WARNING} -Wc++-compat -fextended-identifiers"
++                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler accepts C compatibility flags" >&5
++printf %s "checking whether the compiler accepts C compatibility flags... " >&6; }
++if test ${tcl_cv_cc_c_compat_flags+y}
++then :
++  printf %s "(cached) " >&6
++else case e in #(
++  e)
++                    tcl_save_CFLAGS="$CFLAGS"
++                    CFLAGS="$CFLAGS -Werror -Wc++-compat -fextended-identifiers"
++                    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++int
++main (void)
++{
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"
++then :
++  tcl_cv_cc_c_compat_flags=yes
++else case e in #(
++  e) tcl_cv_cc_c_compat_flags=no ;;
++esac
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
++                    CFLAGS="$tcl_save_CFLAGS"
++                 ;;
++esac
++fi
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $tcl_cv_cc_c_compat_flags" >&5
++printf "%s\n" "$tcl_cv_cc_c_compat_flags" >&6; }
++                if test "$tcl_cv_cc_c_compat_flags" = yes
++then :
++
++                    CFLAGS_WARNING="${CFLAGS_WARNING} -Wc++-compat -fextended-identifiers"
++
++fi
+ 		;;
+ 	esac
+ 

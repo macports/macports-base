@@ -1,4 +1,4 @@
 "16" = "Either uname or sed could not be found in PATH. Your system appears to be incomplete or misconfigured.";
-"17" = "Xcode is not installed, or was installed with UNIX Development deselected.";
+"17" = "Xcode is not installed, or was installed with UNIX Development (10.5+) or Command Line Support (10.4) deselected.";
 "18" = "This package is meant to be installed on Mac OS X __XVERS__.";
 "19" = "Your existing MacPorts or DarwinPorts installation is too old to be upgraded by this installer. Please install MacPorts 1.7.1 first.";

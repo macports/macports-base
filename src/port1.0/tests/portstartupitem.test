@@ -13,6 +13,7 @@ macports_worker_init
 
 package require port 1.0
 package require portstartupitem 1.0
+package require portstartupitem_run 1.0
 
 
 test startupitems_executable {
@@ -90,5 +91,34 @@ test startupitems_start {
     startupitems
 } -result "startupitems_start successful."
 
+
+testConstraint darwin [expr {$macports::autoconf::os_platform eq "darwin"}]
+foreach {target expected absent} {10.4 OnDemand KeepAlive 10.5 KeepAlive OnDemand} {
+    test startupitem_launchd_$target {Use launchd keys supported by the deployment target.} -constraints darwin -setup {
+        set saved_destroot $destroot
+        set saved_prefix $prefix
+        set prefix /opt/macports-test
+        set saved_target $macosx_deployment_target
+        set destroot [makeDirectory launchd-destroot]
+        set macosx_deployment_target $target
+        set attrs [dict create name tiger-test uniquename org.macports.tiger-test \
+            plist org.macports.tiger-test.plist location LaunchDaemons install no \
+            custom_file {} user {} group {} executable /usr/bin/true \
+            init {} start {} stop {} restart {} netchange no logevents no \
+            pidfile {} logfile {} logfile.stderr {} debug no]
+    } -body {
+        portstartupitem::startupitem_create_darwin_launchd $attrs
+        set fd [open ${destroot}${prefix}/etc/LaunchDaemons/org.macports.tiger-test/org.macports.tiger-test.plist]
+        set plist [read $fd]
+        close $fd
+        list [string match *<key>$expected</key>* $plist] \
+             [string match *<key>$absent</key>* $plist]
+    } -cleanup {
+        removeDirectory launchd-destroot
+        set destroot $saved_destroot
+        set prefix $saved_prefix
+        set macosx_deployment_target $saved_target
+    } -result {1 0}
+}
 
 cleanupTests
