@@ -311,7 +311,7 @@ proc hgfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated distfile
 proc fetchfiles {{async no} args} {
-    global distpath UI_PREFIX \
+    global subport distpath UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
            fetch.user_agent portverbose
     variable fetch_urls
@@ -409,6 +409,8 @@ proc fetchfiles {{async no} args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
             if {!$sorted} {
+                # Wait for 2 of the pings we started (if any) to complete, timeout of 500 ms
+                wait_for_pings "$subport distfiles" 2 500
                 sortsites fetch_urls master_sites
                 set sorted yes
             }
@@ -495,23 +497,12 @@ proc _fetch_async_start {logid} {
 proc start_pings {} {
     variable fetch_urls
     variable urlmap
+    global subport
     # ping hosts that are not in the cache yet
     foreach {url_var distfile} $fetch_urls {
         if {[info exists urlmap($url_var)]} {
-            async_ping_start $urlmap($url_var)
+            async_ping_start $urlmap($url_var) "$subport distfiles"
         }
-    }
-
-    # wait until we have a result for at least the main mirror, if appropriate
-    global global_mirror_site license ports_fetch_no-mirrors
-
-    if {[lsearch -exact -nocase $license "nomirror"] != -1 || ([info exists ports_fetch_no-mirrors] && ${ports_fetch_no-mirrors} ne "no")} {
-        return
-    }
-
-    set primary_mirror [lindex [get_mirror_site_urls [get_full_mirror_sites_path] $global_mirror_site] 0]
-    if {$primary_mirror ne {}} {
-        wait_for_pingtime $primary_mirror
     }
 }
 

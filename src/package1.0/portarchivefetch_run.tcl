@@ -133,7 +133,8 @@ proc fetchfiles {{async no} args} {
     global UI_PREFIX archivefetch.fulldestpath archivefetch.user \
            archivefetch.password archivefetch.use_epsv \
            archivefetch.ignore_sslcert archive.subdir portverbose \
-           ports_binary_only portdbpath force_archive_refresh
+           ports_binary_only portdbpath force_archive_refresh \
+           subport
     variable archivefetch_urls
     variable ::portfetch::urlmap
     variable async_job
@@ -230,6 +231,8 @@ proc fetchfiles {{async no} args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $incoming_path]
             }
             if {!$sorted} {
+                # Wait for 2 of the pings we started (if any) to complete, timeout of 500 ms
+                wait_for_pings "$subport archives" 2 500
                 portfetch::sortsites archivefetch_urls archive_sites
                 set sorted yes
             }
@@ -409,22 +412,12 @@ proc archives_present {} {
 proc start_pings {} {
     variable archivefetch_urls
     variable ::portfetch::urlmap
+    global subport
     # ping hosts that are not in the cache yet
     foreach {url_var archive} $archivefetch_urls {
         if {[info exists urlmap($url_var)]} {
-            async_ping_start $urlmap($url_var)
+            async_ping_start $urlmap($url_var) "$subport archives"
         }
-    }
-    # wait until we have a result for at least the main mirror
-    global archive_sites
-    if {[lsearch $archive_sites macports_archives::*] != -1} {
-        set mirrors macports_archives
-    } else {
-        set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
-    }
-    set primary_mirror [lindex [get_archive_site_urls [get_full_archive_sites_path] $mirrors] 0]
-    if {$primary_mirror ne {}} {
-        wait_for_pingtime $primary_mirror
     }
 }
 

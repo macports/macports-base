@@ -115,6 +115,8 @@ namespace eval macports {
 
     variable cache_dirty [dict create]
     variable pending_pings [dict create]
+    variable pending_ping_count_by_tag [dict create]
+    variable total_ping_count_by_tag [dict create]
     variable tool_path_cache [dict create]
     variable variant_descriptions [dict create]
 
@@ -2285,7 +2287,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # ping cache
     $workername alias get_pingtime macports::get_pingtime
     $workername alias async_ping_start macports::async_ping_start
-    $workername alias wait_for_pingtime macports::wait_for_pingtime
+    $workername alias wait_for_pings macports::wait_for_pings
     $workername alias compare_pingtimes macports::compare_pingtimes
 
     # archive sites
@@ -7302,17 +7304,17 @@ proc macports::get_pingtime {host} {
     return -1
 }
 
-# wait until the host of the given url is present in the ping cache
-proc macports::wait_for_pingtime {url} {
-    set url_parts [::uri::split $url]
-    if {![dict exists $url_parts host]} {
+# wait until $count pings for the given $tag are complete, or $timeout is reached
+proc macports::wait_for_pings {tag count timeout} {
+    variable total_ping_count_by_tag
+    variable pending_ping_count_by_tag
+    if {![dict exists $total_ping_count_by_tag $tag]} {
         return
     }
-    set host [dict get $url_parts host]
-    set status [lindex [get_pingtime $host] 0]
-    while {$status == -1 || $status == 0} {
-        vwait ::macports::ping_cache
-        set status [lindex [get_pingtime $host] 0]
+    set target [expr {max([dict get $total_ping_count_by_tag $tag] - $count, 0)}]
+    set time_remaining $timeout
+    while {$time_remaining > 0 && [dict exists $pending_ping_count_by_tag $tag] && [dict get $pending_ping_count_by_tag $tag] > $target} {
+        set time_remaining [vwait -timeout $time_remaining ::macports::pending_ping_count_by_tag]
     }
 }
 
@@ -7321,14 +7323,28 @@ proc macports::set_pingtime {host ms} {
     variable ping_cache
     dict set ping_cache $host [list $ms [clock seconds]]
     variable pending_pings
-    dict unset pending_pings $host
+    if {[dict exists $pending_pings $host]} {
+        variable pending_ping_count_by_tag
+        set tag [dict get $pending_pings $host]
+        if {[dict exists $pending_ping_count_by_tag $tag]} {
+            dict incr pending_ping_count_by_tag $tag -1
+            if {[dict get $pending_ping_count_by_tag $tag] <= 0} {
+                dict unset pending_ping_count_by_tag $tag
+                variable total_ping_count_by_tag
+                dict unset total_ping_count_by_tag $tag
+            }
+        }
+        dict unset pending_pings $host
+    }
     variable cache_dirty
     dict set cache_dirty pingtimes 1
 }
 
 # Start asynchronous pings of the hosts in a list of URLs if there is
 # not a fresh cache entry for them.
-proc macports::async_ping_start {urls} {
+proc macports::async_ping_start {urls tag} {
+    variable pending_ping_count_by_tag
+    variable total_ping_count_by_tag
     variable pending_pings
     foreach url $urls {
         set url_parts [::uri::split $url]
@@ -7347,7 +7363,9 @@ proc macports::async_ping_start {urls} {
             continue
         }
         ui_debug "starting ping of $host"
-        dict set pending_pings $host 1
+        dict set pending_pings $host $tag
+        dict incr pending_ping_count_by_tag $tag
+        dict incr total_ping_count_by_tag $tag
         mport_fetch_thread::queue_procresult ping [list $host [dict get $url_parts scheme]] macports::set_pingtime
     }
 }
