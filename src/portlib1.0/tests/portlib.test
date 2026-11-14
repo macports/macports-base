@@ -66,4 +66,114 @@ test supportedArchiveTypes {
 } -result "Supported archives successful."
 
 
+test delete_readonly_directories {
+    delete must remove a tree whose directories are read-only. Unlinking an
+    entry needs write permission on the directory holding it, and
+    `file delete -force` only clears the read-only bit on files.
+} -setup {
+    file mkdir $pwd/deltest/work/sub
+    close [open $pwd/deltest/work/sub/f w]
+    file attributes $pwd/deltest/work/sub/f -permissions 0444
+    file attributes $pwd/deltest/work/sub -permissions 0555
+    file attributes $pwd/deltest/work -permissions 0555
+} -body {
+    portlib::util::delete $pwd/deltest/work
+    if {[file exists $pwd/deltest/work]} {
+        return "FAIL: work directory still present"
+    }
+    return "Delete of read-only directories successful."
+} -cleanup {
+    catch {exec chmod -R u+w $pwd/deltest}
+    file delete -force $pwd/deltest
+} -result "Delete of read-only directories successful."
+
+
+test make_deletable_does_not_follow_symlinks {
+    make_deletable must not descend through a symlink, which would change
+    permissions outside the tree. Called directly: `file delete -force` chmods
+    a symlink it fails to remove, so going through delete would measure Tcl.
+} -setup {
+    file mkdir $pwd/deltest/outside
+    close [open $pwd/deltest/outside/precious w]
+    file attributes $pwd/deltest/outside -permissions 0555
+    set outside_perms [file attributes $pwd/deltest/outside -permissions]
+    file mkdir $pwd/deltest/tree/sub
+    file link -symbolic $pwd/deltest/tree/sub/link $pwd/deltest/outside
+    file attributes $pwd/deltest/tree/sub -permissions 0555
+} -body {
+    portlib::util::make_deletable $pwd/deltest/tree
+    if {[file attributes $pwd/deltest/outside -permissions] ne $outside_perms} {
+        return "FAIL: permissions changed through the symlink"
+    }
+    if {![file exists $pwd/deltest/outside/precious]} {
+        return "FAIL: symlink target was disturbed"
+    }
+    return "Symlink handling successful."
+} -cleanup {
+    catch {exec chmod -R u+w $pwd/deltest}
+    file delete -force $pwd/deltest
+} -result "Symlink handling successful."
+
+
+test delete_preserves_symlink_targets {
+    delete must remove a tree containing symlinks without deleting what those
+    symlinks point at.
+} -setup {
+    file mkdir $pwd/deltest/outside
+    close [open $pwd/deltest/outside/precious w]
+    file mkdir $pwd/deltest/tree/sub
+    file link -symbolic $pwd/deltest/tree/sub/link $pwd/deltest/outside
+    # Nested, because `file delete -force` chmods the top-level path itself:
+    # a read-only tree/ would succeed first try and skip the recovery path.
+    file attributes $pwd/deltest/tree/sub -permissions 0555
+} -body {
+    portlib::util::delete $pwd/deltest/tree
+    if {[file exists $pwd/deltest/tree]} {
+        return "FAIL: tree still present"
+    }
+    if {![file exists $pwd/deltest/outside]} {
+        return "FAIL: symlink target was deleted"
+    }
+    if {![file exists $pwd/deltest/outside/precious]} {
+        return "FAIL: symlink target contents were deleted"
+    }
+    return "Symlink handling successful."
+} -cleanup {
+    catch {exec chmod -R u+w $pwd/deltest}
+    file delete -force $pwd/deltest
+} -result "Symlink handling successful."
+
+
+test delete_tilde_named_entries {
+    An entry named "~" must be treated as a plain filename. Under Tcl 8,
+    [file join $dir ~name] yields ~name, so building child paths that way
+    would walk into a home directory instead of staying in the tree.
+} -setup {
+    # A stand-in home under our own control, so the test neither depends on
+    # HOME nor can touch the real one. Tcl 8 resolves a bare "~" through HOME.
+    set saved_home [expr {[info exists ::env(HOME)] ? $::env(HOME) : ""}]
+    file mkdir $pwd/deltest/fakehome
+    file attributes $pwd/deltest/fakehome -permissions 0555
+    set home_perms [file attributes $pwd/deltest/fakehome -permissions]
+    set ::env(HOME) $pwd/deltest/fakehome
+    file mkdir $pwd/deltest/tree/~
+    close [open $pwd/deltest/tree/~/f w]
+    file attributes $pwd/deltest/tree/~ -permissions 0555
+    file attributes $pwd/deltest/tree -permissions 0555
+} -body {
+    portlib::util::delete $pwd/deltest/tree
+    if {[file exists $pwd/deltest/tree]} {
+        return "FAIL: tree still present"
+    }
+    if {[file attributes $pwd/deltest/fakehome -permissions] ne $home_perms} {
+        return "FAIL: home directory permissions were modified"
+    }
+    return "Tilde handling successful."
+} -cleanup {
+    set ::env(HOME) $saved_home
+    catch {exec chmod -R u+w $pwd/deltest}
+    file delete -force $pwd/deltest
+} -result "Tilde handling successful."
+
+
 cleanupTests
