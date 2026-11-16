@@ -17,6 +17,12 @@ proc build_start {args} {
     if {$no_default_compiler_allowed} {
         ui_warn_once no_default_compiler_allowed "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
     }
+    variable cpu_count_detection_failed
+    if {$cpu_count_detection_failed} {
+        global build.jobs
+        ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
+        ui_warn "defaulting to ${build.jobs} jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
+    }
 }
 
 proc build_main {args} {

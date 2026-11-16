@@ -2178,6 +2178,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # Export some utility functions defined here.
     $workername alias macports_version macports::version
     $workername alias macports_create_thread macports::create_thread
+    $workername alias macports_get_parallel_jobs macports::get_parallel_jobs
     $workername alias getportbuildpath macports::getportbuildpath
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
     $workername alias getportresourcepath macports::getportresourcepath
@@ -7576,23 +7577,30 @@ proc macports::unobscure_maintainers {list} {
 
 # Get actual number of parallel jobs based on buildmakejobs, which may
 # be 0 for automatic selection.
-proc macports::get_parallel_jobs {{mem_restrict yes}} {
-    variable buildmakejobs; variable os_platform
+proc macports::get_parallel_jobs {{mem_per_job 1024} {return_status no}} {
+    variable buildmakejobs
+    set status 0
+    # falback value
+    set jobs 2
     if {[string is integer -strict $buildmakejobs] && $buildmakejobs > 0} {
         set jobs $buildmakejobs
-    } elseif {$os_platform eq "darwin" && $buildmakejobs == 0
-              && ![catch {sysctl hw.activecpu} cpus]} {
-        variable os_major
-        set sysctl_name [expr {$os_major >= 23 ? "hw.memsize_usable" : "hw.memsize"}]
-        set jobs $cpus
-        if {$mem_restrict && ![catch {sysctl $sysctl_name} memsize]
-                && $jobs > $memsize / (1024 * 1024 * 1024) + 1} {
-            set jobs [expr {$memsize / (1024 * 1024 * 1024) + 1}]
+    } elseif {$buildmakejobs == 0} {
+        if {[catch {sysctl hw.activecpu} cpus]} {
+            set status 1
+        } else {
+            set jobs [expr {$cpus + 1}]
+            variable os_major; variable os_platform
+            set sysctl_name [expr {$os_major >= 23 && $os_platform eq "darwin" ? "hw.memsize_usable" : "hw.memsize"}]
+            if {$mem_per_job > 0 && ![catch {sysctl $sysctl_name} memsize]} {
+                set jobs [expr {max(1, min($jobs, round($memsize / ($mem_per_job * 1024 * 1024.0))))}]
+            }
         }
-    } else {
-        set jobs 2
     }
-    return $jobs
+    if {$return_status} {
+        return [list $jobs $status]
+    } else {
+        return $jobs
+    }
 }
 
 # Returns list of Xcode versions for the current macOS version:

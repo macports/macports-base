@@ -197,7 +197,7 @@ proc init_threads {} {
         append worker_init_script \
             \n [list macports::override_vars $var_overrides]
     }
-    set maxjobs [macports::get_parallel_jobs no]
+    set maxjobs [macports::get_parallel_jobs 0]
     set poolid [tpool::create -minworkers 1 -maxworkers $maxjobs -initcmd $worker_init_script]
     set pending_jobs [dict create]
     set subports_todo [list]

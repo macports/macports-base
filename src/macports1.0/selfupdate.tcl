@@ -497,7 +497,7 @@ proc selfupdate::install {source} {
     set cc_arg {}
     set sdk_arg {}
     set arch_arg {}
-    set jobs [macports::get_parallel_jobs yes]
+    set jobs [macports::get_parallel_jobs]
     if {$os_platform eq "darwin"} {
         catch {exec /usr/bin/cc 2>@1} output
         set output [join [lrange [split $output "\n"] 0 end-1] "\n"]

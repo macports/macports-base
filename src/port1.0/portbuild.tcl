@@ -37,6 +37,7 @@ target_prerun ${org.macports.build} portbuild::build_start
 target_runpkg ${org.macports.build} portbuild_run
 
 namespace eval portbuild {
+    variable cpu_count_detection_failed 0
 }
 
 # define options
@@ -134,41 +135,21 @@ proc portbuild::build_getmaketype {args} {
     return ""
 }
 
-proc portbuild::build_getjobs {args} {
-    global buildmakejobs use_parallel_build
-    set jobs $buildmakejobs
-    # If parallel disabled disabled, return 1
+proc portbuild::build_getjobs {} {
+    global use_parallel_build
     if {![tbool use_parallel_build]} {
         ui_debug "port disallows a parallel build, setting build jobs to 1"
-        set jobs 1
+        return 1
     }
-    # if set to '0', use the number of cores for the number of jobs
-    if {$jobs == 0} {
-        macports_try -pass_signal {
-            set jobs [sysctl hw.activecpu]
-        } on error {} {
-            set jobs 2
-            ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
-            ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
-        }
-
-        macports_try -pass_signal {
-            global os.major os.platform build.mem_per_job
-            set sysctl_name [expr {(${os.major} >= 23 && ${os.platform} eq "darwin") ? "hw.memsize_usable" : "hw.memsize"}]
-            set memsize [sysctl $sysctl_name]
-            set jobs_limit_mem [expr {int($memsize / (${build.mem_per_job} * 1024 * 1024)) + 1}]
-            if {$jobs > $jobs_limit_mem} {
-                set jobs $jobs_limit_mem
-            }
-        } on error {} {}
-    }
-    if {![string is integer -strict $jobs] || $jobs <= 1} {
-        set jobs 1
-    }
+    global build.mem_per_job
+    variable cpu_count_detection_failed
+    # Get appropriate number of jobs, recording if CPU count detection
+    # failed so we can print a warning later in build_start.
+    lassign [macports_get_parallel_jobs ${build.mem_per_job} yes] jobs cpu_count_detection_failed
     return $jobs
 }
 
-proc portbuild::build_getargs {args} {
+proc portbuild::build_getargs {} {
     global build.type os.platform build.cmd build.target
     if {((${build.type} eq "default" && ${os.platform} ne "freebsd") || \
          (${build.type} eq "gnu")) \
@@ -180,7 +161,7 @@ proc portbuild::build_getargs {args} {
     return ${build.target}
 }
 
-proc portbuild::build_getjobsarg {args} {
+proc portbuild::build_getjobsarg {} {
     global build.cmd build.jobs
     set cmdname [file tail [lindex ${build.cmd} 0]]
     if {![exists build.jobs] || \
