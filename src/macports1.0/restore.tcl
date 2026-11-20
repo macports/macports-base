@@ -322,7 +322,7 @@ namespace eval restore {
     proc resolve_depspec {depspec ports snapshot_id} {
         set remaining [lassign [split $depspec :] type next]
         if {$type eq "port"} {
-            return $next
+            return [lindex [split $depspec :] end]
         }
         set portname [lindex $remaining end]
         if {[dict exists $ports $portname] && [lindex [dict get $ports $portname] 1]} {
