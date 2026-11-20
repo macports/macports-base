@@ -66,4 +66,30 @@ test supportedArchiveTypes {
 } -result "Supported archives successful."
 
 
+testConstraint has_cpio [expr {[catch {portlib::util::archiveTypeIsSupported cpio}] == 0}]
+
+test extract_archive_metadata_cpio {
+    Extract archive metadata from a cpio archive without worker-interp aliases.
+} -constraints {
+    has_cpio
+} -setup {
+    set archdir $pwd/extract_metadata_test
+    file delete -force $archdir
+    file mkdir $archdir/src $archdir/tmp
+    set fd [open $archdir/src/+CONTENTS w]
+    puts $fd "@portname testport"
+    close $fd
+    set pax [macports::findBinary pax ${::portlib::autoconf::pax_path}]
+    set oldcwd [pwd]
+    cd $archdir/src
+    exec $pax -w -f $archdir/test.cpio +CONTENTS
+    cd $oldcwd
+} -body {
+    set res [portlib::util::extract_archive_metadata $archdir/test.cpio cpio {portname} $archdir/tmp]
+    dict get $res portname
+} -cleanup {
+    file delete -force $archdir
+} -result "testport"
+
+
 cleanupTests
