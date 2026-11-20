@@ -857,7 +857,7 @@ proc portconfigure::get_compiler_fallback {} {
                 set cname [lindex $c 0]
                 set v [lindex [split $cname -] 2]
                 if {[vercmp $vmin <= $v]} {
-                    lappend gcc_compilers $c
+                    lappend gcc_compilers $cname
                 }
             }
         }
@@ -880,13 +880,24 @@ proc portconfigure::get_compiler_fallback {} {
 }
 #
 proc portconfigure::get_fortran_fallback {} {
-    global porturl
+    global porturl configure.build_arch compiler.cxx_standard
+    # build_arch and cxx_standard may be used in hint expressions
     set compilers [list]
     set vmin [get_min_gfortran]
     foreach c [get_gcc_compilers $porturl] {
-        set v    [lindex [split $c -] 2]
-        if {[vercmp ${vmin} $v] <= 0} {
-            lappend compilers $c
+        set excluded 0
+        foreach hint [lrange $c 1 end] {
+            if {$hint ne {} && ![expr $hint]} {
+                set excluded 1
+                break
+            }
+        }
+        if {!$excluded} {
+            set cname [lindex $c 0]
+            set v [lindex [split $cname -] 2]
+            if {[vercmp ${vmin} $v] <= 0} {
+                lappend compilers $cname
+            }
         }
     }
     if {[g95_ok]} {
