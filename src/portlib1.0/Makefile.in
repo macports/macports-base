@@ -21,6 +21,7 @@ clean::
 	rm -f pkgIndex.tcl
 
 distclean:: clean
+	rm -f portlib_autoconf.tcl
 	rm -f Makefile
 
 install:: all
