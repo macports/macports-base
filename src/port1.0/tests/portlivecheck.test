@@ -266,6 +266,20 @@ test livecheck_none {
     return ""
 } -output "" -errorOutput ""
 
+test livecheck_no_types {
+    livecheck: an empty types directory is reported as an error
+} -setup $livecheck_setup -cleanup $livecheck_cleanup -body {
+    set _lc_empty_dir ${_lc_resource_dir}_empty
+    file mkdir [file join $_lc_empty_dir port1.0 livecheck]
+    proc getdefaultportresourcepath {{path {}}} {
+        return [file join ${::_lc_resource_dir}_empty $path]
+    }
+    set livecheck.type default
+    set code [catch {portlivecheck::livecheck_main} result]
+    file delete -force $_lc_empty_dir
+    list $code [string match "No available types were found.*" $result]
+} -result {1 1}
+
 # ---------------------------------------------------------------------------
 # livecheck.user_agent option tests
 # ---------------------------------------------------------------------------

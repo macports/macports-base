@@ -98,7 +98,8 @@ proc _livecheck_main {{async no}} {
 
     # Check _resources/port1.0/livecheck for available types.
     set types_dir [getdefaultportresourcepath "port1.0/livecheck"]
-    if {[catch {set available_types [glob -directory $types_dir -tails -types f *.tcl]} result]} {
+    set available_types [glob -nocomplain -directory $types_dir -tails -types f *.tcl]
+    if {$available_types eq {}} {
         return -code 1 "No available types were found. Check '$types_dir'."
     }
 
