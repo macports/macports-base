@@ -1897,26 +1897,21 @@ namespace eval portlib {
                     exec -ignorestderr $dscl . -create /Users/${username} NFSHomeDirectory ${home}
                     exec -ignorestderr $dscl . -create /Users/${username} UserShell ${shell}
                 } on error {{CHILDKILLED *} eCode eMessage} {
-                    # the foreachs are a simple workaround for Tcl 8.4, which doesn't
-                    # seem to have lassign
-                    foreach {- pid sigName msg} $eCode {
-                        ui_error "dscl($pid) was killed by $sigName: $msg"
-                        ui_debug "dscl printed: $eMessage"
-                    }
+                    lassign $eCode - pid sigName msg
+                    ui_error "dscl($pid) was killed by $sigName: $msg"
+                    ui_debug "dscl printed: $eMessage"
 
                     set failed? 1
                 } on error {{CHILDSTATUS *} eCode eMessage} {
-                    foreach {- pid code} $eCode {
-                        ui_error "dscl($pid) terminated with an exit status of $code"
-                        ui_debug "dscl printed: $eMessage"
-                    }
+                    lassign $eCode - pid code
+                    ui_error "dscl($pid) terminated with an exit status of $code"
+                    ui_debug "dscl printed: $eMessage"
 
                     set failed? 1
                 } on error {{POSIX *} eCode eMessage} {
-                    foreach {- errName msg} {
-                        ui_error "failed to execute $dscl: $errName: $msg"
-                        ui_debug "dscl printed: $eMessage"
-                    }
+                    lassign $eCode - errName msg
+                    ui_error "failed to execute $dscl: $errName: $msg"
+                    ui_debug "dscl printed: $eMessage"
 
                     set failed? 1
                 } finally {
@@ -1928,18 +1923,16 @@ namespace eval portlib {
                         macports_try {
                             exec -ignorestderr $dscl . -delete /Users/${username}
                         } on error {{CHILDKILLED *} eCode eMessage} {
-                            foreach {- pid sigName msg} {
-                                ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $username."
-                                ui_debug "dscl printed: $eMessage"
-                            }
+                            lassign $eCode - pid sigName msg
+                            ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $username."
+                            ui_debug "dscl printed: $eMessage"
                         } on error {{CHILDSTATUS *} eCode eMessage} {
                             # ignoring childstatus failure, because that probably means
                             # the first call failed and the user wasn't even created
                         } on error {{POSIX *} eCode eMessage} {
-                            foreach {- errName msg} {
-                                ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $username."
-                                ui_debug "dscl printed: $eMessage"
-                            }
+                            lassign $eCode - errName msg
+                            ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $username."
+                            ui_debug "dscl printed: $eMessage"
                         }
 
                         # drop privileges if they were escalated before
@@ -2003,26 +1996,21 @@ namespace eval portlib {
                         exec -ignorestderr $dscl . -create /Groups/${groupname} GroupMembership ${users}
                     }
                 } on error {{CHILDKILLED *} eCode eMessage} {
-                    # the foreachs are a simple workaround for Tcl 8.4, which doesn't
-                    # seem to have lassign
-                    foreach {- pid sigName msg} $eCode {
-                        ui_error "dscl($pid) was killed by $sigName: $msg"
-                        ui_debug "dscl printed: $eMessage"
-                    }
+                    lassign $eCode - pid sigName msg
+                    ui_error "dscl($pid) was killed by $sigName: $msg"
+                    ui_debug "dscl printed: $eMessage"
 
                     set failed? 1
                 } on error {{CHILDSTATUS *} eCode eMessage} {
-                    foreach {- pid code} $eCode {
-                        ui_error "dscl($pid) terminated with an exit status of $code"
-                        ui_debug "dscl printed: $eMessage"
-                    }
+                    lassign $eCode - pid code
+                    ui_error "dscl($pid) terminated with an exit status of $code"
+                    ui_debug "dscl printed: $eMessage"
 
                     set failed? 1
                 } on error {{POSIX *} eCode eMessage} {
-                    foreach {- errName msg} {
-                        ui_error "failed to execute $dscl: $errName: $msg"
-                        ui_debug "dscl printed: $eMessage"
-                    }
+                    lassign $eCode - errName msg
+                    ui_error "failed to execute $dscl: $errName: $msg"
+                    ui_debug "dscl printed: $eMessage"
 
                     set failed? 1
                 } finally {
@@ -2034,18 +2022,16 @@ namespace eval portlib {
                         macports_try {
                             exec -ignorestderr $dscl . -delete /Groups/${groupname}
                         } on error {{CHILDKILLED *} eCode eMessage} {
-                            foreach {- pid sigName msg} {
-                                ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $groupname."
-                                ui_debug "dscl printed: $eMessage"
-                            }
+                            lassign $eCode - pid sigName msg
+                            ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $groupname."
+                            ui_debug "dscl printed: $eMessage"
                         } on error {{CHILDSTATUS *} eCode eMessage} {
                             # ignoring childstatus failure, because that probably means
                             # the first call failed and the user wasn't even created
                         } on error {{POSIX *} eCode eMessage} {
-                            foreach {- errName msg} {
-                                ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $groupname."
-                                ui_debug "dscl printed: $eMessage"
-                            }
+                            lassign $eCode - errName msg
+                            ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $groupname."
+                            ui_debug "dscl printed: $eMessage"
                         }
 
                         if {[info exists escalated]} {
