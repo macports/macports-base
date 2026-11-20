@@ -149,4 +149,46 @@ test get_archive_site_lazy_load {
 } -result {https://conf.example.org:nosubdir tbz2 https://global.example.org/:nosubdir signify /tmp/test.pub}
 
 
+test load_compatible_sites_uses_frozen_dirs {
+    Ensure archive site compatibility uses prefix_frozen and applications_dir_frozen.
+} -setup {
+    set saved_prefix $macports::prefix
+    set saved_apps_dir $macports::applications_dir
+    set saved_sites $portlib::archive_sites::sites
+    if {[info exists portlib::archive_sites::conf_sites]} {
+        set saved_conf_sites $portlib::archive_sites::conf_sites
+    }
+
+    set macports::prefix {${prefix}}
+    set macports::applications_dir /nonexistent/override
+    set portlib::archive_sites::sites [dict create]
+    set portlib::archive_sites::conf_sites [dict create]
+
+    file mkdir $pwd/archive_sites_frozen
+    set mirror_path $pwd/archive_sites_frozen/archive_sites.tcl
+    set fd [open $mirror_path w]
+    puts $fd "namespace eval portfetch::mirror_sites {}"
+    puts $fd "set portfetch::mirror_sites::sites(frozentest) {https://frozen.example.org/:nosubdir}"
+    puts $fd "set portfetch::mirror_sites::archive_type(frozentest) tbz2"
+    puts $fd "set portfetch::mirror_sites::archive_prefix(frozentest) [list $macports::prefix_frozen]"
+    puts $fd "set portfetch::mirror_sites::archive_applications_dir(frozentest) [list $macports::applications_dir_frozen]"
+    puts $fd "set portfetch::mirror_sites::archive_frameworks_dir(frozentest) [list $macports::frameworks_dir_frozen]"
+    puts $fd "set portfetch::mirror_sites::archive_cxx_stdlib(frozentest) [list $macports::cxx_stdlib]"
+    puts $fd "set portfetch::mirror_sites::archive_delete_la_files(frozentest) [list $macports::delete_la_files]"
+    close $fd
+} -body {
+    portlib::archive_sites::get_default_archive_sites $mirror_path
+} -cleanup {
+    set macports::prefix $saved_prefix
+    set macports::applications_dir $saved_apps_dir
+    set portlib::archive_sites::sites $saved_sites
+    if {[info exists saved_conf_sites]} {
+        set portlib::archive_sites::conf_sites $saved_conf_sites
+    } elseif {[info exists portlib::archive_sites::conf_sites]} {
+        unset portlib::archive_sites::conf_sites
+    }
+    file delete -force $pwd/archive_sites_frozen
+} -result {frozentest::tbz2}
+
+
 cleanupTests
