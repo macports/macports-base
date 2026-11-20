@@ -129,8 +129,8 @@ namespace eval portlib {
         # Given a dict of site info, saves the sites with compatible
         # settings in a namespace variable chosen by dest_var.
         proc load_compatible_sites {site_dict dest_var dest_dict_key} {
-            global macports::prefix macports::frameworks_dir_frozen \
-                macports::applications_dir macports::cxx_stdlib \
+            global macports::prefix_frozen macports::frameworks_dir_frozen \
+                macports::applications_dir_frozen macports::cxx_stdlib \
                 macports::delete_la_files
             variable $dest_var
 
@@ -164,9 +164,9 @@ namespace eval portlib {
                 set site_urls [dict get $site_dict sites $site]
                 set archive_type [dict get $site_dict archive_type $site]
                 if {$site_urls ne {} &&
-                    $archive_prefix_norm eq $prefix &&
+                    $archive_prefix_norm eq $prefix_frozen &&
                     $archive_frameworks_dir_norm eq $frameworks_dir_frozen &&
-                    $archive_applications_dir_norm eq $applications_dir &&
+                    $archive_applications_dir_norm eq $applications_dir_frozen &&
                     [dict get $site_dict archive_cxx_stdlib $site] eq $cxx_stdlib &&
                     [dict get $site_dict archive_delete_la_files $site] eq $delete_la_files &&
                     ![catch {::portlib::util::archiveTypeIsSupported $archive_type}]} {
