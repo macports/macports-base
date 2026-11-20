@@ -66,4 +66,61 @@ test supportedArchiveTypes {
 } -result "Supported archives successful."
 
 
+test get_archive_site_lazy_load {
+    Ensure get_archive_site_* lazily initializes conf_sites and global sites.
+} -setup {
+    set saved_conf $macports::archive_sites_conf
+    set saved_sites $portlib::archive_sites::sites
+    if {[info exists portlib::archive_sites::conf_sites]} {
+        set saved_conf_sites $portlib::archive_sites::conf_sites
+        unset portlib::archive_sites::conf_sites
+    }
+    set portlib::archive_sites::sites [dict create]
+
+    file mkdir $pwd/archive_sites_lazy
+    set conf_path $pwd/archive_sites_lazy/archive_sites.conf
+    set fd [open $conf_path w]
+    puts $fd "name localconf"
+    puts $fd "urls https://conf.example.org"
+    puts $fd "type tbz2"
+    puts $fd "prefix $macports::prefix"
+    puts $fd "applications_dir $macports::applications_dir"
+    puts $fd "frameworks_dir $macports::frameworks_dir_frozen"
+    puts $fd "cxx_stdlib $macports::cxx_stdlib"
+    puts $fd "delete_la_files $macports::delete_la_files"
+    close $fd
+    set macports::archive_sites_conf $conf_path
+
+    set mirror_path $pwd/archive_sites_lazy/archive_sites.tcl
+    set fd [open $mirror_path w]
+    puts $fd "namespace eval portfetch::mirror_sites {}"
+    puts $fd "set portfetch::mirror_sites::sites(globaltest) {https://global.example.org/:nosubdir}"
+    puts $fd "set portfetch::mirror_sites::archive_type(globaltest) tbz2"
+    puts $fd "set portfetch::mirror_sites::archive_prefix(globaltest) [list $macports::prefix]"
+    puts $fd "set portfetch::mirror_sites::archive_applications_dir(globaltest) [list $macports::applications_dir]"
+    puts $fd "set portfetch::mirror_sites::archive_frameworks_dir(globaltest) [list $macports::frameworks_dir_frozen]"
+    puts $fd "set portfetch::mirror_sites::archive_cxx_stdlib(globaltest) [list $macports::cxx_stdlib]"
+    puts $fd "set portfetch::mirror_sites::archive_delete_la_files(globaltest) [list $macports::delete_la_files]"
+    puts $fd "set portfetch::mirror_sites::archive_sigtype(globaltest) signify"
+    puts $fd "set portfetch::mirror_sites::archive_pubkey(globaltest) /tmp/test.pub"
+    close $fd
+} -body {
+    list \
+        [portlib::archive_sites::get_archive_site_urls $mirror_path localconf] \
+        [portlib::archive_sites::get_archive_site_archivetype $mirror_path localconf] \
+        [portlib::archive_sites::get_archive_site_urls $mirror_path globaltest] \
+        [portlib::archive_sites::get_archive_site_sigtype $mirror_path globaltest] \
+        [portlib::archive_sites::get_archive_site_pubkey $mirror_path globaltest]
+} -cleanup {
+    set macports::archive_sites_conf $saved_conf
+    set portlib::archive_sites::sites $saved_sites
+    if {[info exists saved_conf_sites]} {
+        set portlib::archive_sites::conf_sites $saved_conf_sites
+    } elseif {[info exists portlib::archive_sites::conf_sites]} {
+        unset portlib::archive_sites::conf_sites
+    }
+    file delete -force $pwd/archive_sites_lazy
+} -result {https://conf.example.org:nosubdir tbz2 https://global.example.org/:nosubdir signify /tmp/test.pub}
+
+
 cleanupTests
