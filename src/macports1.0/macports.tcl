@@ -6134,8 +6134,7 @@ proc macports::_exec_upgrade {oplist upgrade_count dep_graph} {
                             set binary_only [lindex $op 4]
                             if {$binary_only} {
                                 _exec_upgrade_error 1 $portname "Failed to fetch binary archive"
-                            }
-                            if {[catch {mportexec $mport destroot} result]} {
+                            } elseif {[catch {mportexec $mport destroot} result]} {
                                 ui_debug $::errorInfo
                                 _exec_upgrade_error 1 $portname "Failed to build, see log for details"
                             } elseif {$result != 0} {
