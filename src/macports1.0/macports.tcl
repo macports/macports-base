@@ -1208,10 +1208,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set user_home $env(HOME)
         set macports_user_dir [file normalize [file tildeexpand $macports::autoconf::macports_user_dir]]
     } elseif {[info exists env(SUDO_USER)] && $os_platform eq "darwin"} {
-        set user_home [exec -ignorestderr dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d ' ' -f 2]
+        set user_home [exec -ignorestderr dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d { } -f 2]
         set macports_user_dir [file join $user_home [string range $macports::autoconf::macports_user_dir 2 end]]
     } elseif {[exec id -u] != 0 && $os_platform eq "darwin"} {
-        set user_home [exec -ignorestderr dscl -q . -read /Users/[exec -ignorestderr id -un 2> /dev/null] NFSHomeDirectory | cut -d ' ' -f 2]
+        set user_home [exec -ignorestderr dscl -q . -read /Users/[exec -ignorestderr id -un 2> /dev/null] NFSHomeDirectory | cut -d { } -f 2]
         set macports_user_dir [file join $user_home [string range $macports::autoconf::macports_user_dir 2 end]]
     } else {
         # Otherwise define the user directory as a directory that will never exist
