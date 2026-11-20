@@ -5191,9 +5191,9 @@ proc macports::upgrade_multi {portnames argdict options {depscachename {}}} {
             return 3
         }
     }
-    #foreach i $ilist {
-    #    registry::entry close $i
-    #}
+
+    # for dep graph
+    package require struct::graph
 
     # stop upgrade from being called via mportexec as well
     set orig_nodeps yes
@@ -5211,6 +5211,7 @@ proc macports::upgrade_multi {portnames argdict options {depscachename {}}} {
     # plan the upgrade
     set upgrade_oplist [list]
     set upgrade_portcount 0
+    set dep_graph [::struct::graph]
     set status 0
     foreach portname $portnames {
         set dspec [dict get $argdict $portname dspec]
@@ -5232,7 +5233,16 @@ proc macports::upgrade_multi {portnames argdict options {depscachename {}}} {
     }
     if {$status == 0} {
         # run the actual upgrade operations
-        set status [macports::_exec_upgrade $upgrade_oplist $upgrade_portcount]
+        lassign [macports::_exec_upgrade $upgrade_oplist $upgrade_portcount $dep_graph] status failed_ports
+    }
+    $dep_graph destroy
+
+    if {[dict size $failed_ports] > 0 && ![ui_isset ports_quiet]} {
+        ui_msg "Upgrade failed for the following ports:"
+        foreach portname [lsort -dictionary [dict keys $failed_ports]] {
+            ui_msg "  $portname"
+            ui_msg "    [dict get $failed_ports $portname]"
+        }
     }
 
     if {!$orig_nodeps} {
@@ -5251,6 +5261,8 @@ proc macports::_plan_upgrade {portname dspec variations options {depscachename {
     upvar upgrade_oplist upgrade_oplist
     # number of ports to be actually upgraded
     upvar upgrade_portcount upgrade_portcount
+    # graph of port dependencies
+    upvar dep_graph dep_graph
 
     if {$depscachename ne ""} {
         upvar $depscachename depscache
@@ -5654,7 +5666,16 @@ proc macports::_plan_upgrade {portname dspec variations options {depscachename {
         foreach dep $dependents_list {
             lappend dependents_names [$dep name]
         }
+        if {![$dep_graph node exists $newname]} {
+            $dep_graph node insert $newname
+        }
         foreach mpname $dependents_names {
+            if {![$dep_graph node exists $mpname]} {
+                $dep_graph node insert $mpname
+            }
+            if {[llength [$dep_graph arcs -inner $newname $mpname]] == 0} {
+                $dep_graph arc insert $mpname $newname
+            }
             if {![info exists depscache(port:$mpname)]} {
                 set status [macports::_plan_upgrade $mpname port:$mpname $called_variations $options depscache]
                 if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
@@ -5736,7 +5757,8 @@ proc macports::_upgrade_dependencies {portinfo depscachename variations options 
     upvar $depscachename depscache \
           mport parentmport \
           upgrade_oplist upgrade_oplist \
-          upgrade_portcount upgrade_portcount
+          upgrade_portcount upgrade_portcount \
+          dep_graph dep_graph
 
     # If we're following dependents, we only want to follow this port's
     # dependents, not those of all its dependencies. Otherwise, we would
@@ -5757,6 +5779,10 @@ proc macports::_upgrade_dependencies {portinfo depscachename variations options 
         set target_install 1
     }
 
+    set portname [dict get $portinfo name]
+    if {![$dep_graph node exists $portname]} {
+        $dep_graph node insert $portname
+    }
     set status 0
     foreach dtypes $dtype_lists check_archive {no yes} {
         # Skip build-time deps if an archive will be used
@@ -5773,6 +5799,10 @@ proc macports::_upgrade_dependencies {portinfo depscachename variations options 
                     if {$d eq ""} {
                         set d [lindex [split $i :] end]
                     }
+                    if {![$dep_graph node exists $d]} {
+                        $dep_graph node insert $d
+                    }
+                    $dep_graph arc insert $portname $d
                     if {![info exists depscache(port:$d)] && ![info exists depscache($i)]} {
                         set status [macports::_plan_upgrade $d $i $variations $options depscache]
                         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} break
@@ -5888,15 +5918,51 @@ proc macports::_upgrade_metadata {mport regref is_dryrun} {
     }
 }
 
+# Helper for _exec_upgrade error handling
+# Set status, mark portname as failed with the given reason, and
+# mark its dependents as failed because their dependency failed.
+# Break from enclosing loop if not using -p.
+proc macports::_exec_upgrade_error {{statuscode 1} {portname {}} {reason {}}} {
+    upvar status status
+    set status $statuscode
+    if {$portname ne {}} {
+        upvar failed_ports failed_ports \
+              track_deps_ports track_deps_ports \
+              dep_graph dep_graph
+        dict set failed_ports $portname $reason
+
+        # Walk the dependency graph to find dependents
+        set level "#[info level]"
+        $dep_graph walk $portname \
+            -type dfs \
+            -order pre \
+            -dir backward \
+            -command [list apply [list {level mode dep_graph node} {
+                if {$mode eq "enter"} {
+                    uplevel $level [subst -nocommands {
+                        if {[dict exists \$track_deps_ports $node] && ![dict exists \$failed_ports $node]} {
+                            dict set failed_ports $node "dependency \$portname failed"
+                        }
+                    }]
+                }
+            }] $level]
+    }
+    if {![ui_isset ports_processall]} {
+        return -code break
+    }
+}
+
 # Perform an upgrade by executing a list of operations generated by _plan_upgrade
-proc macports::_exec_upgrade {oplist upgrade_count} {
+proc macports::_exec_upgrade {oplist upgrade_count dep_graph} {
     variable ui_options
     variable ui_prefix
 
     set status 0
     set upgrade_index 0
     set all_mports [dict create]
+    set track_deps_ports [dict create]
     set fetched_mports [dict create]
+    set failed_ports [dict create]
     set loaded_startupitems [dict create]
     set ports_to_upgrade [list]
     set ports_to_install [list]
@@ -5911,10 +5977,15 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                 install -
                 metadata {
                     set mport [lindex $op 1]
+                    set portname [ditem_key $mport provides]
+                    if {$opname ne "metadata" } {
+                        # needs to be skipped if a dep failed
+                        dict set track_deps_ports $portname {}
+                    }
                     if {$opname eq "activate"} {
-                        lappend ports_to_install [ditem_key $mport provides]
+                        lappend ports_to_install $portname
                     } elseif {$opname in {activate_only install} && ![dict exists $all_mports $mport]} {
-                        lappend ports_to_upgrade [ditem_key $mport provides]
+                        lappend ports_to_upgrade $portname
                     }
                     if {$opname in {activate install} && ![dict exists $fetched_mports $mport]} {
                         # Start background fetch of files
@@ -5964,6 +6035,9 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     set mport [lindex $op 1]
                     set portinfo [mportinfo $mport]
                     set portname [dict get $portinfo name]
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     set port_full_vers [dict get $portinfo version]_[dict get $portinfo revision][dict get $portinfo canonical_active_variants]
                     if {$upgrade_count > 1} {
                         incr upgrade_index
@@ -5971,26 +6045,24 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     }
                     if {[catch {mportexec $mport activate} result]} {
                         ui_debug $::errorInfo
-                        ui_error "Unable to exec port: $result"
-                        set status 1
-                        if {![macports::ui_isset ports_processall]} {
-                            break
-                        }
+                        set errmsg "Unable to exec port: $result"
+                        ui_error $errmsg
+                        _exec_upgrade_error 1 $portname $errmsg
                     } elseif {$result != 0} {
                         ui_error "Problem while installing $portname @$port_full_vers"
-                        set status $result
-                        if {![macports::ui_isset ports_processall]} {
-                            break
-                        }
+                        _exec_upgrade_error $result $portname "Failed to install, see log for details"
                     }
                 }
                 activate_only {
                     # Activate a previously installed port
                     set mport [lindex $op 1]
+                    set portname [ditem_key $mport provides]
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     if {$upgrade_count > 1 && ![dict get $all_mports $mport]} {
                         dict set all_mports $mport 1
                         incr upgrade_index
-                        set portname [ditem_key $mport provides]
                         ui_msg "$ui_prefix Upgrading $portname (${upgrade_index}/${upgrade_count})"
                     }
                     set failed 0
@@ -6005,14 +6077,14 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         set portname [dict get $portinfo name]
                         set port_full_vers [dict get $portinfo version]_[dict get $portinfo revision][dict get $portinfo canonical_active_variants]
                         ui_error "Couldn't activate $portname @${port_full_vers}: $result"
-                        set status 1
-                        if {![macports::ui_isset ports_processall]} {
-                            break
-                        }
+                        _exec_upgrade_error 1 $portname "Failed to activate, see log for details"
                     }
                 }
                 deactivate {
                     lassign [lrange $op 1 end] regref portname version revision variants options is_dryrun
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     # we have to force the deactivate in case of dependents
                     dict set options ports_force yes
                     if {$is_dryrun} {
@@ -6021,15 +6093,15 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                               && [catch {portimage::deactivate $portname $version $revision $variants $options} result]} {
                         ui_debug $::errorInfo
                         ui_error "Deactivating $portname @${version}_${revision}${variants} failed: $result"
-                        set status 1
-                        if {![macports::ui_isset ports_processall]} {
-                            break
-                        }
+                        _exec_upgrade_error 1 $portname "Failed to deactivate"
                     }
                 }
                 install {
                     set mport [lindex $op 1]
                     set portname [ditem_key $mport provides]
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     set workername [ditem_key $mport workername]
                     if {$upgrade_count > 1 && ![dict get $all_mports $mport]} {
                         dict set all_mports $mport 1
@@ -6061,22 +6133,13 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         if {$destroot_needed} {
                             set binary_only [lindex $op 4]
                             if {$binary_only} {
-                                set status 1
-                                if {![macports::ui_isset ports_processall]} {
-                                    break
-                                }
+                                _exec_upgrade_error 1 $portname "Failed to fetch binary archive"
                             }
                             if {[catch {mportexec $mport destroot} result]} {
                                 ui_debug $::errorInfo
-                                set status 1
-                                if {![macports::ui_isset ports_processall]} {
-                                    break
-                                }
+                                _exec_upgrade_error 1 $portname "Failed to build, see log for details"
                             } elseif {$result != 0} {
-                                set status 1
-                                if {![macports::ui_isset ports_processall]} {
-                                    break
-                                }
+                                _exec_upgrade_error 1 $portname "Failed to build, see log for details"
                             }
                         }
                     } else {
@@ -6084,21 +6147,18 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                         # install version_in_tree (but don't activate yet)
                         if {[catch {mportexec $mport install} result]} {
                             ui_debug $::errorInfo
-                            set status 1
-                            if {![macports::ui_isset ports_processall]} {
-                                break
-                            }
+                            _exec_upgrade_error 1 $portname "Failed to install, see log for details"
                         } elseif {$result != 0} {
-                            set status 1
-                            if {![macports::ui_isset ports_processall]} {
-                                break
-                            }
+                            _exec_upgrade_error 1 $portname "Failed to install, see log for details"
                         }
                     }
                 }
                 load_startupitems {
                     set mport [lindex $op 1]
                     set portname [ditem_key $mport provides]
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     if {[dict exists $loaded_startupitems $mport]} {
                         set loaded [dict get $loaded_startupitems $mport]
                     } else {
@@ -6133,11 +6193,18 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                     # check which startupitems are loaded, so we can load again after upgrading
                     # (deactivating the old version will unload the startupitems)
                     set mport [lindex $op 1]
+                    set portname [ditem_key $mport provides]
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     set workername [ditem_key $mport workername]
                     dict set loaded_startupitems $mport [$workername eval [list portstartupitem::loaded]]
                 }
                 uninstall {
                     lassign [lrange $op 1 end] portname version revision variants options is_dryrun
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     ui_debug "Uninstalling $portname ${version}_${revision}${variants}"
                     # we have to force the uninstall in case of dependents
                     dict set options ports_force yes
@@ -6148,23 +6215,21 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                               && [catch {registry_uninstall::uninstall $portname $version $revision $variants $options} result]} {
                         ui_debug $::errorInfo
                         ui_error "Uninstall $portname ${version}_${revision}${variants} failed: $result"
-                        set status 1
-                        if {![macports::ui_isset ports_processall]} {
-                            break
-                        }
+                        _exec_upgrade_error 1 $portname "Failed to uninstall"
                     }
                 }
                 uninstall_other_vers {
                     # Uninstall installed versions of the given port other than the version given
                     lassign [lrange $op 1 end] portname keep_version keep_revision keep_variants options is_dryrun
+                    if {[dict exists $failed_ports $portname]} {
+                        continue
+                    }
                     if {[catch {registry::entry imaged $portname} ilist]} {
                         ui_error "Checking installed version of $portname failed: $ilist"
-                        set status 1
-                        if {[macports::ui_isset ports_processall]} {
-                            continue
-                        }
-                        break
+                        _exec_upgrade_error 1 $portname "Failed to list installed versions"
+                        set ilist {}
                     }
+                    set uninstall_status 0
                     foreach i $ilist {
                         set version [$i version]
                         set revision [$i revision]
@@ -6181,13 +6246,13 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
                             # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
                             if {$result ne "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
                                 ui_error "Uninstall $portname @${version}_${revision}$variant failed: $result"
-                                set status 1
+                                set uninstall_status 1
                                 break
                             }
                         }
                     }
-                    if {$status != 0 && ![macports::ui_isset ports_processall]} {
-                        break
+                    if {$uninstall_status != 0} {
+                        _exec_upgrade_error $uninstall_status $portname "Failed to uninstall"
                     }
                 }
             }
@@ -6197,7 +6262,7 @@ proc macports::_exec_upgrade {oplist upgrade_count} {
             mportclose $mport
         }
     }
-    return $status
+    return [list $status $failed_ports]
 }
 
 # mportselect
