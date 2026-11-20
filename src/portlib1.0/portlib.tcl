@@ -1935,7 +1935,7 @@ namespace eval portlib {
 
                     set failed? 1
                 } on error {{POSIX *} eCode eMessage} {
-                    foreach {- errName msg} {
+                    foreach {- errName msg} $eCode {
                         ui_error "failed to execute $dscl: $errName: $msg"
                         ui_debug "dscl printed: $eMessage"
                     }
@@ -1950,7 +1950,7 @@ namespace eval portlib {
                         macports_try {
                             exec -ignorestderr $dscl . -delete /Users/${username}
                         } on error {{CHILDKILLED *} eCode eMessage} {
-                            foreach {- pid sigName msg} {
+                            foreach {- pid sigName msg} $eCode {
                                 ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $username."
                                 ui_debug "dscl printed: $eMessage"
                             }
@@ -1958,7 +1958,7 @@ namespace eval portlib {
                             # ignoring childstatus failure, because that probably means
                             # the first call failed and the user wasn't even created
                         } on error {{POSIX *} eCode eMessage} {
-                            foreach {- errName msg} {
+                            foreach {- errName msg} $eCode {
                                 ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $username."
                                 ui_debug "dscl printed: $eMessage"
                             }
@@ -2041,7 +2041,7 @@ namespace eval portlib {
 
                     set failed? 1
                 } on error {{POSIX *} eCode eMessage} {
-                    foreach {- errName msg} {
+                    foreach {- errName msg} $eCode {
                         ui_error "failed to execute $dscl: $errName: $msg"
                         ui_debug "dscl printed: $eMessage"
                     }
@@ -2056,7 +2056,7 @@ namespace eval portlib {
                         macports_try {
                             exec -ignorestderr $dscl . -delete /Groups/${groupname}
                         } on error {{CHILDKILLED *} eCode eMessage} {
-                            foreach {- pid sigName msg} {
+                            foreach {- pid sigName msg} $eCode {
                                 ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $groupname."
                                 ui_debug "dscl printed: $eMessage"
                             }
@@ -2064,7 +2064,7 @@ namespace eval portlib {
                             # ignoring childstatus failure, because that probably means
                             # the first call failed and the user wasn't even created
                         } on error {{POSIX *} eCode eMessage} {
-                            foreach {- errName msg} {
+                            foreach {- errName msg} $eCode {
                                 ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $groupname."
                                 ui_debug "dscl printed: $eMessage"
                             }
