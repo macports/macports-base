@@ -2138,19 +2138,19 @@ namespace eval portlib {
                     set raw_contents [exec -ignorestderr [macports::findBinary tar ${::portlib::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [macports::findBinary lzma ""] ./+CONTENTS]
                 }
                 xar {
-                    system -W ${tempdir} "[macports::findBinary xar ${::portlib::autoconf::xar_path}] -xf [shellescape $archive_location] +CONTENTS"
+                    system -W ${tempdir} "[macports::findBinary xar ${::portlib::autoconf::xar_path}] -xf [macports::shellescape $archive_location] +CONTENTS"
                 }
                 zip {
                     set raw_contents [exec -ignorestderr [macports::findBinary unzip ${::portlib::autoconf::unzip_path}] -p $archive_location +CONTENTS]
                 }
                 cpgz {
-                    system -W ${tempdir} "[macports::findBinary pax ${::portlib::autoconf::pax_path}] -rzf [shellescape $archive_location] +CONTENTS"
+                    system -W ${tempdir} "[macports::findBinary pax ${::portlib::autoconf::pax_path}] -rzf [macports::shellescape $archive_location] +CONTENTS"
                 }
                 cpio {
-                    system -W ${tempdir} "[macports::findBinary pax ${::portlib::autoconf::pax_path}] -rf [shellescape $archive_location] +CONTENTS"
+                    system -W ${tempdir} "[macports::findBinary pax ${::portlib::autoconf::pax_path}] -rf [macports::shellescape $archive_location] +CONTENTS"
                 }
                 aar {
-                    system -W ${tempdir} "[macports::findBinary aa ${::portlib::autoconf::aa_path}] extract -i [shellescape $archive_location] -include-path +CONTENTS"
+                    system -W ${tempdir} "[macports::findBinary aa ${::portlib::autoconf::aa_path}] extract -i [macports::shellescape $archive_location] -include-path +CONTENTS"
                 }
             }
             if {[info exists twostep]} {
