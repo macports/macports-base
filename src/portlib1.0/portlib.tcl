@@ -42,41 +42,36 @@ namespace eval portlib {
         # Sites defined in archive_sites.conf
         variable conf_sites
 
-        # Return URLs for a given site name
-        proc get_archive_site_urls {mirrorfile site} {
+        proc get_archive_site_prop {mirrorfile site prop} {
             variable conf_sites
-            if {[dict exists $conf_sites urls $site]} {
-                return [dict get $conf_sites urls $site]
+            if {![info exists conf_sites]} {
+                load_conf_sites
+            }
+            if {[dict exists $conf_sites $prop $site]} {
+                return [dict get $conf_sites $prop $site]
             }
             variable sites
-            return [dict getwithdefault $sites $mirrorfile urls $site {}]
+            if {![dict exists $sites $mirrorfile]} {
+                load_global_sites $mirrorfile
+            }
+            return [dict getwithdefault $sites $mirrorfile $prop $site {}]
+        }
+
+        # Return URLs for a given site name
+        proc get_archive_site_urls {mirrorfile site} {
+            return [get_archive_site_prop $mirrorfile $site urls]
         }
 
         proc get_archive_site_archivetype {mirrorfile site} {
-            variable conf_sites
-            if {[dict exists $conf_sites archivetype $site]} {
-                return [dict get $conf_sites archivetype $site]
-            }
-            variable sites
-            return [dict getwithdefault $sites $mirrorfile archivetype $site {}]
+            return [get_archive_site_prop $mirrorfile $site archivetype]
         }
 
         proc get_archive_site_sigtype {mirrorfile site} {
-            variable conf_sites
-            if {[dict exists $conf_sites sigtype $site]} {
-                return [dict get $conf_sites sigtype $site]
-            }
-            variable sites
-            return [dict getwithdefault $sites $mirrorfile sigtype $site {}]
+            return [get_archive_site_prop $mirrorfile $site sigtype]
         }
 
         proc get_archive_site_pubkey {mirrorfile site} {
-            variable conf_sites
-            if {[dict exists $conf_sites pubkey $site]} {
-                return [dict get $conf_sites pubkey $site]
-            }
-            variable sites
-            return [dict getwithdefault $sites $mirrorfile pubkey $site {}]
+            return [get_archive_site_prop $mirrorfile $site pubkey]
         }
 
         # Default value for archive_sites Portfile option
