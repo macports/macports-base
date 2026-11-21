@@ -1,0 +1,6 @@
+This test checks a forced upgrade with -b -p of a port that has no
+binary archive: the upgrade fails without building the port from
+source, and the installed version is kept.
+
+See ticket #74668,
+https://trac.macports.org/ticket/74668
