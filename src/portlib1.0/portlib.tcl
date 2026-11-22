@@ -42,7 +42,7 @@ namespace eval portlib {
         # Sites defined in archive_sites.conf
         variable conf_sites
 
-        proc get_archive_site_prop {mirrorfile site prop} {
+        proc get_archive_site_prop {prop mirrorfile site} {
             variable conf_sites
             if {![info exists conf_sites]} {
                 load_conf_sites
@@ -55,23 +55,6 @@ namespace eval portlib {
                 load_global_sites $mirrorfile
             }
             return [dict getwithdefault $sites $mirrorfile $prop $site {}]
-        }
-
-        # Return URLs for a given site name
-        proc get_archive_site_urls {mirrorfile site} {
-            return [get_archive_site_prop $mirrorfile $site urls]
-        }
-
-        proc get_archive_site_archivetype {mirrorfile site} {
-            return [get_archive_site_prop $mirrorfile $site archivetype]
-        }
-
-        proc get_archive_site_sigtype {mirrorfile site} {
-            return [get_archive_site_prop $mirrorfile $site sigtype]
-        }
-
-        proc get_archive_site_pubkey {mirrorfile site} {
-            return [get_archive_site_prop $mirrorfile $site pubkey]
         }
 
         # Default value for archive_sites Portfile option

@@ -2293,10 +2293,10 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     # archive sites
     $workername alias portarchivefetch::get_default_archive_sites portlib::archive_sites::get_default_archive_sites
-    $workername alias portarchivefetch::get_archive_site_urls portlib::archive_sites::get_archive_site_urls
-    $workername alias portarchivefetch::get_archive_site_archivetype portlib::archive_sites::get_archive_site_archivetype
-    $workername alias portarchivefetch::get_archive_site_sigtype portlib::archive_sites::get_archive_site_sigtype
-    $workername alias portarchivefetch::get_archive_site_pubkey portlib::archive_sites::get_archive_site_pubkey
+    $workername alias portarchivefetch::get_archive_site_urls portlib::archive_sites::get_archive_site_prop urls
+    $workername alias portarchivefetch::get_archive_site_archivetype portlib::archive_sites::get_archive_site_prop archivetype
+    $workername alias portarchivefetch::get_archive_site_sigtype portlib::archive_sites::get_archive_site_prop sigtype
+    $workername alias portarchivefetch::get_archive_site_pubkey portlib::archive_sites::get_archive_site_prop pubkey
     # variant_descriptions.conf
     $workername alias get_variant_description macports::get_variant_description
 

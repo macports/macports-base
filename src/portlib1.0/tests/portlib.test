@@ -132,11 +132,11 @@ test get_archive_site_lazy_load {
     close $fd
 } -body {
     list \
-        [portlib::archive_sites::get_archive_site_urls $mirror_path localconf] \
-        [portlib::archive_sites::get_archive_site_archivetype $mirror_path localconf] \
-        [portlib::archive_sites::get_archive_site_urls $mirror_path globaltest] \
-        [portlib::archive_sites::get_archive_site_sigtype $mirror_path globaltest] \
-        [portlib::archive_sites::get_archive_site_pubkey $mirror_path globaltest]
+        [portlib::archive_sites::get_archive_site_prop urls $mirror_path localconf] \
+        [portlib::archive_sites::get_archive_site_prop archivetype $mirror_path localconf] \
+        [portlib::archive_sites::get_archive_site_prop urls $mirror_path globaltest] \
+        [portlib::archive_sites::get_archive_site_prop sigtype $mirror_path globaltest] \
+        [portlib::archive_sites::get_archive_site_prop pubkey $mirror_path globaltest]
 } -cleanup {
     set macports::archive_sites_conf $saved_conf
     set portlib::archive_sites::sites $saved_sites
