@@ -2196,13 +2196,13 @@ namespace eval portlib {
         # Recursively chown the given file or directory to the specified user.
         #
         # @param path the file/directory to be chowned
-        # @param user the user to chown file to
-        proc chown {path user} {
-            lchown $path $user
+        # @param args 1-2 more args, user and optionally group to chown to
+        proc chown {path args} {
+            lchown $path {*}$args
 
             if {[file isdirectory $path]} {
                 fs-traverse myfile [list $path] {
-                    lchown $myfile $user
+                    lchown $myfile {*}$args
                 }
             }
         }
