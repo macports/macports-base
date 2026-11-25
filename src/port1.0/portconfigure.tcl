@@ -497,6 +497,7 @@ proc portconfigure::configure_get_fortran_compiler {} {
 #| 1999 (C99)   |     -     |       -       |     -     |    4.0    |
 #| 2011 (C11)   |    3.3    |  500.2.75     |    5.0    |    4.9    |
 #| 2017 (C17)   |    6.0    |  1000.11.45.2 |   10.0    |    8.0    |
+#| 2023 (C23)   |    18     |  1700(?)      |   16.3(?) |   14.1    |
 #--------------------------------------------------------------------
 #
 # https://clang.llvm.org/cxx_status.html
@@ -512,6 +513,7 @@ proc portconfigure::configure_get_fortran_compiler {} {
 #| 2014 (C++14) |    3.4    |   602.0.49     |    6.3    |      5      |
 #| 2017 (C++17) |    5.0    |  1000.11.45.2  |   10.0    |      7      |
 #| 2020 (C++20) |    16     |  1500(?)       |   15.0(?) |     12      |
+#| 2023 (C++23) |    17     |  1600(?)       |   16.0(?) |     12      |
 #-----------------------------------------------------------------------
 #
 # https://openmp.llvm.org
@@ -571,12 +573,16 @@ proc portconfigure::get_min_command_line {compiler} {
             } {
                 return none
             }
-            if {${compiler.c_standard} >= 2017} {
+            if {${compiler.c_standard} >= 2023} {
+                set min_value [max_version $min_value 1700]
+            } elseif {${compiler.c_standard} >= 2017} {
                 set min_value [max_version $min_value 1000.11.45.2]
             } elseif {${compiler.c_standard} >= 2011} {
                 set min_value [max_version $min_value 500.2.75]
             }
-            if {${compiler.cxx_standard} >= 2020} {
+            if {${compiler.cxx_standard} >= 2023} {
+                set min_value [max_version $min_value 1600]
+            } elseif {${compiler.cxx_standard} >= 2020} {
                 set min_value [max_version $min_value 1500]
             } elseif {${compiler.cxx_standard} >= 2017} {
                 set min_value [max_version $min_value 1000.11.45.2]
@@ -622,12 +628,16 @@ proc portconfigure::get_min_clang {} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version \
            compiler.thread_local_storage configure.cxx_stdlib
     set min_value 1.0
-    if {${compiler.c_standard} >= 2017} {
+    if {${compiler.c_standard} >= 2023} {
+        set min_value [max_version $min_value 18]
+    } elseif {${compiler.c_standard} >= 2017} {
         set min_value [max_version $min_value 6.0]
     } elseif {${compiler.c_standard} >= 2011} {
         set min_value [max_version $min_value 3.1]
     }
-    if {${compiler.cxx_standard} >= 2020} {
+    if {${compiler.cxx_standard} >= 2023} {
+        set min_value [max_version $min_value 17]
+    } elseif {${compiler.cxx_standard} >= 2020} {
         set min_value [max_version $min_value 16]
     } elseif {${compiler.cxx_standard} >= 2017} {
         set min_value [max_version $min_value 5.0]
@@ -675,7 +685,9 @@ proc portconfigure::get_min_gcc {} {
            compiler.support_environment_sdkroot configure.sdkroot
 
     set min_value 1.0
-    if {${compiler.c_standard} >= 2017} {
+    if {${compiler.c_standard} >= 2023} {
+        set min_value [max_version $min_value 14]
+    } elseif {${compiler.c_standard} >= 2017} {
         set min_value [max_version $min_value 8]
     } elseif {${compiler.c_standard} >= 2011} {
         set min_value [max_version $min_value 4.3]
