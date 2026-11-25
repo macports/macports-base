@@ -320,11 +320,12 @@ namespace eval restore {
     # Get the port that satisfies a depspec, with respect to the files
     # in the snapshot for path-pased deps.
     proc resolve_depspec {depspec ports snapshot_id} {
-        set remaining [lassign [split $depspec :] type next]
+        set parts [split $depspec :]
+        lassign $parts type next
+        set portname [lindex $parts end]
         if {$type eq "port"} {
-            return [lindex [split $depspec :] end]
+            return $portname
         }
-        set portname [lindex $remaining end]
         if {[dict exists $ports $portname] && [lindex [dict get $ports $portname] 1]} {
             # Port is active in the snapshot.
             return $portname
