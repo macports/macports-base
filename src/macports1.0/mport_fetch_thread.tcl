@@ -239,11 +239,13 @@ namespace eval mport_fetch_thread {
                 } on error {err} {
                     set result [list 1 $err]
                 } finally {
-                    # Set the result in the thread that wants it
-                    thread::send -async $result_tid [list set $result_var $result]
-                    # Tell the management thread we're done
-                    set was_fetch [expr {$op in {fetch_archive fetch_file}}]
-                    thread::send -async $management_tid [list thread_done [thread::id] $was_fetch]
+                    try {
+                        # Set the result in the thread that wants it
+                        thread::send -async $result_tid [list set $result_var $result]
+                        # Tell the management thread we're done
+                        set was_fetch [expr {$op in {fetch_archive fetch_file}}]
+                        thread::send -async $management_tid [list thread_done [thread::id] $was_fetch]
+                    } on error {} {}
                 }
             }
 
