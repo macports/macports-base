@@ -88,6 +88,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     }
     set rename_list [dict getwithdefault $options portactivate_rename_files [list]]
     set todeactivate [list]
+    set actaction "Activating"
 
     registry::read {
 
@@ -101,9 +102,14 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
         set location [$requested location]
 
         if {[$requested state] eq "installed"} {
-            ui_info "${name} @${specifier} is already active."
-            #registry::entry close $requested
-            return
+            if {$force} {
+                set actaction "Reactivating"
+                lappend todeactivate $requested
+            } else {
+                ui_info "${name} @${specifier} is already active."
+                #registry::entry close $requested
+                return
+            }
         }
 
         # this shouldn't be possible
@@ -134,7 +140,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
             }
         }
 
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "$actaction %s @%s"] $name $specifier]"
 
         _activate_contents $requested $rename_list
     } finally {
