@@ -328,9 +328,15 @@ namespace eval diagnose {
 
         output "HomeBrew"
 
-        if {[file exists "/usr/local/Cellar"]} {
-            ui_warn "it seems you have Homebrew installed on this system -- Because Homebrew uses /usr/local, this can potentially cause issues\
-                     with MacPorts. We'd recommend you either uninstall it, or move it from /usr/local for now."
+        set brew_paths [list]
+        foreach dir {/usr/local /opt/homebrew} {
+            if {[file exists [file join $dir Cellar]]} {
+                lappend brew_paths $dir
+            }
+        }
+        if {[llength $brew_paths] > 0} {
+            ui_warn "it seems you have Homebrew installed on this system -- This could potentially cause issues\
+                     with MacPorts. We'd recommend you either uninstall it, or move it from [join $brew_paths { and }] for now."
 
             success_fail 0
 
