@@ -608,7 +608,7 @@ namespace eval diagnose {
             return
         }
 
-        if {$xcode_current in $xcode_versions} {
+        if {$xcode_current in $xcode_versions || ($xcode_current eq "none" && [vercmp $mac_version >= "10.9"])} {
             success_fail 1
         } else {
             foreach ver $xcode_versions {
