@@ -1,0 +1,26 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem      1.0
+
+name            upgrade-binary-only-processall
+version         1
+categories      test
+maintainers     nomaintainer
+description     Test port for a binary-only upgrade with -p
+homepage        https://www.macports.org/
+platforms       darwin
+supported_archs noarch
+configure.cxx_stdlib
+
+long_description ${description}
+
+distfiles
+use_configure   no
+# No binary archives: a binary-only rebuild fails.
+archive_sites
+
+build {}
+destroot {
+    xinstall -d ${destroot}${prefix}/share/${name}
+    close [open ${destroot}${prefix}/share/${name}/installed w]
+}
