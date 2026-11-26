@@ -127,6 +127,72 @@ proc verify_signature {archive_path sig_path} {
     return 0
 }
 
+proc ensure_dest_dirs {incoming_path} {
+    global macportsuser install.user install.group archivefetch.fulldestpath
+    if {[getuid] == 0} {
+        elevateToRoot "archivefetch"
+        set elevated yes
+    } else {
+        set elevated no
+    }
+
+    if {![file isdirectory ${archivefetch.fulldestpath}]} {
+        if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
+            return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
+        }
+    }
+    if {![file isdirectory $incoming_path]} {
+        if {[catch {file mkdir $incoming_path} result]} {
+            return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
+        }
+    }
+
+    if {$elevated} {
+        file attributes ${archivefetch.fulldestpath} \
+            -owner ${install.user} -group ${install.group}
+        file attributes $incoming_path -owner $macportsuser
+    }
+    file attributes ${archivefetch.fulldestpath} -permissions 0o755
+    file attributes $incoming_path -permissions 0o755
+
+    if {$elevated} {
+        dropPrivileges
+    }
+}
+
+# like chownAsRoot but not recursive
+proc chown_files {paths owner {group {}}} {
+    if {[getuid] != 0} {
+        return
+    }
+    elevateToRoot "archivefetch"
+    try {
+        set args [list -owner $owner]
+        if {$group ne {}} {
+            lappend args -group $group
+        }
+        foreach path $paths {
+            file attributes $path {*}$args
+        }
+    } finally {
+        dropPrivileges
+    }
+}
+
+proc rename_as_root {src dest} {
+    if {[getuid] == 0} {
+        elevateToRoot "archivefetch"
+        set elevated yes
+    }
+    try {
+        file rename -force $src $dest
+    } finally {
+        if {[info exists elevated]} {
+            dropPrivileges
+        }
+    }
+}
+
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc fetchfiles {{async no} args} {
@@ -134,7 +200,7 @@ proc fetchfiles {{async no} args} {
            archivefetch.password archivefetch.use_epsv \
            archivefetch.ignore_sslcert archive.subdir portverbose \
            ports_binary_only portdbpath force_archive_refresh \
-           subport
+           subport macportsuser install.user install.group
     variable archivefetch_urls
     variable ::portfetch::urlmap
     variable async_job
@@ -170,20 +236,8 @@ proc fetchfiles {{async no} args} {
         set async_done 0
     }
 
-    if {![file isdirectory ${archivefetch.fulldestpath}]} {
-        if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
-            elevateToRoot "archivefetch"
-            set elevated yes
-            if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
-                return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
-            }
-        }
-    }
     set incoming_path [file join ${portdbpath} incoming]
-    chownAsRoot $incoming_path
-    if {[info exists elevated] && $elevated eq "yes"} {
-        dropPrivileges
-    }
+    ensure_dest_dirs $incoming_path
 
     set fetch_options [list]
     set credentials {}
@@ -224,9 +278,6 @@ proc fetchfiles {{async no} args} {
             } elseif {!$async_done} {
                 ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
             }
-            if {![file writable ${archivefetch.fulldestpath}]} {
-                return -code error [format [msgcat::mc "%s must be writable"] ${archivefetch.fulldestpath}]
-            }
             if {![file writable $incoming_path]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $incoming_path]
             }
@@ -260,15 +311,14 @@ proc fetchfiles {{async no} args} {
             if {$async} {
                 file delete -force $archive_tmp_path
                 touch $archive_tmp_path
-                chownAsRoot $archive_tmp_path
                 set tmpfiles [list $archive_tmp_path]
                 foreach sigtype $sigtypes {
                     set sigpath ${incoming_path}/${archive}.${sigtype}
                     lappend tmpfiles $sigpath
                     file delete -force $sigpath
                     touch $sigpath
-                    chownAsRoot $sigpath
                 }
+                chown_files $tmpfiles $macportsuser
                 if {[tbool ports_binary_only] || [_archive_available]} {
                     set this_urlmap $urlmap($url_var)
                     set maxfails 0
@@ -344,6 +394,7 @@ proc fetchfiles {{async no} args} {
                     }
                 }
                 if {$archive_fetched && $sig_fetched} {
+                    fileAttrsAsRoot $archive_tmp_path [list -owner ${install.user} -group ${install.group} -permissions 0o644]
                     set verified [verify_signature $archive_tmp_path $signature]
                     file delete -force $signature
                     if {!$verified} {
@@ -351,12 +402,14 @@ proc fetchfiles {{async no} args} {
                         ui_warn "Failed to verify signature for archive!"
                         file delete -force $archive_tmp_path
                         break
-                    } elseif {[catch {file rename -force $archive_tmp_path ${archivefetch.fulldestpath}/${archive}} result]} {
-                        ui_debug "$::errorInfo"
-                        return -code error "Failed to move downloaded archive into place: $result"
+                    } else {
+                        if {[catch {rename_as_root $archive_tmp_path ${archivefetch.fulldestpath}/${archive}} result]} {
+                            ui_debug "$::errorInfo"
+                            return -code error "Failed to move downloaded archive into place: $result"
+                        }
+                        set archive_exists 1
+                        break
                     }
-                    set archive_exists 1
-                    break
                 }
             }
         } elseif {$async} {
