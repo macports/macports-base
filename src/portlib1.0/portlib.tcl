@@ -174,7 +174,7 @@ namespace eval portlib {
                     dict set defaults cxx_stdlib libc++
                     dict set defaults delete_la_files yes
                 }
-                set conf_options [list applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix type urls]
+                set conf_options [list applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix sigtype type urls]
                 set line_re {^(\w+)([ \t]+(.*))?$}
                 set fd [open $archive_sites_conf r]
                 while {[gets $fd line] >= 0} {
