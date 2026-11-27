@@ -136,27 +136,29 @@ proc ensure_dest_dirs {incoming_path} {
         set elevated no
     }
 
-    if {![file isdirectory ${archivefetch.fulldestpath}]} {
-        if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
-            return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
+    try {
+        if {![file isdirectory ${archivefetch.fulldestpath}]} {
+            if {[catch {file mkdir ${archivefetch.fulldestpath}} result]} {
+                return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
+            }
         }
-    }
-    if {![file isdirectory $incoming_path]} {
-        if {[catch {file mkdir $incoming_path} result]} {
-            return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
+        if {![file isdirectory $incoming_path]} {
+            if {[catch {file mkdir $incoming_path} result]} {
+                return -code error [format [msgcat::mc "Unable to create archive path: %s"] $result]
+            }
         }
-    }
 
-    if {$elevated} {
-        file attributes ${archivefetch.fulldestpath} \
-            -owner ${install.user} -group ${install.group}
-        file attributes $incoming_path -owner $macportsuser
-    }
-    file attributes ${archivefetch.fulldestpath} -permissions 0o755
-    file attributes $incoming_path -permissions 0o755
-
-    if {$elevated} {
-        dropPrivileges
+        if {$elevated} {
+            file attributes ${archivefetch.fulldestpath} \
+                -owner ${install.user} -group ${install.group}
+            file attributes $incoming_path -owner $macportsuser
+        }
+        file attributes ${archivefetch.fulldestpath} -permissions 0o755
+        file attributes $incoming_path -permissions 0o755
+    } finally {
+        if {$elevated} {
+            dropPrivileges
+        }
     }
 }
 
