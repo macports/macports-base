@@ -5931,7 +5931,11 @@ proc macports::_exec_upgrade_error {{statuscode 1} {portname {}} {reason {}}} {
               dep_graph dep_graph
         dict set failed_ports $portname $reason
 
-        # Walk the dependency graph to find dependents
+        # Walk the dependency graph to find dependents. The node won't
+        # exist yet if dependencies were not followed (ports_nodeps).
+        if {![$dep_graph node exists $portname]} {
+            $dep_graph node insert $portname
+        }
         set level "#[info level]"
         $dep_graph walk $portname \
             -type dfs \
