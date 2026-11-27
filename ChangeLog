@@ -28,7 +28,13 @@ Release 2.13.0 (unreleased)
     - Add livecheck.user_agent option.
       (#64369, herbygillot in 0d4b57b05)
 
-    - Update the bundled copy of Tcl to version 9.0.3. (jmr in d875700)
+    - The formula for calculating the default for build.jobs now rounds
+      instead of using truncating division and adding 1, which should
+      improve performance in memory constrained environments.
+      (#73571, jmr in 7bafac2)
+
+    - Update the bundled copy of Tcl to version 9.0.4.
+      (jmr in d875700, 49767c8)
 
     - Fix trace mode on arm64 for macOS > 14.
       (#66358, cal in aacd364)
