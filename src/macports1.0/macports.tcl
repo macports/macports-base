@@ -4415,6 +4415,7 @@ proc mportlookup {name} {
         # The quick index is keyed on the port name, and provides the offset in
         # the main PortIndex where the given port's PortInfo line can be found.
         set offset [dict get $quick_index $sourceno $normname]
+        set this_sourceno $sourceno
         incr sourceno 1
         if {[catch {set fd [open [macports::getindex $source] r]} result]} {
             ui_warn "Can't open index file for source: $source"
@@ -4424,7 +4425,7 @@ proc mportlookup {name} {
                 gets $fd line
                 if {[catch {set found_name [lindex $line 0]}] || ![string equal -nocase $found_name $name]} {
                     _mports_load_quickindex
-                    set offset [dict get $quick_index $sourceno $normname]
+                    set offset [dict get $quick_index $this_sourceno $normname]
                     seek $fd $offset
                     gets $fd line
                     set found_name [lindex $line 0]
