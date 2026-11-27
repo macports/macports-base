@@ -3888,12 +3888,17 @@ proc action_clean {action portlist opts} {
         return [action_target $action $portlist $opts]
     }
     # handle --purge (delete all files in the relevant dirs)
+    set dryrun [macports::global_option_isset ports_dryrun]
     if {[dict exists $opts ports_clean_archive] || [dict exists $opts ports_clean_all]} {
         set archives_dir [macports::get_dir_path incoming]
         set to_delete [glob -directory $archives_dir -types f *]
         set verified_dir [file join $archives_dir verified]
         lappend to_delete {*}[glob -directory $verified_dir -types f *]
         foreach f $to_delete {
+            if {$dryrun} {
+                ui_msg "Skipping deletion of $f (dry run)"
+                continue
+            }
             ui_info "Deleting $f"
             file delete $f
         }
@@ -3913,6 +3918,10 @@ proc action_clean {action portlist opts} {
     }
     foreach dir $delete_dirs {
         foreach direntry [glob -directory $dir *] {
+            if {$dryrun} {
+                ui_msg "Skipping deletion of $direntry (dry run)"
+                continue
+            }
             ui_info "Deleting $direntry"
             file delete -force $direntry
         }
