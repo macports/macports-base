@@ -5211,6 +5211,7 @@ proc macports::upgrade_multi {portnames argdict options {depscachename {}}} {
     set upgrade_portcount 0
     set dep_graph [::struct::graph]
     set status 0
+    set failed_ports [dict create]
     foreach portname $portnames {
         set dspec [dict get $argdict $portname dspec]
         if {![info exists depscache($dspec)]} {
