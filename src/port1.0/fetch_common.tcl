@@ -69,7 +69,7 @@ proc portfetch::resolve_env_site {site} {
         if {[regexp $tagged_url_re $element]} {
             # two tags
             set resolved_element [resolve_mirror_tags $element {} $tag $name $dist_subdir]
-            resolved_is_tagged 1
+            set resolved_is_tagged 1
         } else {
             # single tag
             set resolved_element [resolve_mirror_tags $site {} {} $name $dist_subdir]
