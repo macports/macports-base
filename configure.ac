@@ -517,7 +517,7 @@ if test "$CRITCL_PLATFORMS" = "" -a "$OS_PLATFORM" = darwin; then
 fi
 CRITCL_PLATFORMS="$(echo "$CRITCL_PLATFORMS" | \
     sed -E -e 's/macosx-a(rm|arch)64/macosx-aarch64 macosx-arm macosx-arm64 macos-aarch64 macos-arm macos-arm64/' \
-        -e 's/macosx-x86_64/macosx-x86_64 macos-x86_64/'
+        -e 's/macosx-x86_64/macosx-x86_64 macos-x86_64/' \
         -e 's/macosx-i[[3-6]]86/macosx-ix86/' \
         -e 's/macosx-ppc/macosx-powerpc/' \
         | tr '\n' ' ')"
