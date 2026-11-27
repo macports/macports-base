@@ -7154,7 +7154,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
                 set index [lsearch -exact $unsorted_ports $lowest_adj_port]
                 lpop unsorted_ports $index
 
-                foreach target $revadjlist($port) {
+                foreach target $revadjlist($lowest_adj_port) {
                     set index [lsearch -exact $adjlist($target) $lowest_adj_port]
                     lpop adjlist($target) $index
                 }
