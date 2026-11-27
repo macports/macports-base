@@ -1987,6 +1987,7 @@ match macports.conf.default."
     # load caches on demand
     trace add variable macports::compiler_version_cache read macports::load_compiler_version_cache
     trace add variable macports::ping_cache {read write} macports::load_ping_cache
+    trace add variable macports::ping_aliases read macports::load_ping_aliases
     if {![info exists host_blacklist]} {
         set host_blacklist {}
     }
@@ -7329,6 +7330,26 @@ proc macports::load_ping_cache {name1 name2 op} {
     }
 }
 
+# Deferred loading of ping aliases dict
+proc macports::load_ping_aliases {name1 name2 op} {
+    variable ping_aliases
+    trace remove variable ping_aliases read macports::load_ping_aliases
+    macports_try -pass_signal {
+        set path [macports::getdefaultportresourcepath port1.0/fetch/ping_aliases]
+        if {[file isfile $path]} {
+            set fd [open $path r]
+            gets $fd ping_aliases
+            close $fd
+        }
+    } on error {err} {
+        ui_warn "Failed to load ping_aliases: $err"
+    } finally {
+        if {![info exists ping_aliases]} {
+            set ping_aliases [dict create]
+        }
+    }
+}
+
 # get cached ping time for host, modified by blacklist and preferred list
 # return status:
 # -2 blacklisted
@@ -7360,6 +7381,10 @@ proc macports::get_pingtime {host} {
         return [dict get $host_cache $host]
     }
 
+    variable ping_aliases
+    if {[dict exists $ping_aliases $host]} {
+        set host [dict get $ping_aliases $host]
+    }
     variable ping_cache
     if {[dict exists $ping_cache $host]} {
         # consider entries stale after 1 day
@@ -7411,6 +7436,7 @@ proc macports::async_ping_start {urls tag} {
     variable pending_ping_count_by_tag
     variable total_ping_count_by_tag
     variable pending_pings
+    variable ping_aliases
     foreach url $urls {
         set url_parts [::uri::split $url]
         # skip if required components are not present
@@ -7419,7 +7445,7 @@ proc macports::async_ping_start {urls tag} {
         }
         set host [dict get $url_parts host]
         # skip if a ping is already pending for this host
-        if {[dict exists $pending_pings $host]} {
+        if {[dict exists $pending_pings $host] || [dict exists $ping_aliases $host]} {
             continue
         }
         # skip if the cache entry is not missing or stale
