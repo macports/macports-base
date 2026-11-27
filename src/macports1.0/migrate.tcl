@@ -254,7 +254,7 @@ namespace eval migrate {
             # Check if our tclsh has an arm64 slice - rebuilding not needed if it's universal
             set h [machista::create_handle]
             set rlist [machista::parse_file $h $::macports::autoconf::tclsh_path]
-            if {[lindex $rlist 0] == $machista::SUCCESS} {
+            if {[lindex $rlist 0] == $::machista::SUCCESS} {
                 set r [lindex $rlist 1]
                 set a [$r cget -mt_archs]
                 set has_arm64 0
