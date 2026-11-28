@@ -5925,26 +5925,27 @@ proc macports::_exec_upgrade_error {{statuscode 1} {portname {}} {reason {}}} {
     upvar status status
     set status $statuscode
     if {$portname ne {}} {
-        upvar failed_ports failed_ports \
-              track_deps_ports track_deps_ports \
-              dep_graph dep_graph
+        upvar failed_ports failed_ports
         dict set failed_ports $portname $reason
-
-        # Walk the dependency graph to find dependents
-        set level "#[info level]"
-        $dep_graph walk $portname \
-            -type dfs \
-            -order pre \
-            -dir backward \
-            -command [list apply [list {level mode dep_graph node} {
-                if {$mode eq "enter"} {
-                    uplevel $level [subst -nocommands {
-                        if {[dict exists \$track_deps_ports $node] && ![dict exists \$failed_ports $node]} {
-                            dict set failed_ports $node "dependency \$portname failed"
-                        }
-                    }]
-                }
-            }] $level]
+        if {[$dep_graph node exists $portname]} {
+            upvar track_deps_ports track_deps_ports \
+                  dep_graph dep_graph
+            # Walk the dependency graph to find dependents
+            set level "#[info level]"
+            $dep_graph walk $portname \
+                -type dfs \
+                -order pre \
+                -dir backward \
+                -command [list apply [list {level mode dep_graph node} {
+                    if {$mode eq "enter"} {
+                        uplevel $level [subst -nocommands {
+                            if {[dict exists \$track_deps_ports $node] && ![dict exists \$failed_ports $node]} {
+                                dict set failed_ports $node "dependency \$portname failed"
+                            }
+                        }]
+                    }
+                }] $level]
+        }
     }
     if {![ui_isset ports_processall]} {
         return -code break
