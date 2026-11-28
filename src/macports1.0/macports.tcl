@@ -4403,20 +4403,17 @@ proc mportlookup {name} {
     global macports::quick_index macports::sources \
            macports::porturl_prefix_map
 
-    set sourceno 0
     set matches [list]
     set normname [string tolower $name]
-    foreach source $sources {
+    foreach source $sources sourceno [lseq [llength $sources]] {
         if {![dict exists $quick_index $sourceno $normname]} {
             # no entry in this source, advance to next source
-            incr sourceno 1
             continue
         }
         set source [lindex $source 0]
         # The quick index is keyed on the port name, and provides the offset in
         # the main PortIndex where the given port's PortInfo line can be found.
         set offset [dict get $quick_index $sourceno $normname]
-        incr sourceno 1
         if {[catch {set fd [open [macports::getindex $source] r]} result]} {
             ui_warn "Can't open index file for source: $source"
         } else {
