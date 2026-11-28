@@ -5925,11 +5925,11 @@ proc macports::_exec_upgrade_error {{statuscode 1} {portname {}} {reason {}}} {
     upvar status status
     set status $statuscode
     if {$portname ne {}} {
-        upvar failed_ports failed_ports
+        upvar failed_ports failed_ports \
+              dep_graph dep_graph
         dict set failed_ports $portname $reason
         if {[$dep_graph node exists $portname]} {
-            upvar track_deps_ports track_deps_ports \
-                  dep_graph dep_graph
+            upvar track_deps_ports track_deps_ports
             # Walk the dependency graph to find dependents
             set level "#[info level]"
             $dep_graph walk $portname \
